@@ -6,9 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
-import { Brain, Zap, Star, TrendingUp, Users, CheckCircle, AlertCircle } from 'lucide-react'
-import { useAction, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+import { Brain, Zap, Star, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface AIMatchResult {
@@ -56,7 +54,7 @@ export default function AIMatchingTest() {
       // Mock AI analysis for demonstration
       await new Promise(resolve => setTimeout(resolve, 3000)) // Simulate API delay
       
-      const mockResults = {
+      const mockResults: TestResults = {
         success: true,
         totalAnalyzed: 5,
         matches: [

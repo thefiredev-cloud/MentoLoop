@@ -95,7 +95,7 @@ export default function AdminFinancialPage() {
   }
 
   // Mock payment data
-  const mockPayments = useMemo(() => [
+  const mockPayments = useMemo((): Payment[] => [
     {
       id: 'pay_123',
       customerEmail: 'student@university.edu',

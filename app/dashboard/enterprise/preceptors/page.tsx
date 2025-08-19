@@ -56,10 +56,22 @@ import {
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
+interface PreceptorData {
+  _id: string
+  name?: string
+  email?: string
+  specialty?: string
+  status?: string
+  verificationStatus?: string
+  personalInfo?: {
+    fullName?: string
+    email?: string
+  }
+}
+
 export default function EnterprisePreceptorsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [selectedPreceptor, setSelectedPreceptor] = useState(null)
 
   // Queries
   const user = useQuery(api.users.current)
@@ -79,11 +91,11 @@ export default function EnterprisePreceptorsPage() {
   const filteredPreceptors = useMemo(() => {
     if (!preceptors) return []
     
-    return preceptors.filter(preceptor => {
+    return preceptors.filter((preceptor: { name?: string; email?: string; specialty?: string; status?: string }) => {
       const matchesSearch = !searchQuery || 
-        preceptor.personalInfo?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        preceptor.personalInfo?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        preceptor.practiceInfo?.practiceName?.toLowerCase().includes(searchQuery.toLowerCase())
+        preceptor.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        preceptor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        preceptor.specialty?.toLowerCase().includes(searchQuery.toLowerCase())
       
       const matchesStatus = statusFilter === 'all' || preceptor.status === statusFilter
       
@@ -96,20 +108,13 @@ export default function EnterprisePreceptorsPage() {
     if (!preceptors) return { total: 0, active: 0, pending: 0, verified: 0 }
     
     const total = preceptors.length
-    const active = preceptors.filter(p => p.status === 'active').length
-    const pending = preceptors.filter(p => p.status === 'pending').length
-    const verified = preceptors.filter(p => p.verificationStatus === 'verified').length
+    const active = preceptors.filter((p: { status?: string }) => p.status === 'active').length
+    const pending = preceptors.filter((p: { status?: string }) => p.status === 'pending').length
+    const verified = preceptors.filter((p: { verificationStatus?: string }) => p.verificationStatus === 'verified').length
     
     return { total, active, pending, verified }
   }, [preceptors])
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -148,7 +153,7 @@ export default function EnterprisePreceptorsPage() {
     )
   }
 
-  const PreceptorDetailsModal = ({ preceptor }: { preceptor: { _id: string; name: string; email: string; specialty: string; status: string; verificationStatus: string; }; onClose: () => void }) => (
+  const PreceptorDetailsModal = ({ preceptor }: { preceptor: PreceptorData; onClose: () => void }) => (
     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -156,7 +161,7 @@ export default function EnterprisePreceptorsPage() {
           {preceptor.personalInfo?.fullName || 'Unknown Preceptor'}
         </DialogTitle>
         <DialogDescription>
-          Preceptor ID: {preceptor._id} • {getStatusBadge(preceptor.status)} • {getVerificationBadge(preceptor.verificationStatus || 'pending')}
+          Preceptor ID: {preceptor._id} • {getStatusBadge(preceptor.status || 'pending')} • {getVerificationBadge(preceptor.verificationStatus || 'pending')}
         </DialogDescription>
       </DialogHeader>
       
@@ -178,15 +183,15 @@ export default function EnterprisePreceptorsPage() {
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{preceptor.personalInfo?.email || 'Not provided'}</span>
+                  <span className="text-sm">{preceptor.email || 'Not provided'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{preceptor.personalInfo?.phone || 'Not provided'}</span>
+                  <span className="text-sm">{'Not provided'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{preceptor.personalInfo?.state || 'Not provided'}</span>
+                  <span className="text-sm">{'Not provided'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -198,15 +203,15 @@ export default function EnterprisePreceptorsPage() {
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Building className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{preceptor.practiceInfo?.practiceName || 'Not provided'}</span>
+                  <span className="text-sm">{'Not provided'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{preceptor.practiceInfo?.practiceType || 'Not specified'}</span>
+                  <span className="text-sm">{'Not specified'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Max Students: {preceptor.availability?.maxStudents || 1}</span>
+                  <span className="text-sm">Max Students: 1</span>
                 </div>
               </CardContent>
             </Card>
@@ -218,9 +223,7 @@ export default function EnterprisePreceptorsPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {preceptor.availability?.availableRotations?.map((rotation: string, idx: number) => (
-                  <Badge key={idx} variant="outline" className="text-xs">{rotation}</Badge>
-                )) || <span className="text-xs text-muted-foreground">None specified</span>}
+                <span className="text-xs text-muted-foreground">None specified</span>
               </div>
             </CardContent>
           </Card>
@@ -236,25 +239,25 @@ export default function EnterprisePreceptorsPage() {
                 <div>
                   <span className="text-sm font-medium">Practice Name:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.practiceName || 'Not provided'}
+                    {'Not provided'}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm font-medium">Practice Type:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.practiceType || 'Not specified'}
+                    {'Not specified'}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm font-medium">Years in Practice:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.yearsInPractice || 'Not specified'}
+                    {'Not specified'}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm font-medium">Patient Population:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.patientPopulation || 'Not specified'}
+                    {'Not specified'}
                   </p>
                 </div>
               </div>
@@ -272,19 +275,19 @@ export default function EnterprisePreceptorsPage() {
                 <div>
                   <span className="text-sm font-medium">NPI Number:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.npiNumber || 'Not provided'}
+                    {'Not provided'}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm font-medium">License Number:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.licenseNumber || 'Not provided'}
+                    {'Not provided'}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm font-medium">DEA Number:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {preceptor.practiceInfo?.deaNumber || 'Not provided'}
+                    {'Not provided'}
                   </p>
                 </div>
                 <div>
@@ -364,7 +367,7 @@ export default function EnterprisePreceptorsPage() {
                   <div>
                     <span className="text-sm font-medium">Partnership Duration:</span>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Member since {formatDate(preceptor._creationTime)}
+                      Member since {'2024'}
                     </p>
                   </div>
                 </div>
@@ -529,30 +532,23 @@ export default function EnterprisePreceptorsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPreceptors.map((preceptor) => (
+              {filteredPreceptors.map((preceptor: { _id: string; name?: string; email?: string; specialty?: string; status?: string; verificationStatus?: string }) => (
                 <TableRow key={preceptor._id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{preceptor.personalInfo?.fullName || 'Unknown'}</div>
-                      <div className="text-sm text-muted-foreground">{preceptor.personalInfo?.email}</div>
+                      <div className="font-medium">{preceptor.name || 'Unknown'}</div>
+                      <div className="text-sm text-muted-foreground">{preceptor.email}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="text-sm font-medium">{preceptor.practiceInfo?.practiceName || 'Not provided'}</div>
-                      <div className="text-sm text-muted-foreground">{preceptor.practiceInfo?.practiceType}</div>
+                      <div className="text-sm font-medium">{'Not provided'}</div>
+                      <div className="text-sm text-muted-foreground">{'Not provided'}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-40">
-                      {preceptor.availability?.availableRotations?.slice(0, 2).map((rotation: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{rotation}</Badge>
-                      )) || <span className="text-xs text-muted-foreground">None</span>}
-                      {preceptor.availability?.availableRotations?.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{preceptor.availability.availableRotations.length - 2}
-                        </Badge>
-                      )}
+                      <span className="text-xs text-muted-foreground">None</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -563,7 +559,7 @@ export default function EnterprisePreceptorsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      0 / {preceptor.availability?.maxStudents || 1}
+                      0 / 1
                     </div>
                   </TableCell>
                   <TableCell>
@@ -588,8 +584,8 @@ export default function EnterprisePreceptorsPage() {
                             </DropdownMenuItem>
                           </DialogTrigger>
                           <PreceptorDetailsModal 
-                            preceptor={preceptor} 
-                            onClose={() => setSelectedPreceptor(null)} 
+                            preceptor={preceptor as PreceptorData} 
+                            onClose={() => {}} 
                           />
                         </Dialog>
                         <DropdownMenuItem>

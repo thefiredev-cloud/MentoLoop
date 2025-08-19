@@ -53,6 +53,16 @@ interface Match {
   }
   createdAt: number
   updatedAt: number
+  student?: {
+    personalInfo: {
+      fullName: string
+    }
+  }
+  preceptor?: {
+    personalInfo: {
+      fullName: string
+    }
+  }
 }
 
 export default function MatchManagementPage() {
@@ -322,7 +332,7 @@ export default function MatchManagementPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {match.studentName} → {match.preceptorName}
+                            {match.student?.personalInfo?.fullName} → {match.preceptor?.personalInfo?.fullName}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {match.rotationDetails.rotationType}

@@ -29,7 +29,7 @@ import { toast } from 'sonner'
 
 interface ProfileData {
   _id?: string
-  verificationStatus?: 'verified' | 'pending' | 'rejected'
+  verificationStatus?: 'verified' | 'pending' | 'rejected' | 'under-review'
   status?: 'submitted' | 'incomplete' | string
   [key: string]: unknown
 }
@@ -47,7 +47,7 @@ interface User {
   email?: string
   userType?: 'student' | 'preceptor' | 'admin' | 'enterprise'
   createdAt?: number
-  profileData?: ProfileData
+  profileData?: ProfileData | null
   hasProfile: boolean
   profileStatus: string
 }
@@ -139,7 +139,7 @@ export default function UserManagementPage() {
     }
   }
 
-  const handleRejectPreceptor = async (user: User, reason: string) => {
+  const _handleRejectPreceptor = async (user: User, reason: string) => {
     if (!user.profileData?._id) return
 
     try {
@@ -154,7 +154,7 @@ export default function UserManagementPage() {
   }
 
   // Handle user deletion
-  const handleDeleteUser = async (user: User, reason: string) => {
+  const _handleDeleteUser = async (user: User, reason: string) => {
     try {
       await deleteUser({
         userId: user._id,
@@ -173,6 +173,8 @@ export default function UserManagementPage() {
           return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Verified</Badge>
         case 'pending':
           return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
+        case 'under-review':
+          return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Under Review</Badge>
         case 'rejected':
           return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
         default:
@@ -345,7 +347,8 @@ export default function UserManagementPage() {
                             <Edit className="h-4 w-4" />
                           </Button>
                           {user.userType === 'preceptor' && 
-                           user.profileData?.verificationStatus === 'pending' && (
+                           user.profileData && 'verificationStatus' in user.profileData && 
+                           user.profileData.verificationStatus === 'pending' && (
                             <Button
                               variant="ghost"
                               size="sm"
