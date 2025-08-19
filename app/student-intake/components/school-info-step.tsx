@@ -48,7 +48,7 @@ export default function SchoolInfoStep({
     expectedGraduation: '',
     clinicalCoordinatorName: '',
     clinicalCoordinatorEmail: '',
-    ...data.schoolInfo
+    ...(data.schoolInfo || {})
   })
 
   // Get schools from database
@@ -125,7 +125,7 @@ export default function SchoolInfoStep({
             onValueChange={(value) => {
               handleInputChange('programName', value)
               // Auto-populate school location when a school is selected
-              const school = schoolOptions?.find(s => s.label === value)
+              const school = schoolOptions?.find((s: { label: string; location: { city: string; state: string } }) => s.label === value)
               if (school) {
                 setSelectedSchool(school)
                 handleInputChange('schoolCity', school.location.city)
@@ -137,7 +137,7 @@ export default function SchoolInfoStep({
               <SelectValue placeholder={schoolOptions ? "Select your NP program" : "Loading schools..."} />
             </SelectTrigger>
             <SelectContent>
-              {schoolOptions?.map((school) => (
+              {schoolOptions?.map((school: { value: string; label: string; location: { city: string; state: string } }) => (
                 <SelectItem key={school.value} value={school.label}>
                   {school.label}
                 </SelectItem>

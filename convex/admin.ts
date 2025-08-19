@@ -68,7 +68,7 @@ export const searchUsers = query({
         ...user,
         profileData,
         hasProfile: !!profileData,
-        profileStatus: profileData?.status || profileData?.verificationStatus || "unknown",
+        profileStatus: (profileData as any)?.status || (profileData as any)?.verificationStatus || "unknown",
       };
     }));
 
@@ -83,7 +83,7 @@ export const searchUsers = query({
 // Get detailed user information (admin only)
 export const getUserDetails = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
@@ -100,8 +100,8 @@ export const getUserDetails = query({
     if (!user) throw new Error("User not found");
 
     // Get profile data based on user type
-    let profileData = null;
-    let matches = [];
+    let profileData: any = null;
+    let matches: any = [];
 
     if (user.userType === "student") {
       profileData = await ctx.db

@@ -1,8 +1,8 @@
-# Starter.diy - Elite Next.js SaaS Starter Kit
+# MentoLoop - Healthcare Mentorship Platform
 
-A modern, production-ready SaaS starter template for building full-stack applications using Next.js 15, Convex, Clerk, and Clerk Billing. The easiest way to start accepting payments with beautiful UI and seamless integrations.
+A modern, full-stack mentorship platform built specifically for healthcare professionals, connecting students and preceptors with seamless matching, scheduling, and communication tools.
 
-[🌐 Live Demo](https://elite-next-clerk-convex-starter.vercel.app/) – Try the app in your browser!
+Built with Next.js 15, Convex real-time database, Clerk authentication, and comprehensive intake workflows.
 
 
 ## Features

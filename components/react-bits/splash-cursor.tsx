@@ -892,6 +892,8 @@ export default function SplashCursor({
       const filtering = ext.supportLinearFiltering ? gl.LINEAR : gl.NEAREST;
       gl.disable(gl.BLEND);
 
+      if (!rgba || !rg || !r) return;
+
       if (!dye) {
         dye = createDoubleFBO(
           dyeRes.width,

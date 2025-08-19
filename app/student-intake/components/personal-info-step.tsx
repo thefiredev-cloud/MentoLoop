@@ -31,7 +31,7 @@ export default function PersonalInfoStep({
     dateOfBirth: '',
     preferredContact: '',
     linkedinOrResume: '',
-    ...data.personalInfo
+    ...(data.personalInfo || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

@@ -62,8 +62,8 @@ export default function MatchingPreferencesStep({
     programStage: undefined,
     // Flexibility
     scheduleFlexibility: undefined,
-    ...data.matchingPreferences,
-    ...data.learningStyle
+    ...(data.matchingPreferences || {}),
+    ...(data.learningStyle || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

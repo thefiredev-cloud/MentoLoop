@@ -44,7 +44,7 @@ export default function PracticeInfoStep({
     zipCode: '',
     website: '',
     emrUsed: '',
-    ...data.practiceInfo
+    ...(data.practiceInfo || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

@@ -58,7 +58,7 @@ export default function RotationNeedsStep({
     willingToTravel: false,
     preferredCity: '',
     preferredState: '',
-    ...data.rotationNeeds
+    ...(data.rotationNeeds || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

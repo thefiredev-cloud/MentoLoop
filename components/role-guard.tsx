@@ -64,7 +64,7 @@ export function RoleGuard({
   }
 
   // Check permission access
-  if (requiredPermission && user.userType && !hasPermission(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', requiredPermission)) {
+  if (requiredPermission && user.userType && !hasPermission(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', requiredPermission as keyof import('@/lib/rbac').RolePermissions)) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen p-8">
         <Card className="w-full max-w-md">
@@ -116,7 +116,7 @@ export function useRolePermissions() {
     userRole: user?.userType as 'student' | 'preceptor' | 'admin' | 'enterprise' | undefined,
     hasPermission: (permission: string) => {
       if (!user?.userType) return false
-      return hasPermission(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', permission)
+      return hasPermission(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', permission as keyof import('@/lib/rbac').RolePermissions)
     },
     canAccess: (route: string) => {
       if (!user?.userType) return false

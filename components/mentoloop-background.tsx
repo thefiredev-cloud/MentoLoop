@@ -36,7 +36,7 @@ const MentoLoopBackground: React.FC<MentoLoopBackgroundProps> = ({
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    const initCanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
+    const initCanvas = (canvasRef: React.RefObject<HTMLCanvasElement | null>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       

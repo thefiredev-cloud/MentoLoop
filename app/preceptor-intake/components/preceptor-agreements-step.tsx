@@ -35,7 +35,7 @@ export default function PreceptorAgreementsStep({
     agreedToTermsAndPrivacy: false,
     digitalSignature: '',
     submissionDate: new Date().toISOString().split('T')[0],
-    ...data.agreements
+    ...(data.agreements || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
