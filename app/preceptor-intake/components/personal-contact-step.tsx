@@ -55,10 +55,11 @@ export default function PersonalContactStep({
     statesLicensed: [] as string[],
     npiNumber: '',
     linkedinOrCV: '',
-    ...data.personalInfo
+    ...(data.personalInfo || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [stateInput, setStateInput] = useState('')
 
   useEffect(() => {
     updateFormData('personalInfo', formData)

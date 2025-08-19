@@ -52,13 +52,44 @@ import {
   BookOpen,
   Filter
 } from 'lucide-react'
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+
+// Type definitions based on schema
+interface Student {
+  _id: string
+  _creationTime: number
+  userId: string
+  name?: string // For compatibility
+  personalInfo?: {
+    fullName: string
+    email: string
+    phone?: string
+  }
+  schoolInfo?: {
+    programName: string
+    programType?: string
+    degreeTrack?: string
+    schoolLocation?: {
+      city: string
+      state: string
+    }
+    expectedGraduation?: string
+  }
+  rotationNeeds?: {
+    rotationTypes?: string[]
+    preferredLocation?: {
+      city: string
+      state: string
+    }
+  }
+  status?: 'incomplete' | 'submitted' | 'under-review' | 'matched' | 'active' | 'pending'
+}
 
 export default function EnterpriseStudentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [selectedStudent, setSelectedStudent] = useState(null)
+  // const [selectedStudent, setSelectedStudent] = useState<Student | null>(null) // Temporarily unused
 
   // Queries
   const user = useQuery(api.users.current)
@@ -77,7 +108,7 @@ export default function EnterpriseStudentsPage() {
   const filteredStudents = useMemo(() => {
     if (!students) return []
     
-    return students.filter((student: any) => {
+    return students.filter((student: Student) => {
       const matchesSearch = !searchQuery || 
         student.personalInfo?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.personalInfo?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -94,9 +125,9 @@ export default function EnterpriseStudentsPage() {
     if (!students) return { total: 0, active: 0, matched: 0, pending: 0 }
     
     const total = students.length
-    const active = students.filter((s: any) => s.status === 'active').length
-    const matched = students.filter((s: any) => s.status === 'matched').length
-    const pending = students.filter((s: any) => s.status === 'pending').length
+    const active = students.filter((s: Student) => s.status === 'active').length
+    const matched = students.filter((s: Student) => s.status === 'matched').length
+    const pending = students.filter((s: Student) => s.status === 'pending').length
     
     return { total, active, matched, pending }
   }, [students])
@@ -128,7 +159,7 @@ export default function EnterpriseStudentsPage() {
     )
   }
 
-  const StudentDetailsModal = ({ student }: { student: { _id: string; name: string; email: string; program: string; status: string; }; onClose: () => void }) => (
+  const StudentDetailsModal = ({ student }: { student: Student; onClose: () => void }) => (
     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -136,7 +167,7 @@ export default function EnterpriseStudentsPage() {
           {student.personalInfo?.fullName || student.name || 'Unknown Student'}
         </DialogTitle>
         <DialogDescription>
-          Student ID: {student._id} • {getStatusBadge(student.status)}
+          Student ID: {student._id} • {getStatusBadge(student.status || 'pending')}
         </DialogDescription>
       </DialogHeader>
       
@@ -415,7 +446,7 @@ export default function EnterpriseStudentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student: any) => (
+              {filteredStudents.map((student: Student) => (
                 <TableRow key={student._id}>
                   <TableCell>
                     <div>
@@ -460,7 +491,7 @@ export default function EnterpriseStudentsPage() {
                           </DialogTrigger>
                           <StudentDetailsModal 
                             student={student} 
-                            onClose={() => setSelectedStudent(null)} 
+                            onClose={() => {}} 
                           />
                         </Dialog>
                         <DropdownMenuItem>

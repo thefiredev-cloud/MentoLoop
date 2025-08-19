@@ -67,7 +67,7 @@ interface StudentData {
   upcomingDeadlines: Array<{
     title: string
     date: string
-    type: string
+    type: 'hours' | 'evaluation' | 'assessment' | 'assignment'
   }>
 }
 
@@ -118,29 +118,29 @@ export default function PreceptorStudents() {
         {
           date: "2025-01-18",
           activity: "Completed 32 hours for week 4",
-          type: "hours"
+          type: "hours" as const
         },
         {
           date: "2025-01-17", 
           activity: "Mid-rotation evaluation submitted",
-          type: "evaluation"
+          type: "evaluation" as const
         },
         {
           date: "2025-01-15",
           activity: "Clinical competency assessment passed",
-          type: "assessment"
+          type: "assessment" as const
         }
       ],
       upcomingDeadlines: [
         {
           title: "Weekly hours submission",
           date: "2025-01-25",
-          type: "hours"
+          type: "hours" as const
         },
         {
           title: "Final evaluation",
           date: "2025-03-12",
-          type: "evaluation"
+          type: "evaluation" as const
         }
       ]
     },
@@ -178,29 +178,29 @@ export default function PreceptorStudents() {
         {
           date: "2025-01-18",
           activity: "Completed 40 hours for week 2", 
-          type: "hours"
+          type: "hours" as const
         },
         {
           date: "2025-01-16",
           activity: "Case study presentation completed",
-          type: "assignment"
+          type: "assignment" as const
         },
         {
           date: "2025-01-14",
           activity: "Initial assessment completed",
-          type: "assessment"
+          type: "assessment" as const
         }
       ],
       upcomingDeadlines: [
         {
           title: "Weekly hours submission",
           date: "2025-01-25",
-          type: "hours"
+          type: "hours" as const
         },
         {
           title: "Mid-rotation evaluation",
           date: "2025-02-15", 
-          type: "evaluation"
+          type: "evaluation" as const
         }
       ]
     }

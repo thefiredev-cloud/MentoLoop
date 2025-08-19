@@ -27,11 +27,11 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTab, setSelectedTab] = useState('overview')
 
-  // Get admin analytics data
-  const matchAnalytics = useQuery(api.matches.getMatchAnalytics, {})
-  const paymentAnalytics = useQuery(api.payments.getPaymentAnalytics, {})
-  const emailAnalytics = useQuery(api.emails.getEmailAnalytics, {})
-  const smsAnalytics = useQuery(api.sms.getSMSAnalytics, {})
+  // Get admin analytics data (temporarily unused)
+  // const matchAnalytics = useQuery(api.matches.getMatchAnalytics, {})
+  // const paymentAnalytics = useQuery(api.payments.getPaymentAnalytics, {})
+  // const emailAnalytics = useQuery(api.emails.getEmailAnalytics, {})
+  // const smsAnalytics = useQuery(api.sms.getSMSAnalytics, {})
 
   // Mock data for demonstration
   const mockOverviewStats = {

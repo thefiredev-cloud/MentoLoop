@@ -52,7 +52,7 @@ export default function MentoringStyleStep({
     // Expectations & Dealbreakers
     studentBehaviorPreferences: [] as string[],
     otherExpectation: '',
-    ...data.mentoringStyle
+    ...(data.mentoringStyle || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

@@ -102,39 +102,39 @@ export default function AvailabilityStep({
   }, [formData, updateFormData])
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
-      setErrors((prev: any) => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: '' }))
     }
   }
 
   const handleRotationChange = (rotation: string, checked: boolean) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       availableRotations: checked 
         ? [...prev.availableRotations, rotation]
-        : prev.availableRotations.filter((r: any) => r !== rotation)
+        : prev.availableRotations.filter((r: string) => r !== rotation)
     }))
     if (errors.availableRotations) {
-      setErrors((prev: any) => ({ ...prev, availableRotations: '' }))
+      setErrors((prev) => ({ ...prev, availableRotations: '' }))
     }
   }
 
   const handleDayChange = (day: string, checked: boolean) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       daysAvailable: checked 
         ? [...prev.daysAvailable, day]
-        : prev.daysAvailable.filter((d: any) => d !== day)
+        : prev.daysAvailable.filter((d: string) => d !== day)
     }))
     if (errors.daysAvailable) {
-      setErrors((prev: any) => ({ ...prev, daysAvailable: '' }))
+      setErrors((prev) => ({ ...prev, daysAvailable: '' }))
     }
   }
 
   const addStartDate = () => {
     if (newStartDate && !formData.preferredStartDates.includes(newStartDate)) {
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         preferredStartDates: [...prev.preferredStartDates, newStartDate]
       }))
@@ -143,15 +143,15 @@ export default function AvailabilityStep({
   }
 
   const removeStartDate = (date: string) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
-      preferredStartDates: prev.preferredStartDates.filter((d: any) => d !== date)
+      preferredStartDates: prev.preferredStartDates.filter((d: string) => d !== date)
     }))
   }
 
   const addSchool = () => {
     if (newSchool.trim() && !formData.schoolsWorkedWith.includes(newSchool.trim())) {
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         schoolsWorkedWith: [...prev.schoolsWorkedWith, newSchool.trim()]
       }))
@@ -160,15 +160,15 @@ export default function AvailabilityStep({
   }
 
   const removeSchool = (school: string) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
-      schoolsWorkedWith: prev.schoolsWorkedWith.filter((s: any) => s !== school)
+      schoolsWorkedWith: prev.schoolsWorkedWith.filter((s: string) => s !== school)
     }))
   }
 
   const addLanguage = () => {
     if (newLanguage.trim() && !formData.languagesSpoken.includes(newLanguage.trim())) {
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         languagesSpoken: [...prev.languagesSpoken, newLanguage.trim()]
       }))
@@ -177,7 +177,7 @@ export default function AvailabilityStep({
   }
 
   const removeLanguage = (language: string) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       languagesSpoken: prev.languagesSpoken.filter((l: string) => l !== language)
     }))
@@ -249,7 +249,7 @@ export default function AvailabilityStep({
               <div className="space-y-3">
                 <Label>Available Rotations *</Label>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {availableRotations.map((rotation: string) => (
+                  {availableRotations.map((rotation) => (
                     <div key={rotation.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={rotation.value}
@@ -349,7 +349,7 @@ export default function AvailabilityStep({
               <div className="space-y-3">
                 <Label>Days Available *</Label>
                 <div className="grid gap-3 md:grid-cols-4">
-                  {daysOfWeek.map((day: string) => (
+                  {daysOfWeek.map((day) => (
                     <div key={day.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={day.value}
@@ -390,7 +390,7 @@ export default function AvailabilityStep({
                 <SelectValue placeholder="Select preference" />
               </SelectTrigger>
               <SelectContent>
-                {studentDegreeLevels.map((level: string) => (
+                {studentDegreeLevels.map((level) => (
                   <SelectItem key={level.value} value={level.value}>
                     {level.label}
                   </SelectItem>

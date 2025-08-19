@@ -139,32 +139,33 @@ export default function UserManagementPage() {
     }
   }
 
-  const _handleRejectPreceptor = async (user: User, reason: string) => {
-    if (!user.profileData?._id) return
+  // Temporarily unused - will be implemented in future UI
+  // const handleRejectPreceptor = async (user: User, reason: string) => {
+  //   if (!user.profileData?._id) return
 
-    try {
-      await rejectPreceptor({
-        preceptorId: user.profileData._id as Id<"preceptors">,
-        reason,
-      })
-      toast.success('Preceptor rejected')
-    } catch {
-      toast.error('Failed to reject preceptor')
-    }
-  }
+  //   try {
+  //     await rejectPreceptor({
+  //       preceptorId: user.profileData._id as Id<"preceptors">,
+  //       reason,
+  //     })
+  //     toast.success('Preceptor rejected')
+  //   } catch {
+  //     toast.error('Failed to reject preceptor')
+  //   }
+  // }
 
-  // Handle user deletion
-  const _handleDeleteUser = async (user: User, reason: string) => {
-    try {
-      await deleteUser({
-        userId: user._id,
-        reason,
-      })
-      toast.success('User deleted successfully')
-    } catch {
-      toast.error('Failed to delete user')
-    }
-  }
+  // Temporarily unused - will be implemented with confirmation dialog
+  // const handleDeleteUser = async (user: User, reason: string) => {
+  //   try {
+  //     await deleteUser({
+  //       userId: user._id,
+  //       reason,
+  //     })
+  //     toast.success('User deleted successfully')
+  //   } catch {
+  //     toast.error('Failed to delete user')
+  //   }
+  // }
 
   const getUserStatusBadge = (user: User) => {
     if (user.userType === 'preceptor' && user.profileData) {
