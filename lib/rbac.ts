@@ -1,4 +1,3 @@
-import { type User } from '@/convex/_generated/dataModel'
 
 export type UserRole = 'student' | 'preceptor' | 'admin' | 'enterprise'
 

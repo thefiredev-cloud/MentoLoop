@@ -1,5 +1,4 @@
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { GraduationCap, Shield, Users2 } from 'lucide-react'
 
 export default function TrustSection() {

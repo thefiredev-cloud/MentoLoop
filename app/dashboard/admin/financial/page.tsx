@@ -70,7 +70,6 @@ interface SubscriptionPlan {
 export default function AdminFinancialPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [dateRange] = useState('30d')
 
   // Mock data - in production, these would be real queries
   const mockFinancialData = {
@@ -96,7 +95,7 @@ export default function AdminFinancialPage() {
   }
 
   // Mock payment data
-  const mockPayments = [
+  const mockPayments = useMemo(() => [
     {
       id: 'pay_123',
       customerEmail: 'student@university.edu',
@@ -141,7 +140,7 @@ export default function AdminFinancialPage() {
       createdAt: Date.now() - 345600000,
       invoiceUrl: '#'
     }
-  ]
+  ], [])
 
   const filteredPayments = useMemo(() => {
     return mockPayments.filter(payment => {

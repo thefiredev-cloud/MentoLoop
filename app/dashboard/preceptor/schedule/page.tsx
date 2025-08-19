@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -16,22 +15,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   Calendar, 
   Clock, 
-  MapPin, 
   Users,
   AlertCircle,
   CheckCircle2,
   Plus,
   Edit,
-  Trash2,
   Save,
   X,
   CalendarDays,
   TimerIcon,
   UserCheck,
   Settings,
-  Bell,
   BookOpen,
-  Stethoscope
+  Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -43,7 +39,6 @@ export default function PreceptorSchedule() {
   )
 
   const [editingAvailability, setEditingAvailability] = useState(false)
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   if (!user) {
     return <div>Loading...</div>
@@ -163,7 +158,7 @@ export default function PreceptorSchedule() {
     setEditingAvailability(false)
   }
 
-  const renderAvailabilityCard = (day: any) => {
+  const renderAvailabilityCard = (day: { key: string; label: string }) => {
     const availability = mockAvailability[day.key as keyof typeof mockAvailability]
     
     return (

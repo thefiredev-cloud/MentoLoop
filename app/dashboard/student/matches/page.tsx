@@ -13,7 +13,6 @@ import {
   MapPin, 
   Calendar, 
   Clock, 
-  Star, 
   MessageSquare, 
   Phone,
   Mail,
@@ -42,7 +41,6 @@ export default function StudentMatches() {
     user ? { studentId: user._id } : "skip"
   )
 
-  const [selectedMatch, setSelectedMatch] = useState<string | null>(null)
 
   // Mock data for demonstration - would come from actual queries
   const mockPendingMatches = [

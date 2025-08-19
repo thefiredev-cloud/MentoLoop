@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { ChatMaxingIconColoured } from '@/components/logo'
 import { Loader2, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import React from 'react'
 import { cn } from '@/lib/utils'
 

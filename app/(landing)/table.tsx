@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 const MESCHAC_AVATAR = 'https://avatars.githubusercontent.com/u/47919550?v=4'
 const BERNARD_AVATAR = 'https://avatars.githubusercontent.com/u/31113941?v=4'
@@ -69,7 +70,7 @@ export const Table = ({ className }: { className?: string }) => {
                     </tr>
                 </thead>
                 <tbody className="text-sm">
-                    {customers.map((customer, index) => (
+                    {customers.map((customer) => (
                         <tr
                             key={customer.id}
                             className="*:border *:p-2">
@@ -81,12 +82,12 @@ export const Table = ({ className }: { className?: string }) => {
                             <td>
                                 <div className="text-title flex items-center gap-2">
                                     <div className="size-6 overflow-hidden rounded-full">
-                                        <img
+                                        <Image
                                             src={customer.avatar}
                                             alt={customer.name}
-                                            width="120"
-                                            height="120"
-                                            loading="lazy"
+                                            width={24}
+                                            height={24}
+                                            className="object-cover"
                                         />
                                     </div>
                                     <span className="text-foreground">{customer.name}</span>

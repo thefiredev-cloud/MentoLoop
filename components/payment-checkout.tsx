@@ -19,7 +19,6 @@ interface PaymentCheckoutProps {
   startDate: string
   endDate: string
   weeklyHours: number
-  onPaymentComplete?: () => void
 }
 
 export default function PaymentCheckout({
@@ -29,8 +28,7 @@ export default function PaymentCheckout({
   rotationType,
   startDate,
   endDate,
-  weeklyHours,
-  onPaymentComplete
+  weeklyHours
 }: PaymentCheckoutProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const createPaymentSession = useAction(api.payments.createPaymentSession)

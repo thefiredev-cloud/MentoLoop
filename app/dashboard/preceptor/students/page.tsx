@@ -1,36 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  User, 
-  School, 
-  Calendar, 
   Clock, 
-  MapPin, 
   Phone, 
   Mail, 
-  CheckCircle2, 
-  XCircle,
-  AlertCircle,
   FileText,
   MessageSquare,
   Star,
   Target,
-  BookOpen,
   GraduationCap,
-  Stethoscope,
-  Heart,
   Eye,
-  ThumbsUp,
-  ThumbsDown,
   ChartBar,
   Users,
   Edit,
@@ -39,7 +26,50 @@ import {
   TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
-import { toast } from 'sonner'
+
+interface Activity {
+  date: string
+  activity: string
+  type: 'hours' | 'evaluation' | 'assessment' | 'assignment'
+}
+
+interface StudentData {
+  _id: string
+  student: {
+    _id: string
+    fullName: string
+    email: string
+    phone: string
+    school: string
+    programName: string
+    degreeTrack: string
+    yearInProgram: string
+    expectedGraduation: string
+    gpa: number
+  }
+  startDate: string
+  endDate: string
+  totalWeeks: number
+  currentWeek: number
+  hoursPerWeek: number
+  totalHours: number
+  completedHours: number
+  progress: number
+  currentRotation: string
+  performance: {
+    overallRating: number
+    clinicalSkills: number
+    professionalism: number
+    communication: number
+    criticalThinking: number
+  }
+  recentActivities: Activity[]
+  upcomingDeadlines: Array<{
+    title: string
+    date: string
+    type: string
+  }>
+}
 
 export default function PreceptorStudents() {
   const user = useQuery(api.users.current)
@@ -47,7 +77,6 @@ export default function PreceptorStudents() {
     user ? { preceptorId: user._id } : "skip"
   )
 
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
 
   if (!user) {
     return <div>Loading...</div>
@@ -181,7 +210,7 @@ export default function PreceptorStudents() {
   const totalHoursSupervised = mockActiveStudents.reduce((sum, s) => sum + s.completedHours, 0)
   const avgPerformance = mockActiveStudents.reduce((sum, s) => sum + s.performance.overallRating, 0) / mockActiveStudents.length
 
-  const renderStudentCard = (student: any) => (
+  const renderStudentCard = (student: StudentData) => (
     <Card key={student._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -283,7 +312,7 @@ export default function PreceptorStudents() {
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Recent Activity</h4>
           <div className="space-y-3">
-            {student.recentActivities.map((activity: any, index: number) => (
+            {student.recentActivities.map((activity: Activity, index: number) => (
               <div key={index} className="flex items-start gap-3">
                 <div className={`w-2 h-2 rounded-full mt-2 ${
                   activity.type === 'hours' ? 'bg-blue-500' :
