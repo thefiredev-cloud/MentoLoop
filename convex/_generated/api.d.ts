@@ -13,9 +13,25 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as admin from "../admin.js";
+import type * as aiMatching from "../aiMatching.js";
+import type * as analytics from "../analytics.js";
+import type * as auditLogs from "../auditLogs.js";
+import type * as auth from "../auth.js";
+import type * as emails from "../emails.js";
+import type * as enterprises from "../enterprises.js";
 import type * as http from "../http.js";
+import type * as matches from "../matches.js";
+import type * as mentorfit from "../mentorfit.js";
 import type * as paymentAttemptTypes from "../paymentAttemptTypes.js";
 import type * as paymentAttempts from "../paymentAttempts.js";
+import type * as payments from "../payments.js";
+import type * as preceptors from "../preceptors.js";
+import type * as scheduledTasks from "../scheduledTasks.js";
+import type * as schools from "../schools.js";
+import type * as sms from "../sms.js";
+import type * as students from "../students.js";
+import type * as surveys from "../surveys.js";
 import type * as users from "../users.js";
 
 /**
@@ -27,9 +43,25 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
+  aiMatching: typeof aiMatching;
+  analytics: typeof analytics;
+  auditLogs: typeof auditLogs;
+  auth: typeof auth;
+  emails: typeof emails;
+  enterprises: typeof enterprises;
   http: typeof http;
+  matches: typeof matches;
+  mentorfit: typeof mentorfit;
   paymentAttemptTypes: typeof paymentAttemptTypes;
   paymentAttempts: typeof paymentAttempts;
+  payments: typeof payments;
+  preceptors: typeof preceptors;
+  scheduledTasks: typeof scheduledTasks;
+  schools: typeof schools;
+  sms: typeof sms;
+  students: typeof students;
+  surveys: typeof surveys;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

@@ -8,35 +8,74 @@ export default function FAQs() {
                             Frequently <br className="hidden lg:block" /> Asked <br className="hidden lg:block" />
                             Questions
                         </h2>
-                        <p>Accusantium quisquam. Illo, omnis?</p>
+                        <p>Everything you need to know about MentoLoop</p>
                     </div>
 
                     <div className="divide-y divide-dashed sm:mx-auto sm:max-w-lg lg:mx-0">
                         <div className="pb-6">
-                            <h3 className="font-medium">What is the refund policy?</h3>
-                            <p className="text-muted-foreground mt-4">We offer a 30-day money back guarantee. If you are not satisfied with our product, you can request a refund within 30 days of your purchase.</p>
-
-                            <ol className="list-outside list-decimal space-y-2 pl-4">
-                                <li className="text-muted-foreground mt-4">To request a refund, please contact our support team with your order number and reason for the refund.</li>
-                                <li className="text-muted-foreground mt-4">Refunds will be processed within 3-5 business days.</li>
-                                <li className="text-muted-foreground mt-4">Please note that refunds are only available for new customers and are limited to one per customer.</li>
+                            <h3 className="font-medium">How do I create a student profile?</h3>
+                            <p className="text-muted-foreground mt-4">Creating your student profile takes just a few minutes. You'll complete a simple intake form that captures:</p>
+                            <ul className="list-outside list-disc space-y-2 pl-4 mt-2">
+                                <li className="text-muted-foreground">Your NP program & graduation date</li>
+                                <li className="text-muted-foreground">Clinical rotation needs (specialty, timeline, location)</li>
+                                <li className="text-muted-foreground">Learning style & communication preferences</li>
+                                <li className="text-muted-foreground">Any flagged school requirements (forms, evaluations, etc.)</li>
+                            </ul>
+                            <p className="text-muted-foreground mt-2">Once submitted, you'll receive a confirmation email and be entered into our matching system. You can update your preferences anytime.</p>
+                        </div>
+                        
+                        <div className="py-6">
+                            <h3 className="font-medium">How does the matching process work?</h3>
+                            <p className="text-muted-foreground mt-4">We combine automation with human oversight to ensure the best fit:</p>
+                            <ol className="list-outside list-decimal space-y-2 pl-4 mt-2">
+                                <li className="text-muted-foreground">Your profile enters our matching engine</li>
+                                <li className="text-muted-foreground">Top matches are scored and reviewed</li>
+                                <li className="text-muted-foreground">Our team confirms availability and alignment</li>
+                                <li className="text-muted-foreground">You receive your best match and next-best options</li>
+                                <li className="text-muted-foreground">Once confirmed, we initiate onboarding and paperwork</li>
                             </ol>
+                            <p className="text-muted-foreground mt-2">You'll receive updates every step of the way.</p>
                         </div>
+
                         <div className="py-6">
-                            <h3 className="font-medium">How do I cancel my subscription?</h3>
-                            <p className="text-muted-foreground mt-4">You can cancel your subscription at any time by logging into your account and clicking on the cancel button.</p>
+                            <h3 className="font-medium">How does our verification process work?</h3>
+                            <p className="text-muted-foreground mt-4">Every preceptor goes through a five-step review:</p>
+                            <ul className="list-outside list-disc space-y-2 pl-4 mt-2">
+                                <li className="text-muted-foreground">License and certification check</li>
+                                <li className="text-muted-foreground">Specialty and experience verification</li>
+                                <li className="text-muted-foreground">Background check (if required by school)</li>
+                                <li className="text-muted-foreground">Mentoring readiness & fit questionnaire</li>
+                                <li className="text-muted-foreground">Reference or feedback review (when available)</li>
+                            </ul>
+                            <p className="text-muted-foreground mt-2">Only verified, qualified preceptors are added to our match network.</p>
                         </div>
+
                         <div className="py-6">
-                            <h3 className="font-medium">Can I upgrade my plan?</h3>
-                            <p className="text-muted-foreground my-4">Yes, you can upgrade your plan at any time by logging into your account and selecting the plan you want to upgrade to.</p>
-                            <ul className="list-outside list-disc space-y-2 pl-4">
-                                <li className="text-muted-foreground">You will be charged the difference in price between your current plan and the plan you are upgrading to.</li>
-                                <li className="text-muted-foreground">Your new plan will take effect immediately and you will be billed at the new rate on your next billing cycle.</li>
+                            <h3 className="font-medium">How does your pricing work?</h3>
+                            <p className="text-muted-foreground mt-4">MentoLoop offers simple, transparent pricing:</p>
+                            <ul className="list-outside list-disc space-y-2 pl-4 mt-2">
+                                <li className="text-muted-foreground">Student Match Fee - Covers access to our network, matching, and paperwork support</li>
+                                <li className="text-muted-foreground">Preceptor Compensation - Varies by specialty, hours, and region</li>
+                                <li className="text-muted-foreground">Flexible Payment - Fees are due only when a match is confirmed. No charge for unmatched searches</li>
                             </ul>
                         </div>
+
                         <div className="py-6">
-                            <h3 className="font-medium">Do you offer phone support?</h3>
-                            <p className="text-muted-foreground mt-4">We do not offer phone support at this time. However, you can contact us via email or live chat for any questions or concerns you may have.</p>
+                            <h3 className="font-medium">How do I create a preceptor profile?</h3>
+                            <p className="text-muted-foreground mt-4">Preceptors can join MentoLoop by filling out a quick onboarding form that includes:</p>
+                            <ul className="list-outside list-disc space-y-2 pl-4 mt-2">
+                                <li className="text-muted-foreground">Specialty & licensure information</li>
+                                <li className="text-muted-foreground">Practice setting and accepted rotation types</li>
+                                <li className="text-muted-foreground">Availability windows and student capacity</li>
+                                <li className="text-muted-foreground">Mentoring style and supervision approach</li>
+                            </ul>
+                            <p className="text-muted-foreground mt-2">Our team will verify your credentials and contact you for any follow-up before activating your profile.</p>
+                        </div>
+
+                        <div className="py-6">
+                            <h3 className="font-medium">How does the matching algorithm work?</h3>
+                            <p className="text-muted-foreground mt-4">It uses a proprietary scoring system to evaluate compatibility between students and preceptors. It considers several professional and personal factors to help ensure each match is built for success.</p>
+                            <p className="text-muted-foreground mt-2">While the exact formula is confidential, it's designed to go beyond logistics - helping foster strong mentorship relationships.</p>
                         </div>
                     </div>
                 </div>

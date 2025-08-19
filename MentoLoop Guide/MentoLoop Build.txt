@@ -1,0 +1,1100 @@
+﻿LANDING PAGE  - Remove on emojis and copy paste titles and text below 
+WHY MENTOLOOP?
+We are more than just matchmakers. We are your dedicated partner in your clinical journey, offering unique support and guidance.
+Verified Preceptors (no underline needed - just indicate subtitle)
+Each preceptor in our network is meticulously vetted and holds a specialization in nurse practitioner education. This ensures you receive the highest quality guidance, instilling confidence in your clinical journey.
+AI-Powered Matching, Human-Reviewed
+Our unique algorithm finds your perfect match, with the added assurance of human oversight, ensuring that your connections are not just based on data, but also a personal level, making you feel truly understood and valued.
+Mentorship Loop: Today's students, Tomorrow's mentors
+We are not just connecting you with a preceptor; we are connecting you with a community of like-minded individuals to create a sustainable ecosystem where current students become future preceptors in our network, ensuring a continuous cycle of support and learning.
+Seamless Paperwork 
+Provide full-service support that not only includes documentation assistance but also scheduling coordination and ongoing guidance, relieving you of administrative burdens and allowing you to focus on your clinical journey.
+BUILT FOR TRUST. DESIGNED BY NPs
+Created by NPs Who've Been There
+Mentoloop was built by nurse practitioners who have firsthand experience with clinical placement.
+HIPAA-Compliant & FERPA-Aware
+We prioritize student safety and data privacy with every interaction.
+Collaborating with NP Programs
+Our team works closely with schools and faculty to ensure smooth, compliant clinical placements.
+WHO IT'S FOR
+NP Students
+Find clinical rotations without the stress - we handle the match, you focus on learning.
+Preceptors
+To give back to the community, earn incentives, and shape the next generation of NPs. Our platform offers a rewarding experience for preceptors, both professionally and financially.
+Schools & Clinics
+Streamline student placement, reporting, and support - all in one place.
+
+"This isn't about filling spots. It's about fixing the pipeline. Mentoloop exists to transform NP education  - one match, one mentor, one future provider at a time."
+
+
+
+
+
+
+
+
+
+
+
+
+STUDENT INTAKE PAGE
+Start Your Clinical Journey with Mentoloop 
+Smarter matches. Supportive preceptors. Stress-free placements.
+Mentoloop was created to make the NP clinical placement process faster, fairer, and more personalized. We connect nurse practitioner students with thoroughly vetted preceptors who align with your goals, schedule, and learning style.
+If you've struggled to find a preceptor - or just want a better way - you're in the right place.
+Let us take the stress out of your search - so you can focus on becoming the NP you're meant to be.
+
+
+
+
+
+Student Intake Form - Developer (see highlighted below)
+Section 1 - Personal Info 
+Fields to build: 
+•	Full Name (Text - Required) 
+•	Email Address (Email - Required) 
+•	Phone Number (Phone - Required) 
+•	Date of Birth (Date - Required) 
+•	Preferred Contact Method (Dropdown - Email, Phone, Text - Required) 
+•	LinkedIn or Resume (Optional - URL or File Upload)  
+ 
+Section 2 - School Information 
+Fields to build: 
+•	NP Program Name (Dropdown - Pull from master NP school list - Required)
+      I WILL SUPPLY YOU WITH A LIST OF NP SCHOOLS
+•	Degree Track (Dropdown - FNP, PNP, PMHNP, AGNP, ACNP, WHNP, NNP, DNP - Required) 
+•	School Location (City, State - Auto-filled from program or manual entry - Required) 
+•	Program Format (Dropdown - Online, In-person, Hybrid - Required) 
+•	Expected Graduation Date (Date - Required) 
+•	Clinical Coordinator Name (Optional - Text) 
+•	Clinical Coordinator Email (Optional - Email) 
+ 
+Section 3 - Rotation Needs 
+Fields to build: 
+•	Type(s) of Rotation Needed (Multi-select - Family Practice, Pediatrics, Psych/Mental Health, Women's Health, Adult/Gero, Acute Care, Telehealth, Other (needs text box to enter) - Required) 
+•	Rotation Start Date (Date - Required) 
+•	Rotation End Date (Date - Required) 
+•	Weekly Hour Requirements (Dropdown - <8, 8-16, 16-24, 24-32, 32+ - Required) 
+•	Days Available (Multi-select - Mon-Sun - Required) 
+•	Willing to travel for preceptor? (Toggle - Yes/No - Required) 
+•	Preferred City/State for Placement (Text - Required if "Yes") 
+ 
+Section 4 - Matching Preferences 
+Fields to build: 
+•	Comfortable with shared student placements? (Toggle - Yes/No - Optional) 
+•	Languages spoken (Multi-select - Optional) 
+•	Ideal preceptor qualities (Optional - Text) 
+ 
+Section 5 - Payment & Agreement 
+Fields to build: 
+•	Agree to matching fee/payment terms (Checkbox - Required) 
+•	Consent to Mentoloop's Terms & Privacy Policy (Checkbox - Required) PROVIDE LINKS TO THESE TWO
+•	Digital Signature (Typed name - Required) 
+•	Date Submitted (Auto-filled - Required) 
+
+NOTE: Use this in your student intake form (checkbox required before submission) or during checkout. 
+By submitting this form and/or completing payment, I understand and agree to the following:
+1. Mentoloop is a third-party platform that facilitates introductions between NP students and potential preceptors.
+2. Mentoloop does not supervise, employ, credential, or guarantee the actions of any preceptor.
+3. I am responsible for verifying that the selected preceptor meets the clinical requirements of my NP program.
+4. I release Mentoloop, its affiliates, and its representatives from any liability related to my clinical experience, academic credit, licensure, or graduation status.
+5. My match fee includes a stipend paid directly to the preceptor and an administrative fee to Mentoloop for support and coordination.
+6. Mentoloop does not refund fees after a confirmed match, except in cases where no match is provided within the agreed timeline.
+☐ I acknowledge and agree to these terms.
+
+Student Dashboard - included (use same features as before)
+
+
+
+PRECEPTOR INTAKE PAGE
+
+Shape the future of advanced nursing - one student at a time. 
+
+Thank you for your interest in becoming a preceptor with Mentoloop. We connect experienced, mission-driven NPs and clinicians with students who are eager to learn, grow, and serve their communities. Whether you've mentored before or are new to teaching, we make the process simple, rewarding, and fully supported. Make a lasting impact and pass on your knowledge, skills, and experience to the next generation of nurse practitioners. We handle the details, from matching to school paperwork, we streamline the entire placement process, so you can focus on teaching.
+ 
+Preceptor Intake Form - Developer  
+Section 1 - Personal & Contact Info 
+Fields to build: 
+•	Full Name (Text - Required) 
+•	Email Address (Email - Required) 
+•	Mobile Phone (Phone - Required) 
+•	License Type (Dropdown - NP, MD/DO, PA, Other - Required) 
+•	Specialty (Dropdown - FNP, PNP, PMHNP, AGNP, ACNP, WHNP, NNP, Other - Required) 
+•	State(s) Licensed In (Multi-select Dropdown - Required) 
+•	NPI Number (Text - 10-digit validation - Required) 
+•	LinkedIn or CV (Optional - URL or File Upload) 
+ 
+Section 2 - Practice Information 
+Fields to build: 
+•	Practice Name (Text - Required) 
+•	Practice Setting (Multi-select Dropdown - Required) 
+•	Options: Private Practice, Urgent Care, Hospital, Clinic, Telehealth, Other 
+•	Address (Text - Required) 
+•	City, State, Zip (Text - Required) 
+•	Website (Optional - URL) 
+•	EMR Used (Optional - Text) 
+ 
+Section 3 - Precepting Availability 
+Fields to build: 
+•	Are you currently accepting students? (Toggle - Yes/No - Required) 
+•	Available Rotations (Multi-select - Required) 
+•	Family Practice, Pediatrics, Psych/Mental Health, Adult/Gero, Women's Health, Acute Care, , Other 
+•	Max # of Students per Rotation (Dropdown - 1, 2, 3+ - Required) 
+•	Rotation Duration Preferred (Dropdown - 4 weeks, 8 weeks, 12 weeks, Flexible - Required) 
+•	Preferred Start Dates (Date Picker - Multiple - Required) 
+•	Days Available (Multi-select - Mon-Sun - Required) 
+ 
+Section 4 - Matching Preferences 
+Fields to build: 
+•	Student Degree Level Preferred (Dropdown - BSN-to-DNP, MSN, Post-Master's, No Preference - Required) 
+•	Comfortable with first-rotation students? (Toggle - Yes/No - Required) 
+•	Schools worked with previously (Text or Multi-select - Optional) 
+•	Languages spoken (Multi-select - Optional) 
+ 
+Section 5 - Agreements & Follow-Up 
+Fields to build: 
+•	Open to phone/Zoom screening? (Toggle - Yes/No - Required) 
+•	Want to be featured as a spotlight preceptor? (Toggle - Yes/No - Optional) 
+•	Consent to Terms & Privacy Policy (Checkbox - Required) 
+•	Digital Signature (Typed name - Required) 
+•	Date Submitted (Auto-filled - Required) 
+
+NOTE: Use this in preceptor intake form (checkbox required before submission) 
+PRECEPTOR AGREEMENT
+This agreement is entered into between Mentoloop and the undersigned ("Preceptor") for participation in the NP student matching program.
+By participating, you agree to the following:
+1. You are a licensed healthcare professional (NP, MD, DO, or PA) in good standing.
+2. You understand that your participation is voluntary and that you may accept or decline any student match.
+3. You agree to provide a safe, educational, and respectful environment for the assigned student during the agreed-upon rotation dates.
+4. You understand that Mentoloop is not the employer, supervisor, or credentialing body for the student.
+5. You release Mentoloop from liability for clinical, educational, or legal issues that may arise during the rotation.
+6. You acknowledge that your stipend is a thank-you honorarium and not a contract for services.
+7. You agree to communicate any concerns or scheduling changes in a timely manner.
+☐ I acknowledge and agree to these terms.
+
+Integration Notes 
+ 
+Developer instructions: 
+•	Store responses in Airtable or Webflow CMS 
+•	Apply required field validation and NPI format check 
+•	Flag as "Preceptor Ready" after admin review 
+•	Match to student criteria (specialty, state, availability, etc.) 
+•	Notify admin on new submission via email or dashboard 
+ 
+Workflow/Automation Sequence 
+1.	Student Intake → Enters Airtable 
+2.	Run Match Filter → Matching Score Generated 
+3.	Top Matches Auto-Sent to Admin/NP → Manual confirmation 
+4.	Match Confirmed → Student gets confirmation email + preceptor onboarding 
+5.	If no match in 48-72 hrs → Send fallback options, offer alternate dates or specialties 
+ 
+Airtable Logic 
+Use formulas/filters to create ranked matches. 
+Formula Fields: 
+•	Specialty Match = IF({Student Specialty} = {Preceptor Specialty}, 1, 0) 
+•	Location Match = IF(AND({Student City} = {Preceptor City}, {Student State} = {Preceptor State}), 1, 0) 
+•	Date Overlap = IF(AND({Student Start Date} <= {Preceptor End Date}, {Student End Date} >= {Preceptor Start Date}), 1, 0) 
+•	Setting Match = IF(FIND({Preferred Setting}, {Settings Offered}) > 0, 1, 0) 
+•	Language Match = IF({Student Language} = {Preceptor Language}, 1, 0) 
+ 
+Weighted Score (Example): Total Score = (Specialty Match * 3) + (Location Match * 2) + (Date Overlap * 3) + (Telehealth Compatible * 1.5) + (Setting Match * 1.5) + (Language Match * 1) 
+ 
+Priority Rules 
+Top Priority: 
+•	Specialty Match 
+•	Rotation Dates Align 
+•	Accepting Students 
+•	Location or Telehealth Compatible 
+ •	Compatibility Score: Student Learning Style vs. Preceptor Preference (MentorFit)** 
+ 
+Secondary Priority: 
+•	Language Compatibility 
+•	Previous Precepting Experience 
+ 
+Preceptor Dashboard - use the same one as before
+NOTE: Should be a mechanism for searching for preceptors outside of the MentorFit Matrix (maybe only visible in the Student Dashboard) - example below
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+MentorFit AI matching algorithm 
+To make Mentoloop's AI matching algorithm (MentortFit) truly unique, we'll need to move beyond basic filters and embed deeper layers of personalization, feedback, and trust-building. 
+ 
+Match students and preceptors based on teaching/learning preferences to improve compatibility. 
+Checklist: 
+•	Add "Learning Style" question to student intake 
+•	Add "Mentoring Style" question to preceptor intake 
+•	Create match logic: +2 if aligned, -1 if mismatched 
+•	Show match "compatibility score" on admin dashboard 
+ 
+Note: This would need to be added to the Intake Process/Form page 
+ 
+STUDENT 
+Helps match students with compatible mentors based on learning preferences. Use dropdowns, Likert scales, or multiple choice. 
+
+Questions: 
+1.	How do you learn best? 
+▢ Hands-on practice 
+▢ Step-by-step guidance 
+▢ Independent reading & observation 
+ 
+2.	How comfortable are you with clinical independence at the start of your rotation? 
+▢ Not at all comfortable 
+▢ Somewhat comfortable 
+▢ Very comfortable 
+ 
+3.	How much feedback do you prefer during a shift? 
+▢ Frequent, real-time feedback 
+▢ End-of-day debriefs 
+▢ Minimal unless critical 
+ 
+4.	What level of structure do you prefer in a clinical day? 
+▢ Clear schedules and goals 
+▢ General guidance with flexibility 
+▢ Very open-ended/independent 
+ 
+ 
+5.	What's your ideal mentor relationship? 
+▢ Teacher/coach 
+▢ Collaborator 
+▢ Supervisor/check-in only 
+ 
+6.	Do you prefer to observe first or jump in quickly? 
+▢ Observe for a while 
+▢ Mix of both 
+▢ Jump in and learn as I go 
+ 
+7.	How do you prefer to receive correction? 
+▢ Direct and immediate 
+▢ Supportive and private 
+▢ Written summaries or evaluations 
+ 
+8.	How do you retain information best? 
+▢ Watching + doing 
+▢ Taking notes during explanations 
+▢ Asking questions and discussing 
+ 
+9.	Would you like additional resources between shifts (articles, protocols, etc.)? 
+▢ Yes, I'd love that 
+▢ Occasionally 
+▢ Not necessary 
+ 
+10.	On a scale of 1-5, how proactive are you about asking questions during clinicals? 
+(1 = I wait for the preceptor to guide me; 5 = I ask questions constantly) 
+ 
+PRECEPTOR 
+Questions: 
+1.	What best describes your mentoring style? 
+▢ Coach and guide throughout 
+▢ Support as needed 
+▢ Expect student to take initiative 
+ 
+2.	How do you usually start a rotation with a new student? 
+▢ Orient them with goals + overview 
+▢ Observe and adjust organically 
+▢ Let them dive in and learn by doing 
+ 
+3.	What's your approach to giving feedback? 
+▢ Real-time corrections during shift 
+▢ Daily check-ins and debriefs 
+▢ End-of-week or written evals 
+4.	Do you provide additional learning materials (articles, templates, etc.)? 
+▢ Always 
+▢ Sometimes 
+▢ Rarely 
+ 
+5.	How involved are you in guiding patient interactions initially? 
+▢ I lead first, then student shadows 
+▢ Student shadows first, then leads 
+▢ Student leads from day one (with oversight) 
+ 
+6.	How do you prefer students ask questions? 
+▢ Anytime, during the visit 
+▢ During breaks or downtime 
+▢ End-of-day review 
+ 
+7.	How much autonomy do you typically give students by mid-rotation? 
+▢ Close supervision 
+▢ Shared decision-making 
+▢ High independence 
+ 
+8.	How often do you evaluate student progress? 
+▢ Every shift 
+▢ Weekly 
+▢ End-of-rotation only 
+ 
+9.	Do you enjoy mentoring students who are newer and need more support? 
+▢ Yes, I prefer coaching from the ground up 
+▢ I'm flexible 
+▢ I prefer more independent learners 
+ 
+10.	What's your ideal student dynamic? 
+▢ Learner and teacher 
+▢ Teammates 
+▢ Supervisee and clinician 
+
+Additional Learning Style Questions - PHASE 2.0
+Description: Add these to refine how students prefer to receive guidance, accountability, and clinical experiences.
+STUDENT
+Questions:
+11. What type of feedback is most helpful to you?
+▢ Verbal examples and stories
+▢ Specific performance critiques
+▢ Encouragement and affirmation
+
+12. How do you approach clinical mistakes?
+▢ I want to be corrected immediately
+▢ I prefer to talk through it after
+▢ I reflect and correct silently unless told otherwise
+
+13. What motivates you most during a rotation?
+▢ Feeling trusted with responsibility
+▢ Seeing my progress daily
+▢ Positive feedback and encouragement
+
+14. How do you prefer to prepare before patient visits?
+▢ I like to be coached through the plan
+▢ I prefer to present and get feedback after
+▢ I want to try fully on my own first
+
+15. How do you like your preceptor to manage your learning curve?
+▢ Challenge me early and often
+▢ Let me build gradually
+▢ Focus on repetition and reinforcement
+
+16. What frustrates you most in clinical teaching?
+▢ Lack of clear expectations
+▢ Getting minimal or vague feedback
+▢ Being micromanaged
+
+
+17. Do you prefer a calm, quiet setting or a high-paced environment?
+▢ Calm and controlled
+▢ Some pressure helps
+▢ High energy keeps me engaged
+
+18. Would you prefer to observe a patient visit first before jumping in?
+▢ Yes, I need to watch 1-2 first
+▢ Just one is enough
+▢ I'm ready to start right away
+PRECEPTOR
+Questions:
+11. What's your approach to student mistakes or errors?
+▢ Correct immediately and teach
+▢ Wait and debrief after the patient
+▢ Let them self-identify and reflect first
+
+12. How do you typically plan a student's clinical growth?
+▢ Follow a clear progression
+▢ Let it evolve organically
+▢ Provide exposure and let student drive it
+
+13. How do you balance supervision and autonomy?
+▢ I'm hands-on the whole way
+▢ I give space with backup
+▢ I prefer student-led learning
+
+14. What pace of student growth do you prefer?
+▢ Fast - I push them to move quickly
+▢ Steady - I pace them based on milestones
+▢ Flexible - I let them find their rhythm
+
+15. What kind of feedback do you typically give?
+▢ Tactical (skills, knowledge, assessments)
+▢ Reflective (attitude, growth mindset)
+▢ Balanced (a mix of both)
+
+
+16. Do you provide formal goals or a syllabus to students?
+▢ Yes, at the beginning
+▢ Midway through rotation
+▢ No - we go with the flow
+
+17. What learning environments do you offer most often?
+▢ One-on-one shadowing and discussion
+▢ Independent with check-ins
+▢ Team-based with shared teaching
+
+18. What frustrates you most when working with students?
+▢ Lack of preparation or follow-through
+▢ Needing constant guidance
+▢ Disengagement or poor communication
+Additional questions 
+PERSONALITY & VALUES
+BOTH - Choose 3 words that describe your professional values:
+• ☐ Compassion
+• ☐ Efficiency
+• ☐ Collaboration
+• ☐ Lifelong learning
+• ☐ Integrity
+• ☐ Equity & inclusion
+• ☐ Advocacy
+Student - What kind of clinical environment do you thrive in?
+• ☐ Calm and methodical
+• ☐ Busy and fast-paced
+• ☐ Flexible and informal
+• ☐ Structured with clear goals
+EXPERIENCE LEVEL
+Student - Where are you in your NP program?
+• ☐ Just starting clinicals
+• ☐ Mid-program
+• ☐ Near graduation
+Preceptor - How many NP students have you precepted?
+• ☐ None yet
+• ☐ 1-3
+• ☐ 4-10
+• ☐ 10+
+FLEXIBILITY & EXPECTATIONS
+Student - How flexible are you with changes in schedule?
+• ☐ Very flexible
+• ☐ Somewhat flexible
+• ☐ Prefer fixed schedule
+Preceptor - Do you have any preferences or dealbreakers in student behavior?
+• ☐ Punctuality
+• ☐ Proactive communication
+• ☐ Patient rapport skills
+• ☐ EMR documentation confidence
+• ☐ Other: ______
+
+MentorFit(tm) compatibility scoring system includes: 
+ 
+✅ Compatibility logic 
+✅ Scoring rules 
+✅ Airtable-ready formulas 
+✅ Optional tier display ("High Fit", "Medium Fit", etc.) 
+ 
+MentorFit(tm) calculates a compatibility score (0-10) between student and preceptor based on aligned preferences. Higher scores = better fit. 
+ 
+How it works: 
+Scoring Rules 
+Each paired question has a match score (0-2 points) 
+•	2 = Exact or strong match 
+•	1 = Partial match 
+•	0 = Mismatch 
+ 
+Final score = Sum of all matched pair values 
+Display as: 
+•	8-10: ✅ High Fit (GOLD)
+•	5-7: ⚖️ Moderate Fit  (SILVER)
+•	0-4: ⚠️ Low Fit (BRONZE)
+How to consider logic and scoring for MentorFit 
+Add these to scoring logic for finer-tuned matching: 
+•	Group questions into 3-5 categories: 
+•	Feedback Style 
+•	Autonomy Pace 
+•	Teaching Environment 
+•	Motivation/Frustration 
+•	Learning Curve Expectations 
+ 
+Example Matching Logic: 
+•	If a student says "likes feedback right away" and preceptor "delivers real-time feedback" → +2 
+•	If mismatch on autonomy level → -1 
+•	If both prefer independent, fast-paced growth → +2 
+ 
+More examples 
+Pair 1 - Learning Style vs Mentoring Style 
+•	Student: "Hands-on practice" 
+•	Preceptor: "Coach and guide throughout" 
+→ Score: 2 
+ 
+Pair 2 - Feedback Style 
+•	Student: "Real-time feedback" 
+•	Preceptor: "Gives real-time corrections" 
+→ Score: 2 
+•	Student: "Debriefs only" + Preceptor: "Real-time" 
+→ Score: 0 
+ 
+Pair 3 - Autonomy Preference 
+•	Student: "Very comfortable with independence" 
+•	Preceptor: "Gives autonomy by mid-rotation" 
+→ Score: 2 
+ 
+Pair 4 - Structure Preference 
+•	Student: "Clear schedules and goals" 
+•	Preceptor: "Orients with goals at start" 
+→ Score: 2 
+ 
+Pair 5 - Resource Use 
+•	Student: "Wants extra materials" 
+•	Preceptor: "Always provides" 
+→ Score: 2 
+•	Student: "Doesn't want resources" + Preceptor: "Rarely provides" 
+→ Score: 2 
+
+Human Oversight  
+ 
+AI should recommend - not fully automate - matches 
+Checklist: 
+•	Add "Override Match" button for staff 
+•	Let admin adjust scores if context matters (e.g. new preceptor, urgent placement) 
+•	Color-coded alert: "Low MentorFit(tm) Score" if manual override is used 
+•	Track all overrides for transparency 
+ 
+ 
+Airtable Formula Setup for MentorFit(tm) 
+Set up fields in Airtable for each scoring pair with dropdowns and use formulas like: 
+ 
+IF( 
+AND({Student Learning Style} = "Hands-on practice", {Preceptor Mentoring Style} = "Coach and guide throughout"), 2, 
+IF( 
+OR({Student Learning Style} = "Hands-on practice", {Preceptor Mentoring Style} = "Support as needed"), 1, 
+0) 
+) 
+ 
+Repeat for each match category. Then sum: 
+ 
+Total Fit Score = LS1 + FB1 + AUT1 + STRUCT1 + RES1 
+ 
+And display final tag: 
+ 
+IF({Total Fit Score} >= 8, "✅ High Fit", 
+IF({Total Fit Score} >= 5, "⚖️ Moderate Fit", "⚠️ Low Fit")) 
+ 
+Display 
+Use colored badges to visually show fit level in admin dashboard and student view. 
+•	✅ High Fit (8-10): Show as primary suggestion 
+•	⚖️ Moderate Fit (5-7): Show as backup 
+•	⚠️ Low Fit (0-4): Admin-only, not shown to student 
+ 
+Can be paired with AI Match Score for weighted decision. 
+ 
+Auto-generate summary based on score. 
+ 
+
+
+Example Outputs: 
+•	"Great match! This preceptor's hands-on coaching aligns well with your preferred learning style." 
+•	"This pairing could work, but teaching style may be more independent than you're used to." 
+•	"Low compatibility. Consider preceptors with more structured mentoring." 
+ 
+Privacy  
+Students and preceptors should know how their info is used 
+Checklist: 
+•	Add checkbox in intake: "I understand this info will be used to improve match quality" 
+•	Let users opt out of feedback collection 
+•	Publish transparent data policy 
+
+HELP SECTION CONTENT
+
+SECTION: Getting Started
+Getting Started with Mentoloop
+Description:
+Mentoloop connects NP students with vetted preceptors through smart matching and hands-on support. Start by creating your student profile and completing the intake form-it only takes a few minutes.
+How to Create Your Student Profile
+Description:
+Complete the intake form with your:
+• NP program & grad date
+• Specialty/location/timeline needs
+• Learning & communication preferences
+After submission, you'll receive a confirmation and unlock matching access.
+Finding Your First Preceptor Match
+Description:
+Once your profile is submitted, our MentorFit(tm) engine identifies compatible preceptors. You'll be notified of matches to review and confirm. Paperwork and onboarding follow once you accept.
+Understanding Our Matching Process
+Description:
+Our hybrid approach blends algorithmic scoring and manual review. We evaluate compatibility, availability, and alignment with your clinical goals, then notify you when a top match is found.
+Setting Up Your Preferences
+Description:
+Customize your rotation specialties, dates, location radius, and style preferences. A detailed profile leads to stronger, faster matches.
+Completing Your Intake Form
+Description:
+Includes school/program verification, clinical needs, and learning style info. Helps us ensure a well-matched, fully supported placement.
+SECTION: Matching Process
+How Our Algorithm Works (General Overview)
+Description:
+Our matching algorithm uses a proprietary scoring system to evaluate compatibility. While details are confidential, it prioritizes strong educational and interpersonal fit-beyond just availability.
+What Makes a Good Match?
+Description:
+Specialty alignment, strong communication fit, compatible schedules, and mutual willingness to mentor are key to a successful experience.
+
+Dealing with Match Rejections
+Description:
+If a match is declined, we re-run your profile to find another high-quality option. You'll be notified and supported every step of the way.
+Requesting Specific Preceptors
+Description:
+You can request a known preceptor. If they aren't in our system, we'll reach out and invite them to join (pending verification).
+Match Timeline & Expectations
+Description:
+Most students receive a match in 1-3 weeks. Some specialties or rural areas may take longer. We'll keep you updated throughout.
+SECTION: Payments & Billing
+Understanding Our Pricing
+Description:
+Your fee includes access to preceptors, match processing, and paperwork support. Preceptor honorariums vary by region/specialty. Pricing is transparent-nothing due until matched.
+Payment Methods Accepted
+Description:
+We accept credit/debit cards, PayPal, HSA/FSA cards (if eligible), and approved institutional purchase orders.
+Refund Policy Explained
+Description:
+Full refund if no match is made. Partial refunds apply if cancellation happens after a match is confirmed. We'll outline refund terms clearly before you commit.
+Early Bird Special Terms
+Description:
+Discounted rates available if you enroll 45+ days before your rotation start date. Locked in at time of intake submission.
+
+
+
+
+
+
+SECTION: Account Management
+Understanding Your Profile
+Description:
+Your profile includes your clinical needs, program info, and learning style. Update any time from your dashboard for better matches.
+Managing Notifications
+Description:
+Choose email (default), SMS, or in-app alerts. Adjust preferences under "Notifications" in your account settings.
+Privacy Settings
+Description:
+You can control what's visible to preceptors, delete your profile, or request full data removal at any time. Your privacy is our priority.
+Deactivating Your Account
+Description:
+You may deactivate anytime. We'll retain your info for 30 days in case you change your mind, then delete it permanently.
+Changing Your Email
+Description:
+Go to Account Settings > Email to update. You'll confirm the change through both your current and new address for security.
+SECTION: Safety & Security
+Our Verification Process
+Description:
+We verify preceptors for licensure, experience, and mentoring readiness. Some placements also require background checks per school policy.
+Reporting Inappropriate Behavior
+Description:
+If anything concerning occurs, report it via your dashboard or contact form. We investigate all reports promptly and confidentially.
+
+
+Data Security Measures
+Description:
+All data is encrypted and stored on secure servers. We follow HIPAA standards and restrict access to sensitive information.
+Background Check Requirements
+Description:
+If your school or site requires one, we'll walk you through the process and assist with documentation or forms.
+Emergency Contact Procedures
+Description:
+You can add or update your emergency contact in your profile settings. We'll reach out to them in the event of a critical issue during your rotation.
+FAQ w/ code as needed
+Frequently Asked Questions
+1. How do I create a student profile?
+Creating your student profile takes just a few minutes. You'll complete a simple intake form that captures:
+• Your NP program & graduation date
+• Clinical rotation needs (specialty, timeline, location)
+• Learning style & communication preferences
+• Any flagged school requirements (forms, evaluations, etc.)
+Once submitted, you'll receive a confirmation email and be entered into our matching system. You can update your preferences anytime.
+⸻
+1. How do I create a preceptor profile?
+Preceptors can join Mentoloop by filling out a quick onboarding form that includes:
+• Specialty & licensure information
+• Practice setting and accepted rotation types
+• Availability windows and student capacity
+• Mentoring style and supervision approach
+Our team will verify your credentials and contact you for any follow-up before activating your profile.
+⸻
+1. How does your pricing work?
+Mentoloop offers simple, transparent pricing:
+• Student Match Fee - Covers access to our network, matching, and paperwork support.
+• Preceptor Compensation - Varies by specialty, hours, and region.
+• Flexible Payment - Fees are due only when a match is confirmed. No charge for unmatched searches.
+⸻
+1. How does the matching process work?
+We combine automation with human oversight to ensure the best fit:
+a. Your profile enters our  matching engine.
+b. Top matches are scored and reviewed.
+c. Our team confirms availability and alignment.
+d. You receive your best match and next-best options.
+e. Once confirmed, we initiate onboarding and paperwork.
+You'll receive updates every step of the way.
+1. How does the matching algorithm work?
+It uses a proprietary scoring system to evaluate compatibility between students and preceptors. It considers several professional and personal factors to help ensure each match is built for success.
+While the exact formula is confidential, it's designed to go beyond logistics - helping foster strong mentorship relationships.
+1. How does your verification process work?
+Every preceptor goes through a five-step review:
+• ✅ License and certification check
+• ✅ Specialty and experience verification
+• ✅ Background check (if required by school)
+• ✅ Mentoring readiness & fit questionnaire
+• ✅ Reference or feedback review (when available)
+Only verified, qualified preceptors are added to our match network.
+
+
+
+
+TERMS AND PRIVACY POLICY
+Terms of Use
+By accessing or using the Mentoloop platform, you agree to be bound by these Terms of Use. If you do not agree, do not use the platform.
+1. Services Provided
+Mentoloop connects nurse practitioner (NP) students with available preceptors. We do not guarantee placements or outcomes.
+2. Eligibility
+Users must be enrolled in an accredited NP program or be licensed NPs to use the platform.
+3. Payments & Refunds
+All payments are processed securely. Refunds are evaluated case-by-case and may be subject to a processing fee.
+4. User Conduct
+You agree not to misrepresent information or use the platform for fraudulent purposes.
+5. Liability
+Mentoloop is not liable for interactions or outcomes between students and preceptors. All clinical supervision remains the responsibility of the preceptor and educational institution.
+6. Changes to Terms
+We may update these Terms at any time. Continued use of the platform means you accept the changes.
+Contact: support@mentoloop.com
+Effective Date: August 1, 2025
+
+PRIVACY POLICY
+
+We value your privacy. This policy explains how Mentoloop(tm) collects, uses, and protects your information.
+1. Information We Collect
+We collect names, emails, NP specialty, school name, location, availability dates, and payment information.
+2. How We Use It
+To match NP students with preceptors, process payments, and improve our platform.
+3. Data Sharing
+We never sell your data. We only share information with your explicit consent (e.g., with matched parties).
+4. Security
+Data is stored in secure databases. All payments are encrypted and processed through trusted gateways (Stripe & PayPal).
+5. Your Rights
+You can request to view, edit, or delete your data at any time by contacting support@mentoloop.com
+Effective Date: August 1, 2025
+
+
+
+PAYMENT and SMS vs EMAIL AUTOMATION TEMPLATES
+SMS MESSAGES (4) - AS DISCUSSED
+
+SMS  (<160 chars each)
+WELCOME!
+* Welcome - Student
+Hi {{first_name}}! 🎉 Welcome to Mentoloop. Your profile's live-watch for match offers soon. Reply HELP for support.
+
+* Welcome - Preceptor
+Hi {{first_name}}! Thanks for joining Mentoloop as a preceptor. Set availability now to receive students. Reply HELP anytime.
+
+MATCH CONFIRMED
+* Match Confirmed - Student
+Great news {{first_name}}-you're matched with {{preceptor_name}} at {{site}}. Log in for next steps. See you soon!
+
+* Match Confirmed - Preceptor
+New student matched: {{student_name}} starting {{start_date}}. Review details in your Mentoloop dashboard. Thanks for mentoring!
+
+PAYMENT RECEIVED
+* Payment Received - Student
+Payment received-your rotation with {{preceptor_name}} is locked. Receipt emailed. First day {{start_date}}. Good luck!
+
+ROTATION COMPLETE
+* Rotation Complete - Student
+Congrats {{first_name}}! Rotation with {{preceptor_name}} completed.  Tap this link to rate your rotation with {{PreceptorFirstName}}: {{StudentSurveyLink}}
+Your feedback powers better MentorFit(tm) matches. Thanks!
+
+* Rotation Complete - Preceptor
+Hi {{PreceptorFirstName}}, Mentoloop thanks you for hosting {{StudentFirstName}}. Please share quick feedback (5 Qs, 2 min): {{PreceptorSurveyLink}}. Helps us improves future MentorFit(tm) matching. Appreciate it!
+
+
+OR
+
+
+
+
+STUDENT EMAIL TEMPLATES (4) - WE CAN FURTHER DISCUSS THESE
+
+1. Welcome Email  
+STUDENT
+Subject: Welcome to Mentoloop - Let's Match You with the Right Preceptor!
+
+Hi [Student First Name],
+Thanks for joining Mentoloop! We're excited to support your journey and help you find a clinical match aligned with your goals and learning style. We've received your intake form and are reviewing your preferences. You'll receive an update when you are matched. In the meantime, feel free to update your profile or contact us with any questions.
+
+Welcome to the loop!
+- The Mentoloop Team
+Match. Mentor. Master.
+
+PRECEPTOR
+Subject: Welcome to Mentoloop - Let's Empower the Next Generation of NPs
+
+Hi [Preceptor First Name],
+
+Thank you for joining Mentoloop! We're thrilled to have you in our growing network of nurse practitioner preceptors committed to mentorship, leadership, and shaping future NPs.
+
+Your profile is now live in our system and being reviewed for upcoming student matches.
+
+What to Expect:
+* You'll be matched only with students aligned to your clinical setting, specialty, and mentoring style.
+* Our matching algorithm helps ensure strong compatibility from the start.
+* You'll receive a match request before we share any details with students.
+
+Thank you again for being part of the loop. You're making a difference.
+
+Welcome to the loop!
+The Mentoloop Team
+Match. Mentor. Master.
+2. Final Match Confirmation
+STUDENT
+Subject: You've Been Matched! Confirm Your Rotation Spot
+
+Body:
+Hi [First Name],
+
+Great news - we've successfully matched you with a preceptor for your upcoming rotation!
+
+Match Details:
+• Preceptor: [Preceptor Name]
+• Specialty: [Specialty]
+• Location: [City, State]
+• Rotation Dates: [Start - End]
+
+To confirm your spot, please submit payment using the secure link below within 3 business days:
+
+ [Pay Now Button / Link]
+
+Once payment is received, you'll unlock full access to your preceptor's contact info, prep checklist, and paperwork portal.
+
+Questions? Email us anytime at support@mentoloop.com.
+
+- The Mentoloop Team
+Match. Mentor. Master.
+
+PRECEPTOR
+Subject: Match Confirmed - Here's What's Next
+ 
+Hi [Preceptor First Name],
+
+You've officially been matched with a student through Mentoloop - thank you for supporting the next generation of nurse practitioners!
+
+Student: [Student Full Name]
+Rotation Start: [MM/DD/YYYY]
+Setting: [Location or Telehealth]
+
+Thank you again for being a difference-maker in clinical education!
+
+- The Mentoloop Team
+Match. Mentor. Master.
+
+
+
+3. Payment Confirmation
+Subject: Payment Received - You're Officially in the Loop!
+
+Hi [Student First Name],
+
+We've received your payment - thank you!
+Match Cycle: [Term]
+
+ You'll receive a confirmation packet soon. Let's make this a great rotation!
+
+- The Mentoloop Team
+Match. Mentor. Master.
+
+4. Thank You/Survey Email - Rotation Complete
+STUDENT 
+Hi [Student First Name],
+Congrats on completing your rotation! To keep improving MentorFit(tm) matches, we need your honest feedback.
+👉 Please take 2 minutes to answer 5 quick questions:
+{{StudentSurveyLink}}
+
+Your responses directly refine our AI so future students (and you!) get even better clinical experiences. 
+
+Thanks for helping us #MatchMentorMaster. Your feedback helps improve Mentoloop for others.
+
+- The Mentoloop Team
+Match. Mentor. Master
+
+PRECEPTOR
+Subject: Thank You for Making a Difference
+
+Hi [Preceptor First Name],
+
+The rotation with your student [Student First Name] is officially complete - and we just wanted to say THANK YOU! To finalize the rotation and strengthen our MentorFit(tm) algorithm, we ask for your brief evaluation.
+Complete the 5-question survey here:
+
+{{PreceptorSurveyLink}}
+
+It takes about 2 minutes and helps ensure future matches align with your teaching style and clinic needs. 
+
+We appreciate your partnership in shaping the next generation of NPs!
+
+Thanks for being part of Mentoloop.
+
+The Mentoloop Team
+Match. Mentor. Master
+
+MENTORFIT(tm) POST-ROTATION SURVEYS - Phase 2.0
+
+All five scored questions use the same 1 - 5 Likert scale (1 = Strongly Disagree / 5 = Strongly Agree).
+The Data Key column shows the field name MentorFit ingests.
+
+STUDENT → PRECEPTOR SURVEY
+Question
+Scale
+Required
+Type Data Key
+How well did your preceptor's teaching style match your preferred learning style?
+1-5
+Yes
+comm_effectiveness
+
+The communication frequency & clarity from your preceptor met your needs.
+1-5
+Yes
+teach_style_match
+The clinical case mix aligned with your learning goals
+1-5
+Yes
+case_mix_alignment
+
+I felt supported in achieving required clinical hours & competencies.
+1-5
+Yes
+support_hours_comp
+I would recommend this preceptor to another NP student
+1-5 
+Yes
+nps_preceptor
+(Optional) Any comments to help us improve?
+
+Long Text
+No
+student_comments
+PRECEPTOR → STUDENT SURVEY
+
+Question
+Scale
+Required
+Type Data Key
+The student was adequately prepared for daily clinical responsibilities
+1-5
+Yes
+student_preparedness
+
+
+The student communicated effectively and sought feedback appropriately
+1-5
+Yes
+student_comm
+
+The student was receptive to mentorship & constructive criticism
+1-5
+Yes
+teachability
+
+The student's clinical competence grew measurably during the rotation.
+1-5
+Yes
+competence_growth
+I would gladly host this student (or a similar profile) again.
+1-5 
+Yes
+nps_student
+(Optional) Any comments to help us improve?
+Long Text
+No
+preceptor_comments
+
+How These Answers Enhance MentorFit(tm)
+
+Data Key
+Algorithm Impact
+teach_style_match & student_preparedness
+Refines Learning-Style / Teaching-Style weightings for future matches.
+comm_effectiveness & student_comm
+Feeds the Communication cadence vector and boosts pairs with matching preferences.
+case_mix_alignment & competence_growth
+Updates Specialty-case alignment coefficient and predicts competence lift for similar student profiles.
+support_hours_comp
+Validates duty-hour predictions and flags preceptors who consistently under-support students.
+nps_preceptor & nps_student
+Directly refresh MentorFit Confidence Bands (Bronze/Silver/Gold) and drives marketplace NPS.
+
+Mentoloop Smart Payment Protocol 
+
+Stripe API pending - 
+
+Refund & Cancellation Logic
+Situation
+Timeline
+Refund
+Preceptor cancels
+Anytime
+100% refund
+Student cancels
+>21 days
+100% $50 fee
+Student cancels
+7-21 days
+50% refund
+Student cancels
+<7 days or no-show
+No refund
+Automation:
+
+* Refunds triggered via Stripe API
+* Auto-send "Refund Confirmation" email
+* Update status: Refunded or Canceled
+
+ Step 6: Airtable Status Fields
+Use these fields to automate payment tracking:
+
+* Student Name
+* Match Status: Unmatched, Matched, Confirmed, Canceled
+* Payment Status: Unpaid, Paid, Refunded, Expired
+* Billing Type: Student, Institutional, Deposit Hold
+* Contact Released: Yes/No
+* Admin Actions: Override, Manual Follow-up, Resend Invoice
+
+
+
+Mentoloop Memberships
+
+Mentoloop Student Membership Blocks
+
+Core Block
+ (Best for short rotations)
+    •    60 hours → $695 (≈ $11.58/hr)
+
+
+    •    ✅ Guaranteed preceptor match
+
+
+    •    ✅ Standard support + hour tracking
+
+
+    •    ✅ Bank unused hours within semester
+
+Pro Block
+ (Best value)
+    •    120 hours → $1,295
+
+Core + the following
+
+
+    •    ✅ Priority matching (within 14 days)
+
+
+    •    ✅ Dedicated student support rep
+
+
+    •    ✅ Midpoint check-in with student + preceptor
+
+Premium Block
+ (Best for full-semester placements)
+    •    180 hours → $1,895
+
+Pro + the following
+
+    •    ✅ Top-priority placement (within 7–10 days)
+
+
+    •    ✅ Dedicated Success Coordinator
+
+
+    •    ✅ Flexible rollover (into next semester)
+
+
+    •    ✅ Free access to mentorship resources (study guides, webinars)
+
+
+    •    ✅ Preceptor evaluation coaching included
+
+
+
+

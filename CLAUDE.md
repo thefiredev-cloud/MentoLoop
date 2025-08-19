@@ -77,6 +77,12 @@ convex/
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
 - `NEXT_PUBLIC_CLERK_FRONTEND_API_URL` (from Clerk JWT template)
 - `CLERK_WEBHOOK_SECRET` (set in Convex dashboard)
+- `SENDGRID_API_KEY` (for email automation)
+- `SENDGRID_FROM_EMAIL` (verified sender email, defaults to "noreply@mentoloop.com")
+- `TWILIO_ACCOUNT_SID` (for SMS notifications)
+- `TWILIO_AUTH_TOKEN` (for SMS notifications)
+- `TWILIO_PHONE_NUMBER` (verified Twilio phone number)
+- `NEXT_PUBLIC_APP_URL` (for survey links in emails)
 
 ### Webhook Configuration
 Clerk webhooks must be configured to:

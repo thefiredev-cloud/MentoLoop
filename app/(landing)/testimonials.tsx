@@ -10,40 +10,40 @@ type Testimonial = {
 
 const testimonials: Testimonial[] = [
     {
-        name: 'Jonathan Yombo',
-        role: 'Software Engineer',
-        image: 'https://randomuser.me/api/portraits/men/1.jpg',
-        quote: 'Tailus is really extraordinary and very practical, no need to break your head. A real gold mine.',
+        name: 'Sarah Chen',
+        role: 'FNP Student, University of California',
+        image: 'https://randomuser.me/api/portraits/women/1.jpg',
+        quote: 'MentoLoop found me the perfect preceptor match in just 10 days. The MentorFit algorithm really understood my learning style and paired me with someone who challenged me in all the right ways.',
     },
     {
-        name: 'Yves Kalume',
-        role: 'GDE - Android',
-        image: 'https://randomuser.me/api/portraits/men/6.jpg',
-        quote: 'With no experience in webdesign I just redesigned my entire website in a few minutes with tailwindcss thanks to Tailus.',
+        name: 'Dr. Maria Rodriguez',
+        role: 'Family Nurse Practitioner, Primary Care',
+        image: 'https://randomuser.me/api/portraits/women/6.jpg',
+        quote: 'As a preceptor, MentoLoop makes it so easy to find students who are truly ready to learn. The screening process ensures I get motivated, prepared students every time.',
     },
     {
-        name: 'Yucel Faruksahan',
-        role: 'Tailkits Creator',
-        image: 'https://randomuser.me/api/portraits/men/7.jpg',
-        quote: 'Great work on tailfolio template. This is one of the best personal website that I have seen so far :)',
+        name: 'Jessica Thompson',
+        role: 'PMHNP Student, Johns Hopkins',
+        image: 'https://randomuser.me/api/portraits/women/7.jpg',
+        quote: 'After struggling to find a psych preceptor for months, MentoLoop matched me within 2 weeks. The paperwork support was incredible - they handled everything!',
     },
     {
-        name: 'Shekinah Tshiokufila',
-        role: 'Senior Software Engineer',
+        name: 'Dr. Michael Park',
+        role: 'Psychiatric Nurse Practitioner',
         image: 'https://randomuser.me/api/portraits/men/4.jpg',
-        quote: 'Tailus is redefining the standard of web design, with these blocks it provides an easy and efficient way for those who love beauty but may lack the time to implement it. I can only recommend this incredible wonder.',
+        quote: 'MentoLoop has completely transformed how I approach student mentorship. The platform helps me find students whose goals and style align with mine, making the teaching experience so much more rewarding.',
     },
     {
-        name: 'Oketa Fred',
-        role: 'Fullstack Developer',
-        image: 'https://randomuser.me/api/portraits/men/2.jpg',
-        quote: 'I absolutely love Tailus! The component blocks are beautifully designed and easy to use, which makes creating a great-looking website a breeze.',
+        name: 'Emily Davis',
+        role: 'AGNP Student, Duke University',
+        image: 'https://randomuser.me/api/portraits/women/2.jpg',
+        quote: 'The stress of finding clinical placements was overwhelming until I found MentoLoop. Their team supported me through every step and I felt confident going into my rotations.',
     },
     {
-        name: 'Yves Kalume',
-        role: 'GDE - Android',
-        image: 'https://randomuser.me/api/portraits/men/6.jpg',
-        quote: 'With no experience in webdesign I just redesigned my entire website in a few minutes with tailwindcss thanks to Tailus.',
+        name: 'Dr. Jennifer Adams',
+        role: 'Women\'s Health NP, Private Practice',
+        image: 'https://randomuser.me/api/portraits/women/8.jpg',
+        quote: 'MentoLoop understands the unique challenges of NP education. They connected me with passionate students and provided the support structure that made mentoring feel natural and fulfilling.',
     },
 ]
 
@@ -63,8 +63,8 @@ export default function WallOfLoveSection() {
             <div className="py-16 md:py-32">
                 <div className="mx-auto max-w-6xl px-6">
                     <div className="text-center">
-                        <h2 className="text-foreground text-4xl font-semibold">Loved by the Community</h2>
-                        <p className="text-muted-foreground mb-12 mt-4 text-balance text-lg">Harum quae dolore orrupti aut temporibus ariatur.</p>
+                        <h2 className="text-foreground text-4xl font-semibold">Trusted by Students & Preceptors</h2>
+                        <p className="text-muted-foreground mb-12 mt-4 text-balance text-lg">See how MentoLoop is transforming NP education, one match at a time.</p>
                     </div>
                     <div className="mt-8 grid gap-3 sm:grid-cols-2 md:mt-12 lg:grid-cols-3">
                         {testimonialChunks.map((chunk, chunkIndex) => (

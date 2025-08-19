@@ -30,9 +30,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
 
 # vercel
 .vercel
@@ -40,3 +37,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local environment variables
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+.claude/
+.cursor/
+
+# OS files
+Thumbs.db

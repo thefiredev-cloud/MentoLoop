@@ -1,5 +1,6 @@
 import { ChatMaxingIconColoured } from '@/components/logo'
 import Link from 'next/link'
+import FooterWaveBackground from '@/components/footer-wave-background'
 
 const links = [
     {
@@ -30,14 +31,15 @@ const links = [
 
 export default function FooterSection() {
     return (
-        <footer className="py-16 md:py-32">
-            <div className="mx-auto max-w-5xl px-6">
+        <FooterWaveBackground>
+            <footer className="py-16 md:py-32">
+                <div className="mx-auto max-w-5xl px-6">
                 <Link
                     href="/"
                     aria-label="go home"
                     className="flex mx-auto gap-2 items-center size-fit">
                     <ChatMaxingIconColoured />
-                    <span className="text-xl font-medium">Starter.diy</span>
+                    <span className="text-xl font-medium text-white drop-shadow-lg">MentoLoop</span>
                 </Link>
 
                 <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">
@@ -45,7 +47,7 @@ export default function FooterSection() {
                         <Link
                             key={index}
                             href={link.href}
-                            className="text-muted-foreground hover:text-primary block duration-150">
+                            className="text-white/80 hover:text-white block duration-150 drop-shadow">
                             <span>{link.title}</span>
                         </Link>
                     ))}
@@ -56,7 +58,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="X/Twitter"
-                        className="text-muted-foreground hover:text-primary block">
+                        className="text-white/80 hover:text-white block">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -73,7 +75,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="LinkedIn"
-                        className="text-muted-foreground hover:text-primary block">
+                        className="text-white/80 hover:text-white block">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +92,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Facebook"
-                        className="text-muted-foreground hover:text-primary block">
+                        className="text-white/80 hover:text-white block">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +109,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Threads"
-                        className="text-muted-foreground hover:text-primary block">
+                        className="text-white/80 hover:text-white block">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +131,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Instagram"
-                        className="text-muted-foreground hover:text-primary block">
+                        className="text-white/80 hover:text-white block">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -146,7 +148,7 @@ export default function FooterSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="TikTok"
-                        className="text-muted-foreground hover:text-primary block">
+                        className="text-white/80 hover:text-white block">
                         <svg
                             className="size-6"
                             xmlns="http://www.w3.org/2000/svg"
@@ -159,8 +161,9 @@ export default function FooterSection() {
                         </svg>
                     </Link>
                 </div>
-                <span className="text-muted-foreground block text-center text-sm"> © {new Date().getFullYear()} Starter.diy, All rights reserved</span>
-            </div>
-        </footer>
+                <span className="text-white/80 block text-center text-sm drop-shadow"> © {new Date().getFullYear()} MentoLoop, All rights reserved</span>
+                </div>
+            </footer>
+        </FooterWaveBackground>
     )
 }
