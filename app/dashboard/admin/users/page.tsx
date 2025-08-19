@@ -130,7 +130,7 @@ export default function UserManagementPage() {
 
     try {
       await approvePreceptor({
-        preceptorId: user.profileData._id,
+        preceptorId: user.profileData._id as Id<"preceptors">,
         reason: 'Approved by admin',
       })
       toast.success('Preceptor approved successfully')
@@ -144,7 +144,7 @@ export default function UserManagementPage() {
 
     try {
       await rejectPreceptor({
-        preceptorId: user.profileData._id,
+        preceptorId: user.profileData._id as Id<"preceptors">,
         reason,
       })
       toast.success('Preceptor rejected')
@@ -319,7 +319,7 @@ export default function UserManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usersData.users?.map((user) => (
+                  {usersData.users?.map((user: User) => (
                     <TableRow key={user._id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email || 'No email'}</TableCell>

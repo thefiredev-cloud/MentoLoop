@@ -41,7 +41,7 @@ export default clerkMiddleware(async (auth, req) => {
       await auth.protect()
       
       // Role-based route protection
-      const { userId } = auth()
+      const { userId } = await auth()
       if (userId && isProtectedRoute(req)) {
         // For now, we'll implement basic route protection
         // In production, you'd fetch user role from database here

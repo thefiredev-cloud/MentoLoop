@@ -68,8 +68,8 @@ export default function AvailabilityStep({
     comfortableWithFirstRotation: false,
     schoolsWorkedWith: [] as string[],
     languagesSpoken: [] as string[],
-    ...data.availability,
-    ...data.matchingPreferences
+    ...(data.availability || {}),
+    ...(data.matchingPreferences || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -102,39 +102,39 @@ export default function AvailabilityStep({
   }, [formData, updateFormData])
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev: any) => ({ ...prev, [field]: value }))
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+      setErrors((prev: any) => ({ ...prev, [field]: '' }))
     }
   }
 
   const handleRotationChange = (rotation: string, checked: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       availableRotations: checked 
         ? [...prev.availableRotations, rotation]
-        : prev.availableRotations.filter(r => r !== rotation)
+        : prev.availableRotations.filter((r: any) => r !== rotation)
     }))
     if (errors.availableRotations) {
-      setErrors(prev => ({ ...prev, availableRotations: '' }))
+      setErrors((prev: any) => ({ ...prev, availableRotations: '' }))
     }
   }
 
   const handleDayChange = (day: string, checked: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       daysAvailable: checked 
         ? [...prev.daysAvailable, day]
-        : prev.daysAvailable.filter(d => d !== day)
+        : prev.daysAvailable.filter((d: any) => d !== day)
     }))
     if (errors.daysAvailable) {
-      setErrors(prev => ({ ...prev, daysAvailable: '' }))
+      setErrors((prev: any) => ({ ...prev, daysAvailable: '' }))
     }
   }
 
   const addStartDate = () => {
     if (newStartDate && !formData.preferredStartDates.includes(newStartDate)) {
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         preferredStartDates: [...prev.preferredStartDates, newStartDate]
       }))
@@ -143,15 +143,15 @@ export default function AvailabilityStep({
   }
 
   const removeStartDate = (date: string) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      preferredStartDates: prev.preferredStartDates.filter(d => d !== date)
+      preferredStartDates: prev.preferredStartDates.filter((d: any) => d !== date)
     }))
   }
 
   const addSchool = () => {
     if (newSchool.trim() && !formData.schoolsWorkedWith.includes(newSchool.trim())) {
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         schoolsWorkedWith: [...prev.schoolsWorkedWith, newSchool.trim()]
       }))
@@ -160,15 +160,15 @@ export default function AvailabilityStep({
   }
 
   const removeSchool = (school: string) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      schoolsWorkedWith: prev.schoolsWorkedWith.filter(s => s !== school)
+      schoolsWorkedWith: prev.schoolsWorkedWith.filter((s: any) => s !== school)
     }))
   }
 
   const addLanguage = () => {
     if (newLanguage.trim() && !formData.languagesSpoken.includes(newLanguage.trim())) {
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         languagesSpoken: [...prev.languagesSpoken, newLanguage.trim()]
       }))
@@ -177,9 +177,9 @@ export default function AvailabilityStep({
   }
 
   const removeLanguage = (language: string) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      languagesSpoken: prev.languagesSpoken.filter(l => l !== language)
+      languagesSpoken: prev.languagesSpoken.filter((l: string) => l !== language)
     }))
   }
 
@@ -249,7 +249,7 @@ export default function AvailabilityStep({
               <div className="space-y-3">
                 <Label>Available Rotations *</Label>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {availableRotations.map((rotation) => (
+                  {availableRotations.map((rotation: string) => (
                     <div key={rotation.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={rotation.value}
@@ -313,7 +313,7 @@ export default function AvailabilityStep({
               <div className="space-y-3">
                 <Label>Preferred Start Dates *</Label>
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.preferredStartDates.map((date) => (
+                  {formData.preferredStartDates.map((date: string) => (
                     <Badge key={date} variant="secondary" className="gap-1">
                       {new Date(date).toLocaleDateString()}
                       <button 
@@ -349,7 +349,7 @@ export default function AvailabilityStep({
               <div className="space-y-3">
                 <Label>Days Available *</Label>
                 <div className="grid gap-3 md:grid-cols-4">
-                  {daysOfWeek.map((day) => (
+                  {daysOfWeek.map((day: string) => (
                     <div key={day.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={day.value}
@@ -390,7 +390,7 @@ export default function AvailabilityStep({
                 <SelectValue placeholder="Select preference" />
               </SelectTrigger>
               <SelectContent>
-                {studentDegreeLevels.map((level) => (
+                {studentDegreeLevels.map((level: string) => (
                   <SelectItem key={level.value} value={level.value}>
                     {level.label}
                   </SelectItem>
@@ -416,7 +416,7 @@ export default function AvailabilityStep({
           <div className="space-y-3">
             <Label>Schools Worked With Previously (Optional)</Label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {formData.schoolsWorkedWith.map((school) => (
+              {formData.schoolsWorkedWith.map((school: string) => (
                 <Badge key={school} variant="secondary" className="gap-1">
                   {school}
                   <button 
@@ -449,7 +449,7 @@ export default function AvailabilityStep({
           <div className="space-y-3">
             <Label>Languages Spoken (Optional)</Label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {formData.languagesSpoken.map((language) => (
+              {formData.languagesSpoken.map((language: string) => (
                 <Badge key={language} variant="secondary" className="gap-1">
                   {language}
                   <button 

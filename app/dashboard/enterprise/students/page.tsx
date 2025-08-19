@@ -77,11 +77,11 @@ export default function EnterpriseStudentsPage() {
   const filteredStudents = useMemo(() => {
     if (!students) return []
     
-    return students.filter(student => {
+    return students.filter((student: any) => {
       const matchesSearch = !searchQuery || 
         student.personalInfo?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.personalInfo?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.schoolInfo?.schoolName?.toLowerCase().includes(searchQuery.toLowerCase())
+        student.schoolInfo?.programName?.toLowerCase().includes(searchQuery.toLowerCase())
       
       const matchesStatus = statusFilter === 'all' || student.status === statusFilter
       
@@ -94,9 +94,9 @@ export default function EnterpriseStudentsPage() {
     if (!students) return { total: 0, active: 0, matched: 0, pending: 0 }
     
     const total = students.length
-    const active = students.filter(s => s.status === 'active').length
-    const matched = students.filter(s => s.status === 'matched').length
-    const pending = students.filter(s => s.status === 'pending').length
+    const active = students.filter((s: any) => s.status === 'active').length
+    const matched = students.filter((s: any) => s.status === 'matched').length
+    const pending = students.filter((s: any) => s.status === 'pending').length
     
     return { total, active, matched, pending }
   }, [students])
@@ -133,7 +133,7 @@ export default function EnterpriseStudentsPage() {
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <GraduationCap className="h-5 w-5" />
-          {student.personalInfo?.fullName || 'Unknown Student'}
+          {student.personalInfo?.fullName || student.name || 'Unknown Student'}
         </DialogTitle>
         <DialogDescription>
           Student ID: {student._id} • {getStatusBadge(student.status)}
@@ -165,7 +165,7 @@ export default function EnterpriseStudentsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{student.personalInfo?.state || 'Not provided'}</span>
+                  <span className="text-sm">{student.schoolInfo?.schoolLocation?.state || 'Not provided'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -177,11 +177,11 @@ export default function EnterpriseStudentsPage() {
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{student.schoolInfo?.schoolName || 'Not provided'}</span>
+                  <span className="text-sm">{student.schoolInfo?.schoolLocation?.city || 'Not provided'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{student.schoolInfo?.programType || 'Not specified'}</span>
+                  <span className="text-sm">{student.schoolInfo?.degreeTrack || 'Not specified'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -200,7 +200,7 @@ export default function EnterpriseStudentsPage() {
                 <div>
                   <span className="text-sm font-medium">Preferred Specialties:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {student.rotationNeeds?.rotationType?.map((type: string, idx: number) => (
+                    {student.rotationNeeds?.rotationTypes?.map((type: string, idx: number) => (
                       <Badge key={idx} variant="outline" className="text-xs">{type}</Badge>
                     )) || <span className="text-xs text-muted-foreground">None specified</span>}
                   </div>
@@ -208,7 +208,7 @@ export default function EnterpriseStudentsPage() {
                 <div>
                   <span className="text-sm font-medium">Preferred Location:</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {student.rotationNeeds?.preferredLocation || 'Not specified'}
+                    {student.rotationNeeds?.preferredLocation ? `${student.rotationNeeds.preferredLocation.city}, ${student.rotationNeeds.preferredLocation.state}` : 'Not specified'}
                   </p>
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function EnterpriseStudentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student) => (
+              {filteredStudents.map((student: any) => (
                 <TableRow key={student._id}>
                   <TableCell>
                     <div>
@@ -424,7 +424,7 @@ export default function EnterpriseStudentsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">{student.schoolInfo?.schoolName || 'Not provided'}</div>
+                    <div className="text-sm">{student.schoolInfo?.programName || 'Not provided'}</div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">{student.schoolInfo?.programType || 'Not specified'}</div>
