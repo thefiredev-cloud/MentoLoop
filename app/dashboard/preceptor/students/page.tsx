@@ -77,6 +77,10 @@ export default function PreceptorStudents() {
     user ? { preceptorId: user._id } : "skip"
   )
 
+  // Handle loading state for both user and students data
+  if (user === undefined) {
+    return <div>Loading...</div>
+  }
 
   if (!user) {
     return <div>Loading...</div>

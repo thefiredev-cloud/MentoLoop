@@ -9,6 +9,10 @@
   NODE_VERSION = "22"
   NPM_VERSION = "10"
   NETLIFY = "true"
+  
+# Prevent Netlify from timing out during build
+[build.processing]
+  skip_processing = false
 
 [dev]
   command = "npm run dev"
