@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { isTexasZipCode } from '@/lib/location'
 
 interface PracticeInfoStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -53,7 +53,7 @@ export default function PracticeInfoStep({
     updateFormData('practiceInfo', formData)
   }, [formData, updateFormData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -256,7 +256,7 @@ export default function PracticeInfoStep({
             placeholder="e.g., Epic, Cerner, Athenahealth"
           />
           <p className="text-xs text-muted-foreground">
-            This helps students prepare for the EMR system they'll be using
+            This helps students prepare for the EMR system they&apos;ll be using
           </p>
         </div>
       </div>

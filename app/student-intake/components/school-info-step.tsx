@@ -10,8 +10,8 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
 interface SchoolInfoStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -53,7 +53,7 @@ export default function SchoolInfoStep({
 
   // Get schools from database
   const schoolOptions = useQuery(api.schools.getSchoolOptions)
-  const [selectedSchool, setSelectedSchool] = useState<any>(null)
+  const [selectedSchool, setSelectedSchool] = useState<{ name: string; id: string } | null>(null)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 

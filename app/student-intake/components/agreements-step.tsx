@@ -12,8 +12,8 @@ import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
 
 interface AgreementsStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -46,7 +46,7 @@ export default function AgreementsStep({
     updateFormData('agreements', formData)
   }, [formData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -111,17 +111,17 @@ export default function AgreementsStep({
           </p>
           <p className="text-sm text-muted-foreground">
             Our team will review your application and begin searching for potential preceptor matches. 
-            You'll receive an email confirmation shortly and hear from us within 2-3 business days.
+            You&apos;ll receive an email confirmation shortly and hear from us within 2-3 business days.
           </p>
         </div>
         <div className="bg-muted/50 p-6 rounded-lg">
           <h3 className="font-semibold mb-2">What happens next?</h3>
           <div className="text-sm text-muted-foreground space-y-2">
-            <p>1. We'll review your application and verify your school enrollment</p>
+            <p>1. We&apos;ll review your application and verify your school enrollment</p>
             <p>2. Our MentorFit™ algorithm will identify compatible preceptors</p>
             <p>3. Our team will manually review top matches for quality assurance</p>
-            <p>4. You'll receive match recommendations within 2-3 business days</p>
-            <p>5. Once you confirm a match, we'll coordinate introductions and paperwork</p>
+            <p>4. You&apos;ll receive match recommendations within 2-3 business days</p>
+            <p>5. Once you confirm a match, we&apos;ll coordinate introductions and paperwork</p>
           </div>
         </div>
         <Button asChild size="lg">
@@ -191,7 +191,7 @@ export default function AgreementsStep({
             />
             <div className="space-y-1">
               <Label htmlFor="termsAndPrivacy" className="text-sm font-medium">
-                I consent to MentoLoop's{' '}
+                I consent to MentoLoop&apos;s{' '}
                 <Link href="/terms" className="text-primary hover:underline">
                   Terms of Service
                 </Link>
@@ -251,7 +251,7 @@ export default function AgreementsStep({
               <p className="text-sm font-medium mb-1 text-primary dark:text-primary-foreground">Your Data Security</p>
               <p className="text-xs text-primary/80 dark:text-primary-foreground/80">
                 We prioritize student safety and data privacy with every interaction. Your information is encrypted, 
-                HIPAA-compliant, and only shared with verified preceptors after you've confirmed a match. 
+                HIPAA-compliant, and only shared with verified preceptors after you&apos;ve confirmed a match. 
                 We never sell your data to third parties.
               </p>
             </div>

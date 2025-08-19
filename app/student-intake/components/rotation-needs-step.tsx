@@ -11,8 +11,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 
 interface RotationNeedsStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -74,7 +74,7 @@ export default function RotationNeedsStep({
     updateFormData('rotationNeeds', rotationData)
   }, [formData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -310,7 +310,7 @@ export default function RotationNeedsStep({
             <div>
               <p className="text-sm font-medium mb-1">Rotation Matching</p>
               <p className="text-xs text-muted-foreground">
-                We'll use this information to find preceptors who can accommodate your schedule and rotation needs. 
+                We&apos;ll use this information to find preceptors who can accommodate your schedule and rotation needs. 
                 Our algorithm prioritizes matches based on your availability, specialty requirements, and location preferences.
               </p>
             </div>

@@ -35,7 +35,6 @@ import {
   TrendingUp,
   TrendingDown,
   Users,
-  CreditCard,
   Receipt,
   PieChart,
   BarChart3,
@@ -50,13 +49,28 @@ import {
   Clock,
   Calendar
 } from 'lucide-react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+
+interface Payment {
+  id: string
+  customerEmail: string
+  amount: number
+  currency: string
+  status: 'succeeded' | 'pending' | 'failed' | 'refunded'
+  method: string
+  description: string
+  createdAt: number
+  invoiceUrl: string
+}
+
+interface SubscriptionPlan {
+  count: number
+  revenue: number
+}
 
 export default function AdminFinancialPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [dateRange, setDateRange] = useState('30d')
+  const [dateRange] = useState('30d')
 
   // Mock data - in production, these would be real queries
   const mockFinancialData = {
@@ -140,7 +154,7 @@ export default function AdminFinancialPage() {
       
       return matchesSearch && matchesStatus
     })
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, statusFilter, mockPayments])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -171,14 +185,14 @@ export default function AdminFinancialPage() {
     const Icon = config.icon
     
     return (
-      <Badge variant={config.variant as any} className="flex items-center gap-1">
+      <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
     )
   }
 
-  const PaymentDetailsModal = ({ payment }: { payment: any }) => (
+  const PaymentDetailsModal = ({ payment }: { payment: Payment }) => (
     <DialogContent className="max-w-2xl">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -467,16 +481,16 @@ export default function AdminFinancialPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Active Subscribers:</span>
-                      <span className="font-medium">{(data as any).count}</span>
+                      <span className="font-medium">{(data as SubscriptionPlan).count}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Monthly Revenue:</span>
-                      <span className="font-medium">{formatCurrency((data as any).revenue * 100)}</span>
+                      <span className="font-medium">{formatCurrency((data as SubscriptionPlan).revenue * 100)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Avg per User:</span>
                       <span className="font-medium">
-                        {formatCurrency((data as any).revenue / (data as any).count * 100)}
+                        {formatCurrency((data as SubscriptionPlan).revenue / (data as SubscriptionPlan).count * 100)}
                       </span>
                     </div>
                   </div>

@@ -382,7 +382,7 @@ export default function PreceptorStudents() {
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Active Students</h3>
               <p className="text-muted-foreground text-center max-w-md mb-4">
-                You don't have any active preceptees at the moment. 
+                You don&apos;t have any active preceptees at the moment. 
                 Accept student match requests to start mentoring.
               </p>
               <Button asChild>

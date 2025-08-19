@@ -1,25 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { 
   Users, 
   Search, 
-  Filter,
-  MoreHorizontal,
   Eye,
   Edit,
-  Trash2,
   UserCheck,
-  UserX,
   Shield,
   CheckCircle,
   XCircle,
@@ -31,13 +27,27 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 
+interface ProfileData {
+  _id?: string
+  verificationStatus?: 'verified' | 'pending' | 'rejected'
+  status?: 'submitted' | 'incomplete' | string
+  [key: string]: unknown
+}
+
+interface AuditLog {
+  _id: string
+  action: string
+  performerName: string
+  timestamp: number
+}
+
 interface User {
   _id: Id<'users'>
   name: string
   email?: string
   userType?: 'student' | 'preceptor' | 'admin' | 'enterprise'
   createdAt?: number
-  profileData?: any
+  profileData?: ProfileData
   hasProfile: boolean
   profileStatus: string
 }
@@ -58,7 +68,7 @@ export default function UserManagementPage() {
   // Queries
   const usersData = useQuery(api.admin.searchUsers, {
     searchTerm: searchTerm || undefined,
-    userType: userTypeFilter ? userTypeFilter as any : undefined,
+    userType: userTypeFilter ? userTypeFilter as 'student' | 'preceptor' | 'admin' | 'enterprise' : undefined,
     limit: 50,
   })
 
@@ -102,14 +112,14 @@ export default function UserManagementPage() {
         updates: {
           name: editFormData.name,
           email: editFormData.email,
-          userType: editFormData.userType as any,
+          userType: editFormData.userType as 'student' | 'preceptor' | 'admin' | 'enterprise',
         },
         reason: editFormData.reason,
       })
       toast.success('User updated successfully')
       setShowEditDialog(false)
       setEditFormData({ name: '', email: '', userType: '', reason: '' })
-    } catch (error) {
+    } catch {
       toast.error('Failed to update user')
     }
   }
@@ -124,7 +134,7 @@ export default function UserManagementPage() {
         reason: 'Approved by admin',
       })
       toast.success('Preceptor approved successfully')
-    } catch (error) {
+    } catch {
       toast.error('Failed to approve preceptor')
     }
   }
@@ -138,7 +148,7 @@ export default function UserManagementPage() {
         reason,
       })
       toast.success('Preceptor rejected')
-    } catch (error) {
+    } catch {
       toast.error('Failed to reject preceptor')
     }
   }
@@ -151,7 +161,7 @@ export default function UserManagementPage() {
         reason,
       })
       toast.success('User deleted successfully')
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete user')
     }
   }
@@ -417,7 +427,7 @@ export default function UserManagementPage() {
                 <div>
                   <h3 className="font-semibold mb-2">Recent Activity</h3>
                   <div className="space-y-2">
-                    {userDetails.auditLogs.map((log: any) => (
+                    {userDetails.auditLogs.map((log: AuditLog) => (
                       <div key={log._id} className="flex items-center justify-between p-2 border rounded">
                         <div>
                           <span className="font-medium">{log.action}</span>

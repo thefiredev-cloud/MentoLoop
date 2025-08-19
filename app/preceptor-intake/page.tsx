@@ -30,7 +30,7 @@ export default function PreceptorIntakePage() {
     agreements: {},
   })
 
-  const updateFormData = useCallback((section: string, data: any) => {
+  const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
     setFormData(prev => ({
       ...prev,
       [section]: { ...prev[section as keyof typeof prev], ...data }
@@ -64,7 +64,7 @@ export default function PreceptorIntakePage() {
           <p className="text-muted-foreground mt-4 max-w-3xl mx-auto">
             Thank you for your interest in becoming a preceptor with MentoLoop. We connect experienced, 
             mission-driven NPs and clinicians with students who are eager to learn, grow, and serve their communities. 
-            Whether you've mentored before or are new to teaching, we make the process simple, rewarding, and fully supported.
+            Whether you&apos;ve mentored before or are new to teaching, we make the process simple, rewarding, and fully supported.
           </p>
           <p className="text-muted-foreground mt-2 max-w-3xl mx-auto">
             Make a lasting impact and pass on your knowledge, skills, and experience to the next generation of nurse practitioners. 

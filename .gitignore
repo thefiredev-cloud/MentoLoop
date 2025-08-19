@@ -50,3 +50,9 @@ next-env.d.ts
 
 # OS files
 Thumbs.db
+
+# Test and development artifacts
+.playwright-mcp/
+
+# Duplicate directories
+MentoLoop/

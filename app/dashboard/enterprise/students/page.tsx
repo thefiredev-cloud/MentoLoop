@@ -50,7 +50,6 @@ import {
   Phone,
   Mail,
   BookOpen,
-  TrendingUp,
   Filter
 } from 'lucide-react'
 import { useQuery, useMutation } from 'convex/react'
@@ -71,13 +70,8 @@ export default function EnterpriseStudentsPage() {
     api.students.getByEnterpriseId,
     enterpriseData?._id ? { enterpriseId: enterpriseData._id } : "skip"
   )
-  const studentMatches = useQuery(
-    api.matches.getByEnterpriseId,
-    enterpriseData?._id ? { enterpriseId: enterpriseData._id } : "skip"
-  )
 
   // Mutations
-  const updateStudentStatus = useMutation(api.students.updateStudentStatus)
 
   // Filter and search students
   const filteredStudents = useMemo(() => {
@@ -127,14 +121,14 @@ export default function EnterpriseStudentsPage() {
     const Icon = config.icon
     
     return (
-      <Badge variant={config.variant as any} className="flex items-center gap-1">
+      <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
     )
   }
 
-  const StudentDetailsModal = ({ student, onClose }: { student: any, onClose: () => void }) => (
+  const StudentDetailsModal = ({ student }: { student: { _id: string; name: string; email: string; program: string; status: string; }; onClose: () => void }) => (
     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -284,7 +278,7 @@ export default function EnterpriseStudentsPage() {
         <div>
           <h1 className="text-3xl font-bold">Student Management</h1>
           <p className="text-muted-foreground">
-            Manage and monitor your organization's students
+            Manage and monitor your organization&apos;s students
           </p>
         </div>
         <div className="flex gap-2">

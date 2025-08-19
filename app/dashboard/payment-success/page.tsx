@@ -47,7 +47,7 @@ export default function PaymentSuccess() {
             </div>
             <h1 className="text-xl font-semibold mb-2">Match Not Found</h1>
             <p className="text-muted-foreground mb-4">
-              We couldn't find the match associated with this payment.
+              We couldn&apos;t find the match associated with this payment.
             </p>
             <Button onClick={() => router.push('/dashboard')}>
               Return to Dashboard
@@ -187,7 +187,7 @@ export default function PaymentSuccess() {
                 <div>
                   <div className="font-medium">Pre-Rotation Contact</div>
                   <div className="text-sm text-muted-foreground">
-                    You'll receive contact information to connect with your preceptor before the rotation starts.
+                    You&apos;ll receive contact information to connect with your preceptor before the rotation starts.
                   </div>
                 </div>
               </div>

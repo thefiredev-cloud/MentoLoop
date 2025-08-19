@@ -14,7 +14,6 @@ import { Slider } from '@/components/ui/slider'
 import { 
   Search, 
   Target,
-  MoreHorizontal,
   Eye,
   Edit,
   CheckCircle,
@@ -22,11 +21,8 @@ import {
   AlertCircle,
   Brain,
   TrendingUp,
-  Users,
-  DollarSign,
   Play,
   Pause,
-  RotateCcw
 } from 'lucide-react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -80,7 +76,7 @@ export default function MatchManagementPage() {
 
   // Queries
   const matchesData = useQuery(api.matches.getAllMatches, {
-    status: statusFilter && statusFilter !== 'all' ? statusFilter as any : undefined,
+    status: statusFilter && statusFilter !== 'all' ? statusFilter as 'suggested' | 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled' : undefined,
   })
 
   const platformStats = useQuery(api.admin.getPlatformStats, {})
@@ -114,7 +110,7 @@ export default function MatchManagementPage() {
       toast.success('Match score updated successfully')
       setShowOverrideDialog(false)
       setOverrideReason('')
-    } catch (error) {
+    } catch {
       toast.error('Failed to update match score')
     }
   }
@@ -144,7 +140,7 @@ export default function MatchManagementPage() {
         rotationType: '',
         reason: ''
       })
-    } catch (error) {
+    } catch {
       toast.error('Failed to create match')
     }
   }
@@ -321,7 +317,7 @@ export default function MatchManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {matchesData.map((match: any) => (
+                  {matchesData.map((match: Match) => (
                     <TableRow key={match._id}>
                       <TableCell>
                         <div>

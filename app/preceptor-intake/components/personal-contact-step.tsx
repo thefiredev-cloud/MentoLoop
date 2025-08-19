@@ -9,8 +9,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 interface PersonalContactStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -64,7 +64,7 @@ export default function PersonalContactStep({
     updateFormData('personalInfo', formData)
   }, [formData, updateFormData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))

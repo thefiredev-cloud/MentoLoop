@@ -300,7 +300,7 @@ export default function StudentMatches() {
                 <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Pending Matches</h3>
                 <p className="text-muted-foreground mb-4">
-                  We're working on finding the perfect preceptor matches for you.
+                  We&apos;re working on finding the perfect preceptor matches for you.
                 </p>
                 <Button variant="outline" asChild>
                   <Link href="/dashboard/student">

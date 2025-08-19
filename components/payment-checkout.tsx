@@ -155,7 +155,7 @@ export default function PaymentCheckout({
 
           {/* What's Included */}
           <div className="space-y-3">
-            <div className="font-medium">What's Included</div>
+            <div className="font-medium">What&apos;s Included</div>
             <div className="grid gap-2 text-sm">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />

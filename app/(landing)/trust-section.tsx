@@ -20,7 +20,7 @@ export default function TrustSection() {
                                 <GraduationCap className="h-8 w-8 text-primary" />
                             </div>
                         </div>
-                        <h3 className="text-foreground text-xl font-semibold mb-3">Created by NPs Who've Been There</h3>
+                        <h3 className="text-foreground text-xl font-semibold mb-3">Created by NPs Who&apos;ve Been There</h3>
                         <p className="text-muted-foreground">
                             MentoLoop was built by nurse practitioners who have firsthand experience with clinical placement.
                         </p>

@@ -28,7 +28,7 @@ export function RoleGuard({
   useEffect(() => {
     if (user && requiredRole && user.userType !== requiredRole && user.userType !== 'admin') {
       // Redirect to appropriate dashboard
-      const defaultRoute = getDefaultDashboardRoute(user.userType as any)
+      const defaultRoute = getDefaultDashboardRoute(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise')
       router.replace(defaultRoute)
     }
   }, [user, requiredRole, router])
@@ -55,7 +55,7 @@ export function RoleGuard({
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              You don't have permission to access this area. You'll be redirected to your dashboard.
+              You don&apos;t have permission to access this area. You&apos;ll be redirected to your dashboard.
             </p>
           </CardContent>
         </Card>
@@ -64,7 +64,7 @@ export function RoleGuard({
   }
 
   // Check permission access
-  if (requiredPermission && user.userType && !hasPermission(user.userType as any, requiredPermission as any)) {
+  if (requiredPermission && user.userType && !hasPermission(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', requiredPermission)) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen p-8">
         <Card className="w-full max-w-md">
@@ -76,7 +76,7 @@ export function RoleGuard({
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              You don't have the required permissions to view this content.
+              You don&apos;t have the required permissions to view this content.
             </p>
           </CardContent>
         </Card>
@@ -85,7 +85,7 @@ export function RoleGuard({
   }
 
   // Check route access
-  if (user.userType && !canAccessRoute(user.userType as any, pathname)) {
+  if (user.userType && !canAccessRoute(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', pathname)) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen p-8">
         <Card className="w-full max-w-md">
@@ -116,11 +116,11 @@ export function useRolePermissions() {
     userRole: user?.userType as 'student' | 'preceptor' | 'admin' | 'enterprise' | undefined,
     hasPermission: (permission: string) => {
       if (!user?.userType) return false
-      return hasPermission(user.userType as any, permission as any)
+      return hasPermission(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', permission)
     },
     canAccess: (route: string) => {
       if (!user?.userType) return false
-      return canAccessRoute(user.userType as any, route)
+      return canAccessRoute(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise', route)
     }
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
@@ -290,7 +290,7 @@ export default function PreceptorEvaluations() {
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Evaluations</h3>
               <p className="text-muted-foreground text-center max-w-md mb-4">
-                You haven't created any student evaluations yet. Start mentoring students to begin the evaluation process.
+                You haven&apos;t created any student evaluations yet. Start mentoring students to begin the evaluation process.
               </p>
               <Button asChild>
                 <Link href="/dashboard/preceptor/matches">

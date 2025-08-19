@@ -41,7 +41,7 @@ export default function TestCommunications() {
     try {
       await sendEmailAction({
         to: emailTest.email,
-        templateKey: emailTest.template as any,
+        templateKey: emailTest.template as 'WELCOME_STUDENT' | 'WELCOME_PRECEPTOR' | 'MATCH_CONFIRMED_STUDENT' | 'MATCH_CONFIRMED_PRECEPTOR' | 'PAYMENT_RECEIVED' | 'ROTATION_COMPLETE_STUDENT' | 'ROTATION_COMPLETE_PRECEPTOR',
         variables: {
           firstName: emailTest.firstName,
           preceptorName: 'Dr. Test Preceptor',
@@ -76,7 +76,7 @@ export default function TestCommunications() {
     try {
       await sendSMSAction({
         to: smsTest.phone,
-        templateKey: smsTest.template as any,
+        templateKey: smsTest.template as 'WELCOME_CONFIRMATION' | 'MATCH_CONFIRMATION' | 'PAYMENT_REMINDER' | 'ROTATION_START_REMINDER' | 'SURVEY_REQUEST',
         variables: {
           firstName: smsTest.firstName,
           studentName: 'Test Student',

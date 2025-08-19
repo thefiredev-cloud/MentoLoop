@@ -48,7 +48,7 @@ export default function PreceptorProfile() {
             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Profile Not Complete</h3>
             <p className="text-muted-foreground text-center max-w-md mb-4">
-              You haven't completed your preceptor intake yet. Complete it to start receiving student matches.
+              You haven&apos;t completed your preceptor intake yet. Complete it to start receiving student matches.
             </p>
             <Button asChild>
               <Link href="/preceptor-intake">

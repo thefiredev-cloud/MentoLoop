@@ -12,8 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Users, Clock } from 'lucide-react'
 
 interface AvailabilityStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -101,7 +101,7 @@ export default function AvailabilityStep({
     updateFormData('matchingPreferences', matchingData)
   }, [formData, updateFormData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -488,8 +488,8 @@ export default function AvailabilityStep({
             <div>
               <p className="text-sm font-medium mb-1">Flexible Scheduling</p>
               <p className="text-xs text-muted-foreground">
-                You can update your availability anytime through your dashboard. We'll only show your profile 
-                to students when you're actively accepting placements, and you can pause availability whenever needed.
+                You can update your availability anytime through your dashboard. We&apos;ll only show your profile 
+                to students when you&apos;re actively accepting placements, and you can pause availability whenever needed.
               </p>
             </div>
           </div>

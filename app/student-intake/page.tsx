@@ -30,7 +30,7 @@ export default function StudentIntakePage() {
     agreements: {},
   })
 
-  const updateFormData = (section: string, data: any) => {
+  const updateFormData = (section: string, data: Record<string, unknown>) => {
     setFormData(prev => ({
       ...prev,
       [section]: { ...prev[section as keyof typeof prev], ...data }
@@ -124,8 +124,8 @@ export default function StudentIntakePage() {
         {/* Footer Message */}
         <div className="text-center mt-8 text-sm text-muted-foreground">
           <p>
-            If you've struggled to find a preceptor - or just want a better way - you're in the right place. 
-            Let us take the stress out of your search - so you can focus on becoming the NP you're meant to be.
+            If you&apos;ve struggled to find a preceptor - or just want a better way - you&apos;re in the right place. 
+            Let us take the stress out of your search - so you can focus on becoming the NP you&apos;re meant to be.
           </p>
         </div>
       </div>

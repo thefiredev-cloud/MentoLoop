@@ -20,10 +20,10 @@ import {
   Image,
   FileSpreadsheet
 } from 'lucide-react'
-import Link from 'next/link'
 
 export default function PreceptorDocuments() {
   const user = useQuery(api.users.current)
+  const [selectedType, setSelectedType] = useState('All')
 
   if (!user) {
     return <div>Loading...</div>
@@ -110,7 +110,6 @@ export default function PreceptorDocuments() {
   }
 
   const documentTypes = ['All', 'Agreement', 'Template', 'Hours Log', 'Credential']
-  const [selectedType, setSelectedType] = useState('All')
 
   const filteredDocuments = selectedType === 'All' 
     ? mockDocuments 

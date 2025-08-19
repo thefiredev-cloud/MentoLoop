@@ -13,8 +13,8 @@ import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
 
 interface PreceptorAgreementsStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -48,7 +48,7 @@ export default function PreceptorAgreementsStep({
     updateFormData('agreements', formData)
   }, [formData, updateFormData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -109,17 +109,17 @@ export default function PreceptorAgreementsStep({
           </p>
           <p className="text-sm text-muted-foreground">
             Our team will review your application and verify your credentials. 
-            You'll receive an email confirmation shortly and hear from us within 3-5 business days.
+            You&apos;ll receive an email confirmation shortly and hear from us within 3-5 business days.
           </p>
         </div>
         <div className="bg-muted/50 p-6 rounded-lg">
           <h3 className="font-semibold mb-2">What happens next?</h3>
           <div className="text-sm text-muted-foreground space-y-2">
-            <p>1. We'll verify your license, NPI number, and credentials</p>
+            <p>1. We&apos;ll verify your license, NPI number, and credentials</p>
             <p>2. Our team will review your practice information and availability</p>
             <p>3. You may receive a brief phone or video screening call</p>
             <p>4. Once approved, your profile will be active for student matching</p>
-            <p>5. We'll send you potential student matches based on your MentorFit™ preferences</p>
+            <p>5. We&apos;ll send you potential student matches based on your MentorFit™ preferences</p>
           </div>
         </div>
         <Button asChild size="lg">
@@ -143,7 +143,7 @@ export default function PreceptorAgreementsStep({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-muted/50 p-4 rounded-lg text-sm">
-            <h4 className="font-semibold mb-3">This agreement is entered into between MentoLoop and the undersigned ("Preceptor") for participation in the NP student matching program.</h4>
+            <h4 className="font-semibold mb-3">This agreement is entered into between MentoLoop and the undersigned (&quot;Preceptor&quot;) for participation in the NP student matching program.</h4>
             <div className="space-y-2 text-muted-foreground">
               <p>By participating, you agree to the following:</p>
               <p>1. You are a licensed healthcare professional (NP, MD, DO, or PA) in good standing.</p>
@@ -218,7 +218,7 @@ export default function PreceptorAgreementsStep({
             />
             <div className="space-y-1">
               <Label htmlFor="termsAndPrivacy" className="text-sm font-medium">
-                I consent to MentoLoop's{' '}
+                I consent to MentoLoop&apos;s{' '}
                 <Link href="/terms" className="text-primary hover:underline">
                   Terms of Service
                 </Link>

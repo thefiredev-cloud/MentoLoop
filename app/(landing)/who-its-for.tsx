@@ -50,7 +50,7 @@ export default function WhoItsFor() {
         <section className="py-16 md:py-32">
             <div className="mx-auto max-w-7xl px-6">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-semibold mb-4">Who It's For</h2>
+                    <h2 className="text-4xl font-semibold mb-4">Who It&apos;s For</h2>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                         MentoLoop serves the entire NP education ecosystem, connecting students, preceptors, 
                         and institutions to create better clinical experiences.

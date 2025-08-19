@@ -87,8 +87,8 @@ export default function FeaturesOne() {
                         
                         <blockquote className="before:bg-primary relative mt-12 max-w-2xl mx-auto pl-6 before:absolute before:inset-y-0 before:left-0 before:w-1 before:rounded-full">
                             <p className="text-foreground text-lg italic">
-                                "This isn't about filling spots. It's about fixing the pipeline. MentoLoop exists to transform NP education - 
-                                one match, one mentor, one future provider at a time."
+                                &quot;This isn&apos;t about filling spots. It&apos;s about fixing the pipeline. MentoLoop exists to transform NP education - 
+                                one match, one mentor, one future provider at a time.&quot;
                             </p>
                         </blockquote>
                     </div>

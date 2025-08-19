@@ -11,8 +11,28 @@ import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { toast } from 'sonner'
 
+interface AIMatchResult {
+  preceptorId: string
+  preceptorName: string
+  baseScore: number
+  enhancedScore: number
+  aiAnalysis: string
+  confidence: 'high' | 'medium' | 'low'
+  aiStrengths: string[]
+  aiConcerns: string[]
+  aiRecommendations: string[]
+}
+
+interface TestResults {
+  success: boolean
+  totalAnalyzed: number
+  matches: AIMatchResult[]
+  aiProvider: string
+  timestamp: number
+}
+
 export default function AIMatchingTest() {
-  const [testResults, setTestResults] = useState<any>(null)
+  const [testResults, setTestResults] = useState<TestResults | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<string>('')
 
@@ -219,7 +239,7 @@ export default function AIMatchingTest() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid gap-4">
-                    {testResults.matches.map((match: any, index: number) => (
+                    {testResults.matches.map((match: AIMatchResult, index: number) => (
                       <Card key={match.preceptorId} className="border-l-4 border-l-primary">
                         <CardContent className="pt-6">
                           <div className="flex justify-between items-start mb-4">

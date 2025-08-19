@@ -151,7 +151,7 @@ export default function PreceptorMatches() {
   const reviewingCount = reviewingMatches?.length || 0
   const acceptedCount = acceptedMatches?.length || 0
 
-  const renderStudentCard = (match: any, showActions: boolean = true) => (
+  const renderStudentCard = (match: NonNullable<typeof pendingMatches>[0], showActions: boolean = true) => (
     <Card key={match._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -348,7 +348,7 @@ export default function PreceptorMatches() {
                 <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Pending Matches</h3>
                 <p className="text-muted-foreground text-center max-w-md">
-                  You don't have any pending student match requests at the moment. 
+                  You don&apos;t have any pending student match requests at the moment. 
                   New matches will appear here when students request you as a preceptor.
                 </p>
               </CardContent>
@@ -370,7 +370,7 @@ export default function PreceptorMatches() {
                 <Eye className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Matches Under Review</h3>
                 <p className="text-muted-foreground text-center max-w-md">
-                  Matches you've requested more information about will appear here.
+                  Matches you&apos;ve requested more information about will appear here.
                 </p>
               </CardContent>
             </Card>
@@ -391,7 +391,7 @@ export default function PreceptorMatches() {
                 <CheckCircle2 className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Accepted Matches</h3>
                 <p className="text-muted-foreground text-center max-w-md">
-                  Students you've accepted as preceptees will appear here.
+                  Students you&apos;ve accepted as preceptees will appear here.
                 </p>
               </CardContent>
             </Card>

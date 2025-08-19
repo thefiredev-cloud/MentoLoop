@@ -44,16 +44,12 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Target,
-  Calendar,
   MapPin,
   Phone,
   Mail,
   Building,
-  TrendingUp,
   Filter,
   Star,
-  Award,
   UserCheck,
   AlertCircle
 } from 'lucide-react'
@@ -75,13 +71,8 @@ export default function EnterprisePreceptorsPage() {
     api.preceptors.getByEnterpriseId,
     enterpriseData?._id ? { enterpriseId: enterpriseData._id } : "skip"
   )
-  const preceptorMatches = useQuery(
-    api.matches.getByEnterpriseId,
-    enterpriseData?._id ? { enterpriseId: enterpriseData._id } : "skip"
-  )
 
   // Mutations
-  const updatePreceptorStatus = useMutation(api.preceptors.updatePreceptorStatus)
   const approvePreceptor = useMutation(api.preceptors.approvePreceptor)
 
   // Filter and search preceptors
@@ -132,7 +123,7 @@ export default function EnterprisePreceptorsPage() {
     const Icon = config.icon
     
     return (
-      <Badge variant={config.variant as any} className="flex items-center gap-1">
+      <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
@@ -150,14 +141,14 @@ export default function EnterprisePreceptorsPage() {
     const Icon = config.icon
     
     return (
-      <Badge variant={config.variant as any} className="flex items-center gap-1">
+      <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
     )
   }
 
-  const PreceptorDetailsModal = ({ preceptor, onClose }: { preceptor: any, onClose: () => void }) => (
+  const PreceptorDetailsModal = ({ preceptor }: { preceptor: { _id: string; name: string; email: string; specialty: string; status: string; verificationStatus: string; }; onClose: () => void }) => (
     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -382,7 +373,7 @@ export default function EnterprisePreceptorsPage() {
                   <div className="flex flex-wrap gap-1 mt-1">
                     <Badge variant="outline" className="text-xs">Family Medicine</Badge>
                     <Badge variant="outline" className="text-xs">Pediatrics</Badge>
-                    <Badge variant="outline" className="text-xs">Women's Health</Badge>
+                    <Badge variant="outline" className="text-xs">Women&apos;s Health</Badge>
                   </div>
                 </div>
               </div>
@@ -400,7 +391,7 @@ export default function EnterprisePreceptorsPage() {
         <div>
           <h1 className="text-3xl font-bold">Preceptor Network</h1>
           <p className="text-muted-foreground">
-            Manage and monitor your organization's preceptor partnerships
+            Manage and monitor your organization&apos;s preceptor partnerships
           </p>
         </div>
         <div className="flex gap-2">

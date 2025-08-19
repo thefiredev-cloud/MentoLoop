@@ -43,7 +43,7 @@ export default function DashboardPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Welcome to MentoLoop!</h1>
           <p className="text-muted-foreground mt-2">
-            Let's set up your account. Are you a student looking for clinical placements or a healthcare professional interested in becoming a preceptor?
+            Let&apos;s set up your account. Are you a student looking for clinical placements or a healthcare professional interested in becoming a preceptor?
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export default function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold mb-2">I'm a Student</h2>
+              <h2 className="text-xl font-semibold mb-2">I&apos;m a Student</h2>
               <p className="text-muted-foreground text-sm mb-4">
                 Looking for clinical placements and preceptor matches
               </p>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold mb-2">I'm a Preceptor</h2>
+              <h2 className="text-xl font-semibold mb-2">I&apos;m a Preceptor</h2>
               <p className="text-muted-foreground text-sm mb-4">
                 Healthcare professional ready to mentor students
               </p>

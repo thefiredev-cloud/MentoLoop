@@ -1,15 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Shield,
   Search,
@@ -21,12 +18,9 @@ import {
   Trash2,
   Edit,
   Plus,
-  AlertTriangle,
   CheckCircle,
-  XCircle,
   Clock,
   Database,
-  Key,
   UserCheck
 } from 'lucide-react'
 

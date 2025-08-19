@@ -18,7 +18,7 @@ export default function LocationRestrictedPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <p className="text-muted-foreground">
-              MentoLoop is currently only available to users located in Texas. We're working to expand our services to other states in the future.
+              MentoLoop is currently only available to users located in Texas. We&apos;re working to expand our services to other states in the future.
             </p>
             
             <div className="bg-blue-50 p-4 rounded-lg">
@@ -34,7 +34,7 @@ export default function LocationRestrictedPage() {
             
             <div className="pt-4 space-y-3">
               <p className="text-sm text-muted-foreground">
-                If you're a Texas resident accessing from outside the state, please contact our support team.
+                If you&apos;re a Texas resident accessing from outside the state, please contact our support team.
               </p>
               
               <div className="flex flex-col gap-2">

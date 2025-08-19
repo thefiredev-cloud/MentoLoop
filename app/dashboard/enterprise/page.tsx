@@ -11,14 +11,7 @@ import {
   Stethoscope,
   TrendingUp,
   Calendar,
-  Target,
-  DollarSign,
-  BookOpen,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
   BarChart3,
-  FileText,
   Plus,
   Download
 } from 'lucide-react'
@@ -54,7 +47,7 @@ export default function EnterpriseDashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">Enterprise Dashboard</h1>
           <p className="text-muted-foreground">
-            Manage your organization's clinical education program
+            Manage your organization&apos;s clinical education program
           </p>
           {enterpriseData && (
             <div className="flex items-center gap-2 mt-2">
@@ -158,7 +151,7 @@ export default function EnterpriseDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {enterpriseStats.recentStudents?.slice(0, 5).map((student: any) => (
+                    {enterpriseStats.recentStudents?.slice(0, 5).map((student: { _id: string; name: string; program: string; year: string; status: string; submittedAt: string }) => (
                       <div key={student._id} className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{student.name}</p>
@@ -184,7 +177,7 @@ export default function EnterpriseDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {enterpriseStats.upcomingRotations?.slice(0, 5).map((rotation: any) => (
+                    {enterpriseStats.upcomingRotations?.slice(0, 5).map((rotation: { _id: string; studentName: string; preceptorName: string; specialty: string; startDate: string }) => (
                       <div key={rotation._id} className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{rotation.studentName}</p>
@@ -242,7 +235,7 @@ export default function EnterpriseDashboardPage() {
               <CardHeader>
                 <CardTitle>Student Management</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Manage your organization's students and their rotation assignments
+                  Manage your organization&apos;s students and their rotation assignments
                 </p>
               </CardHeader>
               <CardContent>
@@ -280,7 +273,7 @@ export default function EnterpriseDashboardPage() {
               <CardHeader>
                 <CardTitle>Analytics & Reporting</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Detailed insights into your program's performance and outcomes
+                  Detailed insights into your program&apos;s performance and outcomes
                 </p>
               </CardHeader>
               <CardContent>

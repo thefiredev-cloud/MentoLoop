@@ -335,7 +335,7 @@ export default function PreceptorSchedule() {
                   Edit Mode
                 </CardTitle>
                 <CardDescription>
-                  Click on any day to modify your availability. Changes will be saved when you click "Save Changes".
+                  Click on any day to modify your availability. Changes will be saved when you click &quot;Save Changes&quot;.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -501,7 +501,7 @@ export default function PreceptorSchedule() {
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Upcoming Rotations</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-4">
-                  You don't have any confirmed rotations scheduled. Check your pending matches to accept new students.
+                  You don&apos;t have any confirmed rotations scheduled. Check your pending matches to accept new students.
                 </p>
                 <Button asChild>
                   <Link href="/dashboard/preceptor/matches">

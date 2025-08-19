@@ -14,14 +14,14 @@ export default function FAQs() {
                     <div className="divide-y divide-dashed sm:mx-auto sm:max-w-lg lg:mx-0">
                         <div className="pb-6">
                             <h3 className="font-medium">How do I create a student profile?</h3>
-                            <p className="text-muted-foreground mt-4">Creating your student profile takes just a few minutes. You'll complete a simple intake form that captures:</p>
+                            <p className="text-muted-foreground mt-4">Creating your student profile takes just a few minutes. You&apos;ll complete a simple intake form that captures:</p>
                             <ul className="list-outside list-disc space-y-2 pl-4 mt-2">
                                 <li className="text-muted-foreground">Your NP program & graduation date</li>
                                 <li className="text-muted-foreground">Clinical rotation needs (specialty, timeline, location)</li>
                                 <li className="text-muted-foreground">Learning style & communication preferences</li>
                                 <li className="text-muted-foreground">Any flagged school requirements (forms, evaluations, etc.)</li>
                             </ul>
-                            <p className="text-muted-foreground mt-2">Once submitted, you'll receive a confirmation email and be entered into our matching system. You can update your preferences anytime.</p>
+                            <p className="text-muted-foreground mt-2">Once submitted, you&apos;ll receive a confirmation email and be entered into our matching system. You can update your preferences anytime.</p>
                         </div>
                         
                         <div className="py-6">
@@ -34,7 +34,7 @@ export default function FAQs() {
                                 <li className="text-muted-foreground">You receive your best match and next-best options</li>
                                 <li className="text-muted-foreground">Once confirmed, we initiate onboarding and paperwork</li>
                             </ol>
-                            <p className="text-muted-foreground mt-2">You'll receive updates every step of the way.</p>
+                            <p className="text-muted-foreground mt-2">You&apos;ll receive updates every step of the way.</p>
                         </div>
 
                         <div className="py-6">
@@ -75,7 +75,7 @@ export default function FAQs() {
                         <div className="py-6">
                             <h3 className="font-medium">How does the matching algorithm work?</h3>
                             <p className="text-muted-foreground mt-4">It uses a proprietary scoring system to evaluate compatibility between students and preceptors. It considers several professional and personal factors to help ensure each match is built for success.</p>
-                            <p className="text-muted-foreground mt-2">While the exact formula is confidential, it's designed to go beyond logistics - helping foster strong mentorship relationships.</p>
+                            <p className="text-muted-foreground mt-2">While the exact formula is confidential, it&apos;s designed to go beyond logistics - helping foster strong mentorship relationships.</p>
                         </div>
                     </div>
                 </div>

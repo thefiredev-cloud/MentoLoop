@@ -14,8 +14,8 @@ import { Brain, Heart, Users } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 
 interface MatchingPreferencesStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -92,7 +92,7 @@ export default function MatchingPreferencesStep({
         acc[key] = value
       }
       return acc
-    }, {} as any)
+    }, {} as Record<string, unknown>)
 
     updateFormData('matchingPreferences', {
       comfortableWithSharedPlacements,
@@ -106,7 +106,7 @@ export default function MatchingPreferencesStep({
     })
   }, [formData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number[] | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -175,7 +175,7 @@ export default function MatchingPreferencesStep({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="true" id="shared-yes" />
-                <Label htmlFor="shared-yes">Yes, I'm comfortable with this</Label>
+                <Label htmlFor="shared-yes">Yes, I&apos;m comfortable with this</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="false" id="shared-no" />
@@ -333,7 +333,7 @@ export default function MatchingPreferencesStep({
           </div>
 
           <div className="space-y-4">
-            <Label>5. What's your ideal mentor relationship? *</Label>
+            <Label>5. What&apos;s your ideal mentor relationship? *</Label>
             <RadioGroup
               value={formData.mentorRelationship}
               onValueChange={(value) => handleInputChange('mentorRelationship', value)}
@@ -436,7 +436,7 @@ export default function MatchingPreferencesStep({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="yes-love" id="resources-yes" />
-                <Label htmlFor="resources-yes">Yes, I'd love that</Label>
+                <Label htmlFor="resources-yes">Yes, I&apos;d love that</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="occasionally" id="resources-occasionally" />
@@ -649,7 +649,7 @@ export default function MatchingPreferencesStep({
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="ready-start-immediately" id="obs-ready" />
-                  <Label htmlFor="obs-ready">I'm ready to start right away</Label>
+                  <Label htmlFor="obs-ready">I&apos;m ready to start right away</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -778,7 +778,7 @@ export default function MatchingPreferencesStep({
               <p className="text-sm font-medium mb-1">MentorFit™ Matching</p>
               <p className="text-xs text-muted-foreground">
                 Your responses help our AI algorithm calculate compatibility scores with potential preceptors. 
-                This ensures you're matched with someone whose teaching style aligns with your learning preferences, 
+                This ensures you&apos;re matched with someone whose teaching style aligns with your learning preferences, 
                 leading to more successful and fulfilling clinical experiences.
               </p>
             </div>

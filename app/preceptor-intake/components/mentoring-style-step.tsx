@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Brain, Users, Target } from 'lucide-react'
 
 interface MentoringStyleStepProps {
-  data: any
-  updateFormData: (section: string, data: any) => void
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
@@ -61,7 +61,7 @@ export default function MentoringStyleStep({
     updateFormData('mentoringStyle', formData)
   }, [formData, updateFormData])
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -156,7 +156,7 @@ export default function MentoringStyleStep({
           </div>
 
           <div className="space-y-4">
-            <Label>3. What's your approach to giving feedback? *</Label>
+            <Label>3. What&apos;s your approach to giving feedback? *</Label>
             <RadioGroup
               value={formData.feedbackApproach}
               onValueChange={(value) => handleInputChange('feedbackApproach', value)}
@@ -312,7 +312,7 @@ export default function MentoringStyleStep({
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="flexible" id="new-flexible" />
-                <Label htmlFor="new-flexible">I'm flexible</Label>
+                <Label htmlFor="new-flexible">I&apos;m flexible</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="prefer-independent" id="new-prefer-independent" />
@@ -325,7 +325,7 @@ export default function MentoringStyleStep({
           </div>
 
           <div className="space-y-4">
-            <Label>10. What's your ideal student dynamic? *</Label>
+            <Label>10. What&apos;s your ideal student dynamic? *</Label>
             <RadioGroup
               value={formData.idealDynamic}
               onValueChange={(value) => handleInputChange('idealDynamic', value)}
@@ -358,7 +358,7 @@ export default function MentoringStyleStep({
             </div>
 
             <div className="space-y-4">
-              <Label>11. What's your approach to student mistakes or errors?</Label>
+              <Label>11. What&apos;s your approach to student mistakes or errors?</Label>
               <RadioGroup
                 value={formData.mistakeHandling}
                 onValueChange={(value) => handleInputChange('mistakeHandling', value)}
@@ -379,7 +379,7 @@ export default function MentoringStyleStep({
             </div>
 
             <div className="space-y-4">
-              <Label>12. How do you typically plan a student's clinical growth?</Label>
+              <Label>12. How do you typically plan a student&apos;s clinical growth?</Label>
               <RadioGroup
                 value={formData.growthPlanning}
                 onValueChange={(value) => handleInputChange('growthPlanning', value)}
@@ -407,7 +407,7 @@ export default function MentoringStyleStep({
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="hands-on-whole-way" id="supervision-hands-on" />
-                  <Label htmlFor="supervision-hands-on">I'm hands-on the whole way</Label>
+                  <Label htmlFor="supervision-hands-on">I&apos;m hands-on the whole way</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="space-with-backup" id="supervision-space" />

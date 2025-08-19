@@ -116,11 +116,11 @@ function AnimatedGroup({
   const itemVariants = variants?.item || selectedVariants.item;
 
   const MotionComponent = React.useMemo(
-    () => motion.create(as as any),
+    () => motion.create(as as keyof HTMLElementTagNameMap),
     [as]
   );
   const MotionChild = React.useMemo(
-    () => motion.create(asChild as any),
+    () => motion.create(asChild as keyof HTMLElementTagNameMap),
     [asChild]
   );
 
