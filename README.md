@@ -21,7 +21,7 @@ A modern, production-ready SaaS starter template for building full-stack applica
 - ✨ **Custom Animations** - React Bits and Framer Motion effects
 - 🧩 **shadcn/ui Components** - Modern component library with Radix UI
 - 📊 **Interactive Dashboard** - Complete admin interface with charts
-- �� **Webhook Integration** - Automated user and payment sync
+- 📞 **Webhook Integration** - Automated user and payment sync
 - 🚢 **Vercel Ready** - One-click deployment
 
 ## Tech Stack
