@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Id, Doc } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -98,7 +98,7 @@ export default function PreceptorMatches() {
   const reviewingCount = confirmedMatches?.length || 0
   const acceptedCount = acceptedMatches?.length || 0
 
-  const renderStudentCard = (match: Record<string, unknown>, showActions: boolean = true) => (
+  const renderStudentCard = (match: any, showActions: boolean = true) => (
     <Card key={match._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">

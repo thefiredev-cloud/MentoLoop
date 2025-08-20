@@ -53,7 +53,7 @@ export default function SchoolInfoStep({
 
   // Get schools from database
   const schoolOptions = useQuery(api.schools.getSchoolOptions)
-  const [selectedSchool, setSelectedSchool] = useState<{ name: string; id: string } | null>(null)
+  const [selectedSchool, setSelectedSchool] = useState<{ name: string; id: string; location: { city: string; state: string } } | null>(null)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -127,7 +127,11 @@ export default function SchoolInfoStep({
               // Auto-populate school location when a school is selected
               const school = schoolOptions?.find((s: { label: string; location: { city: string; state: string } }) => s.label === value)
               if (school) {
-                setSelectedSchool(school)
+                setSelectedSchool({
+                  name: school.name,
+                  id: school.value,
+                  location: school.location
+                })
                 handleInputChange('schoolCity', school.location.city)
                 handleInputChange('schoolState', school.location.state)
               }

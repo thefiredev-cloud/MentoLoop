@@ -981,52 +981,6 @@ export const setTypingIndicator = mutation({
   },
 });
 
-// Get typing status for a conversation
-export const getTypingIndicator = query({
-  args: {
-    conversationId: v.id("conversations"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getUserId(ctx);
-    if (!userId) return null;
-
-    const conversation = await ctx.db.get(args.conversationId);
-    if (!conversation) return null;
-
-    // Verify user is part of this conversation
-    if (conversation.studentUserId !== userId && conversation.preceptorUserId !== userId) {
-      return null;
-    }
-
-    // Check if someone is typing (and it's not the current user)
-    if (conversation.typingUserId && 
-        conversation.typingUserId !== userId && 
-        conversation.lastTypingUpdate) {
-      
-      // Consider typing indicator stale after 5 seconds
-      const now = Date.now();
-      const typingAge = now - conversation.lastTypingUpdate;
-      
-      if (typingAge < 5000) {
-        // Get the typing user's info
-        const typingUser = await ctx.db
-          .query("users")
-          .withIndex("byExternalId", (q) => q.eq("externalId", conversation.typingUserId!))
-          .first();
-        
-        if (typingUser) {
-          return {
-            isTyping: true,
-            typingUserName: typingUser.name,
-            typingUserId: conversation.typingUserId,
-          };
-        }
-      }
-    }
-
-    return null;
-  },
-});
 
 // Add message reactions
 export const addMessageReaction = mutation({

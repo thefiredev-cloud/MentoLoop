@@ -44,13 +44,13 @@ export default function PreceptorSearchPage() {
 
   const searchResults = useQuery(api.preceptors.searchPreceptors, {
     searchQuery: searchQuery.trim() || undefined,
-    specialty: selectedSpecialty || undefined,
-    rotationType: selectedRotationType || undefined,
+    specialty: (selectedSpecialty || undefined) as "FNP" | "PNP" | "PMHNP" | "AGNP" | "ACNP" | "WHNP" | "NNP" | "other" | undefined,
+    rotationType: (selectedRotationType || undefined) as "family-practice" | "pediatrics" | "psych-mental-health" | "womens-health" | "adult-gero" | "acute-care" | "other" | undefined,
     location: {
       state: selectedState || undefined,
       city: selectedCity.trim() || undefined,
     },
-    practiceSettings: selectedPracticeSettings.length > 0 ? selectedPracticeSettings : undefined,
+    practiceSettings: (selectedPracticeSettings.length > 0 ? selectedPracticeSettings : undefined) as ("telehealth" | "other" | "private-practice" | "urgent-care" | "hospital" | "clinic")[] | undefined,
     currentlyAccepting: currentlyAcceptingOnly,
     limit: 20,
   })
@@ -416,7 +416,7 @@ export default function PreceptorSearchPage() {
                   <div>
                     <h4 className="font-medium mb-2">Available Rotations</h4>
                     <div className="flex flex-wrap gap-1">
-                      {selectedPreceptor.availability.availableRotations.map(rotation => (
+                      {selectedPreceptor.availability.availableRotations.map((rotation: string) => (
                         <Badge key={rotation} variant="outline">
                           {getRotationTypeLabel(rotation)}
                         </Badge>
@@ -439,7 +439,7 @@ export default function PreceptorSearchPage() {
                     <div className="mt-2">
                       <p className="text-muted-foreground text-sm">Available Days</p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedPreceptor.availability.daysAvailable.map(day => (
+                        {selectedPreceptor.availability.daysAvailable.map((day: string) => (
                           <Badge key={day} variant="outline" className="text-xs capitalize">
                             {day.slice(0, 3)}
                           </Badge>
@@ -459,7 +459,7 @@ export default function PreceptorSearchPage() {
                               <SelectValue placeholder="Select rotation type" />
                             </SelectTrigger>
                             <SelectContent>
-                              {selectedPreceptor.availability.availableRotations.map(rotation => (
+                              {selectedPreceptor.availability.availableRotations.map((rotation: string) => (
                                 <SelectItem key={rotation} value={rotation}>
                                   {getRotationTypeLabel(rotation)}
                                 </SelectItem>

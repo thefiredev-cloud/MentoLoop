@@ -295,7 +295,7 @@ export const sendWelcomeEmail = internalAction({
       ? "WELCOME_STUDENT" as const
       : "WELCOME_PRECEPTOR" as const;
 
-    return await ctx.runAction(internal.emails.sendEmail, {
+    return await ctx.runAction(internal.emails.sendEmailInternal, {
       to: args.email,
       templateKey,
       variables: {
@@ -322,7 +322,7 @@ export const sendMatchConfirmationEmails = internalAction({
   },
   handler: async (ctx, args): Promise<any> => {
     // Send email to student
-    const studentEmailResult = await ctx.runAction(internal.emails.sendEmail, {
+    const studentEmailResult = await ctx.runAction(internal.emails.sendEmailInternal, {
       to: args.studentEmail,
       templateKey: "MATCH_CONFIRMED_STUDENT",
       variables: {
@@ -337,7 +337,7 @@ export const sendMatchConfirmationEmails = internalAction({
     });
 
     // Send email to preceptor
-    const preceptorEmailResult = await ctx.runAction(internal.emails.sendEmail, {
+    const preceptorEmailResult = await ctx.runAction(internal.emails.sendEmailInternal, {
       to: args.preceptorEmail,
       templateKey: "MATCH_CONFIRMED_PRECEPTOR",
       variables: {
@@ -363,7 +363,7 @@ export const sendPaymentConfirmationEmail = internalAction({
     term: v.string(),
   },
   handler: async (ctx, args): Promise<any> => {
-    return await ctx.runAction(internal.emails.sendEmail, {
+    return await ctx.runAction(internal.emails.sendEmailInternal, {
       to: args.email,
       templateKey: "PAYMENT_RECEIVED",
       variables: {
@@ -392,7 +392,7 @@ export const sendRotationCompleteEmails = internalAction({
     const preceptorSurveyLink = `${baseUrl}/dashboard/survey?matchId=${args.matchId}&type=preceptor&partner=${encodeURIComponent(args.studentName)}`;
 
     // Send email to student
-    const studentEmailResult: any = await ctx.runAction(internal.emails.sendEmail, {
+    const studentEmailResult: any = await ctx.runAction(internal.emails.sendEmailInternal, {
       to: args.studentEmail,
       templateKey: "ROTATION_COMPLETE_STUDENT",
       variables: {
@@ -402,7 +402,7 @@ export const sendRotationCompleteEmails = internalAction({
     });
 
     // Send email to preceptor
-    const preceptorEmailResult: any = await ctx.runAction(internal.emails.sendEmail, {
+    const preceptorEmailResult: any = await ctx.runAction(internal.emails.sendEmailInternal, {
       to: args.preceptorEmail,
       templateKey: "ROTATION_COMPLETE_PRECEPTOR",
       variables: {
@@ -443,7 +443,7 @@ export const sendBulkEmail = action({
     
     for (const recipient of args.recipients) {
       try {
-        const result: any = await ctx.runAction(internal.emails.sendEmail, {
+        const result: any = await ctx.runAction(internal.emails.sendEmailInternal, {
           to: recipient.email,
           templateKey: args.templateKey,
           variables: recipient.variables,
@@ -556,5 +556,113 @@ export const getEmailLogs = query({
       : await query.take(50);
     
     return logs;
+  },
+});
+
+// Internal version of sendEmail for use in other functions
+export const sendEmailInternal = internalAction({
+  args: {
+    to: v.string(),
+    templateKey: v.union(
+      v.literal("WELCOME_STUDENT"),
+      v.literal("WELCOME_PRECEPTOR"), 
+      v.literal("MATCH_CONFIRMED_STUDENT"),
+      v.literal("MATCH_CONFIRMED_PRECEPTOR"),
+      v.literal("PAYMENT_RECEIVED"),
+      v.literal("ROTATION_COMPLETE_STUDENT"),
+      v.literal("ROTATION_COMPLETE_PRECEPTOR")
+    ),
+    variables: v.record(v.string(), v.string()),
+    fromName: v.optional(v.string()),
+    replyTo: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Reuse the same logic as sendEmail
+    const template = EMAIL_TEMPLATES[args.templateKey];
+    if (!template) {
+      throw new Error(`Unknown email template: ${args.templateKey}`);
+    }
+
+    const sendgridApiKey = process.env.SENDGRID_API_KEY;
+    if (!sendgridApiKey) {
+      throw new Error("SENDGRID_API_KEY environment variable is required");
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || "noreply@mentoloop.com";
+    const fromName = args.fromName || "MentoLoop";
+
+    // Replace variables in template
+    let htmlContent = template.content || "";
+    let textContent = template.content || "";
+    let subject = template.subject;
+
+    for (const [key, value] of Object.entries(args.variables)) {
+      const placeholder = `{{${key}}}`;
+      htmlContent = htmlContent.replace(new RegExp(placeholder, 'g'), value);
+      textContent = textContent.replace(new RegExp(placeholder, 'g'), value);
+      subject = subject.replace(new RegExp(placeholder, 'g'), value);
+    }
+
+    try {
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sendgridApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          personalizations: [{
+            to: [{ email: args.to }],
+            subject: subject,
+          }],
+          from: {
+            email: fromEmail,
+            name: fromName,
+          },
+          reply_to: args.replyTo ? { email: args.replyTo } : undefined,
+          content: [
+            {
+              type: 'text/html',
+              value: htmlContent,
+            },
+            ...(textContent ? [{
+              type: 'text/plain',
+              value: textContent,
+            }] : []),
+          ],
+        }),
+      });
+
+      const success = response.ok;
+      const statusText = response.statusText;
+
+      // Log the email attempt
+      await ctx.runMutation(internal.emails.logEmailSend, {
+        recipientEmail: args.to,
+        recipientType: args.to.includes('student') ? 'student' : 'preceptor',
+        templateKey: args.templateKey,
+        subject,
+        status: success ? "sent" : "failed",
+        failureReason: success ? undefined : `HTTP ${response.status}: ${statusText}`,
+      });
+
+      if (!success) {
+        throw new Error(`Failed to send email: ${response.status} ${statusText}`);
+      }
+
+      return { success: true, messageId: response.headers.get('x-message-id') };
+    } catch (error) {
+      // Log the failed attempt
+      await ctx.runMutation(internal.emails.logEmailSend, {
+        recipientEmail: args.to,
+        recipientType: args.to.includes('student') ? 'student' : 'preceptor',
+        templateKey: args.templateKey,
+        subject,
+        status: "failed",
+        failureReason: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      throw error;
+    }
   },
 });

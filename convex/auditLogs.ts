@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 
@@ -196,61 +196,37 @@ export const getAuditAnalytics = query({
 });
 
 // Get audit logs for a specific entity
-export const getEntityAuditLogs = query({
+export const getEntityAuditLogs = internalQuery({
   args: {
     entityType: v.string(),
     entityId: v.string(),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
-      .first();
-
-    if (!user || user.userType !== "admin") {
-      throw new Error("Admin access required");
-    }
-
     let query = ctx.db
       .query("auditLogs")
-      .withIndex("byEntity", (q) => 
-        q.eq("entityType", args.entityType).eq("entityId", args.entityId)
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("entityType"), args.entityType),
+          q.eq(q.field("entityId"), args.entityId)
+        )
       )
       .order("desc");
 
-    const logs = await (args.limit ? query.take(args.limit) : query.take(50));
+    const logs = args.limit 
+      ? await query.take(args.limit)
+      : await query.collect();
 
-    // Enrich with user information
-    const enrichedLogs = await Promise.all(logs.map(async (log: any) => {
-      const performer = await ctx.db.get(log.performedBy);
-      return {
-        ...log,
-        performerName: (performer as any)?.name || "Unknown User",
-        performerEmail: (performer as any)?.email || "unknown@email.com",
-      };
-    }));
-
-    return enrichedLogs;
+    return logs;
   },
 });
 
-// Helper function to log common admin actions
+
+// Log user action (internal function)
 export const logUserAction = internalMutation({
   args: {
-    action: v.union(
-      v.literal("create_user"),
-      v.literal("update_user"),
-      v.literal("delete_user"),
-      v.literal("approve_preceptor"),
-      v.literal("reject_preceptor"),
-      v.literal("suspend_user"),
-      v.literal("unsuspend_user")
-    ),
-    userId: v.string(),
+    action: v.string(),
+    userId: v.id("users"),
     performedBy: v.id("users"),
     details: v.optional(v.object({
       previousValue: v.optional(v.any()),
@@ -258,7 +234,7 @@ export const logUserAction = internalMutation({
       reason: v.optional(v.string()),
     })),
   },
-  handler: async (ctx, args): Promise<any> => {
+  handler: async (ctx, args): Promise<Id<"auditLogs">> => {
     return await ctx.runMutation(internal.auditLogs.logAdminAction, {
       action: args.action,
       entityType: "user",
@@ -269,17 +245,11 @@ export const logUserAction = internalMutation({
   },
 });
 
+// Log match action (internal function)  
 export const logMatchAction = internalMutation({
   args: {
-    action: v.union(
-      v.literal("create_match"),
-      v.literal("override_match"),
-      v.literal("approve_match"),
-      v.literal("cancel_match"),
-      v.literal("force_match"),
-      v.literal("update_score")
-    ),
-    matchId: v.string(),
+    action: v.string(),
+    matchId: v.id("matches"),
     performedBy: v.id("users"),
     details: v.optional(v.object({
       previousValue: v.optional(v.any()),
@@ -288,41 +258,11 @@ export const logMatchAction = internalMutation({
       metadata: v.optional(v.record(v.string(), v.any())),
     })),
   },
-  handler: async (ctx, args): Promise<any> => {
+  handler: async (ctx, args): Promise<Id<"auditLogs">> => {
     return await ctx.runMutation(internal.auditLogs.logAdminAction, {
       action: args.action,
       entityType: "match",
       entityId: args.matchId,
-      performedBy: args.performedBy,
-      details: args.details || {},
-    });
-  },
-});
-
-export const logPaymentAction = internalMutation({
-  args: {
-    action: v.union(
-      v.literal("process_payment"),
-      v.literal("refund_payment"),
-      v.literal("cancel_payment"),
-      v.literal("override_payment"),
-      v.literal("manual_payment")
-    ),
-    paymentId: v.string(),
-    performedBy: v.id("users"),
-    details: v.optional(v.object({
-      previousValue: v.optional(v.any()),
-      newValue: v.optional(v.any()),
-      reason: v.optional(v.string()),
-      amount: v.optional(v.number()),
-      currency: v.optional(v.string()),
-    })),
-  },
-  handler: async (ctx, args): Promise<any> => {
-    return await ctx.runMutation(internal.auditLogs.logAdminAction, {
-      action: args.action,
-      entityType: "payment",
-      entityId: args.paymentId,
       performedBy: args.performedBy,
       details: args.details || {},
     });

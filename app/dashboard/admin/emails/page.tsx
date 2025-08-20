@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,8 +51,8 @@ export default function EmailAnalyticsPage() {
     templateKey: selectedTemplate === 'all' ? undefined : selectedTemplate
   })
   
-  // Mutations
-  const sendTestEmail = useMutation(api.emails.sendEmail)
+  // Actions
+  const sendTestEmail = useAction(api.emails.sendEmail)
   
   const emailTemplates = [
     { key: 'WELCOME_STUDENT', label: 'Welcome Student' },
@@ -305,7 +305,7 @@ export default function EmailAnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-96">
+            <ScrollArea key="email-logs-scroll" className="h-96">
               <div className="space-y-3">
                 {recentLogs?.map((log, index) => (
                   <div key={index} className="flex items-center justify-between p-3 rounded-lg border">

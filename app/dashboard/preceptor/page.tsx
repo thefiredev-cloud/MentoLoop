@@ -279,13 +279,14 @@ export default function PreceptorDashboard() {
               {activeStudents && activeStudents.length > 0 ? (
                 <div className="space-y-4">
                   {activeStudents.map((match, index) => {
-                    const progressPercentage = match.rotationDetails.totalHours ? 
-                      Math.round((match.hoursCompleted / match.rotationDetails.totalHours) * 100) : 0;
-                    const currentWeek = Math.ceil(
-                      (Date.now() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
-                    );
                     const totalWeeks = Math.ceil(
                       (new Date(match.rotationDetails.endDate).getTime() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
+                    );
+                    const totalHours = match.rotationDetails.weeklyHours * totalWeeks;
+                    const progressPercentage = totalHours ? 
+                      Math.round((match.hoursCompleted / totalHours) * 100) : 0;
+                    const currentWeek = Math.ceil(
+                      (Date.now() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
                     );
                     
                     return (
@@ -303,7 +304,7 @@ export default function PreceptorDashboard() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {match.hoursCompleted}/{match.rotationDetails.totalHours} hours
+                                {match.hoursCompleted}/{totalHours} hours
                               </span>
                             </div>
                           </div>
@@ -351,9 +352,8 @@ export default function PreceptorDashboard() {
           {/* Recent Activity */}
           {recentActivity && (
             <ActivityFeed 
-              activities={recentActivity}
+              activities={recentActivity as any}
               title="Recent Activity"
-              description="Your latest interactions and updates"
             />
           )}
         </div>
@@ -377,11 +377,11 @@ export default function PreceptorDashboard() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                  <span>{preceptor.practiceInfo.specialty}</span>
+                  <span>{preceptor.personalInfo.specialty}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{preceptor.practiceInfo.clinicName}</span>
+                  <span>{preceptor.practiceInfo.practiceName}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />

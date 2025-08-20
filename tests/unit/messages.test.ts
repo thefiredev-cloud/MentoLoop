@@ -293,6 +293,15 @@ describe('Messaging System', () => {
         { _id: 'msg2', isRead: false }
       ]
       mockDb.query.mockReturnValue({
+        withIndex: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            first: vi.fn(),
+            collect: vi.fn(),
+            order: vi.fn(() => ({
+              collect: vi.fn()
+            }))
+          }))
+        })),
         filter: vi.fn().mockReturnValue({
           collect: vi.fn().mockResolvedValueOnce(mockUnreadMessages)
         })

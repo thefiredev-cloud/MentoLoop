@@ -43,6 +43,58 @@ export default function PreceptorAgreementsStep({
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const createOrUpdatePreceptor = useMutation(api.preceptors.createOrUpdatePreceptor)
+  
+  // Type assertion for form data from previous steps
+  type PersonalInfo = {
+    fullName: string
+    email: string
+    mobilePhone: string
+    licenseType: "NP" | "MD/DO" | "PA" | "other"
+    specialty: "FNP" | "PNP" | "PMHNP" | "AGNP" | "ACNP" | "WHNP" | "NNP" | "other"
+    statesLicensed: string[]
+    npiNumber: string
+    linkedinOrCV?: string
+  }
+  
+  type PracticeInfo = {
+    practiceName: string
+    practiceSettings: ("private-practice" | "clinic" | "hospital" | "urgent-care" | "telehealth" | "other")[]
+    address: string
+    city: string
+    state: string
+    zipCode: string
+    emrUsed?: string
+    website?: string
+  }
+  
+  type Availability = {
+    currentlyAccepting: boolean
+    availableRotations: ("family-practice" | "pediatrics" | "psych-mental-health" | "adult-gero" | "womens-health" | "acute-care" | "other")[]
+    maxStudentsPerRotation: "1" | "2" | "3+"
+    rotationDurationPreferred: "4-weeks" | "8-weeks" | "12-weeks" | "flexible"
+    preferredStartDates: string[]
+    daysAvailable: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[]
+  }
+  
+  type MatchingPreferences = {
+    studentDegreeLevelPreferred: "BSN-to-DNP" | "MSN" | "post-masters" | "no-preference"
+    comfortableWithFirstRotation: boolean
+    schoolsWorkedWith?: string[]
+    languagesSpoken?: string[]
+  }
+  
+  type MentoringStyle = {
+    mentoringApproach: "coach-guide" | "support-needed" | "expect-initiative"
+    rotationStart: "orient-goals" | "observe-adjust" | "dive-in-learn"
+    feedbackApproach: "real-time" | "daily-checkins" | "weekly-written"
+    learningMaterials: "always" | "sometimes" | "rarely"
+    patientInteractions: "lead-then-shadow" | "shadow-then-lead" | "lead-from-day-one"
+    questionPreference: "anytime-during" | "breaks-downtime" | "end-of-day"
+    autonomyLevel: "close-supervision" | "shared-decisions" | "high-independence"
+    evaluationFrequency: "every-shift" | "weekly" | "end-of-rotation"
+    newStudentPreference: "prefer-coaching" | "flexible" | "prefer-independent"
+    idealDynamic: "learner-teacher" | "teammates" | "supervisee-clinician"
+  }
 
   useEffect(() => {
     updateFormData('agreements', formData)
@@ -77,11 +129,11 @@ export default function PreceptorAgreementsStep({
     try {
       // Submit all form data to Convex
       await createOrUpdatePreceptor({
-        personalInfo: data.personalInfo,
-        practiceInfo: data.practiceInfo,
-        availability: data.availability,
-        matchingPreferences: data.matchingPreferences,
-        mentoringStyle: data.mentoringStyle,
+        personalInfo: data.personalInfo as PersonalInfo,
+        practiceInfo: data.practiceInfo as PracticeInfo,
+        availability: data.availability as Availability,
+        matchingPreferences: data.matchingPreferences as MatchingPreferences,
+        mentoringStyle: data.mentoringStyle as MentoringStyle,
         agreements: formData,
       })
 

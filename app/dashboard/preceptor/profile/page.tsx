@@ -108,7 +108,7 @@ export default function PreceptorProfile() {
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Professional Title</span>
-                  <p className="text-base">{preceptor.personalInfo.professionalTitle}</p>
+                  <p className="text-base">{preceptor.personalInfo.licenseType} - {preceptor.personalInfo.specialty}</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Email</span>
@@ -116,7 +116,7 @@ export default function PreceptorProfile() {
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Phone</span>
-                  <p className="text-base">{preceptor.personalInfo.phone}</p>
+                  <p className="text-base">{preceptor.personalInfo.mobilePhone}</p>
                 </div>
               </div>
             </CardContent>
@@ -134,19 +134,19 @@ export default function PreceptorProfile() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Clinic/Practice Name</span>
-                  <p className="text-base">{preceptor.practiceInfo.clinicName}</p>
+                  <p className="text-base">{preceptor.practiceInfo.practiceName}</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Specialty</span>
-                  <p className="text-base">{preceptor.practiceInfo.specialty}</p>
+                  <p className="text-base">{preceptor.personalInfo.specialty}</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Practice Setting</span>
-                  <p className="text-base">{preceptor.practiceInfo.practiceSetting}</p>
+                  <p className="text-base">{preceptor.practiceInfo.practiceSettings.join(', ')}</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">Years in Practice</span>
-                  <p className="text-base">{preceptor.practiceInfo.yearsInPractice} years</p>
+                  <p className="text-base">Not specified</p>
                 </div>
               </div>
 
@@ -157,9 +157,9 @@ export default function PreceptorProfile() {
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                   <div>
-                    <p className="text-base">{preceptor.practiceInfo.practiceAddress.street}</p>
+                    <p className="text-base">{preceptor.practiceInfo.address}</p>
                     <p className="text-base">
-                      {preceptor.practiceInfo.practiceAddress.city}, {preceptor.practiceInfo.practiceAddress.state} {preceptor.practiceInfo.practiceAddress.zipCode}
+                      {preceptor.practiceInfo.city}, {preceptor.practiceInfo.state} {preceptor.practiceInfo.zipCode}
                     </p>
                   </div>
                 </div>
@@ -179,19 +179,19 @@ export default function PreceptorProfile() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">NPI Number</span>
-                  <p className="text-base font-mono">{preceptor.practiceInfo.npiNumber}</p>
+                  <p className="text-base font-mono">{preceptor.personalInfo.npiNumber}</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">License Number</span>
-                  <p className="text-base font-mono">{preceptor.practiceInfo.licenseNumber}</p>
+                  <p className="text-base font-mono">Not specified</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">License State</span>
-                  <p className="text-base">{preceptor.practiceInfo.licenseState}</p>
+                  <p className="text-base">{preceptor.personalInfo.statesLicensed.join(', ')}</p>
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">License Expiration</span>
-                  <p className="text-base">{preceptor.practiceInfo.licenseExpiration}</p>
+                  <p className="text-base">Not specified</p>
                 </div>
               </div>
             </CardContent>
@@ -205,15 +205,15 @@ export default function PreceptorProfile() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <span className="text-sm font-medium text-muted-foreground">Teaching Style</span>
-                <p className="text-base">{preceptor.mentoringStyle.teachingStyle}</p>
+                <p className="text-base">{preceptor.mentoringStyle.mentoringApproach}</p>
               </div>
               <div className="space-y-2">
                 <span className="text-sm font-medium text-muted-foreground">Communication Preference</span>
-                <p className="text-base">{preceptor.mentoringStyle.communicationStyle}</p>
+                <p className="text-base">{preceptor.mentoringStyle.feedbackApproach}</p>
               </div>
               <div className="space-y-2">
                 <span className="text-sm font-medium text-muted-foreground">Previous Mentoring Experience</span>
-                <p className="text-base">{preceptor.mentoringStyle.previousMentoringExperience}</p>
+                <p className="text-base">{preceptor.mentoringStyle.studentsPrecepted || 'Not specified'}</p>
               </div>
             </CardContent>
           </Card>

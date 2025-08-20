@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -52,8 +52,8 @@ export default function SMSAnalyticsPage() {
     templateKey: selectedTemplate === 'all' ? undefined : selectedTemplate
   })
   
-  // Mutations
-  const sendTestSMS = useMutation(api.sms.sendSMS)
+  // Actions
+  const sendTestSMS = useAction(api.sms.sendSMS)
   
   const smsTemplates = [
     { key: 'MATCH_CONFIRMATION', label: 'Match Confirmation' },

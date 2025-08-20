@@ -67,9 +67,7 @@ export default function MessagesPage() {
   }) as Conversation[] | undefined
 
   const messages = useQuery(
-    selectedConversation
-      ? api.messages.getMessages
-      : undefined,
+    api.messages.getMessages,
     selectedConversation
       ? {
           conversationId: selectedConversation as Id<'conversations'>,
@@ -199,7 +197,7 @@ export default function MessagesPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[600px]">
+                <ScrollArea key="conversations-scroll" className="h-[600px]">
                   {conversations?.length === 0 ? (
                     <div className="p-6 text-center">
                       <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -336,7 +334,7 @@ export default function MessagesPage() {
                 
                 {/* Messages */}
                 <div className="flex-1 flex flex-col min-h-0">
-                  <ScrollArea className="flex-1 p-4">
+                  <ScrollArea key={`messages-scroll-${selectedConversation}`} className="flex-1 p-4">
                     <div className="space-y-4">
                       {messages?.messages.map((message: Message) => (
                         <div

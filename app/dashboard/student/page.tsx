@@ -303,7 +303,7 @@ export default function StudentDashboardPage() {
 
         {/* Recent Activity */}
         <ActivityFeed
-          activities={recentActivity || []}
+          activities={recentActivity as any || []}
           title="Recent Activity"
           maxItems={5}
         />

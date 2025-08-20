@@ -55,19 +55,8 @@ import {
 } from 'lucide-react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Doc } from '@/convex/_generated/dataModel'
 
-interface PreceptorData {
-  _id: string
-  name?: string
-  email?: string
-  specialty?: string
-  status?: string
-  verificationStatus?: string
-  personalInfo?: {
-    fullName?: string
-    email?: string
-  }
-}
 
 export default function EnterprisePreceptorsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -153,7 +142,7 @@ export default function EnterprisePreceptorsPage() {
     )
   }
 
-  const PreceptorDetailsModal = ({ preceptor }: { preceptor: PreceptorData; onClose: () => void }) => (
+  const PreceptorDetailsModal = ({ preceptor }: { preceptor: Doc<"preceptors">; onClose: () => void }) => (
     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -161,7 +150,7 @@ export default function EnterprisePreceptorsPage() {
           {preceptor.personalInfo?.fullName || 'Unknown Preceptor'}
         </DialogTitle>
         <DialogDescription>
-          Preceptor ID: {preceptor._id} • {getStatusBadge(preceptor.status || 'pending')} • {getVerificationBadge(preceptor.verificationStatus || 'pending')}
+          Preceptor ID: {preceptor._id} • {getVerificationBadge(preceptor.verificationStatus || 'pending')}
         </DialogDescription>
       </DialogHeader>
       
@@ -183,7 +172,7 @@ export default function EnterprisePreceptorsPage() {
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{preceptor.email || 'Not provided'}</span>
+                  <span className="text-sm">{preceptor.personalInfo?.email || 'Not provided'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
@@ -532,12 +521,12 @@ export default function EnterprisePreceptorsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPreceptors.map((preceptor: { _id: string; name?: string; email?: string; specialty?: string; status?: string; verificationStatus?: string }) => (
+              {filteredPreceptors.map((preceptor: Doc<"preceptors">) => (
                 <TableRow key={preceptor._id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{preceptor.name || 'Unknown'}</div>
-                      <div className="text-sm text-muted-foreground">{preceptor.email}</div>
+                      <div className="font-medium">{preceptor.personalInfo?.fullName || 'Unknown'}</div>
+                      <div className="text-sm text-muted-foreground">{preceptor.personalInfo?.email}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -552,7 +541,7 @@ export default function EnterprisePreceptorsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(preceptor.status || 'pending')}
+                    <Badge variant="secondary">Active</Badge>
                   </TableCell>
                   <TableCell>
                     {getVerificationBadge(preceptor.verificationStatus || 'pending')}
@@ -584,7 +573,7 @@ export default function EnterprisePreceptorsPage() {
                             </DropdownMenuItem>
                           </DialogTrigger>
                           <PreceptorDetailsModal 
-                            preceptor={preceptor as PreceptorData} 
+                            preceptor={preceptor} 
                             onClose={() => {}} 
                           />
                         </Dialog>

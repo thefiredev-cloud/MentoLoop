@@ -1510,3 +1510,23 @@ export const findPotentialMatchesInternal = internalQuery({
       .slice(0, 10); // Return top 10 matches
   },
 });
+
+
+// Batch analyze multiple matches (internal function)
+export const batchAnalyzeMatches = internalQuery({
+  args: {
+    matchIds: v.array(v.id("matches")),
+  },
+  handler: async (ctx, args) => {
+    const matches = [];
+    
+    for (const matchId of args.matchIds) {
+      const match = await ctx.db.get(matchId);
+      if (match) {
+        matches.push(match);
+      }
+    }
+    
+    return matches;
+  },
+});

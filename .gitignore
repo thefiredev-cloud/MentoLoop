@@ -70,3 +70,9 @@ MentoLoop Guide/
 
 # Duplicate directories
 MentoLoop/
+
+# Windows artifacts
+nul
+
+# Claude Code helper files
+PROJECT_INDEX.json

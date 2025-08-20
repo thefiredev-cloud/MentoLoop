@@ -51,28 +51,28 @@ export const sendRotationStartReminders = internalAction({
         if (!student || !preceptor) continue;
 
         // Send email reminders for rotation start
-        await ctx.runAction(internal.emails.sendEmail, {
+        await ctx.runAction(internal.emails.sendEmailInternal, {
           to: student.personalInfo.email,
           templateKey: "MATCH_CONFIRMED_STUDENT",
           variables: {
             firstName: student.personalInfo.fullName.split(' ')[0],
             preceptorName: preceptor.personalInfo.fullName,
             specialty: match.rotationDetails.specialty || "Clinical Rotation",
-            location: preceptor.clinicalInfo.practiceLocation || "TBD",
+            location: preceptor.practiceInfo.city + ", " + preceptor.practiceInfo.state || "TBD",
             startDate: match.rotationDetails.startDate,
             endDate: match.rotationDetails.endDate,
             paymentLink: "#",
           },
         });
 
-        await ctx.runAction(internal.emails.sendEmail, {
+        await ctx.runAction(internal.emails.sendEmailInternal, {
           to: preceptor.personalInfo.email,
           templateKey: "MATCH_CONFIRMED_PRECEPTOR",
           variables: {
             firstName: preceptor.personalInfo.fullName.split(' ')[0],
             studentName: student.personalInfo.fullName,
             startDate: match.rotationDetails.startDate,
-            location: preceptor.clinicalInfo.practiceLocation || "TBD",
+            location: preceptor.practiceInfo.city + ", " + preceptor.practiceInfo.state || "TBD",
           },
         });
 
@@ -117,7 +117,7 @@ export const sendPaymentReminders = internalAction({
     for (const match of pendingPaymentMatches) {
       try {
         // Check if payment has been received
-        const paymentAttempt = await ctx.runQuery(internal.paymentAttempts.getByStripeSessionId, {
+        const paymentAttempt = await ctx.runQuery(internal.paymentAttempts.getByMatchId, {
           matchId: match._id,
         });
 

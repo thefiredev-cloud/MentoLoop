@@ -53,12 +53,22 @@ MentoLoop is a HIPAA-compliant platform designed specifically for healthcare edu
 - **Prettier**: Code formatting is handled automatically
 - **Convex**: Database operations must use Convex functions
 
+### Convex Development Patterns
+
+- **Actions vs Mutations**: Use actions for external API calls, mutations for database operations
+- **Hook Usage**: Use `useAction` for external operations, `useMutation` for database changes
+- **Internal Actions**: Follow the `sendEmailInternal` pattern for reusable internal operations
+- **Error Handling**: Implement comprehensive error handling and logging for all operations
+- **Email Integration**: Use the internal action pattern for all email operations
+
 ### Component Guidelines
 
 - Use functional components with React hooks
 - Follow the existing shadcn/ui component patterns
+- **Always provide unique keys** for ScrollArea and dynamic list components
 - Maintain accessibility standards (ARIA labels, keyboard navigation)
 - Ensure responsive design (mobile-first approach)
+- Use proper React key patterns to prevent rendering issues
 
 ### Healthcare Data Compliance
 
@@ -98,6 +108,9 @@ npm run test:all
 - Mock external services (SendGrid, Twilio, OpenAI)
 - Include accessibility tests
 - Test error handling and edge cases
+- **Email System**: Test internal action patterns and template rendering
+- **React Components**: Test component key handling and re-rendering behavior
+- **Convex Functions**: Test action vs mutation separation and error handling
 
 ## 📝 Pull Request Process
 
@@ -117,6 +130,12 @@ npm run test:all
    npm run build         # Production build test
    npm run test:unit:run # Unit test validation
    ```
+   
+   **Additional Checks for New Patterns:**
+   - Verify proper use of `useAction` vs `useMutation`
+   - Ensure ScrollArea components have unique keys
+   - Test email system with internal action patterns
+   - Validate error handling in Convex functions
 
 3. **Manual Testing**
    - Test the feature in both student and preceptor roles

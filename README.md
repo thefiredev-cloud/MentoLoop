@@ -65,11 +65,11 @@ Built with Next.js 15, Convex real-time database, Clerk authentication, AI-enhan
 - **React Bits** - Custom animation components
 
 ### Backend & Services
-- **Convex** - Real-time database and serverless functions
+- **Convex** - Real-time database and serverless functions with optimized action patterns
 - **Clerk** - Authentication and user management
-- **OpenAI** - AI-enhanced matching with GPT-4
+- **OpenAI** - AI-enhanced matching with GPT-4 and streamlined algorithm
 - **Google Gemini Pro** - Alternative AI provider
-- **SendGrid** - Email automation and templates
+- **SendGrid** - Email automation with internal action architecture
 - **Twilio** - SMS notifications and alerts
 - **Stripe** - Payment processing (enterprise billing)
 - **Svix** - Webhook handling and validation
@@ -186,7 +186,7 @@ Your application will be available at `http://localhost:3000`.
 
 ### Key Routes
 - `/` - Beautiful landing page with pricing
-- `/dashboard` - Protected user dashboard
+- `/dashboard` - Protected user dashboard with optimized components
 - `/dashboard/payment-gated` - Subscription-protected content
 - `/clerk-users-webhook` - Clerk webhook handler
 
@@ -202,6 +202,17 @@ Your application will be available at `http://localhost:3000`.
 - Subscription-based access control
 - Real-time payment status updates
 - Webhook-driven payment tracking
+
+### Email System Architecture
+- **Internal Action Pattern** - Dedicated internal functions for email operations
+- **Template Management** - Centralized email template system
+- **Audit Logging** - Comprehensive email delivery tracking
+- **Error Handling** - Robust failure recovery and logging
+
+### Performance Optimizations
+- **React Key Management** - Unique keys for ScrollArea and list components
+- **Action vs Mutation** - Proper separation for Convex operations
+- **Component Optimization** - Streamlined dashboard rendering
 
 ### Database Schema
 ```typescript

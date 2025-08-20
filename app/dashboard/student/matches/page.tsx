@@ -57,7 +57,7 @@ export default function StudentMatches() {
   const declineMatch = useMutation(api.matches.declineMatch)
   const getOrCreateConversation = useMutation(api.messages.getOrCreateConversation)
 
-  const handleAcceptMatch = async (matchId: string) => {
+  const handleAcceptMatch = async (matchId: Id<"matches">) => {
     try {
       await acceptMatch({ matchId })
       // In real app, would show success message and refresh data
@@ -66,7 +66,7 @@ export default function StudentMatches() {
     }
   }
 
-  const handleDeclineMatch = async (matchId: string) => {
+  const handleDeclineMatch = async (matchId: Id<"matches">) => {
     try {
       await declineMatch({ matchId })
       // In real app, would show success message and refresh data  

@@ -36,9 +36,6 @@ export default function PersonalInfoStep({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    updateFormData('personalInfo', formData)
-  }, [formData, updateFormData])
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value }

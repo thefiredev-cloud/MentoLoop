@@ -1,4 +1,4 @@
-import { internalMutation, query, QueryCtx } from "./_generated/server";
+import { internalMutation, query, QueryCtx, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { paymentAttemptDataValidator } from "./paymentAttemptTypes";
 
@@ -50,12 +50,28 @@ export const savePaymentAttempt = internalMutation({
   },
 });
 
+// Get payment attempt by Stripe session ID
 export const getByStripeSessionId = query({
-  args: { stripeSessionId: v.string() },
+  args: { 
+    stripeSessionId: v.string()
+  },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("paymentAttempts")
       .withIndex("byStripeSessionId", (q) => q.eq("stripeSessionId", args.stripeSessionId))
+      .unique();
+  },
+});
+
+// Get payment attempt by match ID
+export const getByMatchId = internalQuery({
+  args: { 
+    matchId: v.id("matches")
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("paymentAttempts")
+      .withIndex("byMatchId", (q) => q.eq("matchId", args.matchId))
       .unique();
   },
 });

@@ -18,7 +18,7 @@ export default function PaymentSuccess() {
   const [isLoading, setIsLoading] = useState(true)
 
   // Get match details
-  const match = useQuery(api.matches.getMatchById, matchId ? { matchId } : "skip")
+  const match = useQuery(api.matches.getMatchByIdPublic, matchId ? { matchId } : "skip")
 
   useEffect(() => {
     if (match !== undefined) {

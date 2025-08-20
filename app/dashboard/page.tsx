@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useQuery } from 'convex/react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/convex/_generated/api'
@@ -10,18 +10,21 @@ import { Loader2 } from 'lucide-react'
 export default function DashboardPage() {
   const user = useQuery(api.users.current)
   const router = useRouter()
+  const hasRedirected = useRef(false)
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasRedirected.current) {
       // Redirect to appropriate dashboard based on user type
       if (user.userType === 'student') {
+        hasRedirected.current = true
         router.replace('/dashboard/student')
       } else if (user.userType === 'preceptor') {
+        hasRedirected.current = true
         router.replace('/dashboard/preceptor')
       }
       // If no userType, stay on this page to show setup options
     }
-  }, [user, router])
+  }, [user?.userType])
 
   if (!user) {
     return (

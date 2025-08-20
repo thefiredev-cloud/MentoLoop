@@ -42,7 +42,7 @@ export default function StudentRotationsPage() {
       case 'active':
         return rotations.filter(r => r.status === 'active')
       case 'scheduled':
-        return rotations.filter(r => r.status === 'confirmed' || r.status === 'scheduled')
+        return rotations.filter(r => r.status === 'confirmed' || r.status === 'pending')
       case 'completed':
         return rotations.filter(r => r.status === 'completed')
       default:

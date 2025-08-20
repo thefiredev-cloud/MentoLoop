@@ -41,6 +41,76 @@ export default function AgreementsStep({
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
+  
+  // Type definitions for form data from previous steps
+  type PersonalInfo = {
+    fullName: string
+    email: string
+    phone: string
+    dateOfBirth: string
+    preferredContact: "email" | "phone" | "text"
+    linkedinOrResume?: string
+  }
+  
+  type SchoolInfo = {
+    programName: string
+    degreeTrack: "FNP" | "PNP" | "PMHNP" | "AGNP" | "ACNP" | "WHNP" | "NNP" | "DNP"
+    schoolLocation: {
+      city: string
+      state: string
+    }
+    programFormat: "online" | "in-person" | "hybrid"
+    expectedGraduation: string
+    clinicalCoordinatorName?: string
+    clinicalCoordinatorEmail?: string
+  }
+  
+  type RotationNeeds = {
+    rotationTypes: ("family-practice" | "pediatrics" | "psych-mental-health" | "womens-health" | "adult-gero" | "acute-care" | "telehealth" | "other")[]
+    otherRotationType?: string
+    startDate: string
+    endDate: string
+    weeklyHours: "<8" | "8-16" | "16-24" | "24-32" | "32+"
+    daysAvailable: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[]
+    willingToTravel: boolean
+    preferredLocation?: {
+      city: string
+      state: string
+    }
+  }
+  
+  type MatchingPreferences = {
+    idealPreceptorQualities?: string
+    languagesSpoken?: string[]
+    comfortableWithSharedPlacements?: boolean
+  }
+  
+  type LearningStyle = {
+    // Basic questions (required)
+    learningMethod: "hands-on" | "step-by-step" | "independent"
+    clinicalComfort: "not-comfortable" | "somewhat-comfortable" | "very-comfortable"
+    feedbackPreference: "real-time" | "end-of-day" | "minimal"
+    structurePreference: "clear-schedules" | "general-guidance" | "open-ended"
+    mentorRelationship: "teacher-coach" | "collaborator" | "supervisor"
+    observationPreference: "observe-first" | "mix-both" | "jump-in"
+    correctionStyle: "direct-immediate" | "supportive-private" | "written-summaries"
+    retentionStyle: "watching-doing" | "note-taking" | "questions-discussion"
+    additionalResources: "yes-love" | "occasionally" | "not-necessary"
+    proactiveQuestions: number
+    // Phase 2.0 Extended questions (optional)
+    feedbackType?: "verbal-examples" | "specific-critiques" | "encouragement-affirmation"
+    mistakeApproach?: "corrected-immediately" | "talk-through-after" | "reflect-silently"
+    motivationType?: "trusted-responsibility" | "seeing-progress" | "positive-feedback"
+    preparationStyle?: "coached-through" | "present-get-feedback" | "try-fully-alone"
+    learningCurve?: "challenge-early-often" | "build-gradually" | "repetition-reinforcement"
+    frustrations?: "lack-expectations" | "minimal-vague-feedback" | "being-micromanaged"
+    environment?: "calm-controlled" | "some-pressure" | "high-energy"
+    observationNeeds?: "watch-1-2-first" | "just-one-enough" | "ready-start-immediately"
+    professionalValues?: ("compassion" | "efficiency" | "collaboration" | "lifelong-learning" | "integrity" | "equity-inclusion" | "advocacy")[]
+    clinicalEnvironment?: "calm-methodical" | "busy-fast-paced" | "flexible-informal" | "structured-clear-goals"
+    programStage?: "just-starting" | "mid-program" | "near-graduation"
+    scheduleFlexibility?: "very-flexible" | "somewhat-flexible" | "prefer-fixed"
+  }
 
   useEffect(() => {
     updateFormData('agreements', formData)
@@ -79,11 +149,11 @@ export default function AgreementsStep({
     try {
       // Submit all form data to Convex
       await createOrUpdateStudent({
-        personalInfo: data.personalInfo,
-        schoolInfo: data.schoolInfo,
-        rotationNeeds: data.rotationNeeds,
-        matchingPreferences: data.matchingPreferences,
-        learningStyle: data.learningStyle,
+        personalInfo: data.personalInfo as PersonalInfo,
+        schoolInfo: data.schoolInfo as SchoolInfo,
+        rotationNeeds: data.rotationNeeds as RotationNeeds,
+        matchingPreferences: data.matchingPreferences as MatchingPreferences,
+        learningStyle: data.learningStyle as LearningStyle,
         agreements: formData,
       })
 
