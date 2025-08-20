@@ -16,7 +16,9 @@
   BUILD_TIMEOUT = "600"
   # Exclude build artifacts from secrets scanning
   SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,node_modules/**"
-  # Disable secrets scanning for cache files
+  # Ignore email addresses that are legitimate contact emails (not secrets)
+  SECRETS_SCAN_OMIT_KEYS = "*@mentoloop.com"
+  # Keep secrets scanning enabled but with exclusions
   SECRETS_SCAN_ENABLED = "true"
   
 # Prevent Netlify from timing out during build
