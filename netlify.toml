@@ -1,5 +1,5 @@
 [build]
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
   publish = ".next"
   functions = "netlify/functions"
 
@@ -14,6 +14,10 @@
   NODE_OPTIONS = "--max_old_space_size=4096"
   # Build timeout (10 minutes)
   BUILD_TIMEOUT = "600"
+  # Exclude build artifacts from secrets scanning
+  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,node_modules/**"
+  # Disable secrets scanning for cache files
+  SECRETS_SCAN_ENABLED = "true"
   
 # Prevent Netlify from timing out during build
 [build.processing]

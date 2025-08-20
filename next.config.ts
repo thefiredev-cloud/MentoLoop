@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
+import path from 'path';
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['convex'],
+  outputFileTracingRoot: path.join(__dirname),
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
@@ -20,7 +22,7 @@ const nextConfig: NextConfig = {
     // Ensure proper module resolution
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': require('path').join(__dirname, './')
+      '@': path.join(__dirname, './')
     }
     return config
   }
