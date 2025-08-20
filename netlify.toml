@@ -7,7 +7,7 @@
   package = "@netlify/plugin-nextjs"
 
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION = "20"
   NPM_VERSION = "10"
   NETLIFY = "true"
   # Increase memory for build process
