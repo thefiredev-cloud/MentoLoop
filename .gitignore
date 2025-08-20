@@ -53,6 +53,20 @@ Thumbs.db
 
 # Test and development artifacts
 .playwright-mcp/
+playwright-report/
+test-results/
+
+# Environment files with sensitive data
+.env.test
+.env.production
+.env.staging
+
+# Internal documentation (not for public GitHub)
+TODOS.md
+SECURITY-AUDIT.md
+TROUBLESHOOTING.md
+PROJECT-STATUS.md
+MentoLoop Guide/
 
 # Duplicate directories
 MentoLoop/
