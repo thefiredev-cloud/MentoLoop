@@ -88,7 +88,7 @@ export default function PreceptorDocuments() {
         return <FileSpreadsheet className="h-5 w-5 text-green-500" />
       case 'jpg':
       case 'png':
-        return <Image className="h-5 w-5 text-purple-500" />
+        return <Image className="h-5 w-5 text-purple-500" aria-label="Image file" />
       default:
         return <FileText className="h-5 w-5 text-gray-500" />
     }
@@ -271,7 +271,7 @@ export default function PreceptorDocuments() {
               <h3 className="text-lg font-semibold mb-2">No Documents</h3>
               <p className="text-muted-foreground text-center max-w-md mb-4">
                 {selectedType === 'All' 
-                  ? "You haven't uploaded any documents yet. Upload agreements, templates, and other files."
+                  ? "You haven&apos;t uploaded any documents yet. Upload agreements, templates, and other files."
                   : `No ${selectedType.toLowerCase()} documents found.`
                 }
               </p>

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 // MentorFit™ Compatibility Scoring Algorithm
 // Calculates compatibility scores (0-10) between students and preceptors
@@ -384,7 +384,7 @@ export const findCompatiblePreceptors = query({
     studentId: v.id("students"),
     limit: v.optional(v.number())
   },
-  handler: async (ctx, { studentId, limit = 10 }) => {
+  handler: async (ctx, { studentId, limit = 10 }): Promise<any[]> => {
     const student = await ctx.db.get(studentId);
     if (!student) {
       throw new Error("Student not found");
@@ -402,8 +402,8 @@ export const findCompatiblePreceptors = query({
       .collect();
 
     // Calculate compatibility for each preceptor
-    const compatibilityPromises = preceptors.map(async (preceptor) => {
-      const compatibility = await calculateCompatibility(ctx, {
+    const compatibilityPromises = preceptors.map(async (preceptor): Promise<any> => {
+      const compatibility = await ctx.runQuery(internal.mentorfit.calculateCompatibility, {
         studentId,
         preceptorId: preceptor._id
       });
@@ -414,11 +414,11 @@ export const findCompatiblePreceptors = query({
       };
     });
 
-    const results = await Promise.all(compatibilityPromises);
+    const results: any[] = await Promise.all(compatibilityPromises);
     
     // Sort by compatibility score and limit results
     return results
-      .sort((a, b) => b.compatibility.score - a.compatibility.score)
+      .sort((a: any, b: any) => b.compatibility.score - a.compatibility.score)
       .slice(0, limit);
   }
 });
@@ -436,12 +436,12 @@ export const createMatchWithCompatibility = internalMutation({
       location: v.optional(v.string())
     })
   },
-  handler: async (ctx, { studentId, preceptorId, rotationDetails }) => {
+  handler: async (ctx, { studentId, preceptorId, rotationDetails }): Promise<any> => {
     // Calculate compatibility
-    const compatibility = await calculateCompatibility(ctx, { studentId, preceptorId });
+    const compatibility: any = await ctx.runQuery(internal.mentorfit.calculateCompatibility, { studentId, preceptorId });
     
     // Create match record
-    const matchId = await ctx.db.insert("matches", {
+    const matchId: any = await ctx.db.insert("matches", {
       studentId,
       preceptorId,
       status: "suggested",

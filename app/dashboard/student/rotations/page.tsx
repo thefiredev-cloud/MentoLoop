@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,62 +24,31 @@ import {
 
 export default function StudentRotationsPage() {
   const user = useQuery(api.users.current)
-  const student = useQuery(api.students.getByUserId, 
-    user ? { userId: user._id } : "skip"
-  )
+  const student = useQuery(api.students.getCurrentStudent)
+  const rotationStats = useQuery(api.students.getStudentRotationStats)
   const rotations = useQuery(api.matches.getStudentRotations,
-    user ? { studentId: user._id } : "skip"
+    student ? { studentId: student._id } : "skip"
   )
 
   if (!user) {
     return <div>Loading...</div>
   }
 
-  // Mock rotation data - replace with actual data
-  const mockRotations = [
-    {
-      id: '1',
-      title: 'Family Practice Rotation',
-      preceptor: 'Dr. Sarah Johnson, FNP',
-      location: 'Johnson Family Clinic - Austin, TX',
-      startDate: '2025-01-15',
-      endDate: '2025-03-12',
-      status: 'active',
-      hoursCompleted: 128,
-      hoursRequired: 200,
-      rotationType: 'Family Practice',
-      schedule: 'Mon-Thu, 8 AM - 5 PM',
-      weeklyHours: 32
-    },
-    {
-      id: '2',
-      title: 'Pediatrics Rotation',
-      preceptor: 'Dr. Michael Thompson, PNP',
-      location: 'Children\'s Medical Center - Dallas, TX',
-      startDate: '2025-03-20',
-      endDate: '2025-05-15',
-      status: 'scheduled',
-      hoursCompleted: 0,
-      hoursRequired: 180,
-      rotationType: 'Pediatrics',
-      schedule: 'Tue-Fri, 7 AM - 3 PM',
-      weeklyHours: 32
-    },
-    {
-      id: '3',
-      title: 'Mental Health Rotation',
-      preceptor: 'Dr. Lisa Park, PMHNP',
-      location: 'Behavioral Health Clinic - Houston, TX',
-      startDate: '2024-09-15',
-      endDate: '2024-11-10',
-      status: 'completed',
-      hoursCompleted: 160,
-      hoursRequired: 160,
-      rotationType: 'Psychiatry',
-      schedule: 'Mon-Wed, 9 AM - 5 PM',
-      weeklyHours: 24
+  // Helper function to filter rotations by status
+  const getRotationsByStatus = (status: string) => {
+    if (!rotations) return []
+    
+    switch (status) {
+      case 'active':
+        return rotations.filter(r => r.status === 'active')
+      case 'scheduled':
+        return rotations.filter(r => r.status === 'confirmed' || r.status === 'scheduled')
+      case 'completed':
+        return rotations.filter(r => r.status === 'completed')
+      default:
+        return rotations
     }
-  ]
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -107,9 +77,11 @@ export default function StudentRotationsPage() {
     })
   }
 
-  const totalHoursCompleted = mockRotations.reduce((sum, rotation) => sum + rotation.hoursCompleted, 0)
-  const totalHoursRequired = mockRotations.reduce((sum, rotation) => sum + rotation.hoursRequired, 0)
-  const overallProgress = (totalHoursCompleted / totalHoursRequired) * 100
+  const totalHoursCompleted = rotationStats?.totalHoursCompleted || 0
+  const totalHoursRequired = rotationStats?.totalHoursRequired || 640
+  const overallProgress = rotationStats?.overallProgress || 0
+  const activeCount = rotationStats?.activeCount || 0
+  const completedCount = rotationStats?.completedCount || 0
 
   return (
     <div className="space-y-6">
@@ -150,7 +122,7 @@ export default function StudentRotationsPage() {
             <div className="space-y-2">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {mockRotations.filter(r => r.status === 'completed').length}
+                  {completedCount}
                 </div>
                 <p className="text-sm text-muted-foreground">Rotations Completed</p>
               </div>
@@ -158,7 +130,7 @@ export default function StudentRotationsPage() {
             <div className="space-y-2">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {mockRotations.filter(r => r.status === 'active').length}
+                  {activeCount}
                 </div>
                 <p className="text-sm text-muted-foreground">Currently Active</p>
               </div>
@@ -177,8 +149,8 @@ export default function StudentRotationsPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {mockRotations.map((rotation) => (
-            <Card key={rotation.id}>
+          {rotations && rotations.length > 0 ? rotations.map((rotation) => (
+            <Card key={rotation._id}>
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -274,14 +246,27 @@ export default function StudentRotationsPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )) : (
+            <Card>
+              <CardContent className="text-center py-12">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Rotations Found</h3>
+                <p className="text-muted-foreground mb-4">
+                  You don&apos;t have any rotations yet. Accept a match to start your clinical journey.
+                </p>
+                <Button asChild>
+                  <a href="/dashboard/student/matches">
+                    Find Matches
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="active" className="space-y-4">
-          {mockRotations
-            .filter(rotation => rotation.status === 'active')
-            .map((rotation) => (
-              <Card key={rotation.id}>
+          {getRotationsByStatus('active').length > 0 ? getRotationsByStatus('active').map((rotation) => (
+              <Card key={rotation._id}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -327,14 +312,22 @@ export default function StudentRotationsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Active Rotations</h3>
+                  <p className="text-muted-foreground mb-4">
+                    You don&apos;t have any active rotations currently.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
         </TabsContent>
 
         <TabsContent value="scheduled" className="space-y-4">
-          {mockRotations
-            .filter(rotation => rotation.status === 'scheduled')
-            .map((rotation) => (
-              <Card key={rotation.id}>
+          {getRotationsByStatus('scheduled').length > 0 ? getRotationsByStatus('scheduled').map((rotation) => (
+              <Card key={rotation._id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -347,14 +340,22 @@ export default function StudentRotationsPage() {
                   </div>
                 </CardHeader>
               </Card>
-            ))}
+            )) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Scheduled Rotations</h3>
+                  <p className="text-muted-foreground mb-4">
+                    You don&apos;t have any scheduled rotations yet.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
         </TabsContent>
 
         <TabsContent value="completed" className="space-y-4">
-          {mockRotations
-            .filter(rotation => rotation.status === 'completed')
-            .map((rotation) => (
-              <Card key={rotation.id}>
+          {getRotationsByStatus('completed').length > 0 ? getRotationsByStatus('completed').map((rotation) => (
+              <Card key={rotation._id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -373,7 +374,17 @@ export default function StudentRotationsPage() {
                   </div>
                 </CardHeader>
               </Card>
-            ))}
+            )) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Completed Rotations</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Completed rotations will appear here once you finish them.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
         </TabsContent>
       </Tabs>
     </div>

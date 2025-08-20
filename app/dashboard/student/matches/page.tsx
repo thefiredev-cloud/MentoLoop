@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,8 +29,11 @@ import {
   Target
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function StudentMatches() {
+  const router = useRouter()
   const user = useQuery(api.users.current)
   const pendingMatches = useQuery(api.matches.getPendingMatchesForStudent,
     user ? { studentId: user._id } : "skip"
@@ -42,66 +46,16 @@ export default function StudentMatches() {
   )
 
 
-  // Mock data for demonstration - would come from actual queries
-  const mockPendingMatches = [
-    {
-      _id: "1",
-      preceptorId: "p1",
-      preceptor: {
-        personalInfo: {
-          fullName: "Dr. Sarah Johnson, FNP",
-          specialty: "FNP",
-        },
-        practiceInfo: {
-          practiceName: "Johnson Family Clinic",
-          city: "Austin",
-          state: "TX",
-          practiceSettings: ["private-practice"]
-        },
-        availability: {
-          rotationDurationPreferred: "8-weeks",
-          availableRotations: ["family-practice"]
-        }
-      },
-      mentorFitScore: 9.2,
-      matchReason: "Excellent alignment in learning preferences and communication style",
-      status: "pending",
-      createdAt: new Date().getTime() - 86400000, // 1 day ago
-      rotationType: "family-practice",
-      startDate: "2025-02-15",
-      endDate: "2025-04-12"
-    },
-    {
-      _id: "2", 
-      preceptorId: "p2",
-      preceptor: {
-        personalInfo: {
-          fullName: "Dr. Maria Rodriguez, PNP",
-          specialty: "PNP",
-        },
-        practiceInfo: {
-          practiceName: "Children's Health Center",
-          city: "Dallas",
-          state: "TX",
-          practiceSettings: ["clinic"]
-        },
-        availability: {
-          rotationDurationPreferred: "12-weeks",
-          availableRotations: ["pediatrics"]
-        }
-      },
-      mentorFitScore: 8.7,
-      matchReason: "Strong match in pediatric focus and hands-on learning approach",
-      status: "pending", 
-      createdAt: new Date().getTime() - 172800000, // 2 days ago
-      rotationType: "pediatrics",
-      startDate: "2025-03-01",
-      endDate: "2025-05-24"
-    }
-  ]
+  // Helper function to get MentorFit tier from score
+  const getMentorFitTier = (score: number) => {
+    if (score >= 9.0) return { name: 'Gold', color: 'bg-yellow-500', textColor: 'text-yellow-700' }
+    if (score >= 7.5) return { name: 'Silver', color: 'bg-gray-400', textColor: 'text-gray-700' }
+    return { name: 'Bronze', color: 'bg-amber-600', textColor: 'text-amber-700' }
+  }
 
   const acceptMatch = useMutation(api.matches.acceptMatch)
   const declineMatch = useMutation(api.matches.declineMatch)
+  const getOrCreateConversation = useMutation(api.messages.getOrCreateConversation)
 
   const handleAcceptMatch = async (matchId: string) => {
     try {
@@ -118,6 +72,20 @@ export default function StudentMatches() {
       // In real app, would show success message and refresh data  
     } catch (error) {
       console.error('Failed to decline match:', error)
+    }
+  }
+
+  const handleStartConversation = async (matchId: string) => {
+    try {
+      toast.info('Creating secure conversation...')
+      await getOrCreateConversation({ 
+        matchId: matchId as Id<'matches'>
+      })
+      toast.success('Conversation ready!')
+      router.push('/dashboard/messages')
+    } catch (error) {
+      console.error('Failed to create conversation:', error)
+      toast.error('Failed to start conversation')
     }
   }
 
@@ -140,7 +108,7 @@ export default function StudentMatches() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
-            Pending ({mockPendingMatches.length})
+            Pending ({pendingMatches?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="active" className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
@@ -154,37 +122,44 @@ export default function StudentMatches() {
 
         {/* Pending Matches */}
         <TabsContent value="pending" className="space-y-6">
-          {mockPendingMatches.length > 0 ? (
+          {pendingMatches && pendingMatches.length > 0 ? (
             <div className="grid gap-6">
-              {mockPendingMatches.map((match) => (
-                <Card key={match._id} className="overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <CardTitle className="text-xl">
-                            {match.preceptor.personalInfo.fullName}
-                          </CardTitle>
-                          <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                            {match.preceptor.personalInfo.specialty}
-                          </Badge>
+              {pendingMatches.map((match) => {
+                const tier = getMentorFitTier(match.mentorFitScore || 0)
+                const preceptor = match.preceptor
+                  
+                return (
+                  <Card key={match._id} className="overflow-hidden">
+                      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <CardTitle className="text-xl">
+                                {preceptor?.personalInfo?.fullName || 'Preceptor Name'}
+                              </CardTitle>
+                              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                                {preceptor?.personalInfo?.specialty || 'Specialty'}
+                              </Badge>
+                              <Badge className={`${tier.color} text-white`}>
+                                {tier.name} Match
+                              </Badge>
+                            </div>
+                            <CardDescription className="flex items-center gap-2">
+                              <Building className="h-4 w-4" />
+                              {preceptor?.practiceInfo?.practiceName || 'Practice'} • {preceptor?.practiceInfo?.city || 'City'}, {preceptor?.practiceInfo?.state || 'State'}
+                            </CardDescription>
+                          </div>
+                          <div className="text-right space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Target className="h-5 w-5 text-primary" />
+                              <span className="text-2xl font-bold text-primary">
+                                {match.mentorFitScore?.toFixed(1) || '0.0'}/10
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">MentorFit™ Score</p>
+                          </div>
                         </div>
-                        <CardDescription className="flex items-center gap-2">
-                          <Building className="h-4 w-4" />
-                          {match.preceptor.practiceInfo.practiceName} • {match.preceptor.practiceInfo.city}, {match.preceptor.practiceInfo.state}
-                        </CardDescription>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Target className="h-5 w-5 text-primary" />
-                          <span className="text-2xl font-bold text-primary">
-                            {match.mentorFitScore}/10
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">MentorFit™ Score</p>
-                      </div>
-                    </div>
-                  </CardHeader>
+                      </CardHeader>
                   <CardContent className="p-6 space-y-6">
                     {/* Match Details */}
                     <div className="grid gap-4 md:grid-cols-2">
@@ -192,29 +167,34 @@ export default function StudentMatches() {
                         <div className="flex items-center gap-2 text-sm">
                           <Stethoscope className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">Rotation:</span>
-                          <span className="capitalize">{match.rotationType.replace('-', ' ')}</span>
+                          <span className="capitalize">{match.rotationDetails?.rotationType?.replace('-', ' ') || 'Rotation'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">Duration:</span>
-                          <span>{match.preceptor.availability.rotationDurationPreferred}</span>
+                          <span>{preceptor?.availability?.rotationDurationPreferred || 'TBD'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">Dates:</span>
-                          <span>{new Date(match.startDate).toLocaleDateString()} - {new Date(match.endDate).toLocaleDateString()}</span>
+                          <span>
+                            {match.rotationDetails?.startDate ? new Date(match.rotationDetails.startDate).toLocaleDateString() : 'TBD'}
+                            {match.rotationDetails?.endDate ? ` - ${new Date(match.rotationDetails.endDate).toLocaleDateString()}` : ''}
+                          </span>
                         </div>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm">
                           <Building className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">Setting:</span>
-                          <span className="capitalize">{match.preceptor.practiceInfo.practiceSettings[0].replace('-', ' ')}</span>
+                          <span className="capitalize">
+                            {preceptor?.practiceInfo?.practiceSettings?.[0]?.replace('-', ' ') || 'Practice Setting'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">Location:</span>
-                          <span>{match.preceptor.practiceInfo.city}, {match.preceptor.practiceInfo.state}</span>
+                          <span>{preceptor?.practiceInfo?.city || 'City'}, {preceptor?.practiceInfo?.state || 'State'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="h-4 w-4 text-muted-foreground" />
@@ -230,38 +210,47 @@ export default function StudentMatches() {
                         <Heart className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
                         <div>
                           <h4 className="font-semibold text-sm mb-1">Why this is a great match:</h4>
-                          <p className="text-sm text-muted-foreground">{match.matchReason}</p>
+                          <p className="text-sm text-muted-foreground">{match.matchReason || 'Great compatibility based on learning preferences and clinical goals'}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* MentorFit Score Breakdown */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-sm">MentorFit™ Compatibility Breakdown:</h4>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Learning Style Alignment</span>
-                          <div className="flex items-center gap-2">
-                            <Progress value={92} className="w-20 h-2" />
-                            <span className="font-medium">9.2/10</span>
+                    {match.compatibilityBreakdown && (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">MentorFit™ Compatibility Breakdown:</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Learning Style Alignment</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={match.compatibilityBreakdown.learningStyle * 10} className="w-20 h-2" />
+                              <span className="font-medium">{match.compatibilityBreakdown.learningStyle.toFixed(1)}/10</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Communication Preferences</span>
-                          <div className="flex items-center gap-2">
-                            <Progress value={88} className="w-20 h-2" />
-                            <span className="font-medium">8.8/10</span>
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Communication Preferences</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={match.compatibilityBreakdown.communication * 10} className="w-20 h-2" />
+                              <span className="font-medium">{match.compatibilityBreakdown.communication.toFixed(1)}/10</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Schedule Compatibility</span>
-                          <div className="flex items-center gap-2">
-                            <Progress value={95} className="w-20 h-2" />
-                            <span className="font-medium">9.5/10</span>
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Schedule Compatibility</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={match.compatibilityBreakdown.schedule * 10} className="w-20 h-2" />
+                              <span className="font-medium">{match.compatibilityBreakdown.schedule.toFixed(1)}/10</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Mentorship Style</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={match.compatibilityBreakdown.mentorship * 10} className="w-20 h-2" />
+                              <span className="font-medium">{match.compatibilityBreakdown.mentorship.toFixed(1)}/10</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 pt-4 border-t">
@@ -279,7 +268,10 @@ export default function StudentMatches() {
                         <XCircle className="h-4 w-4 mr-2" />
                         Decline
                       </Button>
-                      <Button variant="outline">
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleStartConversation(match._id)}
+                      >
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Message Preceptor
                       </Button>
@@ -289,9 +281,10 @@ export default function StudentMatches() {
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </Card>
+                  )
+                })}
+              </div>
           ) : (
             <Card>
               <CardContent className="text-center py-12">
@@ -328,9 +321,85 @@ export default function StudentMatches() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
-              {/* Active matches would be displayed here */}
-              <p className="text-muted-foreground">Active rotations will appear here.</p>
+            <div className="grid gap-6">
+              {activeMatches.map((match) => {
+                const preceptor = match.preceptor
+                
+                return (
+                  <Card key={match._id} className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <CardTitle className="text-xl">
+                              {preceptor?.personalInfo?.fullName || 'Preceptor Name'}
+                            </CardTitle>
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                              {preceptor?.personalInfo?.specialty || 'Specialty'}
+                            </Badge>
+                            <Badge className="bg-green-600 text-white">
+                              Active
+                            </Badge>
+                          </div>
+                          <CardDescription className="flex items-center gap-2">
+                            <Building className="h-4 w-4" />
+                            {preceptor?.practiceInfo?.practiceName || 'Practice'} • {preceptor?.practiceInfo?.city || 'City'}, {preceptor?.practiceInfo?.state || 'State'}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="p-6 space-y-6">
+                      {/* Rotation Details */}
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Rotation:</span>
+                            <span className="capitalize">{match.rotationDetails?.rotationType?.replace('-', ' ') || 'Rotation'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Duration:</span>
+                            <span>{match.rotationDetails?.startDate || 'TBD'} - {match.rotationDetails?.endDate || 'TBD'}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Hours:</span>
+                            <span>{match.rotationDetails?.weeklyHours || 0} hours/week</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Contact:</span>
+                            <span>{preceptor?.personalInfo?.email || 'Email not available'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-3 pt-4 border-t">
+                        <Button 
+                          onClick={() => handleStartConversation(match._id)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Message Preceptor
+                        </Button>
+                        <Button variant="outline">
+                          <User className="h-4 w-4 mr-2" />
+                          View Profile
+                        </Button>
+                        <Button variant="outline">
+                          <Phone className="h-4 w-4 mr-2" />
+                          Contact Info
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </TabsContent>
@@ -348,9 +417,85 @@ export default function StudentMatches() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
-              {/* Completed matches would be displayed here */}
-              <p className="text-muted-foreground">Completed rotations will appear here.</p>
+            <div className="grid gap-6">
+              {completedMatches.map((match) => {
+                const preceptor = match.preceptor
+                
+                return (
+                  <Card key={match._id} className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950 dark:to-slate-950">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <CardTitle className="text-xl">
+                              {preceptor?.personalInfo?.fullName || 'Preceptor Name'}
+                            </CardTitle>
+                            <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                              {preceptor?.personalInfo?.specialty || 'Specialty'}
+                            </Badge>
+                            <Badge variant="secondary">
+                              Completed
+                            </Badge>
+                          </div>
+                          <CardDescription className="flex items-center gap-2">
+                            <Building className="h-4 w-4" />
+                            {preceptor?.practiceInfo?.practiceName || 'Practice'} • {preceptor?.practiceInfo?.city || 'City'}, {preceptor?.practiceInfo?.state || 'State'}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="p-6 space-y-6">
+                      {/* Rotation Details */}
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Rotation:</span>
+                            <span className="capitalize">{match.rotationDetails?.rotationType?.replace('-', ' ') || 'Rotation'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Completed:</span>
+                            <span>{match.rotationDetails?.startDate || 'TBD'} - {match.rotationDetails?.endDate || 'TBD'}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Hours:</span>
+                            <span>{match.rotationDetails?.weeklyHours || 0} hours/week</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Award className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Score:</span>
+                            <span>{match.mentorFitScore?.toFixed(1) || '0.0'}/10</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-3 pt-4 border-t">
+                        <Button 
+                          onClick={() => handleStartConversation(match._id)}
+                          variant="outline"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          View Messages
+                        </Button>
+                        <Button variant="outline">
+                          <User className="h-4 w-4 mr-2" />
+                          View Profile
+                        </Button>
+                        <Button variant="outline">
+                          <Heart className="h-4 w-4 mr-2" />
+                          Leave Review
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </TabsContent>

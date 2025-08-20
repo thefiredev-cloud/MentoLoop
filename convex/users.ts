@@ -1,4 +1,4 @@
-import { internalMutation, mutation, query, QueryCtx } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query, QueryCtx } from "./_generated/server";
 import { UserJSON } from "@clerk/backend";
 import { v, Validator } from "convex/values";
 
@@ -49,6 +49,13 @@ export const updateUserType = mutation({
   handler: async (ctx, { userId, userType }) => {
     await ctx.db.patch(userId, { userType });
     return { success: true };
+  },
+});
+
+export const getUserById = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId);
   },
 });
 

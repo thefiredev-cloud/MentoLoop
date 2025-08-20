@@ -8,17 +8,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Brain, Zap, Star, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAction, useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 
 interface AIMatchResult {
   preceptorId: string
   preceptorName: string
   baseScore: number
   enhancedScore: number
-  aiAnalysis: string
+  analysis: string
   confidence: 'high' | 'medium' | 'low'
-  aiStrengths: string[]
-  aiConcerns: string[]
-  aiRecommendations: string[]
+  strengths: string[]
+  concerns: string[]
+  recommendations: string[]
+  overallScore: number
+  locationScore: number
+  specialty: string[]
+  practice: {
+    city?: string
+    state?: string
+    zipCode?: string
+  }
+  aiEnhanced: boolean
 }
 
 interface TestResults {
@@ -27,6 +39,7 @@ interface TestResults {
   matches: AIMatchResult[]
   aiProvider: string
   timestamp: number
+  totalFound: number
 }
 
 export default function AIMatchingTest() {
@@ -34,12 +47,9 @@ export default function AIMatchingTest() {
   const [isRunning, setIsRunning] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<string>('')
 
-  // Mock data for demonstration
-  const mockStudents = [
-    { id: 'student1', name: 'Sarah Johnson', specialty: 'FNP', location: 'California' },
-    { id: 'student2', name: 'Michael Chen', specialty: 'PMHNP', location: 'Texas' },
-    { id: 'student3', name: 'Emily Rodriguez', specialty: 'PNP', location: 'Florida' }
-  ]
+  // Get real students from database
+  const students = useQuery(api.students.getAllStudents) || []
+  const runAIMatching = useAction(api.matches.findAIEnhancedMatches)
 
   const runAIMatchingTest = async () => {
     if (!selectedStudent) {
@@ -51,90 +61,33 @@ export default function AIMatchingTest() {
     setTestResults(null)
 
     try {
-      // Mock AI analysis for demonstration
-      await new Promise(resolve => setTimeout(resolve, 3000)) // Simulate API delay
+      toast.info('Running AI analysis... This may take a few moments')
       
-      const mockResults: TestResults = {
-        success: true,
-        totalAnalyzed: 5,
-        matches: [
-          {
-            preceptorId: 'prec1',
-            preceptorName: 'Dr. Amanda Wilson',
-            baseScore: 7.2,
-            enhancedScore: 8.7,
-            aiAnalysis: 'Excellent compatibility based on complementary teaching and learning styles. Strong alignment in communication preferences and clinical approach.',
-            confidence: 'high',
-            aiStrengths: [
-              'Teaching style perfectly matches student learning preferences',
-              'Strong communication alignment for effective feedback',
-              'Complementary clinical approaches'
-            ],
-            aiConcerns: [
-              'Geographic distance may require travel consideration',
-              'Schedule coordination needed for optimal hours'
-            ],
-            aiRecommendations: [
-              'Establish clear communication protocols',
-              'Plan travel logistics in advance',
-              'Set up regular check-in schedules'
-            ]
-          },
-          {
-            preceptorId: 'prec2',
-            preceptorName: 'Dr. James Thompson',
-            baseScore: 6.8,
-            enhancedScore: 7.9,
-            aiAnalysis: 'Good compatibility with room for growth. Preceptor\'s structured approach aligns with student\'s need for clear guidance.',
-            confidence: 'medium',
-            aiStrengths: [
-              'Structured mentoring approach',
-              'Experience with similar student profiles',
-              'Strong clinical case variety'
-            ],
-            aiConcerns: [
-              'Potential mismatch in feedback frequency preferences',
-              'Different autonomy expectations'
-            ],
-            aiRecommendations: [
-              'Discuss feedback preferences early',
-              'Establish autonomy progression plan',
-              'Regular goal setting sessions'
-            ]
-          },
-          {
-            preceptorId: 'prec3',
-            preceptorName: 'Dr. Lisa Park',
-            baseScore: 6.1,
-            enhancedScore: 6.5,
-            aiAnalysis: 'Moderate compatibility. Some areas of alignment with opportunities for growth through effective communication.',
-            confidence: 'medium',
-            aiStrengths: [
-              'Diverse clinical experience',
-              'Flexible scheduling availability',
-              'Strong patient population variety'
-            ],
-            aiConcerns: [
-              'Different learning style preferences',
-              'Potential communication style mismatch',
-              'Varying expectations for student initiative'
-            ],
-            aiRecommendations: [
-              'Additional orientation and expectation setting',
-              'More frequent check-ins initially',
-              'Consider supplementary learning resources'
-            ]
-          }
-        ],
-        aiProvider: 'openai',
-        timestamp: Date.now()
+      const results = await runAIMatching({
+        studentId: selectedStudent as Id<"students">,
+        limit: 5,
+        useAI: true
+      })
+
+      if (!results.success) {
+        throw new Error(results.error || 'AI matching failed')
       }
 
-      setTestResults(mockResults)
-      toast.success('AI matching analysis completed!')
+      setTestResults(results as TestResults)
+      toast.success(`AI analysis completed! Found ${results.totalFound} potential matches, analyzed ${results.totalAnalyzed}`)
     } catch (error) {
       console.error('AI matching test failed:', error)
-      toast.error('AI matching test failed')
+      toast.error('AI matching test failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      
+      // Show fallback results if API fails
+      setTestResults({
+        success: false,
+        totalAnalyzed: 0,
+        matches: [],
+        aiProvider: 'error',
+        timestamp: Date.now(),
+        totalFound: 0
+      })
     } finally {
       setIsRunning(false)
     }
@@ -197,9 +150,9 @@ export default function AIMatchingTest() {
                     className="w-full p-2 border rounded-md"
                   >
                     <option value="">Choose a student...</option>
-                    {mockStudents.map(student => (
-                      <option key={student.id} value={student.id}>
-                        {student.name} - {student.specialty} ({student.location})
+                    {students.map(student => (
+                      <option key={student._id} value={student._id}>
+                        {student.personalInfo?.fullName || 'Unknown'} - {student.rotationNeeds?.rotationTypes?.join(', ') || 'No specialty'} ({student.rotationNeeds?.preferredLocation?.city || 'No location'})
                       </option>
                     ))}
                   </select>
@@ -233,11 +186,28 @@ export default function AIMatchingTest() {
                     <TrendingUp className="h-5 w-5" />
                     AI Analysis Results
                     <Badge className="ml-2">{testResults.totalAnalyzed} Matches Analyzed</Badge>
+                    {testResults.aiProvider && (
+                      <Badge variant="outline" className="ml-2">
+                        {testResults.aiProvider === 'openai' ? 'OpenAI' : testResults.aiProvider === 'gemini' ? 'Gemini' : 'Basic'}
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid gap-4">
-                    {testResults.matches.map((match: AIMatchResult, index: number) => (
+                  {testResults.matches.length === 0 ? (
+                    <div className="text-center py-12">
+                      <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No Matches Found</h3>
+                      <p className="text-muted-foreground">
+                        {testResults.success ? 
+                          'No compatible preceptors found for the selected student.' :
+                          'AI analysis failed. Please check your API configuration and try again.'
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {testResults.matches.map((match: AIMatchResult, index: number) => (
                       <Card key={match.preceptorId} className="border-l-4 border-l-primary">
                         <CardContent className="pt-6">
                           <div className="flex justify-between items-start mb-4">
@@ -279,7 +249,7 @@ export default function AIMatchingTest() {
                           <div className="space-y-4">
                             <div>
                               <h4 className="font-medium mb-2">AI Analysis</h4>
-                              <p className="text-sm text-muted-foreground">{match.aiAnalysis}</p>
+                              <p className="text-sm text-muted-foreground">{match.analysis}</p>
                             </div>
 
                             <div className="grid md:grid-cols-3 gap-4 text-sm">
@@ -289,9 +259,9 @@ export default function AIMatchingTest() {
                                   Strengths
                                 </h4>
                                 <ul className="space-y-1">
-                                  {match.aiStrengths.map((strength: string, i: number) => (
+                                  {match.strengths?.map((strength: string, i: number) => (
                                     <li key={i} className="text-muted-foreground">• {strength}</li>
-                                  ))}
+                                  )) || <li className="text-muted-foreground">No AI strengths available</li>}
                                 </ul>
                               </div>
 
@@ -301,9 +271,9 @@ export default function AIMatchingTest() {
                                   Concerns
                                 </h4>
                                 <ul className="space-y-1">
-                                  {match.aiConcerns.map((concern: string, i: number) => (
+                                  {match.concerns?.map((concern: string, i: number) => (
                                     <li key={i} className="text-muted-foreground">• {concern}</li>
-                                  ))}
+                                  )) || <li className="text-muted-foreground">No AI concerns listed</li>}
                                 </ul>
                               </div>
 
@@ -313,17 +283,18 @@ export default function AIMatchingTest() {
                                   Recommendations
                                 </h4>
                                 <ul className="space-y-1">
-                                  {match.aiRecommendations.map((rec: string, i: number) => (
+                                  {match.recommendations?.map((rec: string, i: number) => (
                                     <li key={i} className="text-muted-foreground">• {rec}</li>
-                                  ))}
+                                  )) || <li className="text-muted-foreground">No AI recommendations available</li>}
                                 </ul>
                               </div>
                             </div>
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

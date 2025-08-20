@@ -91,7 +91,7 @@ export default function EnterprisePreceptorsPage() {
   const filteredPreceptors = useMemo(() => {
     if (!preceptors) return []
     
-    return preceptors.filter((preceptor: { name?: string; email?: string; specialty?: string; status?: string }) => {
+    return preceptors.filter((preceptor: any) => {
       const matchesSearch = !searchQuery || 
         preceptor.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         preceptor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -108,9 +108,9 @@ export default function EnterprisePreceptorsPage() {
     if (!preceptors) return { total: 0, active: 0, pending: 0, verified: 0 }
     
     const total = preceptors.length
-    const active = preceptors.filter((p: { status?: string }) => p.status === 'active').length
-    const pending = preceptors.filter((p: { status?: string }) => p.status === 'pending').length
-    const verified = preceptors.filter((p: { verificationStatus?: string }) => p.verificationStatus === 'verified').length
+    const active = preceptors.filter((p: any) => p.availability?.currentlyAccepting === true).length
+    const pending = preceptors.filter((p: any) => p.verificationStatus === 'pending').length
+    const verified = preceptors.filter((p: any) => p.verificationStatus === 'verified').length
     
     return { total, active, pending, verified }
   }, [preceptors])

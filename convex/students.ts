@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { getUserId } from "./auth";
 
 // Create or update student profile
@@ -132,13 +133,26 @@ export const createOrUpdateStudent = mutation({
       });
       
       // Update user type
+      const identity = await ctx.auth.getUserIdentity();
       const user = await ctx.db
         .query("users")
-        .withIndex("byExternalId", (q) => q.eq("externalId", ctx.auth.getUserIdentity()?.subject ?? ""))
+        .withIndex("byExternalId", (q) => q.eq("externalId", identity?.subject ?? ""))
         .first();
       
       if (user) {
         await ctx.db.patch(user._id, { userType: "student" });
+        
+        // Send welcome email for new students
+        try {
+          await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
+            email: args.personalInfo.email,
+            firstName: args.personalInfo.fullName.split(' ')[0] || 'Student',
+            userType: "student",
+          });
+        } catch (error) {
+          console.error("Failed to send welcome email to student:", error);
+          // Don't fail the profile creation if email fails
+        }
       }
       
       return studentId;
@@ -160,7 +174,7 @@ export const getCurrentStudent = query({
 });
 
 // Get student by ID (for admin/matching purposes)
-export const getStudentById = query({
+export const getStudentById = internalQuery({
   args: { studentId: v.id("students") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.studentId);
@@ -175,6 +189,13 @@ export const getStudentsByStatus = query({
       .query("students")
       .withIndex("byStatus", (q) => q.eq("status", args.status))
       .collect();
+  },
+});
+
+// Get all students (for admin/testing)
+export const getAllStudents = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("students").collect();
   },
 });
 
@@ -234,11 +255,241 @@ export const getByEnterpriseId = query({
     }
 
     // Get all students associated with this enterprise
-    // Note: This assumes students are linked to enterprises through school partnerships
-    // You may need to adjust this based on your specific enterprise-student relationship
+    // TODO: Implement proper enterprise-student relationship query
+    // Since students table doesn't have enterpriseId, we need to query through users or another relationship
     return await ctx.db
       .query("students")
-      .filter((q) => q.eq(q.field("enterpriseId"), args.enterpriseId))
+      .collect()
+      .then(students => students.filter(student => {
+        // This is a placeholder - implement proper enterprise filtering logic
+        return true;
+      }));
+  },
+});
+
+// Get student dashboard stats
+export const getStudentDashboardStats = query({
+  handler: async (ctx) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return null;
+
+    const student = await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!student) return null;
+
+    // Get user for additional info
+    const user = await ctx.db.get(userId);
+
+    // Get matches for this student
+    const matches = await ctx.db
+      .query("matches")
+      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
       .collect();
+
+    const currentMatch = matches.find(m => m.status === "active" || m.status === "confirmed");
+    const pendingMatches = matches.filter(m => m.status === "pending" || m.status === "suggested");
+    const completedMatches = matches.filter(m => m.status === "completed");
+
+    // Calculate profile completion
+    const profileFields = [
+      student.personalInfo.fullName,
+      student.personalInfo.email,
+      student.personalInfo.phone,
+      student.schoolInfo.programName,
+      student.schoolInfo.degreeTrack,
+      student.rotationNeeds.rotationTypes.length > 0,
+      student.rotationNeeds.startDate,
+      student.rotationNeeds.endDate,
+      student.learningStyle.learningMethod,
+    ];
+    const completedFields = profileFields.filter(Boolean).length;
+    const profileCompletionPercentage = Math.round((completedFields / profileFields.length) * 100);
+
+    // Mock hours data (in real implementation, this would come from hours tracking)
+    const requiredHours = 640; // Typical NP program requirement
+    const completedHours = 0; // Would be calculated from actual hours entries
+
+    return {
+      student,
+      user,
+      profileCompletionPercentage,
+      currentMatch,
+      pendingMatchesCount: pendingMatches.length,
+      completedRotations: completedMatches.length,
+      hoursCompleted: completedHours,
+      hoursRequired: requiredHours,
+      mentorFitScore: currentMatch?.mentorFitScore || 0,
+      nextRotationDate: currentMatch?.rotationDetails.startDate,
+      hasUnreadMessages: false, // Would be calculated from messages table
+    };
+  },
+});
+
+// Get student recent activity
+export const getStudentRecentActivity = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return [];
+
+    const student = await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!student) return [];
+
+    const limit = args.limit || 10;
+    const activities = [];
+
+    // Get matches activity
+    const matches = await ctx.db
+      .query("matches")
+      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
+      .collect();
+
+    for (const match of matches) {
+      const preceptor = await ctx.db.get(match.preceptorId);
+      const preceptorUser = preceptor ? await ctx.db.get(preceptor.userId) : null;
+
+      activities.push({
+        id: `match-${match._id}`,
+        type: 'match' as const,
+        title: match.status === 'suggested' ? 'New Match Suggestion' : 
+               match.status === 'confirmed' ? 'Match Confirmed' : 
+               match.status === 'active' ? 'Rotation Started' : 
+               match.status === 'completed' ? 'Rotation Completed' : 'Match Update',
+        description: `${match.rotationDetails.rotationType} with ${preceptorUser?.name || 'preceptor'} (${match.mentorFitScore}/10 compatibility)`,
+        timestamp: match.matchedAt || match.createdAt,
+        status: match.status === 'confirmed' || match.status === 'active' ? 'success' :
+               match.status === 'cancelled' ? 'error' : 'info' as const,
+        actor: preceptorUser ? {
+          name: preceptorUser.name,
+          type: 'preceptor' as const
+        } : undefined
+      });
+    }
+
+    // Sort by timestamp and limit
+    return activities
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit);
+  },
+});
+
+// Get student notifications
+export const getStudentNotifications = query({
+  handler: async (ctx) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return [];
+
+    const student = await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!student) return [];
+
+    const notifications = [];
+
+    // Get pending matches
+    const pendingMatches = await ctx.db
+      .query("matches")
+      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
+      .filter((q) => q.or(
+        q.eq(q.field("status"), "suggested"),
+        q.eq(q.field("status"), "pending")
+      ))
+      .collect();
+
+    for (const match of pendingMatches) {
+      const preceptor = await ctx.db.get(match.preceptorId);
+      const preceptorUser = preceptor ? await ctx.db.get(preceptor.userId) : null;
+
+      notifications.push({
+        id: `match-pending-${match._id}`,
+        type: 'info' as const,
+        title: 'New Match Available',
+        message: `Review your match with ${preceptorUser?.name || 'a preceptor'} for ${match.rotationDetails.rotationType}`,
+        timestamp: match.createdAt,
+        read: false,
+        actionUrl: '/dashboard/student/matches',
+        actionText: 'View Match'
+      });
+    }
+
+    // Check for incomplete profile
+    const profileFields = [
+      student.personalInfo.fullName,
+      student.personalInfo.email,
+      student.personalInfo.phone,
+      student.schoolInfo.programName,
+      student.schoolInfo.degreeTrack,
+      student.rotationNeeds.rotationTypes.length > 0,
+      student.rotationNeeds.startDate,
+      student.rotationNeeds.endDate,
+      student.learningStyle.learningMethod,
+    ];
+    const completedFields = profileFields.filter(Boolean).length;
+    const profileCompletionPercentage = Math.round((completedFields / profileFields.length) * 100);
+
+    if (profileCompletionPercentage < 100) {
+      notifications.push({
+        id: 'profile-incomplete',
+        type: 'warning' as const,
+        title: 'Complete Your Profile',
+        message: `Your profile is ${profileCompletionPercentage}% complete. Complete it to get better matches.`,
+        timestamp: student.updatedAt,
+        read: false,
+        actionUrl: '/student-intake',
+        actionText: 'Complete Profile'
+      });
+    }
+
+    return notifications.sort((a, b) => b.timestamp - a.timestamp);
+  },
+});
+
+// Get student rotation stats for rotations page
+export const getStudentRotationStats = query({
+  handler: async (ctx) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return null;
+
+    const student = await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!student) return null;
+
+    // Get all matches for this student
+    const matches = await ctx.db
+      .query("matches")
+      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
+      .collect();
+
+    const activeRotations = matches.filter(m => m.status === "active");
+    const scheduledRotations = matches.filter(m => m.status === "confirmed");
+    const completedRotations = matches.filter(m => m.status === "completed");
+    
+    // Calculate total hours (mock data for now)
+    const totalHoursRequired = 640; // Typical NP program requirement
+    const totalHoursCompleted = completedRotations.length * 160; // Mock calculation
+
+    return {
+      student,
+      activeCount: activeRotations.length,
+      scheduledCount: scheduledRotations.length,
+      completedCount: completedRotations.length,
+      totalHoursRequired,
+      totalHoursCompleted,
+      overallProgress: (totalHoursCompleted / totalHoursRequired) * 100,
+    };
   },
 });

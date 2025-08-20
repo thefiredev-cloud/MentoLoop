@@ -25,8 +25,8 @@ export const createPaymentSession = action({
       }
 
       // Get student and preceptor details
-      const student = await ctx.db.get(match.studentId);
-      const preceptor = await ctx.db.get(match.preceptorId);
+      const student = await ctx.runQuery(internal.students.getStudentById, { studentId: match.studentId });
+      const preceptor = await ctx.runQuery(internal.preceptors.getPreceptorById, { preceptorId: match.preceptorId });
       
       if (!student || !preceptor) {
         throw new Error("Student or preceptor not found");
@@ -155,7 +155,7 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
   }
 
   // Update match payment status
-  await ctx.runMutation(internal.matches.updatePaymentStatus, {
+  await ctx.runMutation(internal.matches.updatePaymentStatusInternal, {
     matchId,
     paymentStatus: "paid",
   });

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { getUserId } from "./auth";
 
 // Create a new survey response
@@ -78,7 +78,7 @@ export const createSurveyResponse = mutation({
 });
 
 // Get surveys for a specific match
-export const getSurveysForMatch = query({
+export const getSurveysForMatch = internalQuery({
   args: { matchId: v.id("matches") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -94,17 +94,13 @@ export const getSurveysByType = query({
     respondentType: v.union(v.literal("student"), v.literal("preceptor")),
     limit: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any[]> => {
     let query = ctx.db
       .query("surveys")
       .withIndex("byRespondentType", (q) => q.eq("respondentType", args.respondentType))
       .order("desc");
     
-    if (args.limit) {
-      query = query.take(args.limit);
-    }
-    
-    return await query.collect();
+    return await (args.limit ? query.take(args.limit) : query.take(100));
   },
 });
 

@@ -21,6 +21,7 @@ import {
   IconStethoscope,
   IconHeart,
   IconCreditCard,
+  IconMail,
 } from "@tabler/icons-react"
 
 import { useQuery } from "convex/react"
@@ -63,6 +64,11 @@ const studentNavData = {
       title: "Hours Tracking",
       url: "/dashboard/student/hours",
       icon: IconClock,
+    },
+    {
+      title: "Messages",
+      url: "/dashboard/messages",
+      icon: IconMessageCircle,
     },
   ],
   navSecondary: [
@@ -117,6 +123,11 @@ const preceptorNavData = {
       title: "Schedule",
       url: "/dashboard/preceptor/schedule",
       icon: IconCalendar,
+    },
+    {
+      title: "Messages",
+      url: "/dashboard/messages",
+      icon: IconMessageCircle,
     },
   ],
   navSecondary: [
@@ -181,6 +192,16 @@ const adminNavData = {
       title: "Analytics",
       url: "/dashboard/analytics",
       icon: IconChartBar,
+    },
+    {
+      title: "Email Analytics",
+      url: "/dashboard/admin/emails",
+      icon: IconMail,
+    },
+    {
+      title: "SMS Analytics",
+      url: "/dashboard/admin/sms",
+      icon: IconMessageCircle,
     },
     {
       title: "Audit Logs",
@@ -302,21 +323,39 @@ const defaultNavData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useQuery(api.users.current)
+  const unreadCount = useQuery(api.messages.getUnreadMessageCount) || 0
   
   // Determine navigation data based on user type
   const navigationData = React.useMemo(() => {
+    let navData;
     if (user?.userType === 'student') {
-      return studentNavData
+      navData = studentNavData
     } else if (user?.userType === 'preceptor') {
-      return preceptorNavData
+      navData = preceptorNavData
     } else if (user?.userType === 'enterprise') {
-      return enterpriseNavData
+      navData = enterpriseNavData
     } else if (user?.userType === 'admin') {
-      return adminNavData
+      navData = adminNavData
+    } else {
+      // Default to admin navigation for testing purposes
+      navData = adminNavData
     }
-    // Default to admin navigation for testing purposes
-    return adminNavData
-  }, [user?.userType])
+
+    // Add unread message count to Messages item
+    if ((user?.userType === 'student' || user?.userType === 'preceptor') && unreadCount > 0) {
+      const updatedNavData = {
+        ...navData,
+        navMain: navData.navMain.map(item => 
+          item.title === 'Messages' 
+            ? { ...item, badge: unreadCount > 99 ? '99+' : unreadCount.toString() }
+            : item
+        )
+      };
+      return updatedNavData;
+    }
+
+    return navData;
+  }, [user?.userType, unreadCount])
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>

@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
+import { StatsCard } from '@/components/dashboard/stats-card'
+import { ActivityFeed } from '@/components/dashboard/activity-feed'
+import { QuickActions } from '@/components/dashboard/quick-actions'
+import { NotificationPanel } from '@/components/dashboard/notification-panel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -33,12 +38,9 @@ import Link from 'next/link'
 
 export default function PreceptorDashboard() {
   const user = useQuery(api.users.current)
-  const preceptor = useQuery(api.preceptors.getByUserId, 
-    user ? { userId: user._id } : "skip"
-  )
-  const pendingMatches = useQuery(api.matches.getPendingMatchesForPreceptor,
-    user ? { preceptorId: user._id } : "skip"
-  )
+  const dashboardStats = useQuery(api.preceptors.getPreceptorDashboardStats)
+  const recentActivity = useQuery(api.preceptors.getPreceptorRecentActivity, { limit: 5 })
+  const notifications = useQuery(api.preceptors.getPreceptorNotifications)
   const activeStudents = useQuery(api.matches.getActiveStudentsForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
@@ -47,17 +49,59 @@ export default function PreceptorDashboard() {
     return <div>Loading...</div>
   }
 
-  // Check if preceptor has completed intake
-  const hasCompletedIntake = !!preceptor
-  const intakeProgress = hasCompletedIntake ? 100 : 0
-
-  // Mock data for demonstration - in real app this would come from Convex
-  const mentorshipStats = {
-    studentsThisSemester: activeStudents?.length || 0,
-    totalStudentsMentored: 47,
-    averageRating: 4.8,
-    completionRate: 96
+  if (!dashboardStats) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
   }
+
+  const { preceptor, user: userData } = dashboardStats
+  const hasCompletedIntake = !!preceptor
+  const intakeProgress = dashboardStats.profileCompletionPercentage
+
+  // Quick actions configuration
+  const quickActions = [
+    {
+      id: 'matches',
+      title: 'Review Matches',
+      description: 'Review and respond to student match requests',
+      icon: Target,
+      href: '/dashboard/preceptor/matches',
+      badge: dashboardStats.pendingMatchesCount > 0 ? {
+        text: dashboardStats.pendingMatchesCount.toString(),
+        variant: 'default' as const
+      } : undefined
+    },
+    {
+      id: 'students', 
+      title: 'My Students',
+      description: 'Manage your current and past students',
+      icon: Users,
+      href: '/dashboard/preceptor/students',
+      variant: 'outline' as const
+    },
+    {
+      id: 'schedule',
+      title: 'Manage Schedule', 
+      description: 'Update your availability and schedule',
+      icon: Calendar,
+      href: '/dashboard/preceptor/schedule',
+      variant: 'outline' as const
+    },
+    {
+      id: 'profile',
+      title: 'Update Profile',
+      description: 'Edit your preceptor profile and preferences',
+      icon: User,
+      href: '/preceptor-intake',
+      variant: 'outline' as const
+    }
+  ]
 
   return (
     <div className="space-y-8">
@@ -143,13 +187,13 @@ export default function PreceptorDashboard() {
           <CardContent>
             <div className="space-y-3">
               <span className="text-2xl font-bold">
-                {pendingMatches?.length || 0}
+                {dashboardStats.pendingMatchesCount}
               </span>
               <div className="flex items-center text-xs text-muted-foreground">
                 <Clock className="h-3 w-3 mr-1" />
                 Awaiting your response
               </div>
-              {pendingMatches && pendingMatches.length > 0 && (
+              {dashboardStats.pendingMatchesCount > 0 && (
                 <Button variant="outline" size="sm" asChild className="w-full">
                   <Link href="/dashboard/preceptor/matches">
                     Review Matches
@@ -169,13 +213,13 @@ export default function PreceptorDashboard() {
           <CardContent>
             <div className="space-y-3">
               <span className="text-2xl font-bold">
-                {mentorshipStats.studentsThisSemester}
+                {dashboardStats.activeStudentsCount}
               </span>
               <div className="flex items-center text-xs text-muted-foreground">
                 <School className="h-3 w-3 mr-1" />
                 This semester
               </div>
-              {mentorshipStats.studentsThisSemester > 0 && (
+              {dashboardStats.activeStudentsCount > 0 && (
                 <Button variant="outline" size="sm" asChild className="w-full">
                   <Link href="/dashboard/preceptor/students">
                     Manage Students
@@ -196,14 +240,14 @@ export default function PreceptorDashboard() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold">
-                  {mentorshipStats.averageRating}
+                  {dashboardStats.averageRating}
                 </span>
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star 
                       key={star} 
                       className={`h-3 w-3 ${
-                        star <= Math.floor(mentorshipStats.averageRating) 
+                        star <= Math.floor(dashboardStats.averageRating) 
                           ? 'text-yellow-400 fill-current' 
                           : 'text-gray-300'
                       }`} 
@@ -212,7 +256,7 @@ export default function PreceptorDashboard() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                From {mentorshipStats.totalStudentsMentored} students
+                From {dashboardStats.totalStudentsMentored} students
               </p>
             </div>
           </CardContent>
@@ -234,49 +278,43 @@ export default function PreceptorDashboard() {
             <CardContent>
               {activeStudents && activeStudents.length > 0 ? (
                 <div className="space-y-4">
-                  {/* Mock current students - would be mapped from actual data */}
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h4 className="font-semibold">Emily Rodriguez</h4>
-                        <p className="text-sm text-muted-foreground">FNP Track • University of Texas</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Week 4 of 8
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            128/200 hours
-                          </span>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        Active
-                      </Badge>
-                    </div>
-                    <Separator />
+                  {activeStudents.map((match, index) => {
+                    const progressPercentage = match.rotationDetails.totalHours ? 
+                      Math.round((match.hoursCompleted / match.rotationDetails.totalHours) * 100) : 0;
+                    const currentWeek = Math.ceil(
+                      (Date.now() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
+                    );
+                    const totalWeeks = Math.ceil(
+                      (new Date(match.rotationDetails.endDate).getTime() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
+                    );
                     
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h4 className="font-semibold">Marcus Chen</h4>
-                        <p className="text-sm text-muted-foreground">AGACNP Track • Baylor University</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Week 2 of 10
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            64/250 hours
-                          </span>
+                    return (
+                      <div key={match._id}>
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold">{match.studentName}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {match.degreeTrack} Track • {match.schoolName}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                Week {Math.min(currentWeek, totalWeeks)} of {totalWeeks}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {match.hoursCompleted}/{match.rotationDetails.totalHours} hours
+                              </span>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {match.status === 'active' ? 'Active' : match.status}
+                          </Badge>
                         </div>
+                        {index < activeStudents.length - 1 && <Separator className="mt-4" />}
                       </div>
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        Active
-                      </Badge>
-                    </div>
-                  </div>
+                    );
+                  })}
                   
                   <div className="flex gap-2 pt-4">
                     <Button size="sm" variant="outline" asChild>
@@ -311,45 +349,21 @@ export default function PreceptorDashboard() {
           </Card>
 
           {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Your latest interactions and updates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Mock recent activity - would be dynamic */}
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">New student match request</p>
-                    <p className="text-xs text-muted-foreground">Sarah Kim from UT Health • Family Practice • MentorFit™ Score: 9.4/10</p>
-                    <p className="text-xs text-muted-foreground">1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Student evaluation completed</p>
-                    <p className="text-xs text-muted-foreground">Emily Rodriguez • Mid-rotation evaluation submitted</p>
-                    <p className="text-xs text-muted-foreground">Yesterday</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Schedule update reminder</p>
-                    <p className="text-xs text-muted-foreground">Update availability for March rotations</p>
-                    <p className="text-xs text-muted-foreground">3 days ago</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {recentActivity && (
+            <ActivityFeed 
+              activities={recentActivity}
+              title="Recent Activity"
+              description="Your latest interactions and updates"
+            />
+          )}
         </div>
 
         {/* Right Column - Quick Info */}
         <div className="space-y-6">
+          {/* Notifications */}
+          {notifications && notifications.length > 0 && (
+            <NotificationPanel notifications={notifications} />
+          )}
           {/* Profile Summary */}
           {hasCompletedIntake && preceptor && (
             <Card>
@@ -392,19 +406,19 @@ export default function PreceptorDashboard() {
                 <div className="flex items-center justify-between text-sm">
                   <span>Total Students Mentored</span>
                   <Badge variant="outline" className="text-xs font-mono">
-                    {mentorshipStats.totalStudentsMentored}
+                    {dashboardStats.totalStudentsMentored}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span>Completion Rate</span>
                   <Badge variant="outline" className="text-xs font-mono">
-                    {mentorshipStats.completionRate}%
+                    {dashboardStats.completionRate}%
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span>Average Rating</span>
                   <Badge variant="outline" className="text-xs font-mono">
-                    {mentorshipStats.averageRating}/5.0
+                    {dashboardStats.averageRating}/5.0
                   </Badge>
                 </div>
               </div>

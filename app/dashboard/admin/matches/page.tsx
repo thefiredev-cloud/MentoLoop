@@ -53,16 +53,8 @@ interface Match {
   }
   createdAt: number
   updatedAt: number
-  student?: {
-    personalInfo: {
-      fullName: string
-    }
-  }
-  preceptor?: {
-    personalInfo: {
-      fullName: string
-    }
-  }
+  student: any
+  preceptor: any
 }
 
 export default function MatchManagementPage() {

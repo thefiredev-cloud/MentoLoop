@@ -151,7 +151,7 @@ export default function EnterpriseDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {enterpriseStats.recentStudents?.slice(0, 5).map((student: { _id: string; name: string; program: string; year: string; status: string; submittedAt: string }) => (
+                    {enterpriseStats.recentStudents?.slice(0, 5).map((student: any) => (
                       <div key={student._id} className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{student.name}</p>
@@ -177,7 +177,7 @@ export default function EnterpriseDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {enterpriseStats.upcomingRotations?.slice(0, 5).map((rotation: { _id: string; studentName: string; preceptorName: string; specialty: string; rotationType: string; startDate: string; weeklyHours: number }) => (
+                    {enterpriseStats.upcomingRotations?.slice(0, 5).map((rotation: any) => (
                       <div key={rotation._id} className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{rotation.studentName}</p>

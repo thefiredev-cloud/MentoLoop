@@ -58,8 +58,21 @@ After submission, you'll receive a confirmation and unlock matching access.`
       color: 'bg-green-500',
       items: [
         {
-          title: 'How Our Algorithm Works (General Overview)',
-          content: 'Our matching algorithm uses a proprietary scoring system to evaluate compatibility. While details are confidential, it prioritizes strong educational and interpersonal fit-beyond just availability.'
+          title: 'How MentorFit™ Algorithm Works',
+          content: `MentorFit™ is our proprietary 10-factor compatibility scoring system that evaluates:
+
+Learning Style Match - How your preferred learning method aligns with their mentoring approach
+Feedback Alignment - Whether your feedback preferences match their communication style  
+Autonomy Match - If your comfort level aligns with their supervision approach
+Structure Preference - How your need for organization matches their teaching style
+Resource Needs - Whether they provide the learning materials you prefer
+Observation Style - If your shadowing preferences match their patient interaction style
+Correction Method - How your preferred correction style aligns with their feedback approach
+Retention Method - Whether your learning retention style matches their teaching questions
+Relationship Dynamic - If your preferred mentor relationship matches their ideal dynamic
+Professional Values - Overlap in core healthcare values and ethics
+
+Scores are weighted by importance and combined into a 0-10 MentorFit™ score. Gold tier (8.0+) indicates exceptional compatibility, Silver tier (5.0-7.9) shows strong compatibility, and Bronze tier (0-4.9) suggests basic compatibility with potential for growth.`
         },
         {
           title: 'What Makes a Good Match?',
@@ -76,6 +89,70 @@ After submission, you'll receive a confirmation and unlock matching access.`
         {
           title: 'Match Timeline & Expectations',
           content: 'Most students receive a match in 1-3 weeks. Some specialties or rural areas may take longer. We\'ll keep you updated throughout.'
+        }
+      ]
+    },
+    {
+      id: 'mentorfit-algorithm',
+      title: 'MentorFit™ Algorithm',
+      icon: Star,
+      color: 'bg-indigo-500',
+      items: [
+        {
+          title: 'Understanding Your MentorFit™ Score',
+          content: `Your MentorFit™ score is a comprehensive 0-10 rating that predicts how well you'll work with a specific preceptor. Higher scores indicate better compatibility and learning outcomes.
+
+🥇 Gold Tier (8.0-10.0): Exceptional compatibility - these matches typically result in outstanding learning experiences
+🥈 Silver Tier (5.0-7.9): Strong compatibility - these matches work very well with minor adjustments  
+🥉 Bronze Tier (0-4.9): Basic compatibility - these matches can work but may require more communication upfront`
+        },
+        {
+          title: 'The 10 Compatibility Factors',
+          content: `1. Learning Style Match (High Weight) - Visual, auditory, kinesthetic, or mixed learning preferences
+2. Feedback Alignment (High Weight) - Real-time, daily check-ins, or weekly summaries
+3. Autonomy Match (Medium Weight) - Comfort with independence vs. close supervision
+4. Structure Preference (Medium Weight) - Need for clear schedules vs. flexible approach
+5. Resource Needs (Low Weight) - Preference for additional learning materials and resources
+6. Observation Style (Medium Weight) - Shadowing first vs. jumping into patient care
+7. Correction Method (Medium Weight) - Direct feedback vs. supportive private discussions
+8. Retention Method (Low Weight) - How you best process and remember information
+9. Relationship Dynamic (High Weight) - Preferred mentor-student relationship style
+10. Professional Values (Medium Weight) - Alignment on healthcare values and ethics`
+        },
+        {
+          title: 'How Scoring Works',
+          content: `Each factor receives a 0-2 point score based on compatibility:
+• 2 points = Perfect match (identical preferences)
+• 1 point = Good match (complementary preferences)  
+• 0 points = Mismatch (conflicting preferences)
+
+Factors are weighted by importance - learning style and feedback alignment count more heavily than resource preferences. The final score is calculated and rounded to one decimal place.
+
+Our AI enhancement layer then analyzes contextual factors like schedule compatibility and clinical exposure opportunities to provide additional insights.`
+        },
+        {
+          title: 'Why MentorFit™ Matters',
+          content: `Research shows that learning style compatibility significantly impacts clinical education outcomes. Students with higher MentorFit™ scores report:
+
+• 87% higher satisfaction with their rotation experience
+• 34% better learning objective achievement  
+• 62% improved confidence in clinical skills
+• 78% likelihood to recommend their preceptor to other students
+• 45% faster integration into the clinical team
+
+MentorFit™ goes beyond just finding availability - it finds the right educational partnership for your success.`
+        },
+        {
+          title: 'Improving Your Matches',
+          content: `To get better MentorFit™ scores:
+
+✓ Complete your learning style assessment thoughtfully and honestly
+✓ Update your preferences as you gain more clinical experience
+✓ Provide detailed feedback after rotations to refine the algorithm
+✓ Consider being open to different mentoring styles - some of the best learning happens when you're slightly outside your comfort zone
+✓ Communicate with your preceptor about preferences early in the rotation
+
+Remember: A Bronze tier match can still be valuable if both parties communicate well and set clear expectations.`
         }
       ]
     },
@@ -156,6 +233,74 @@ After submission, you'll receive a confirmation and unlock matching access.`
         {
           title: 'Emergency Contact Procedures',
           content: 'You can add or update your emergency contact in your profile settings. We\'ll reach out to them in the event of a critical issue during your rotation.'
+        }
+      ]
+    },
+    {
+      id: 'troubleshooting',
+      title: 'Troubleshooting',
+      icon: Search,
+      color: 'bg-gray-500',
+      items: [
+        {
+          title: 'I Haven\'t Received Any Matches',
+          content: `If you haven't received matches within 2-3 weeks:
+
+• Check that your profile is complete and verified
+• Consider expanding your location radius or rotation types
+• Review your availability dates - very specific timeframes limit options
+• Contact support to review your profile for optimization opportunities
+• Some specialized rotations (rural family practice, pediatrics) take longer
+
+We're committed to finding you a match and will work with you to adjust preferences if needed.`
+        },
+        {
+          title: 'Login and Account Issues',
+          content: `Common login problems and solutions:
+
+Password Reset: Click "Forgot Password" and check your email (including spam folder)
+Email Not Recognized: Ensure you're using the same email address you registered with
+Two-Factor Authentication: If enabled, check your authenticator app or SMS
+Account Locked: Contact support if you've exceeded login attempts
+Browser Issues: Clear cache/cookies or try a different browser
+
+For persistent issues, email support@mentoloop.com with your registered email address.`
+        },
+        {
+          title: 'Payment and Billing Problems',
+          content: `Resolving payment issues:
+
+Card Declined: Check with your bank - some flag healthcare/education payments as unusual
+Payment Not Processing: Ensure billing address matches your bank records exactly
+HSA/FSA Cards: Some accounts require additional verification for education expenses
+Multiple Payments: Contact us immediately if you're charged more than once
+Refund Delays: Processing typically takes 3-5 business days
+
+All payments are secure and encrypted. We never store your full payment information.`
+        },
+        {
+          title: 'Communication and Messaging',
+          content: `Issues with messaging features:
+
+Messages Not Sending: Check your internet connection and try refreshing the page
+Missing Conversations: Ensure you haven't archived them - check the "Archived" tab
+File Upload Fails: Files must be under 10MB in PDF, DOC, or image format
+Notifications Not Working: Check your notification preferences in account settings
+Can't Contact Preceptor: Full contact information is released only after payment confirmation
+
+The messaging system is HIPAA-compliant and all conversations are encrypted.`
+        },
+        {
+          title: 'Technical Support',
+          content: `For technical issues:
+
+Browser Compatibility: We support Chrome, Firefox, Safari, and Edge (latest versions)
+Mobile Access: Use our mobile-optimized site or app for on-the-go access
+Slow Loading: Clear browser cache or try incognito/private browsing mode
+Error Messages: Take a screenshot and include it when contacting support
+Feature Requests: We welcome feedback on improving the platform
+
+Contact our technical team at tech@mentoloop.com for complex technical issues.`
         }
       ]
     }

@@ -144,7 +144,7 @@ export async function getLocationFromIP(ipAddress: string): Promise<LocationData
       city: data.city,
       state: data.region_code,
       zipCode: data.postal,
-      county: getCountyFromZip(data.postal),
+      county: getCountyFromZip(data.postal) || undefined,
       ipAddress,
       lat: data.latitude,
       lng: data.longitude,

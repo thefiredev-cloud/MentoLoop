@@ -160,7 +160,7 @@ export const logEmailSend = internalMutation({
   args: {
     templateKey: v.string(),
     recipientEmail: v.string(),
-    recipientType: v.string(),
+    recipientType: v.union(v.literal("student"), v.literal("preceptor"), v.literal("admin")),
     subject: v.string(),
     status: v.union(v.literal("sent"), v.literal("failed")),
     failureReason: v.optional(v.string()),
@@ -290,7 +290,7 @@ export const sendWelcomeEmail = internalAction({
     firstName: v.string(),
     userType: v.union(v.literal("student"), v.literal("preceptor")),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const templateKey = args.userType === "student" 
       ? "WELCOME_STUDENT" as const
       : "WELCOME_PRECEPTOR" as const;
@@ -320,7 +320,7 @@ export const sendMatchConfirmationEmails = internalAction({
     endDate: v.string(),
     paymentLink: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     // Send email to student
     const studentEmailResult = await ctx.runAction(internal.emails.sendEmail, {
       to: args.studentEmail,
@@ -362,7 +362,7 @@ export const sendPaymentConfirmationEmail = internalAction({
     firstName: v.string(),
     term: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     return await ctx.runAction(internal.emails.sendEmail, {
       to: args.email,
       templateKey: "PAYMENT_RECEIVED",
@@ -385,14 +385,14 @@ export const sendRotationCompleteEmails = internalAction({
     preceptorName: v.string(),
     matchId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mentoloop.com";
     
     const studentSurveyLink = `${baseUrl}/dashboard/survey?matchId=${args.matchId}&type=student&partner=${encodeURIComponent(args.preceptorName)}`;
     const preceptorSurveyLink = `${baseUrl}/dashboard/survey?matchId=${args.matchId}&type=preceptor&partner=${encodeURIComponent(args.studentName)}`;
 
     // Send email to student
-    const studentEmailResult = await ctx.runAction(internal.emails.sendEmail, {
+    const studentEmailResult: any = await ctx.runAction(internal.emails.sendEmail, {
       to: args.studentEmail,
       templateKey: "ROTATION_COMPLETE_STUDENT",
       variables: {
@@ -402,7 +402,7 @@ export const sendRotationCompleteEmails = internalAction({
     });
 
     // Send email to preceptor
-    const preceptorEmailResult = await ctx.runAction(internal.emails.sendEmail, {
+    const preceptorEmailResult: any = await ctx.runAction(internal.emails.sendEmail, {
       to: args.preceptorEmail,
       templateKey: "ROTATION_COMPLETE_PRECEPTOR",
       variables: {
@@ -438,12 +438,12 @@ export const sendBulkEmail = action({
     fromName: v.optional(v.string()),
     replyTo: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const results = [];
     
     for (const recipient of args.recipients) {
       try {
-        const result = await ctx.runAction(internal.emails.sendEmail, {
+        const result: any = await ctx.runAction(internal.emails.sendEmail, {
           to: recipient.email,
           templateKey: args.templateKey,
           variables: recipient.variables,
@@ -551,12 +551,10 @@ export const getEmailLogs = query({
       query = query.filter((q) => q.eq(q.field("status"), args.status));
     }
     
-    if (args.limit) {
-      query = query.take(args.limit);
-    } else {
-      query = query.take(50); // Default limit
-    }
+    const logs = args.limit 
+      ? await query.take(args.limit)
+      : await query.take(50);
     
-    return await query.collect();
+    return logs;
   },
 });

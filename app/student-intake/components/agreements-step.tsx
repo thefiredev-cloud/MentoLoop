@@ -44,7 +44,7 @@ export default function AgreementsStep({
 
   useEffect(() => {
     updateFormData('agreements', formData)
-  }, [formData])
+  }, [formData, updateFormData])
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))

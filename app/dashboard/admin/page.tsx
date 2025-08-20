@@ -20,8 +20,8 @@ import {
   Filter,
   MoreHorizontal
 } from 'lucide-react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+// import { useQuery } from 'convex/react'
+// import { api } from '@/convex/_generated/api'
 
 export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('')

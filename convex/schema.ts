@@ -488,16 +488,194 @@ export default defineSchema({
     .index("byTimestamp", ["timestamp"])
     .index("byEntity", ["entityType", "entityId"]),
 
-  // User sessions for tracking active admins
+
+  // Conversations between students and preceptors
+  conversations: defineTable({
+    matchId: v.id("matches"), // Associated match for context
+    studentId: v.id("students"),
+    preceptorId: v.id("preceptors"),
+    studentUserId: v.string(), // User ID for real-time queries
+    preceptorUserId: v.string(), // User ID for real-time queries
+    status: v.union(v.literal("active"), v.literal("archived"), v.literal("disabled")),
+    lastMessageAt: v.optional(v.number()),
+    lastMessagePreview: v.optional(v.string()),
+    studentUnreadCount: v.number(),
+    preceptorUnreadCount: v.number(),
+    metadata: v.optional(v.object({
+      rotationType: v.optional(v.string()),
+      rotationDates: v.optional(v.object({
+        startDate: v.string(),
+        endDate: v.string(),
+      })),
+    })),
+    // Typing indicator fields
+    typingUserId: v.optional(v.string()),
+    lastTypingUpdate: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byMatch", ["matchId"])
+    .index("byStudent", ["studentId"])
+    .index("byPreceptor", ["preceptorId"])
+    .index("byStudentUser", ["studentUserId"])
+    .index("byPreceptorUser", ["preceptorUserId"])
+    .index("byLastMessage", ["lastMessageAt"])
+    .index("byStatus", ["status"]),
+
+  // Individual messages within conversations
+  messages: defineTable({
+    conversationId: v.id("conversations"),
+    senderId: v.string(), // User ID of sender
+    senderType: v.union(v.literal("student"), v.literal("preceptor"), v.literal("system")),
+    messageType: v.union(v.literal("text"), v.literal("file"), v.literal("system_notification")),
+    content: v.string(),
+    metadata: v.optional(v.object({
+      // For file messages
+      fileName: v.optional(v.string()),
+      fileSize: v.optional(v.number()),
+      fileType: v.optional(v.string()),
+      fileUrl: v.optional(v.string()),
+      storageId: v.optional(v.string()),
+      // For system messages
+      systemEventType: v.optional(v.string()),
+      systemEventData: v.optional(v.record(v.string(), v.any())),
+      // For message reactions
+      reactions: v.optional(v.array(v.object({
+        userId: v.string(),
+        reaction: v.string(),
+        addedAt: v.number(),
+      }))),
+    })),
+    readBy: v.optional(v.array(v.object({
+      userId: v.string(),
+      readAt: v.number(),
+    }))),
+    editedAt: v.optional(v.number()),
+    deletedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  }).index("byConversation", ["conversationId"])
+    .index("bySender", ["senderId"])
+    .index("byCreatedAt", ["createdAt"])
+    .index("byConversationAndTime", ["conversationId", "createdAt"]),
+
+  // Clinical hours tracking for students
+  clinicalHours: defineTable({
+    studentId: v.id("students"),
+    matchId: v.optional(v.id("matches")), // Associated rotation/match
+    date: v.string(), // Date of clinical work (YYYY-MM-DD format)
+    hoursWorked: v.number(), // Hours worked (can be decimal like 7.5)
+    startTime: v.optional(v.string()), // Start time (HH:MM format)
+    endTime: v.optional(v.string()), // End time (HH:MM format)
+    rotationType: v.string(), // Type of rotation (family-practice, pediatrics, etc.)
+    site: v.string(), // Clinical site/practice name
+    preceptorName: v.optional(v.string()), // Preceptor supervising
+    activities: v.string(), // Description of clinical activities performed
+    learningObjectives: v.optional(v.string()), // Learning objectives met
+    patientPopulation: v.optional(v.string()), // Patient demographics/types
+    procedures: v.optional(v.array(v.string())), // Procedures performed
+    diagnoses: v.optional(v.array(v.string())), // Diagnoses encountered
+    competenciesAddressed: v.optional(v.array(v.string())), // Competencies addressed
+    reflectiveNotes: v.optional(v.string()), // Student reflection on experience
+    preceptorFeedback: v.optional(v.string()), // Preceptor feedback if provided
+    status: v.union(
+      v.literal("draft"), v.literal("submitted"), v.literal("approved"), 
+      v.literal("rejected"), v.literal("needs-revision")
+    ),
+    submittedAt: v.optional(v.number()),
+    approvedAt: v.optional(v.number()),
+    approvedBy: v.optional(v.id("users")), // Preceptor or admin who approved
+    rejectionReason: v.optional(v.string()),
+    // Metadata for analytics
+    weekOfYear: v.number(), // Week number of the year
+    monthOfYear: v.number(), // Month number (1-12)
+    academicYear: v.string(), // Academic year (e.g., "2024-2025")
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byStudent", ["studentId"])
+    .index("byMatch", ["matchId"])
+    .index("byDate", ["date"])
+    .index("byStatus", ["status"])
+    .index("byRotationType", ["rotationType"])
+    .index("byWeek", ["weekOfYear"])
+    .index("byMonth", ["monthOfYear"])
+    .index("byAcademicYear", ["academicYear"])
+    .index("byStudentAndDate", ["studentId", "date"])
+    .index("byStudentAndStatus", ["studentId", "status"])
+    .index("bySubmissionDate", ["submittedAt"]),
+
+  // Security alerts and monitoring
+  securityAlerts: defineTable({
+    severity: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("critical")),
+    title: v.string(),
+    description: v.string(),
+    userId: v.optional(v.id("users")),
+    metadata: v.optional(v.any()),
+    resolved: v.boolean(),
+    resolvedBy: v.optional(v.id("users")),
+    resolvedAt: v.optional(v.number()),
+    resolution: v.optional(v.string()),
+    timestamp: v.number(),
+  }).index("bySeverity", ["severity"])
+    .index("byResolved", ["resolved"])
+    .index("byTimestamp", ["timestamp"])
+    .index("byUser", ["userId"])
+    .index("byResolvedBy", ["resolvedBy"])
+    .index("bySeverityAndResolved", ["severity", "resolved"]),
+
+  // Session management for security tracking
   userSessions: defineTable({
     userId: v.id("users"),
     sessionId: v.string(),
     ipAddress: v.string(),
     userAgent: v.string(),
+    loginTime: v.number(),
     lastActivity: v.number(),
-    createdAt: v.number(),
-    expiresAt: v.number(),
-  }).index("byUserId", ["userId"])
+    logoutTime: v.optional(v.number()),
+    active: v.boolean(),
+    location: v.optional(v.object({
+      country: v.optional(v.string()),
+      region: v.optional(v.string()),
+      city: v.optional(v.string()),
+    })),
+  }).index("byUser", ["userId"])
     .index("bySessionId", ["sessionId"])
-    .index("byLastActivity", ["lastActivity"]),
+    .index("byActive", ["active"])
+    .index("byLoginTime", ["loginTime"])
+    .index("byLastActivity", ["lastActivity"])
+    .index("byUserAndActive", ["userId", "active"]),
+
+  // Failed login attempts for security monitoring
+  failedLogins: defineTable({
+    email: v.optional(v.string()),
+    ipAddress: v.string(),
+    userAgent: v.string(),
+    attemptTime: v.number(),
+    reason: v.string(),
+    blocked: v.optional(v.boolean()),
+    blockedUntil: v.optional(v.number()),
+  }).index("byEmail", ["email"])
+    .index("byIpAddress", ["ipAddress"])
+    .index("byAttemptTime", ["attemptTime"])
+    .index("byBlocked", ["blocked"])
+    .index("byEmailAndTime", ["email", "attemptTime"])
+    .index("byIpAndTime", ["ipAddress", "attemptTime"]),
+
+  // Data access logs for HIPAA compliance
+  dataAccessLogs: defineTable({
+    userId: v.id("users"),
+    accessedTable: v.string(),
+    accessedRecordId: v.string(),
+    accessType: v.union(v.literal("read"), v.literal("write"), v.literal("delete")),
+    timestamp: v.number(),
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    result: v.union(v.literal("success"), v.literal("failure")),
+    reason: v.optional(v.string()),
+  }).index("byUser", ["userId"])
+    .index("byTable", ["accessedTable"])
+    .index("byRecord", ["accessedRecordId"])
+    .index("byAccessType", ["accessType"])
+    .index("byTimestamp", ["timestamp"])
+    .index("byResult", ["result"])
+    .index("byUserAndTable", ["userId", "accessedTable"])
+    .index("byTableAndRecord", ["accessedTable", "accessedRecordId"]),
   });

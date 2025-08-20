@@ -1,6 +1,7 @@
 import { cronJobs } from "convex/server";
-import { internalAction } from "./_generated/server";
+import { internalAction, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { v } from "convex/values";
 
 const crons = cronJobs();
 
@@ -27,30 +28,53 @@ crons.daily(
 
 // Internal action to send rotation start reminders
 export const sendRotationStartReminders = internalAction({
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     const threeDaysFromNow = Date.now() + (3 * 24 * 60 * 60 * 1000);
     const fourDaysFromNow = Date.now() + (4 * 24 * 60 * 60 * 1000);
     
     // Get matches starting in 3 days
-    const upcomingMatches = await ctx.db
-      .query("matches")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("status"), "confirmed"),
-          q.gte(q.field("rotationDetails.startDate"), new Date(threeDaysFromNow).toISOString().split('T')[0]),
-          q.lt(q.field("rotationDetails.startDate"), new Date(fourDaysFromNow).toISOString().split('T')[0])
-        )
-      )
-      .collect();
+    const upcomingMatches: any = await ctx.runQuery(internal.matchHelpers.getUpcomingMatches, {
+      daysAhead: 3
+    });
 
     const results = [];
     
     for (const match of upcomingMatches) {
       try {
-        const student = await ctx.db.get(match.studentId);
-        const preceptor = await ctx.db.get(match.preceptorId);
+        const student = await ctx.runQuery(internal.students.getStudentById, {
+          studentId: match.studentId,
+        });
+        const preceptor = await ctx.runQuery(internal.preceptors.getPreceptorById, {
+          preceptorId: match.preceptorId,
+        });
         
         if (!student || !preceptor) continue;
+
+        // Send email reminders for rotation start
+        await ctx.runAction(internal.emails.sendEmail, {
+          to: student.personalInfo.email,
+          templateKey: "MATCH_CONFIRMED_STUDENT",
+          variables: {
+            firstName: student.personalInfo.fullName.split(' ')[0],
+            preceptorName: preceptor.personalInfo.fullName,
+            specialty: match.rotationDetails.specialty || "Clinical Rotation",
+            location: preceptor.clinicalInfo.practiceLocation || "TBD",
+            startDate: match.rotationDetails.startDate,
+            endDate: match.rotationDetails.endDate,
+            paymentLink: "#",
+          },
+        });
+
+        await ctx.runAction(internal.emails.sendEmail, {
+          to: preceptor.personalInfo.email,
+          templateKey: "MATCH_CONFIRMED_PRECEPTOR",
+          variables: {
+            firstName: preceptor.personalInfo.fullName.split(' ')[0],
+            studentName: student.personalInfo.fullName,
+            startDate: match.rotationDetails.startDate,
+            location: preceptor.clinicalInfo.practiceLocation || "TBD",
+          },
+        });
 
         // Send SMS reminders if phone numbers available
         if (student.personalInfo.phone) {
@@ -61,9 +85,9 @@ export const sendRotationStartReminders = internalAction({
           });
         }
 
-        if (preceptor.personalInfo.phone) {
+        if (preceptor.personalInfo.mobilePhone) {
           await ctx.runAction(internal.sms.sendRotationStartReminderSMS, {
-            phone: preceptor.personalInfo.phone,
+            phone: preceptor.personalInfo.mobilePhone,
             partnerName: student.personalInfo.fullName,
             startDate: match.rotationDetails.startDate,
           });
@@ -82,39 +106,29 @@ export const sendRotationStartReminders = internalAction({
 
 // Internal action to send payment reminders
 export const sendPaymentReminders = internalAction({
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     const twoDaysAgo = Date.now() - (2 * 24 * 60 * 60 * 1000);
     
     // Get confirmed matches that might need payment reminders
-    const pendingPaymentMatches = await ctx.db
-      .query("matches")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("status"), "confirmed"),
-          q.gte(q.field("matchedAt"), twoDaysAgo)
-        )
-      )
-      .collect();
+    const pendingPaymentMatches: any = await ctx.runQuery(internal.matchHelpers.getPendingPaymentMatches);
 
     const results = [];
     
     for (const match of pendingPaymentMatches) {
       try {
         // Check if payment has been received
-        const paymentAttempt = await ctx.db
-          .query("paymentAttempts")
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("matchId"), match._id),
-              q.eq(q.field("status"), "succeeded")
-            )
-          )
-          .first();
+        const paymentAttempt = await ctx.runQuery(internal.paymentAttempts.getByStripeSessionId, {
+          matchId: match._id,
+        });
 
         if (paymentAttempt) continue; // Payment already received
 
-        const student = await ctx.db.get(match.studentId);
-        const preceptor = await ctx.db.get(match.preceptorId);
+        const student = await ctx.runQuery(internal.students.getStudentById, {
+          studentId: match.studentId,
+        });
+        const preceptor = await ctx.runQuery(internal.preceptors.getPreceptorById, {
+          preceptorId: match.preceptorId,
+        });
         
         if (!student || !preceptor) continue;
 
@@ -140,43 +154,52 @@ export const sendPaymentReminders = internalAction({
 
 // Internal action to send survey requests for completed rotations
 export const sendSurveyRequests = internalAction({
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
     const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
     
     // Get matches that completed in the last 3-7 days
-    const recentlyCompletedMatches = await ctx.db
-      .query("matches")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("status"), "completed"),
-          q.gte(q.field("completedAt"), sevenDaysAgo),
-          q.lt(q.field("completedAt"), threeDaysAgo)
-        )
-      )
-      .collect();
+    const recentlyCompletedMatches: any = await ctx.runQuery(internal.matchHelpers.getRecentlyCompletedMatches, {
+      daysBack: 7,
+    });
 
     const results = [];
     
     for (const match of recentlyCompletedMatches) {
       try {
-        const student = await ctx.db.get(match.studentId);
-        const preceptor = await ctx.db.get(match.preceptorId);
+        const student = await ctx.runQuery(internal.students.getStudentById, {
+          studentId: match.studentId,
+        });
+        const preceptor = await ctx.runQuery(internal.preceptors.getPreceptorById, {
+          preceptorId: match.preceptorId,
+        });
         
         if (!student || !preceptor) continue;
 
         // Check if surveys have already been submitted
-        const existingSurveys = await ctx.db
-          .query("surveys")
-          .withIndex("byMatchId", (q) => q.eq("matchId", match._id))
-          .collect();
+        const existingSurveys = await ctx.runQuery(internal.surveys.getSurveysForMatch, {
+          matchId: match._id,
+        });
 
-        const hasStudentSurvey = existingSurveys.some(s => s.respondentType === "student");
-        const hasPreceptorSurvey = existingSurveys.some(s => s.respondentType === "preceptor");
+        const hasStudentSurvey = existingSurveys.some((s: any) => s.respondentType === "student");
+        const hasPreceptorSurvey = existingSurveys.some((s: any) => s.respondentType === "preceptor");
 
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mentoloop.com";
 
-        // Send survey request to student if not completed
+        // Send survey request emails and SMS if not completed
+        if (!hasStudentSurvey || !hasPreceptorSurvey) {
+          await ctx.runAction(internal.emails.sendRotationCompleteEmails, {
+            studentEmail: student.personalInfo.email,
+            studentFirstName: student.personalInfo.fullName.split(' ')[0],
+            preceptorEmail: preceptor.personalInfo.email,
+            preceptorFirstName: preceptor.personalInfo.fullName.split(' ')[0],
+            studentName: student.personalInfo.fullName,
+            preceptorName: preceptor.personalInfo.fullName,
+            matchId: match._id,
+          });
+        }
+
+        // Send SMS survey request to student if not completed
         if (!hasStudentSurvey && student.personalInfo.phone) {
           const surveyLink = `${baseUrl}/dashboard/survey?matchId=${match._id}&type=student&partner=${encodeURIComponent(preceptor.personalInfo.fullName)}`;
           
@@ -187,12 +210,12 @@ export const sendSurveyRequests = internalAction({
           });
         }
 
-        // Send survey request to preceptor if not completed
-        if (!hasPreceptorSurvey && preceptor.personalInfo.phone) {
+        // Send SMS survey request to preceptor if not completed
+        if (!hasPreceptorSurvey && preceptor.personalInfo.mobilePhone) {
           const surveyLink = `${baseUrl}/dashboard/survey?matchId=${match._id}&type=preceptor&partner=${encodeURIComponent(student.personalInfo.fullName)}`;
           
           await ctx.runAction(internal.sms.sendSurveyRequestSMS, {
-            phone: preceptor.personalInfo.phone,
+            phone: preceptor.personalInfo.mobilePhone,
             firstName: preceptor.personalInfo.fullName.split(' ')[0],
             surveyLink,
           });
@@ -206,6 +229,101 @@ export const sendSurveyRequests = internalAction({
     }
 
     return { totalProcessed: recentlyCompletedMatches.length, results };
+  },
+});
+
+// Helper queries for scheduled tasks
+
+export const getUpcomingMatches = query({
+  args: {
+    threeDaysFromNow: v.number(),
+    fourDaysFromNow: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("matches")
+      .filter((q: any) =>
+        q.and(
+          q.eq(q.field("status"), "confirmed"),
+          q.gte(q.field("rotationDetails.startDate"), new Date(args.threeDaysFromNow).toISOString().split('T')[0]),
+          q.lt(q.field("rotationDetails.startDate"), new Date(args.fourDaysFromNow).toISOString().split('T')[0])
+        )
+      )
+      .collect();
+  },
+});
+
+export const getPendingPaymentMatches = query({
+  args: {
+    twoDaysAgo: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("matches")
+      .filter((q: any) =>
+        q.and(
+          q.eq(q.field("status"), "confirmed"),
+          q.gte(q.field("matchedAt"), args.twoDaysAgo)
+        )
+      )
+      .collect();
+  },
+});
+
+export const getPaymentAttempt = query({
+  args: {
+    matchId: v.id("matches"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("paymentAttempts")
+      .filter((q: any) =>
+        q.and(
+          q.eq(q.field("matchId"), args.matchId),
+          q.eq(q.field("status"), "succeeded")
+        )
+      )
+      .first();
+  },
+});
+
+export const getRecentlyCompletedMatches = query({
+  args: {
+    threeDaysAgo: v.number(),
+    sevenDaysAgo: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("matches")
+      .filter((q: any) =>
+        q.and(
+          q.eq(q.field("status"), "completed"),
+          q.gte(q.field("rotationDetails.endDate"), new Date(args.sevenDaysAgo).toISOString().split('T')[0]),
+          q.lte(q.field("rotationDetails.endDate"), new Date(args.threeDaysAgo).toISOString().split('T')[0])
+        )
+      )
+      .collect();
+  },
+});
+
+export const getSurveysByMatch = query({
+  args: {
+    matchId: v.id("matches"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("surveys")
+      .filter((q: any) => q.eq(q.field("matchId"), args.matchId))
+      .collect();
+  },
+});
+
+export const getUserById = query({
+  args: {
+    userId: v.union(v.id("students"), v.id("preceptors")),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId);
   },
 });
 

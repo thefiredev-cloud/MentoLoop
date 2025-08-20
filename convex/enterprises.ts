@@ -33,13 +33,11 @@ export const getAllEnterprises = query({
       query = query.filter((q) => q.eq(q.field("status"), args.status));
     }
 
-    if (args.limit) {
-      query = query.take(args.limit);
-    } else {
-      query = query.take(50);
-    }
+    const enterprises = args.limit 
+      ? await query.take(args.limit)
+      : await query.take(50);
 
-    return await query.collect();
+    return enterprises;
   },
 });
 
@@ -314,11 +312,9 @@ export const getEnterpriseStudents = query({
 
     // Get students associated with this enterprise
     let query = ctx.db.query("students");
-    if (args.limit) {
-      query = query.take(args.limit);
-    }
-
-    const allStudents = await query.collect();
+    const allStudents = args.limit 
+      ? await query.take(args.limit)
+      : await query.collect();
     
     // Filter students that belong to this enterprise
     const enterpriseStudents = allStudents.filter(student => 
@@ -358,11 +354,9 @@ export const getEnterprisePreceptors = query({
 
     // Get preceptors associated with this enterprise
     let query = ctx.db.query("preceptors");
-    if (args.limit) {
-      query = query.take(args.limit);
-    }
-
-    const allPreceptors = await query.collect();
+    const allPreceptors = args.limit 
+      ? await query.take(args.limit)
+      : await query.collect();
     
     // Filter preceptors that belong to this enterprise
     const enterprisePreceptors = allPreceptors.filter(preceptor => 
@@ -437,7 +431,7 @@ export const getEnterpriseAnalytics = query({
     // Get matches for enterprise students
     const allMatches = await ctx.db.query("matches").collect();
     const enterpriseMatches = allMatches.filter(match => 
-      studentProfiles.some(student => student._id === match.studentId)
+      studentProfiles.some(student => student && student._id === match.studentId)
     );
 
     // Calculate match statistics
@@ -451,8 +445,8 @@ export const getEnterpriseAnalytics = query({
         .filter(m => m.status === "confirmed" || m.status === "active")
         .slice(0, 10)
         .map(async (match) => {
-          const student = studentProfiles.find(s => s._id === match.studentId);
-          const preceptor = preceptorProfiles.find(p => p._id === match.preceptorId) ||
+          const student = studentProfiles.find(s => s && s._id === match.studentId);
+          const preceptor = preceptorProfiles.find(p => p && p._id === match.preceptorId) ||
             await ctx.db.get(match.preceptorId);
           const preceptorUser = preceptor ? await ctx.db.get(preceptor.userId) : null;
 
@@ -478,9 +472,9 @@ export const getEnterpriseAnalytics = query({
 
     return {
       totalStudents: studentProfiles.length,
-      activeStudents: studentProfiles.filter(s => s.status === "submitted").length,
+      activeStudents: studentProfiles.filter(s => s && s.status === "submitted").length,
       totalPreceptors: preceptorProfiles.length,
-      verifiedPreceptors: preceptorProfiles.filter(p => p.verificationStatus === "verified").length,
+      verifiedPreceptors: preceptorProfiles.filter(p => p && p.verificationStatus === "verified").length,
       totalMatches: enterpriseMatches.length,
       activeMatches,
       completedMatches,
@@ -489,7 +483,11 @@ export const getEnterpriseAnalytics = query({
       avgRotationHours,
       onTimeCompletion: completedMatches > 0 ? completedMatches / (completedMatches + enterpriseMatches.filter(m => m.status === "cancelled").length) : 0,
       recentStudents: studentProfiles
-        .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt))
+        .sort((a, b) => {
+          const aTime = (a && a.updatedAt) || (a && a.createdAt) || 0;
+          const bTime = (b && b.updatedAt) || (b && b.createdAt) || 0;
+          return bTime - aTime;
+        })
         .slice(0, 10),
       upcomingRotations,
     };

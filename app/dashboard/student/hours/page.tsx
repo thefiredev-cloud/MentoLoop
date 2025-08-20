@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,59 +28,57 @@ import { format } from 'date-fns'
 export default function StudentHoursPage() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [showLogForm, setShowLogForm] = useState(false)
+  const [hoursWorked, setHoursWorked] = useState('')
+  const [selectedRotation, setSelectedRotation] = useState('')
+  const [activities, setActivities] = useState('')
   
   const user = useQuery(api.users.current)
+  const student = useQuery(api.students.getCurrentStudent)
+  const hoursSummary = useQuery(api.clinicalHours.getStudentHoursSummary)
+  const recentHours = useQuery(api.clinicalHours.getStudentHours, { limit: 10 })
+  const weeklyBreakdown = useQuery(api.clinicalHours.getWeeklyHoursBreakdown, { weeksBack: 8 })
+  const activeRotations = useQuery(api.matches.getStudentRotations, 
+    student ? { studentId: student._id } : "skip"
+  )
+  
+  const createHoursEntry = useMutation(api.clinicalHours.createHoursEntry)
 
   if (!user) {
     return <div>Loading...</div>
   }
 
-  // Mock hours data - replace with actual data
-  const mockHoursData = {
-    weeklyEntries: [
-      {
-        id: '1',
-        date: '2025-01-13',
-        rotation: 'Family Practice - Dr. Johnson',
-        hours: 8,
-        activities: 'Patient consultations, wound care, medication reviews',
-        status: 'approved',
-        submittedAt: '2025-01-13T17:00:00Z'
-      },
-      {
-        id: '2',
-        date: '2025-01-14',
-        rotation: 'Family Practice - Dr. Johnson',
-        hours: 8,
-        activities: 'Physical exams, health screenings, patient education',
-        status: 'approved',
-        submittedAt: '2025-01-14T17:00:00Z'
-      },
-      {
-        id: '3',
-        date: '2025-01-15',
-        rotation: 'Family Practice - Dr. Johnson',
-        hours: 8,
-        activities: 'Chronic disease management, documentation',
-        status: 'pending',
-        submittedAt: '2025-01-15T17:00:00Z'
-      },
-      {
-        id: '4',
-        date: '2025-01-16',
-        rotation: 'Family Practice - Dr. Johnson',
-        hours: 8,
-        activities: 'Emergency evaluations, diagnostic procedures',
-        status: 'pending',
-        submittedAt: '2025-01-16T17:00:00Z'
-      }
-    ],
-    summary: {
-      thisWeek: 32,
-      totalCompleted: 128,
-      totalRequired: 200,
-      averageWeekly: 28,
-      onTrack: true
+  // Handle form submission
+  const handleSaveEntry = async () => {
+    if (!date || !hoursWorked || !selectedRotation || !activities) {
+      alert('Please fill in all required fields')
+      return
+    }
+
+    try {
+      const selectedRotationData = activeRotations?.find(r => r._id === selectedRotation)
+      
+      await createHoursEntry({
+        date: date.toISOString().split('T')[0],
+        hoursWorked: parseFloat(hoursWorked),
+        rotationType: selectedRotationData?.rotationType || 'clinical',
+        site: selectedRotationData?.location || 'Clinical Site',
+        preceptorName: selectedRotationData?.preceptor,
+        activities,
+        status: 'submitted',
+        matchId: selectedRotationData?._id,
+      })
+      
+      // Reset form
+      setDate(new Date())
+      setHoursWorked('')
+      setSelectedRotation('')
+      setActivities('')
+      setShowLogForm(false)
+      
+      alert('Hours logged successfully!')
+    } catch (error) {
+      console.error('Failed to log hours:', error)
+      alert('Failed to log hours. Please try again.')
     }
   }
 
@@ -87,10 +86,14 @@ export default function StudentHoursPage() {
     switch (status) {
       case 'approved':
         return <Badge className="bg-green-500">Approved</Badge>
-      case 'pending':
+      case 'submitted':
         return <Badge variant="secondary">Pending</Badge>
+      case 'draft':
+        return <Badge variant="outline">Draft</Badge>
       case 'rejected':
         return <Badge variant="destructive">Rejected</Badge>
+      case 'needs-revision':
+        return <Badge className="bg-yellow-500">Needs Revision</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -104,7 +107,7 @@ export default function StudentHoursPage() {
     })
   }
 
-  const progressPercentage = (mockHoursData.summary.totalCompleted / mockHoursData.summary.totalRequired) * 100
+  const progressPercentage = hoursSummary?.progressPercentage || 0
 
   return (
     <div className="space-y-6">
@@ -135,7 +138,7 @@ export default function StudentHoursPage() {
             <CardTitle className="text-sm font-medium">This Week</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockHoursData.summary.thisWeek}h</div>
+            <div className="text-2xl font-bold">{hoursSummary?.thisWeekHours || 0}h</div>
             <p className="text-xs text-muted-foreground">
               Target: 32h
             </p>
@@ -148,7 +151,7 @@ export default function StudentHoursPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockHoursData.summary.totalCompleted}h
+              {hoursSummary?.totalHours || 0}h
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div 
@@ -157,7 +160,7 @@ export default function StudentHoursPage() {
               ></div>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {mockHoursData.summary.totalRequired - mockHoursData.summary.totalCompleted}h remaining
+              {(hoursSummary?.totalRequiredHours || 640) - (hoursSummary?.totalHours || 0)}h remaining
             </p>
           </CardContent>
         </Card>
@@ -167,7 +170,7 @@ export default function StudentHoursPage() {
             <CardTitle className="text-sm font-medium">Weekly Average</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockHoursData.summary.averageWeekly}h</div>
+            <div className="text-2xl font-bold">{hoursSummary?.averageWeeklyHours || 0}h</div>
             <p className="text-xs text-muted-foreground">
               Per week
             </p>
@@ -180,7 +183,7 @@ export default function StudentHoursPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              {mockHoursData.summary.onTrack ? (
+              {hoursSummary?.isOnTrack ? (
                 <>
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   <span className="text-sm font-medium text-green-700">On Track</span>
@@ -240,20 +243,29 @@ export default function StudentHoursPage() {
                   min="0"
                   max="12"
                   step="0.5"
+                  value={hoursWorked}
+                  onChange={(e) => setHoursWorked(e.target.value)}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="rotation">Rotation/Site</Label>
-              <Select>
+              <Select value={selectedRotation} onValueChange={setSelectedRotation}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select rotation" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="family-practice">Family Practice - Dr. Johnson</SelectItem>
-                  <SelectItem value="pediatrics">Pediatrics - Dr. Thompson</SelectItem>
-                  <SelectItem value="mental-health">Mental Health - Dr. Park</SelectItem>
+                  {activeRotations?.filter(r => r.status === 'active' || r.status === 'confirmed').map((rotation) => (
+                    <SelectItem key={rotation._id} value={rotation._id}>
+                      {rotation.title} - {rotation.preceptor}
+                    </SelectItem>
+                  ))}
+                  {(!activeRotations || activeRotations.length === 0) && (
+                    <SelectItem value="general" disabled>
+                      No active rotations found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -264,6 +276,8 @@ export default function StudentHoursPage() {
                 id="activities"
                 placeholder="Describe your clinical activities, procedures performed, and learning objectives met..."
                 rows={3}
+                value={activities}
+                onChange={(e) => setActivities(e.target.value)}
               />
             </div>
 
@@ -271,7 +285,7 @@ export default function StudentHoursPage() {
               <Button variant="outline" onClick={() => setShowLogForm(false)}>
                 Cancel
               </Button>
-              <Button>
+              <Button onClick={handleSaveEntry}>
                 Save Entry
               </Button>
             </div>
@@ -295,19 +309,24 @@ export default function StudentHoursPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockHoursData.weeklyEntries.map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between p-4 border rounded-lg">
+                {recentHours && recentHours.length > 0 ? recentHours.map((entry) => (
+                  <div key={entry._id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
                         <span className="font-medium">{formatDate(entry.date)}</span>
                         <span className="text-sm text-muted-foreground">
-                          {entry.hours}h • {entry.rotation}
+                          {entry.hoursWorked}h • {entry.site}
                         </span>
                         {getStatusBadge(entry.status)}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {entry.activities}
                       </p>
+                      {entry.preceptorName && (
+                        <p className="text-xs text-muted-foreground">
+                          Preceptor: {entry.preceptorName}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -315,7 +334,19 @@ export default function StudentHoursPage() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No hours logged yet</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setShowLogForm(true)}
+                    >
+                      Log Your First Entry
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -329,28 +360,35 @@ export default function StudentHoursPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between p-3 border rounded">
-                    <div>
-                      <div className="font-medium">Week of Jan 13, 2025</div>
-                      <div className="text-sm text-muted-foreground">Family Practice</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">32h</div>
-                      <div className="text-sm text-green-600">Complete</div>
-                    </div>
+                {weeklyBreakdown && weeklyBreakdown.length > 0 ? (
+                  <div className="grid gap-4">
+                    {weeklyBreakdown.map((week, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded">
+                        <div>
+                          <div className="font-medium">{week.weekLabel}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {week.entriesCount} {week.entriesCount === 1 ? 'entry' : 'entries'}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold">{week.totalHours}h</div>
+                          <div className={`text-sm ${
+                            week.totalHours >= 32 ? 'text-green-600' : 
+                            week.totalHours >= 20 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {week.totalHours >= 32 ? 'Complete' : 
+                             week.totalHours >= 20 ? 'Partial' : 'Low'}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center justify-between p-3 border rounded">
-                    <div>
-                      <div className="font-medium">Week of Jan 6, 2025</div>
-                      <div className="text-sm text-muted-foreground">Family Practice</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">28h</div>
-                      <div className="text-sm text-yellow-600">Partial</div>
-                    </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No weekly data available yet</p>
                   </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -367,38 +405,54 @@ export default function StudentHoursPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div>
-                  <h4 className="font-medium mb-3">Progress by Rotation Type</h4>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Family Practice</span>
-                        <span>128/160 hours</span>
-                      </div>
-                      <Progress value={80} />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Pediatrics</span>
-                        <span>0/40 hours</span>
-                      </div>
-                      <Progress value={0} />
+                {hoursSummary?.hoursByRotation && Object.keys(hoursSummary.hoursByRotation).length > 0 ? (
+                  <div>
+                    <h4 className="font-medium mb-3">Progress by Rotation Type</h4>
+                    <div className="space-y-2">
+                      {Object.entries(hoursSummary.hoursByRotation).map(([rotationType, hours]) => {
+                        const targetHours = 160; // Standard rotation hours
+                        const percentage = Math.min((hours / targetHours) * 100, 100);
+                        return (
+                          <div key={rotationType}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="capitalize">{rotationType.replace('-', ' ')}</span>
+                              <span>{hours}/{targetHours} hours</span>
+                            </div>
+                            <Progress value={percentage} />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>No rotation data available yet</p>
+                  </div>
+                )}
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <h4 className="font-medium mb-2">Average Daily Hours</h4>
-                    <div className="text-2xl font-bold">7.2h</div>
-                    <p className="text-sm text-muted-foreground">Based on active days</p>
+                    <h4 className="font-medium mb-2">Average Weekly Hours</h4>
+                    <div className="text-2xl font-bold">{hoursSummary?.averageWeeklyHours || 0}h</div>
+                    <p className="text-sm text-muted-foreground">Based on recent weeks</p>
                   </div>
                   <div>
-                    <h4 className="font-medium mb-2">Completion Timeline</h4>
-                    <div className="text-2xl font-bold">3 weeks</div>
-                    <p className="text-sm text-muted-foreground">At current pace</p>
+                    <h4 className="font-medium mb-2">Total Entries</h4>
+                    <div className="text-2xl font-bold">{hoursSummary?.entriesCount || 0}</div>
+                    <p className="text-sm text-muted-foreground">Hours logged to date</p>
                   </div>
                 </div>
+                
+                {hoursSummary?.pendingApprovals > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <span className="font-medium text-yellow-800">
+                        {hoursSummary.pendingApprovals} entries awaiting approval
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -409,8 +409,8 @@ export const forceCreateMatch = mutation({
       details: {
         reason: args.reason,
         metadata: {
-          studentName: student.name,
-          preceptorName: preceptor.name,
+          studentName: (student as any).personalInfo?.fullName || "Unknown Student",
+          preceptorName: (preceptor as any).personalInfo?.fullName || "Unknown Preceptor",
           rotationType: args.rotationDetails.rotationType,
         },
       },

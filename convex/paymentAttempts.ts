@@ -1,4 +1,4 @@
-import { internalMutation, QueryCtx } from "./_generated/server";
+import { internalMutation, query, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { paymentAttemptDataValidator } from "./paymentAttemptTypes";
 
@@ -21,12 +21,21 @@ export const savePaymentAttempt = internalMutation({
     // Check if payment attempt already exists to avoid duplicates
     const existingPaymentAttempt = await ctx.db
       .query("paymentAttempts")
-      .withIndex("byPaymentId", (q) => q.eq("payment_id", paymentAttemptData.payment_id))
+      .withIndex("byStripeSessionId", (q) => q.eq("stripeSessionId", paymentAttemptData.payment_id))
       .unique();
     
+    // Map webhook data to our schema fields
     const paymentAttemptRecord = {
-      ...paymentAttemptData,
-      userId: user?._id, // Link to our users table if user exists
+      matchId: "temp_placeholder" as any, // TODO: Get matchId from somewhere in the webhook data
+      stripeSessionId: paymentAttemptData.payment_id,
+      amount: paymentAttemptData.subscription_items[0]?.amount?.amount || 0,
+      currency: paymentAttemptData.subscription_items[0]?.amount?.currency,
+      status: paymentAttemptData.status === "succeeded" ? "succeeded" as const : 
+              paymentAttemptData.status === "failed" ? "failed" as const : "pending" as const,
+      failureReason: paymentAttemptData.failed_reason?.code,
+      paidAt: paymentAttemptData.paid_at,
+      createdAt: paymentAttemptData.created_at,
+      updatedAt: paymentAttemptData.updated_at,
     };
     
     if (existingPaymentAttempt) {
@@ -39,4 +48,14 @@ export const savePaymentAttempt = internalMutation({
     
     return null;
   },
-}); 
+});
+
+export const getByStripeSessionId = query({
+  args: { stripeSessionId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("paymentAttempts")
+      .withIndex("byStripeSessionId", (q) => q.eq("stripeSessionId", args.stripeSessionId))
+      .unique();
+  },
+});

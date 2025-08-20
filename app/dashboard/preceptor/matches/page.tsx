@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -10,31 +11,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { 
   User, 
-  School, 
   Calendar, 
   Clock, 
-  MapPin, 
   Phone, 
   Mail, 
   CheckCircle2, 
-  XCircle,
   AlertCircle,
-  FileText,
   MessageSquare,
-  Star,
   Target,
-  BookOpen,
   GraduationCap,
   Stethoscope,
-  Heart,
   Eye,
   ThumbsUp,
   ThumbsDown
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
+
 export default function PreceptorMatches() {
+  const router = useRouter()
   const user = useQuery(api.users.current)
   const pendingMatches = useQuery(api.matches.getPendingMatchesForPreceptor,
     user ? { preceptorId: user._id } : "skip"
@@ -42,19 +39,20 @@ export default function PreceptorMatches() {
   const acceptedMatches = useQuery(api.matches.getAcceptedMatchesForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
-  const reviewingMatches = useQuery(api.matches.getReviewingMatchesForPreceptor,
+  const confirmedMatches = useQuery(api.matches.getAcceptedMatchesForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
   
   const acceptMatch = useMutation(api.matches.acceptMatch)
   const declineMatch = useMutation(api.matches.declineMatch)
+  const getOrCreateConversation = useMutation(api.messages.getOrCreateConversation)
 
   const [processingMatchId, setProcessingMatchId] = useState<string | null>(null)
 
   const handleAcceptMatch = async (matchId: string) => {
     try {
       setProcessingMatchId(matchId)
-      await acceptMatch({ matchId })
+      await acceptMatch({ matchId: matchId as Id<"matches"> })
       toast.success("Match accepted successfully!")
     } catch (error) {
       toast.error("Failed to accept match")
@@ -67,7 +65,7 @@ export default function PreceptorMatches() {
   const handleDeclineMatch = async (matchId: string) => {
     try {
       setProcessingMatchId(matchId)
-      await declineMatch({ matchId })
+      await declineMatch({ matchId: matchId as Id<"matches"> })
       toast.success("Match declined")
     } catch (error) {
       toast.error("Failed to decline match")
@@ -77,81 +75,30 @@ export default function PreceptorMatches() {
     }
   }
 
+  const handleStartConversation = async (matchId: string) => {
+    try {
+      toast.info('Creating secure conversation...')
+      await getOrCreateConversation({ 
+        matchId: matchId as Id<'matches'>
+      })
+      toast.success('Conversation ready!')
+      router.push('/dashboard/messages')
+    } catch (error) {
+      console.error('Failed to create conversation:', error)
+      toast.error('Failed to start conversation')
+    }
+  }
+
   if (!user) {
     return <div>Loading...</div>
   }
 
-  // Mock student data - in real app would come from match queries with populated student data
-  const mockStudentMatches = [
-    {
-      _id: "match_1",
-      student: {
-        fullName: "Sarah Kim",
-        email: "sarah.kim@uthscsa.edu",
-        phone: "+1 (555) 123-4567",
-        school: "UT Health San Antonio",
-        programName: "Family Nurse Practitioner",
-        degreeTrack: "FNP",
-        yearInProgram: "2nd Year",
-        expectedGraduation: "May 2025",
-        gpa: 3.85,
-        clinicalHours: 200,
-        requiredHours: 600
-      },
-      mentorFitScore: 9.4,
-      rotationType: "Family Practice",
-      startDate: "2025-02-15",
-      endDate: "2025-04-11",
-      hoursPerWeek: 32,
-      schedule: "Monday-Thursday, 8 AM - 5 PM",
-      status: "pending",
-      requestDate: "2025-01-15",
-      studentNote: "I'm particularly interested in family practice with a focus on pediatrics and women's health. I've completed my basic clinical rotations and am ready to work with a dedicated preceptor who can help me develop advanced assessment skills.",
-      learningGoals: [
-        "Advanced physical assessment techniques",
-        "Chronic disease management", 
-        "Pediatric care protocols",
-        "Women's health procedures"
-      ]
-    },
-    {
-      _id: "match_2", 
-      student: {
-        fullName: "Marcus Chen",
-        email: "marcus.chen@baylor.edu",
-        phone: "+1 (555) 987-6543",
-        school: "Baylor University",
-        programName: "Adult-Gerontology Acute Care Nurse Practitioner",
-        degreeTrack: "AGACNP", 
-        yearInProgram: "3rd Year",
-        expectedGraduation: "December 2025",
-        gpa: 3.92,
-        clinicalHours: 450,
-        requiredHours: 750
-      },
-      mentorFitScore: 8.7,
-      rotationType: "Acute Care",
-      startDate: "2025-03-01", 
-      endDate: "2025-05-10",
-      hoursPerWeek: 40,
-      schedule: "Monday-Friday, varies",
-      status: "reviewing",
-      requestDate: "2025-01-10",
-      studentNote: "Seeking an acute care rotation with emphasis on critical care procedures and complex case management. I have strong clinical foundations and am eager to learn advanced diagnostic and therapeutic interventions.",
-      learningGoals: [
-        "Critical care procedures",
-        "Ventilator management",
-        "Complex case analysis", 
-        "Emergency protocols"
-      ]
-    }
-  ]
 
   const pendingCount = pendingMatches?.length || 0
-  const reviewingCount = reviewingMatches?.length || 0
+  const reviewingCount = confirmedMatches?.length || 0
   const acceptedCount = acceptedMatches?.length || 0
 
-  const renderStudentCard = (match: NonNullable<typeof pendingMatches>[0], showActions: boolean = true) => (
+  const renderStudentCard = (match: Record<string, unknown>, showActions: boolean = true) => (
     <Card key={match._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -161,17 +108,22 @@ export default function PreceptorMatches() {
                 <GraduationCap className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <CardTitle className="text-xl">{match.student.fullName}</CardTitle>
-                <CardDescription>{match.student.degreeTrack} • {match.student.school}</CardDescription>
+                <CardTitle className="text-xl">{match.studentName}</CardTitle>
+                <CardDescription>{match.degreeTrack} • {match.schoolName}</CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Badge variant="outline" className={`${
+                match.tier === 'Gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                match.tier === 'Silver' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                match.tier === 'Bronze' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                'bg-green-50 text-green-700 border-green-200'
+              }`}>
                 <Target className="h-3 w-3 mr-1" />
-                MentorFit™ {match.mentorFitScore}/10
+                {match.tier || 'High'} Match • {match.mentorFitScore}/10
               </Badge>
               <Badge variant="outline">
-                {match.rotationType}
+                {match.rotationDetails?.rotationType || 'Clinical Rotation'}
               </Badge>
             </div>
           </div>
@@ -182,10 +134,10 @@ export default function PreceptorMatches() {
               Pending Response
             </Badge>
           )}
-          {match.status === 'reviewing' && (
+          {match.status === 'confirmed' && (
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
               <Eye className="h-3 w-3 mr-1" />
-              Under Review
+              Confirmed
             </Badge>
           )}
         </div>
@@ -199,23 +151,23 @@ export default function PreceptorMatches() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span>{match.student.yearInProgram} • GPA: {match.student.gpa}</span>
+                <span>{match.schoolName} Program</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Graduates {match.student.expectedGraduation}</span>
+                <span>Graduates {match.student?.schoolInfo?.expectedGraduation || 'TBD'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>{match.student.clinicalHours}/{match.student.requiredHours} clinical hours</span>
+                <span>Weekly Hours: {match.rotationDetails?.weeklyHours || 'TBD'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{match.student.email}</span>
+                <span>{match.student?.personalInfo?.email || 'Email not provided'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{match.student.phone}</span>
+                <span>{match.student?.personalInfo?.phone || 'Phone not provided'}</span>
               </div>
             </div>
           </div>
@@ -225,15 +177,15 @@ export default function PreceptorMatches() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>{match.startDate} - {match.endDate}</span>
+                <span>{match.rotationDetails?.startDate || 'TBD'} - {match.rotationDetails?.endDate || 'TBD'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>{match.hoursPerWeek} hours/week</span>
+                <span>{match.rotationDetails?.weeklyHours || 0} hours/week</span>
               </div>
               <div className="flex items-center gap-2">
                 <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                <span>{match.schedule}</span>
+                <span>{match.rotationDetails?.location || 'Location TBD'}</span>
               </div>
             </div>
           </div>
@@ -241,24 +193,36 @@ export default function PreceptorMatches() {
 
         <Separator />
 
+        {/* Compatibility Analysis */}
+        {match.matchReason && (
+          <div className="space-y-3">
+            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Why This Match Works</h4>
+            <p className="text-sm leading-relaxed bg-blue-50 p-4 rounded-lg border border-blue-200">
+              {match.matchReason}
+            </p>
+          </div>
+        )}
+
         {/* Student Message */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Message from Student</h4>
+          <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Student&apos;s Message</h4>
           <p className="text-sm leading-relaxed bg-gray-50 p-4 rounded-lg">
-            {match.studentNote}
+            {match.adminNotes || "The student has not provided a personal message with this match request."}
           </p>
         </div>
 
-        {/* Learning Goals */}
+        {/* Learning Objectives */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Learning Goals</h4>
+          <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Rotation Interests</h4>
           <div className="grid grid-cols-2 gap-2">
-            {match.learningGoals.map((goal: string, index: number) => (
+            {match.student?.rotationNeeds?.rotationTypes?.map((rotation: string, index: number) => (
               <div key={index} className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="h-3 w-3 text-green-600" />
-                <span>{goal}</span>
+                <span className="capitalize">{rotation.replace('-', ' ')}</span>
               </div>
-            ))}
+            )) || (
+              <div className="text-sm text-muted-foreground">No specific rotation interests specified</div>
+            )}
           </div>
         </div>
 
@@ -287,6 +251,14 @@ export default function PreceptorMatches() {
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
               </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => handleStartConversation(match._id)}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Message Student
+              </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href={`/dashboard/preceptor/matches/${match._id}`}>
                   <Eye className="h-4 w-4 mr-2" />
@@ -297,7 +269,7 @@ export default function PreceptorMatches() {
           </>
         )}
 
-        {match.status === 'reviewing' && (
+        {match.status === 'suggested' && (
           <>
             <Separator />
             <div className="flex justify-center">
@@ -355,10 +327,7 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {mockStudentMatches
-                .filter(match => match.status === 'pending')
-                .map(match => renderStudentCard(match, true))
-              }
+              {pendingMatches?.map((match) => renderStudentCard(match, true))}
             </div>
           )}
         </TabsContent>
@@ -376,10 +345,7 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {mockStudentMatches
-                .filter(match => match.status === 'reviewing')
-                .map(match => renderStudentCard(match, false))
-              }
+              {confirmedMatches?.map((match) => renderStudentCard(match, false))}
             </div>
           )}
         </TabsContent>
@@ -397,10 +363,98 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {mockStudentMatches
-                .filter(match => match.status === 'accepted')
-                .map(match => renderStudentCard(match, false))
-              }
+              {acceptedMatches?.map((match) => (
+                <Card key={match._id} className="overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <GraduationCap className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl">{match.studentName}</CardTitle>
+                            <CardDescription>{match.degreeTrack} • {match.schoolName}</CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Accepted Match
+                          </Badge>
+                          <Badge variant="outline">
+                            {match.rotationDetails?.rotationType || 'Clinical Rotation'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-6">
+                    {/* Student Information */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Student Information</h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>{match.schoolName} Program</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>Graduates {match.student?.schoolInfo?.expectedGraduation || 'TBD'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span>{match.student?.personalInfo?.email || 'Email not provided'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span>{match.student?.personalInfo?.phone || 'Phone not provided'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Rotation Details</h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>{match.rotationDetails?.startDate || 'TBD'} - {match.rotationDetails?.endDate || 'TBD'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>{match.rotationDetails?.weeklyHours || 0} hours/week</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                            <span>{match.rotationDetails?.location || 'Location TBD'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                      <Button 
+                        onClick={() => handleStartConversation(match._id)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Message Student
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link href={`/dashboard/preceptor/matches/${match._id}`}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </TabsContent>
