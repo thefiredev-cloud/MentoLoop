@@ -264,7 +264,7 @@ Two-Factor Authentication: If enabled, check your authenticator app or SMS
 Account Locked: Contact support if you've exceeded login attempts
 Browser Issues: Clear cache/cookies or try a different browser
 
-For persistent issues, email support@mentoloop.com with your registered email address.`
+For persistent issues, email support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'} with your registered email address.`
         },
         {
           title: 'Payment and Billing Problems',
@@ -380,7 +380,7 @@ Contact our technical team at tech@mentoloop.com for complex technical issues.`
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="mailto:support@mentoloop.com"
+                href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`}
                 className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <FileText className="h-4 w-4" />

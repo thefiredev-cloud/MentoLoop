@@ -286,10 +286,10 @@ export default function TermsOfUse() {
                   <strong>Questions or Concerns?</strong>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Contact our legal team: <a href="mailto:legal@mentoloop.com" className="text-primary hover:underline">legal@mentoloop.com</a>
+                  Contact our legal team: <a href={`mailto:legal@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`} className="text-primary hover:underline">legal@{process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}</a>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  General support: <a href="mailto:support@mentoloop.com" className="text-primary hover:underline">support@mentoloop.com</a>
+                  General support: <a href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`} className="text-primary hover:underline">support@{process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}</a>
                 </p>
                 <p className="text-sm text-muted-foreground mt-4">
                   <strong>Last Updated:</strong> August 20, 2025

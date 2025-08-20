@@ -62,7 +62,7 @@ To confirm your spot, please submit payment using the secure link below within 3
 
 Once payment is received, you'll unlock full access to your preceptor's contact info, prep checklist, and paperwork portal.
 
-Questions? Email us anytime at support@mentoloop.com.
+Questions? Email us anytime at support@${process.env.EMAIL_DOMAIN || 'mentoloop.com'}.
 
 - The MentoLoop Team
 Match. Mentor. Master.
@@ -219,11 +219,11 @@ export const sendEmail = action({
         },
       ],
       from: {
-        email: process.env.SENDGRID_FROM_EMAIL || "noreply@mentoloop.com",
+        email: process.env.SENDGRID_FROM_EMAIL || `noreply@${process.env.EMAIL_DOMAIN || 'mentoloop.com'}`,
         name: args.fromName || "MentoLoop",
       },
       reply_to: {
-        email: args.replyTo || "support@mentoloop.com",
+        email: args.replyTo || `support@${process.env.EMAIL_DOMAIN || 'mentoloop.com'}`,
         name: "MentoLoop Support",
       },
       content: [

@@ -67,7 +67,7 @@ Your feedback powers better MentorFit™ matches. Thanks!`
   },
   
   WELCOME_CONFIRMATION: {
-    content: `Welcome to MentoLoop! 🩺 Your profile is being reviewed for matches. You'll hear from us soon. Questions? Reply HELP or email support@mentoloop.com`
+    content: `Welcome to MentoLoop! 🩺 Your profile is being reviewed for matches. You'll hear from us soon. Questions? Reply HELP or email support@${process.env.EMAIL_DOMAIN || 'mentoloop.com'}`
   }
 };
 

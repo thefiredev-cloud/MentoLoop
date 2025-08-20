@@ -15,9 +15,10 @@
   # Build timeout (10 minutes)
   BUILD_TIMEOUT = "600"
   # Exclude build artifacts from secrets scanning
-  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,node_modules/**"
+  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,node_modules/**,build/**,dist/**"
   # Ignore email addresses that are legitimate contact emails (not secrets)
-  SECRETS_SCAN_OMIT_KEYS = "*@mentoloop.com"
+  # These are public contact emails, not credentials
+  SECRETS_SCAN_OMIT_KEYS = "support@mentoloop.com,privacy@mentoloop.com,legal@mentoloop.com,help@mentoloop.com,noreply@mentoloop.com"
   # Keep secrets scanning enabled but with exclusions
   SECRETS_SCAN_ENABLED = "true"
   

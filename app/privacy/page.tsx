@@ -274,7 +274,7 @@ export default function PrivacyPolicy() {
               <div>
                 <h4 className="font-semibold mb-2">How to Exercise Your Rights:</h4>
                 <p className="text-muted-foreground">
-                  To exercise these rights, contact us at <a href="mailto:privacy@mentoloop.com" className="text-primary hover:underline">privacy@mentoloop.com</a> 
+                  To exercise these rights, contact us at <a href={`mailto:privacy@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`} className="text-primary hover:underline">privacy@{process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}</a> 
                   or through your account settings. We will respond within 30 days and may require identity verification.
                 </p>
               </div>
@@ -360,7 +360,7 @@ export default function PrivacyPolicy() {
               </p>
               <p className="text-muted-foreground">
                 If you believe we have collected information from a child, please contact us immediately at 
-                <a href="mailto:privacy@mentoloop.com" className="text-primary hover:underline">privacy@mentoloop.com</a>.
+                <a href={`mailto:privacy@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`} className="text-primary hover:underline">privacy@{process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}</a>.
               </p>
             </CardContent>
           </Card>
@@ -410,10 +410,10 @@ export default function PrivacyPolicy() {
                   <strong>Questions About This Privacy Policy?</strong>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Privacy Officer: <a href="mailto:privacy@mentoloop.com" className="text-primary hover:underline">privacy@mentoloop.com</a>
+                  Privacy Officer: <a href={`mailto:privacy@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`} className="text-primary hover:underline">privacy@{process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}</a>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  General Support: <a href="mailto:support@mentoloop.com" className="text-primary hover:underline">support@mentoloop.com</a>
+                  General Support: <a href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`} className="text-primary hover:underline">support@{process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}</a>
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Mailing Address: MentoLoop LLC, 1234 Healthcare Blvd, Suite 100, Austin, TX 78701
