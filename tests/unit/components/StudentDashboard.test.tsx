@@ -183,7 +183,7 @@ const mockNotifications = [
 ]
 
 describe('StudentDashboardPage Component', () => {
-  const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>
+  const mockUseQuery = vi.mocked(useQuery)
   
   beforeEach(() => {
     vi.clearAllMocks()

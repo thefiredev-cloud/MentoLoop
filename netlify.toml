@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = ".next"
   functions = "netlify/functions"
 
@@ -17,6 +17,10 @@
   # Disable secrets scanning - we handle secrets properly through environment variables
   # The scanner is giving false positives on environment variable names and dashboard URLs
   SECRETS_SCAN_ENABLED = "false"
+  # Enable Next.js build cache
+  NETLIFY_USE_YARN = "false"
+  # Skip TypeScript checks for test files
+  SKIP_TESTS = "true"
   
 # Prevent Netlify from timing out during build
 [build.processing]

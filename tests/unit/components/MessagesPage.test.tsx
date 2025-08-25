@@ -140,8 +140,8 @@ describe('MessagesPage Component', () => {
   const mockSendMessage = vi.fn()
   const mockMarkAsRead = vi.fn()
   const mockUpdateStatus = vi.fn()
-  const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>
-  const mockUseMutation = useMutation as jest.MockedFunction<typeof useMutation>
+  const mockUseQuery = vi.mocked(useQuery)
+  const mockUseMutation = vi.mocked(useMutation)
 
   beforeEach(() => {
     vi.clearAllMocks()
