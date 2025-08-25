@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+import { STATE_OPTIONS } from '@/lib/states-config'
 
 interface SchoolInfoStepProps {
   data: Record<string, unknown>
@@ -51,27 +50,23 @@ export default function SchoolInfoStep({
     ...(data.schoolInfo || {})
   })
 
-  // Get schools from database
-  const schoolOptions = useQuery(api.schools.getSchoolOptions)
-  const [selectedSchool, setSelectedSchool] = useState<{ name: string; id: string; location: { city: string; state: string } } | null>(null)
-
   const [errors, setErrors] = useState<Record<string, string>>({})
-
-  useEffect(() => {
-    updateFormData('schoolInfo', {
-      ...formData,
-      schoolLocation: {
-        city: formData.schoolCity,
-        state: formData.schoolState,
-      }
-    })
-  }, [formData])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+    
+    // Update parent form data immediately
+    const updatedData = { ...formData, [field]: value }
+    updateFormData('schoolInfo', {
+      ...updatedData,
+      schoolLocation: {
+        city: field === 'schoolCity' ? value : formData.schoolCity,
+        state: field === 'schoolState' ? value : formData.schoolState,
+      }
+    })
   }
 
   const validateForm = () => {
@@ -120,35 +115,13 @@ export default function SchoolInfoStep({
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="programName">NP Program Name *</Label>
-          <Select 
-            value={formData.programName} 
-            onValueChange={(value) => {
-              handleInputChange('programName', value)
-              // Auto-populate school location when a school is selected
-              const school = schoolOptions?.find((s: { label: string; location: { city: string; state: string } }) => s.label === value)
-              if (school) {
-                setSelectedSchool({
-                  name: school.name,
-                  id: school.value,
-                  location: school.location
-                })
-                handleInputChange('schoolCity', school.location.city)
-                handleInputChange('schoolState', school.location.state)
-              }
-            }}
-          >
-            <SelectTrigger className={errors.programName ? 'border-destructive' : ''}>
-              <SelectValue placeholder={schoolOptions ? "Select your NP program" : "Loading schools..."} />
-            </SelectTrigger>
-            <SelectContent>
-              {schoolOptions?.map((school: { value: string; label: string; location: { city: string; state: string } }) => (
-                <SelectItem key={school.value} value={school.label}>
-                  {school.label}
-                </SelectItem>
-              ))}
-              <SelectItem value="Other">Other (Please specify in Clinical Coordinator Name field)</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input
+            id="programName"
+            value={formData.programName}
+            onChange={(e) => handleInputChange('programName', e.target.value)}
+            placeholder="Enter your NP program name"
+            className={errors.programName ? 'border-destructive' : ''}
+          />
           {errors.programName && (
             <p className="text-sm text-destructive">{errors.programName}</p>
           )}
@@ -212,13 +185,18 @@ export default function SchoolInfoStep({
 
         <div className="space-y-2">
           <Label htmlFor="schoolState">School Location - State *</Label>
-          <Input
-            id="schoolState"
-            value={formData.schoolState}
-            onChange={(e) => handleInputChange('schoolState', e.target.value)}
-            placeholder="State"
-            className={errors.schoolState ? 'border-destructive' : ''}
-          />
+          <Select value={formData.schoolState} onValueChange={(value) => handleInputChange('schoolState', value)}>
+            <SelectTrigger id="schoolState" className={errors.schoolState ? 'border-destructive' : ''}>
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATE_OPTIONS.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.schoolState && (
             <p className="text-sm text-destructive">{errors.schoolState}</p>
           )}

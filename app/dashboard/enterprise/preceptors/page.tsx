@@ -50,8 +50,7 @@ import {
   Building,
   Filter,
   Star,
-  UserCheck,
-  AlertCircle
+  UserCheck
 } from 'lucide-react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -80,13 +79,13 @@ export default function EnterprisePreceptorsPage() {
   const filteredPreceptors = useMemo(() => {
     if (!preceptors) return []
     
-    return preceptors.filter((preceptor: any) => {
+    return preceptors.filter((preceptor) => {
       const matchesSearch = !searchQuery || 
-        preceptor.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        preceptor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        preceptor.specialty?.toLowerCase().includes(searchQuery.toLowerCase())
+        preceptor.personalInfo?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        preceptor.personalInfo?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (preceptor as {practiceInformation?: {primarySpecialty?: string}} & typeof preceptor).practiceInformation?.primarySpecialty?.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesStatus = statusFilter === 'all' || preceptor.status === statusFilter
+      const matchesStatus = statusFilter === 'all' || preceptor.verificationStatus === statusFilter
       
       return matchesSearch && matchesStatus
     })
@@ -97,32 +96,32 @@ export default function EnterprisePreceptorsPage() {
     if (!preceptors) return { total: 0, active: 0, pending: 0, verified: 0 }
     
     const total = preceptors.length
-    const active = preceptors.filter((p: any) => p.availability?.currentlyAccepting === true).length
-    const pending = preceptors.filter((p: any) => p.verificationStatus === 'pending').length
-    const verified = preceptors.filter((p: any) => p.verificationStatus === 'verified').length
+    const active = preceptors.filter((p: {availability?: {currentlyAccepting?: boolean}}) => p.availability?.currentlyAccepting === true).length
+    const pending = preceptors.filter((p: {verificationStatus?: string}) => p.verificationStatus === 'pending').length
+    const verified = preceptors.filter((p: {verificationStatus?: string}) => p.verificationStatus === 'verified').length
     
     return { total, active, pending, verified }
   }, [preceptors])
 
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      active: { variant: 'default', label: 'Active', icon: CheckCircle },
-      pending: { variant: 'secondary', label: 'Pending', icon: Clock },
-      inactive: { variant: 'destructive', label: 'Inactive', icon: XCircle },
-      suspended: { variant: 'destructive', label: 'Suspended', icon: AlertCircle },
-    }
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
-    const Icon = config.icon
-    
-    return (
-      <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
-    )
-  }
+  // const getStatusBadge = (status: string) => {
+  //   const statusConfig = {
+  //     active: { variant: 'default', label: 'Active', icon: CheckCircle },
+  //     pending: { variant: 'secondary', label: 'Pending', icon: Clock },
+  //     inactive: { variant: 'destructive', label: 'Inactive', icon: XCircle },
+  //     suspended: { variant: 'destructive', label: 'Suspended', icon: AlertCircle },
+  //   }
+  //   
+  //   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
+  //   const Icon = config.icon
+  //   
+  //   return (
+  //     <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
+  //       <Icon className="h-3 w-3" />
+  //       {config.label}
+  //     </Badge>
+  //   )
+  // }
 
   const getVerificationBadge = (status: string) => {
     const verificationConfig = {

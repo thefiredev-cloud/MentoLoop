@@ -17,8 +17,6 @@ import {
   MapPin,
   Building,
   Users,
-  Calendar,
-  Clock,
   ExternalLink,
   Send,
   Filter,
@@ -29,16 +27,40 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+type PreceptorType = {
+  _id: Id<"preceptors">
+  personalInfo?: {
+    fullName?: string
+    specialty?: string
+    licenseType?: string
+    statesLicensed?: string[]
+  }
+  practiceInfo?: {
+    practiceName?: string
+    practiceSettings?: string[]
+    city?: string
+    state?: string
+    website?: string
+  }
+  availability?: {
+    currentlyAccepting?: boolean
+    availableRotations?: string[]
+    maxStudentsPerRotation?: string
+    rotationDurationPreferred?: string
+    daysAvailable?: string[]
+  }
+}
+
 export default function PreceptorSearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSpecialty, setSelectedSpecialty] = useState('')
   const [selectedRotationType, setSelectedRotationType] = useState('')
-  const [selectedState, setSelectedState] = useState('TX') // Default to Texas
+  const [selectedState] = useState('TX') // Default to Texas
   const [selectedCity, setSelectedCity] = useState('')
   const [selectedPracticeSettings, setSelectedPracticeSettings] = useState<string[]>([])
   const [currentlyAcceptingOnly, setCurrentlyAcceptingOnly] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
-  const [selectedPreceptor, setSelectedPreceptor] = useState<any>(null)
+  const [selectedPreceptor, setSelectedPreceptor] = useState<PreceptorType | null>(null)
   const [requestMessage, setRequestMessage] = useState('')
   const [preferredStartDate, setPreferredStartDate] = useState('')
 
@@ -57,7 +79,7 @@ export default function PreceptorSearchPage() {
 
   const preceptorDetails = useQuery(
     api.preceptors.getPublicPreceptorDetails, 
-    selectedPreceptor ? { preceptorId: selectedPreceptor._id } : "skip"
+    selectedPreceptor ? { preceptorId: (selectedPreceptor as {_id: Id<"preceptors">})._id } : "skip"
   )
 
   const requestMatch = useMutation(api.preceptors.requestPreceptorMatch)
@@ -117,7 +139,7 @@ export default function PreceptorSearchPage() {
 
     try {
       await requestMatch({
-        preceptorId: selectedPreceptor._id,
+        preceptorId: (selectedPreceptor as {_id: Id<"preceptors">})._id,
         message: requestMessage.trim() || undefined,
         preferredStartDate: preferredStartDate || undefined,
         rotationType: selectedRotationType,
@@ -285,9 +307,9 @@ export default function PreceptorSearchPage() {
                 <Card 
                   key={preceptor._id} 
                   className={`cursor-pointer transition-colors hover:border-primary ${
-                    selectedPreceptor?._id === preceptor._id ? 'border-primary bg-primary/5' : ''
+                    (selectedPreceptor as {_id?: string} | null)?._id === preceptor._id ? 'border-primary bg-primary/5' : ''
                   }`}
-                  onClick={() => setSelectedPreceptor(preceptor)}
+                  onClick={() => setSelectedPreceptor(preceptor as unknown as PreceptorType)}
                 >
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between">
@@ -370,8 +392,8 @@ export default function PreceptorSearchPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      {preceptorDetails?.personalInfo.fullName || selectedPreceptor.personalInfo.fullName}
-                      {selectedPreceptor.availability.currentlyAccepting ? (
+                      {preceptorDetails?.personalInfo.fullName || selectedPreceptor?.personalInfo?.fullName}
+                      {selectedPreceptor?.availability?.currentlyAccepting ? (
                         <Badge className="bg-green-500">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Accepting Students
@@ -386,17 +408,17 @@ export default function PreceptorSearchPage() {
                   </div>
                   <CardDescription className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {selectedPreceptor.practiceInfo.city}, {selectedPreceptor.practiceInfo.state}
+                    {selectedPreceptor?.practiceInfo?.city}, {selectedPreceptor?.practiceInfo?.state}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium mb-2">Practice Information</h4>
                     <div className="space-y-1 text-sm">
-                      <p><span className="font-medium">Practice:</span> {selectedPreceptor.practiceInfo.practiceName}</p>
-                      <p><span className="font-medium">Specialty:</span> {getSpecialtyLabel(selectedPreceptor.personalInfo.specialty)}</p>
-                      <p><span className="font-medium">License:</span> {selectedPreceptor.personalInfo.licenseType}</p>
-                      <p><span className="font-medium">Settings:</span> {selectedPreceptor.practiceInfo.practiceSettings.map(getPracticeSettingLabel).join(', ')}</p>
+                      <p><span className="font-medium">Practice:</span> {selectedPreceptor?.practiceInfo?.practiceName}</p>
+                      <p><span className="font-medium">Specialty:</span> {getSpecialtyLabel(selectedPreceptor?.personalInfo?.specialty || '')}</p>
+                      <p><span className="font-medium">License:</span> {selectedPreceptor?.personalInfo?.licenseType}</p>
+                      <p><span className="font-medium">Settings:</span> {selectedPreceptor?.practiceInfo?.practiceSettings?.map(getPracticeSettingLabel).join(', ')}</p>
                       {preceptorDetails?.practiceInfo.website && (
                         <p>
                           <span className="font-medium">Website:</span>{' '}
@@ -416,7 +438,7 @@ export default function PreceptorSearchPage() {
                   <div>
                     <h4 className="font-medium mb-2">Available Rotations</h4>
                     <div className="flex flex-wrap gap-1">
-                      {selectedPreceptor.availability.availableRotations.map((rotation: string) => (
+                      {selectedPreceptor?.availability?.availableRotations?.map((rotation: string) => (
                         <Badge key={rotation} variant="outline">
                           {getRotationTypeLabel(rotation)}
                         </Badge>
@@ -429,17 +451,17 @@ export default function PreceptorSearchPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Max Students</p>
-                        <p className="font-medium">{selectedPreceptor.availability.maxStudentsPerRotation}</p>
+                        <p className="font-medium">{selectedPreceptor?.availability?.maxStudentsPerRotation}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Duration Preference</p>
-                        <p className="font-medium">{selectedPreceptor.availability.rotationDurationPreferred}</p>
+                        <p className="font-medium">{selectedPreceptor?.availability?.rotationDurationPreferred}</p>
                       </div>
                     </div>
                     <div className="mt-2">
                       <p className="text-muted-foreground text-sm">Available Days</p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedPreceptor.availability.daysAvailable.map((day: string) => (
+                        {selectedPreceptor?.availability?.daysAvailable?.map((day: string) => (
                           <Badge key={day} variant="outline" className="text-xs capitalize">
                             {day.slice(0, 3)}
                           </Badge>
@@ -448,7 +470,7 @@ export default function PreceptorSearchPage() {
                     </div>
                   </div>
 
-                  {selectedPreceptor.availability.currentlyAccepting && (
+                  {selectedPreceptor?.availability?.currentlyAccepting && (
                     <div className="border-t pt-4">
                       <h4 className="font-medium mb-3">Request a Match</h4>
                       <div className="space-y-3">
@@ -459,7 +481,7 @@ export default function PreceptorSearchPage() {
                               <SelectValue placeholder="Select rotation type" />
                             </SelectTrigger>
                             <SelectContent>
-                              {selectedPreceptor.availability.availableRotations.map((rotation: string) => (
+                              {selectedPreceptor?.availability?.availableRotations?.map((rotation: string) => (
                                 <SelectItem key={rotation} value={rotation}>
                                   {getRotationTypeLabel(rotation)}
                                 </SelectItem>

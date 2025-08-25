@@ -20,92 +20,65 @@ import {
   Filter,
   MoreHorizontal
 } from 'lucide-react'
-// import { useQuery } from 'convex/react'
-// import { api } from '@/convex/_generated/api'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTab, setSelectedTab] = useState('overview')
 
-  // Get admin analytics data (temporarily unused)
-  // const matchAnalytics = useQuery(api.matches.getMatchAnalytics, {})
-  // const paymentAnalytics = useQuery(api.payments.getPaymentAnalytics, {})
-  // const emailAnalytics = useQuery(api.emails.getEmailAnalytics, {})
-  // const smsAnalytics = useQuery(api.sms.getSMSAnalytics, {})
+  // Get real admin analytics data
+  const allUsers = useQuery(api.users.getAllUsers)
+  const allMatches = useQuery(api.matches.getAllMatches, {})
+  const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
+  const emailLogs = useQuery(api.emails.getAllEmailLogs)
+  const smsLogs = useQuery(api.sms.getAllSMSLogs)
 
-  // Mock data for demonstration
-  const mockOverviewStats = {
-    totalUsers: 1247,
-    activeMatches: 89,
-    pendingMatches: 34,
-    totalRevenue: 45670,
-    aiSuccessRate: 94.5,
-    avgResponseTime: '2.3h'
+  // Calculate overview stats from real data
+  const overviewStats = {
+    totalUsers: allUsers?.length || 0,
+    activeMatches: allMatches?.filter(m => m.status === 'active' || m.status === 'confirmed').length || 0,
+    pendingMatches: allMatches?.filter(m => m.status === 'pending').length || 0,
+    totalRevenue: paymentAttempts?.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + p.amount, 0) || 0,
+    aiSuccessRate: allMatches?.filter(m => m.aiAnalysis).length ? 
+      ((allMatches.filter(m => m.aiAnalysis?.confidence === 'high').length / allMatches.filter(m => m.aiAnalysis).length) * 100).toFixed(1) : 0,
+    avgResponseTime: '2.3h' // This would need to be calculated from actual response times
   }
 
-  const mockRecentMatches = [
-    {
-      id: '1',
-      studentName: 'Sarah Johnson',
-      preceptorName: 'Dr. Amanda Wilson',
-      specialty: 'FNP',
-      status: 'confirmed',
-      aiScore: 8.7,
-      baseScore: 7.2,
-      createdAt: '2025-08-18T10:30:00Z',
-      paymentStatus: 'paid'
-    },
-    {
-      id: '2',
-      studentName: 'Michael Chen',
-      preceptorName: 'Dr. James Thompson',
-      specialty: 'PMHNP',
-      status: 'pending',
-      aiScore: 7.9,
-      baseScore: 6.8,
-      createdAt: '2025-08-18T09:15:00Z',
-      paymentStatus: 'unpaid'
-    },
-    {
-      id: '3',
-      studentName: 'Emily Rodriguez',
-      preceptorName: 'Dr. Lisa Park',
-      specialty: 'PNP',
-      status: 'suggested',
-      aiScore: 6.5,
-      baseScore: 6.1,
-      createdAt: '2025-08-18T08:45:00Z',
-      paymentStatus: 'unpaid'
-    }
-  ]
+  // Get recent matches from real data
+  const recentMatches = allMatches?.slice(0, 10).map(match => ({
+    id: match._id,
+    studentName: 'Student', // Would need to join with students table
+    preceptorName: 'Preceptor', // Would need to join with preceptors table
+    specialty: match.rotationDetails?.rotationType || 'Unknown',
+    status: match.status,
+    aiScore: match.aiAnalysis?.enhancedScore || match.mentorFitScore,
+    baseScore: match.mentorFitScore,
+    createdAt: new Date(match.createdAt).toISOString(),
+    paymentStatus: match.paymentStatus
+  })) || []
 
-  const mockCommunications = [
-    {
-      id: '1',
-      type: 'email',
-      template: 'MATCH_CONFIRMED_STUDENT',
-      recipient: 'sarah.johnson@email.com',
-      status: 'sent',
-      sentAt: '2025-08-18T10:35:00Z'
-    },
-    {
-      id: '2',
-      type: 'sms',
-      template: 'MATCH_CONFIRMATION',
-      recipient: '+1234567890',
-      status: 'sent',
-      sentAt: '2025-08-18T10:35:00Z'
-    },
-    {
-      id: '3',
-      type: 'email',
-      template: 'WELCOME_STUDENT',
-      recipient: 'michael.chen@email.com',
-      status: 'failed',
-      sentAt: '2025-08-18T09:20:00Z',
-      failureReason: 'Invalid email address'
-    }
-  ]
+  // Get recent communications from real data
+  const recentCommunications = [
+    ...(emailLogs?.slice(0, 5).map(log => ({
+      id: log._id,
+      type: 'email' as const,
+      template: log.templateKey,
+      recipient: log.recipientEmail,
+      status: log.status,
+      sentAt: new Date(log.sentAt).toISOString(),
+      failureReason: log.failureReason
+    })) || []),
+    ...(smsLogs?.slice(0, 5).map(log => ({
+      id: log._id,
+      type: 'sms' as const,
+      template: log.templateKey,
+      recipient: log.recipientPhone,
+      status: log.status,
+      sentAt: new Date(log.sentAt).toISOString(),
+      failureReason: log.failureReason
+    })) || [])
+  ].sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()).slice(0, 10)
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -192,7 +165,7 @@ export default function AdminDashboard() {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockOverviewStats.totalUsers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{overviewStats.totalUsers.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     +12% from last month
                   </p>
@@ -205,9 +178,9 @@ export default function AdminDashboard() {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockOverviewStats.activeMatches}</div>
+                  <div className="text-2xl font-bold">{overviewStats.activeMatches}</div>
                   <p className="text-xs text-muted-foreground">
-                    {mockOverviewStats.pendingMatches} pending review
+                    {overviewStats.pendingMatches} pending review
                   </p>
                 </CardContent>
               </Card>
@@ -218,7 +191,7 @@ export default function AdminDashboard() {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(mockOverviewStats.totalRevenue)}</div>
+                  <div className="text-2xl font-bold">{formatCurrency(overviewStats.totalRevenue)}</div>
                   <p className="text-xs text-muted-foreground">
                     +8% from last month
                   </p>
@@ -231,9 +204,9 @@ export default function AdminDashboard() {
                   <Brain className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockOverviewStats.aiSuccessRate}%</div>
+                  <div className="text-2xl font-bold">{overviewStats.aiSuccessRate}%</div>
                   <p className="text-xs text-muted-foreground">
-                    Avg response: {mockOverviewStats.avgResponseTime}
+                    Avg response: {overviewStats.avgResponseTime}
                   </p>
                 </CardContent>
               </Card>
@@ -247,7 +220,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockRecentMatches.slice(0, 3).map((match) => (
+                    {recentMatches.slice(0, 3).map((match) => (
                       <div key={match.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="space-y-1">
                           <div className="font-medium text-sm">
@@ -273,7 +246,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockCommunications.slice(0, 3).map((comm) => (
+                    {recentCommunications.slice(0, 3).map((comm) => (
                       <div key={comm.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="space-y-1">
                           <div className="font-medium text-sm flex items-center gap-2">
@@ -323,7 +296,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockRecentMatches.map((match) => (
+                  {recentMatches.map((match) => (
                     <div key={match.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -435,7 +408,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockCommunications.map((comm) => (
+                  {recentCommunications.map((comm) => (
                     <div key={comm.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
                         {comm.type === 'email' ? 

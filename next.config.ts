@@ -5,15 +5,12 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['convex'],
   outputFileTracingRoot: path.join(__dirname),
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    ignoreBuildErrors: true,
+    // Ensure type errors fail the build for security
+    ignoreBuildErrors: false,
   },
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
+    // Ensure ESLint errors fail the build for code quality
+    ignoreDuringBuilds: false,
   },
   images: {
     unoptimized: process.env.NODE_ENV === 'production'
@@ -25,6 +22,12 @@ const nextConfig: NextConfig = {
       '@': path.join(__dirname, './')
     }
     return config
+  },
+  // Increase body size limit for API routes
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb'
+    }
   }
 };
 

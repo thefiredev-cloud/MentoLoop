@@ -1,19 +1,30 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { getLocationFromIP, getClientIP, validateTexasLocation } from './lib/location'
+import { getLocationFromIP, getClientIP, validateSupportedLocation } from './lib/location'
+import { addSecurityHeaders, configureCORS } from './lib/security-headers'
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
-const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)', '/', '/api/webhook(.*)'])
+const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/student-intake', '/preceptor-intake'])
+const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)', '/', '/api/webhook(.*)', '/help', '/terms', '/privacy', '/location-restricted'])
 const isStudentRoute = createRouteMatcher(['/dashboard/student(.*)'])
 const isPreceptorRoute = createRouteMatcher(['/dashboard/preceptor(.*)'])
 const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)'])
 const isEnterpriseRoute = createRouteMatcher(['/dashboard/enterprise(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
+  // Create response object first
+  let response = NextResponse.next();
+  
+  // Add security headers to all responses
+  response = addSecurityHeaders(response);
+  
+  // Configure CORS for API routes
+  if (req.nextUrl.pathname.startsWith('/api/')) {
+    response = configureCORS(req, response);
+  }
   // Allow public routes and API webhooks without location check
   if (isPublicRoute(req)) {
     if (isProtectedRoute(req)) await auth.protect()
-    return
+    return response
   }
 
   // Get client IP for location verification
@@ -26,17 +37,18 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   try {
-    // Check if user is accessing from Texas
+    // Check if user is accessing from a supported state
     if (clientIP) {
       const locationData = await getLocationFromIP(clientIP)
       
-      // Block non-Texas access
-      if (!locationData || !validateTexasLocation(locationData)) {
-        return NextResponse.redirect(new URL('/location-restricted', req.url))
+      // Block access from unsupported states
+      if (!locationData || !validateSupportedLocation(locationData)) {
+        response = NextResponse.redirect(new URL('/location-restricted', req.url))
+        return addSecurityHeaders(response)
       }
     }
 
-    // Proceed with normal authentication for Texas users
+    // Proceed with normal authentication for users in supported states
     if (isProtectedRoute(req)) {
       await auth.protect()
       
@@ -51,12 +63,12 @@ export default clerkMiddleware(async (auth, req) => {
         
         // Allow general dashboard access for role determination
         if (pathname === '/dashboard') {
-          return NextResponse.next()
+          return response
         }
         
         // For now, allow all authenticated users to access their role-specific routes
         // Full role validation will be handled in the dashboard layouts and components
-        return NextResponse.next()
+        return response
       }
     }
   } catch (error) {

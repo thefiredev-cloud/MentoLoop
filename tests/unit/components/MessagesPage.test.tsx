@@ -2,14 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import MessagesPage from '@/app/dashboard/messages/page'
+import { useQuery, useMutation } from 'convex/react'
 
 // Mock Convex hooks
-const mockUseQuery = vi.fn()
-const mockUseMutation = vi.fn()
-
 vi.mock('convex/react', () => ({
-  useQuery: mockUseQuery,
-  useMutation: mockUseMutation
+  useQuery: vi.fn(),
+  useMutation: vi.fn()
 }))
 
 // Mock Sonner toast
@@ -142,6 +140,8 @@ describe('MessagesPage Component', () => {
   const mockSendMessage = vi.fn()
   const mockMarkAsRead = vi.fn()
   const mockUpdateStatus = vi.fn()
+  const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>
+  const mockUseMutation = useMutation as jest.MockedFunction<typeof useMutation>
 
   beforeEach(() => {
     vi.clearAllMocks()

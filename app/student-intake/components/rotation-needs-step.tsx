@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { STATE_OPTIONS } from '@/lib/states-config'
 
 interface RotationNeedsStepProps {
   data: Record<string, unknown>
@@ -63,46 +64,74 @@ export default function RotationNeedsStep({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    const rotationData = {
-      ...formData,
-      preferredLocation: formData.willingToTravel ? {
-        city: formData.preferredCity,
-        state: formData.preferredState,
-      } : undefined
-    }
-    updateFormData('rotationNeeds', rotationData)
-  }, [formData])
-
   const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    const updatedData = { ...formData, [field]: value }
+    setFormData(updatedData)
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+    
+    // Update parent form data immediately
+    // Extract preferredCity and preferredState to exclude them from the data sent to Convex
+    const { preferredCity, preferredState, ...cleanedData } = updatedData
+    const rotationData = {
+      ...cleanedData,
+      preferredLocation: updatedData.willingToTravel ? {
+        city: preferredCity,
+        state: preferredState,
+      } : undefined
+    }
+    updateFormData('rotationNeeds', rotationData)
   }
 
   const handleRotationTypeChange = (rotationType: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      rotationTypes: checked 
-        ? [...prev.rotationTypes, rotationType]
-        : prev.rotationTypes.filter(type => type !== rotationType)
-    }))
+    const updatedTypes = checked 
+      ? [...formData.rotationTypes, rotationType]
+      : formData.rotationTypes.filter(type => type !== rotationType)
+    
+    const updatedData = { ...formData, rotationTypes: updatedTypes }
+    setFormData(updatedData)
+    
     if (errors.rotationTypes) {
       setErrors(prev => ({ ...prev, rotationTypes: '' }))
     }
+    
+    // Update parent form data immediately
+    // Extract preferredCity and preferredState to exclude them from the data sent to Convex
+    const { preferredCity, preferredState, ...cleanedData } = updatedData
+    const rotationData = {
+      ...cleanedData,
+      preferredLocation: updatedData.willingToTravel ? {
+        city: preferredCity,
+        state: preferredState,
+      } : undefined
+    }
+    updateFormData('rotationNeeds', rotationData)
   }
 
   const handleDayChange = (day: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      daysAvailable: checked 
-        ? [...prev.daysAvailable, day]
-        : prev.daysAvailable.filter(d => d !== day)
-    }))
+    const updatedDays = checked 
+      ? [...formData.daysAvailable, day]
+      : formData.daysAvailable.filter(d => d !== day)
+    
+    const updatedData = { ...formData, daysAvailable: updatedDays }
+    setFormData(updatedData)
+    
     if (errors.daysAvailable) {
       setErrors(prev => ({ ...prev, daysAvailable: '' }))
     }
+    
+    // Update parent form data immediately
+    // Extract preferredCity and preferredState to exclude them from the data sent to Convex
+    const { preferredCity, preferredState, ...cleanedData } = updatedData
+    const rotationData = {
+      ...cleanedData,
+      preferredLocation: updatedData.willingToTravel ? {
+        city: preferredCity,
+        state: preferredState,
+      } : undefined
+    }
+    updateFormData('rotationNeeds', rotationData)
   }
 
   const validateForm = () => {
@@ -287,13 +316,18 @@ export default function RotationNeedsStep({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="preferredState">Preferred State for Placement *</Label>
-                <Input
-                  id="preferredState"
-                  value={formData.preferredState}
-                  onChange={(e) => handleInputChange('preferredState', e.target.value)}
-                  placeholder="State"
-                  className={errors.preferredLocation ? 'border-destructive' : ''}
-                />
+                <Select value={formData.preferredState} onValueChange={(value) => handleInputChange('preferredState', value)}>
+                  <SelectTrigger id="preferredState" className={errors.preferredLocation ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATE_OPTIONS.map((state) => (
+                      <SelectItem key={state.value} value={state.value}>
+                        {state.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               {errors.preferredLocation && (
                 <p className="text-sm text-destructive md:col-span-2">{errors.preferredLocation}</p>

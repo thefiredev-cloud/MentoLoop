@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Brain, Heart, Users } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
+import MentorFitGate from '@/components/mentorfit-gate'
 
 interface MatchingPreferencesStepProps {
   data: Record<string, unknown>
@@ -68,14 +69,14 @@ export default function MatchingPreferencesStep({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
+  const updateParentFormData = (updatedData: typeof formData) => {
     // Split data between matching preferences and learning style
     const { 
       comfortableWithSharedPlacements, 
       languagesSpoken, 
       idealPreceptorQualities,
       ...learningStyleData 
-    } = formData
+    } = updatedData
 
     // Clean learning style data - convert empty strings to undefined for optional fields
     const cleanedLearningStyleData = Object.entries(learningStyleData).reduce((acc, [key, value]) => {
@@ -104,47 +105,45 @@ export default function MatchingPreferencesStep({
       ...cleanedLearningStyleData,
       proactiveQuestions: learningStyleData.proactiveQuestions[0] || 3,
     })
-  }, [formData])
+  }
 
   const handleInputChange = (field: string, value: string | boolean | number[] | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    const updatedData = { ...formData, [field]: value }
+    setFormData(updatedData)
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+    
+    // Update parent form data immediately
+    updateParentFormData(updatedData)
   }
 
   const handleLanguageAdd = (language: string) => {
     if (language.trim() && !formData.languagesSpoken.includes(language.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        languagesSpoken: [...prev.languagesSpoken, language.trim()]
-      }))
+      const updatedData = {
+        ...formData,
+        languagesSpoken: [...formData.languagesSpoken, language.trim()]
+      }
+      setFormData(updatedData)
+      updateParentFormData(updatedData)
     }
   }
 
   const handleLanguageRemove = (language: string) => {
-    setFormData(prev => ({
-      ...prev,
-      languagesSpoken: prev.languagesSpoken.filter(lang => lang !== language)
-    }))
+    const updatedData = {
+      ...formData,
+      languagesSpoken: formData.languagesSpoken.filter(lang => lang !== language)
+    }
+    setFormData(updatedData)
+    updateParentFormData(updatedData)
   }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    // MentorFit questions are required - making Phase 2.0 questions optional
-    const requiredFields = [
-      'learningMethod', 'clinicalComfort', 'feedbackPreference', 
-      'structurePreference', 'mentorRelationship', 'observationPreference',
-      'correctionStyle', 'retentionStyle', 'additionalResources'
-    ]
-
-    requiredFields.forEach(field => {
-      if (!formData[field as keyof typeof formData]) {
-        newErrors[field] = 'This field is required for matching'
-      }
-    })
-
+    // Basic matching preferences are always required
+    // MentorFit questions are now optional (premium feature)
+    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -224,17 +223,18 @@ export default function MatchingPreferencesStep({
         </CardContent>
       </Card>
 
-      {/* MentorFit Assessment */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            MentorFit™ Learning Style Assessment
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            These questions help us match you with preceptors whose teaching style aligns with your learning preferences.
-          </p>
-        </CardHeader>
+      {/* MentorFit Assessment - Behind Payment Gate */}
+      <MentorFitGate userType="student" onSkip={handleNext}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              MentorFit™ Learning Style Assessment
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              These questions help us match you with preceptors whose teaching style aligns with your learning preferences.
+            </p>
+          </CardHeader>
         <CardContent className="space-y-8">
           <div className="space-y-4">
             <Label>1. How do you learn best? *</Label>
@@ -769,6 +769,7 @@ export default function MatchingPreferencesStep({
           </div>
         </CardContent>
       </Card>
+      </MentorFitGate>
 
       <Card className="bg-muted/50">
         <CardContent className="pt-6">

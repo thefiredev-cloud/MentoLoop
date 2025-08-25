@@ -4,6 +4,11 @@ import { ConvexHttpClient } from "convex/browser";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+// Increase body size limit to 10MB for Stripe webhooks
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();

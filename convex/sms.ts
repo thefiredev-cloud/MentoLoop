@@ -566,6 +566,14 @@ export const getSMSAnalytics = query({
   },
 });
 
+// Get all SMS logs
+export const getAllSMSLogs = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("smsLogs").order("desc").collect();
+  },
+});
+
 // Get SMS logs for debugging
 export const getSMSLogs = query({
   args: {

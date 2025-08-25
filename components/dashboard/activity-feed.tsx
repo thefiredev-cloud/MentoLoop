@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
+import { Target, Calendar, FileCheck, CreditCard, MessageSquare, Settings, ClipboardList } from "lucide-react"
 
 interface ActivityItem {
   id: string
@@ -36,19 +37,19 @@ export function ActivityFeed({
   const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'match':
-        return '🎯'
+        return <Target className="w-4 h-4 text-muted-foreground" />
       case 'rotation':
-        return '📅'
+        return <Calendar className="w-4 h-4 text-muted-foreground" />
       case 'evaluation':
-        return '📝'
+        return <FileCheck className="w-4 h-4 text-muted-foreground" />
       case 'payment':
-        return '💳'
+        return <CreditCard className="w-4 h-4 text-muted-foreground" />
       case 'message':
-        return '💬'
+        return <MessageSquare className="w-4 h-4 text-muted-foreground" />
       case 'system':
-        return '⚙️'
+        return <Settings className="w-4 h-4 text-muted-foreground" />
       default:
-        return '📋'
+        return <ClipboardList className="w-4 h-4 text-muted-foreground" />
     }
   }
 
@@ -95,7 +96,7 @@ export function ActivityFeed({
             displayedActivities.map((activity) => (
               <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{getActivityIcon(activity.type)}</span>
+                  <span className="flex items-center justify-center">{getActivityIcon(activity.type)}</span>
                   {activity.actor && (
                     <Avatar className="h-6 w-6">
                       <AvatarFallback className="text-xs">

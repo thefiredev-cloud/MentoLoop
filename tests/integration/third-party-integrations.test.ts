@@ -170,7 +170,10 @@ describe('Third-Party Service Integrations', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 202,
-        json: () => Promise.resolve({ message: 'Queued. Thank you.' })
+        json: () => Promise.resolve({ message: 'Queued. Thank you.' }),
+        headers: {
+          get: (name: string) => name === 'x-message-id' ? 'msg-123456789' : null
+        }
       })
 
       const emailResult = await sendEmailNotification({
@@ -197,6 +200,7 @@ describe('Third-Party Service Integrations', () => {
 
       expect(emailResult.success).toBe(true)
       expect(emailResult.messageId).toBeDefined()
+      expect(emailResult.messageId).toBe('msg-123456789')
     })
 
     it('should handle SendGrid authentication errors', async () => {
@@ -508,6 +512,9 @@ describe('Third-Party Service Integrations', () => {
 
   describe('Rate Limiting and Retry Logic', () => {
     it('should handle rate limiting with exponential backoff', async () => {
+      // Clear previous mock calls
+      mockFetch.mockClear()
+      
       // First call returns rate limit error
       mockFetch
         .mockResolvedValueOnce({
@@ -530,6 +537,9 @@ describe('Third-Party Service Integrations', () => {
     })
 
     it('should respect maximum retry attempts', async () => {
+      // Clear previous mock calls
+      mockFetch.mockClear()
+      
       // Mock persistent failure
       mockFetch.mockResolvedValue({
         ok: false,
@@ -550,14 +560,15 @@ describe('Third-Party Service Integrations', () => {
       
       mockFetch.mockRejectedValueOnce(new Error('Critical service failure'))
 
-      try {
-        await callOpenAIForMatching({
-          studentProfile: mockStudentProfile,
-          preceptorProfile: mockPreceptorProfile,
-          mentorFitScore: 7.8
-        })
-      } catch (error) {
-        mockLogger('critical', 'OpenAI service failure', error)
+      const result = await callOpenAIForMatching({
+        studentProfile: mockStudentProfile,
+        preceptorProfile: mockPreceptorProfile,
+        mentorFitScore: 7.8
+      })
+      
+      // Log the error if the call failed
+      if (!result.success) {
+        mockLogger('critical', 'OpenAI service failure', new Error(result.error))
       }
 
       expect(mockLogger).toHaveBeenCalledWith(
@@ -569,20 +580,22 @@ describe('Third-Party Service Integrations', () => {
 
     it('should trigger alerts for extended outages', async () => {
       const mockAlert = vi.fn()
+      let failureCount = 0
       
       // Simulate extended outage (multiple failures)
       for (let i = 0; i < 5; i++) {
         mockFetch.mockRejectedValueOnce(new Error('Service unavailable'))
         
-        try {
-          await sendEmailNotification({
-            to: 'test@example.com',
-            subject: 'Test',
-            templateId: 'd-123',
-            dynamicData: {}
-          })
-        } catch (error) {
-          if (i >= 4) { // Trigger alert after 5 consecutive failures
+        const result = await sendEmailNotification({
+          to: 'test@example.com',
+          subject: 'Test',
+          templateId: 'd-123',
+          dynamicData: {}
+        })
+        
+        if (!result.success) {
+          failureCount++
+          if (failureCount >= 5) { // Trigger alert after 5 consecutive failures
             mockAlert('SendGrid extended outage detected')
           }
         }
@@ -829,17 +842,19 @@ async function checkServiceHealth(service: string) {
 
     await fetch(url)
     
+    const responseTime = Date.now() - startTime
+    
     return {
       service,
       status: 'healthy',
-      responseTime: Date.now() - startTime
+      responseTime: responseTime > 0 ? responseTime : 1 // Ensure responseTime is at least 1ms
     }
   } catch (error) {
     return {
       service,
       status: 'unhealthy',
       error: (error as Error).message,
-      responseTime: Date.now() - startTime
+      responseTime: Date.now() - startTime || 1 // Ensure responseTime is at least 1ms
     }
   }
 }

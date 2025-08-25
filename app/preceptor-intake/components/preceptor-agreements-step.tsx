@@ -127,20 +127,81 @@ export default function PreceptorAgreementsStep({
 
     setIsSubmitting(true)
     try {
+      // Debug: Log the data being submitted
+      console.log('Submitting preceptor intake form with data:')
+      console.log('personalInfo:', data.personalInfo)
+      console.log('practiceInfo:', data.practiceInfo)
+      console.log('availability:', data.availability)
+      console.log('matchingPreferences:', data.matchingPreferences)
+      console.log('mentoringStyle:', data.mentoringStyle)
+      console.log('agreements:', formData)
+      
+      // Validate required fields exist
+      if (!data.personalInfo || Object.keys(data.personalInfo).length === 0) {
+        throw new Error('Personal information is missing. Please complete all steps.')
+      }
+      if (!data.practiceInfo || Object.keys(data.practiceInfo).length === 0) {
+        throw new Error('Practice information is missing. Please complete all steps.')
+      }
+      if (!data.availability || Object.keys(data.availability).length === 0) {
+        throw new Error('Availability information is missing. Please complete all steps.')
+      }
+      if (!data.mentoringStyle || Object.keys(data.mentoringStyle).length === 0) {
+        throw new Error('Mentoring style preferences are missing. Please complete all steps.')
+      }
+      
+      // Ensure mentoring style has all required fields with defaults
+      // Filter out empty strings from mentoringStyle data to allow defaults to be used
+      const mentoringStyleData = data.mentoringStyle || {}
+      const filteredMentoringStyle = Object.entries(mentoringStyleData).reduce((acc, [key, value]) => {
+        // Only include non-empty values
+        if (value !== '' && value !== undefined && value !== null) {
+          acc[key] = value
+        }
+        return acc
+      }, {} as Record<string, unknown>)
+      
+      const mentoringStyleWithDefaults = {
+        mentoringApproach: "coach-guide",
+        rotationStart: "orient-goals",
+        feedbackApproach: "real-time",
+        learningMaterials: "sometimes",
+        patientInteractions: "shadow-then-lead",
+        questionPreference: "anytime-during",
+        autonomyLevel: "shared-decisions",
+        evaluationFrequency: "weekly",
+        newStudentPreference: "flexible",
+        idealDynamic: "learner-teacher",
+        ...filteredMentoringStyle,
+      } as MentoringStyle
+      
+      // Ensure matching preferences has defaults
+      const matchingPreferencesWithDefaults = {
+        studentDegreeLevelPreferred: "no-preference",
+        comfortableWithFirstRotation: false,
+        schoolsWorkedWith: [],
+        languagesSpoken: [],
+        ...(data.matchingPreferences || {}),
+      } as MatchingPreferences
+      
       // Submit all form data to Convex
       await createOrUpdatePreceptor({
         personalInfo: data.personalInfo as PersonalInfo,
         practiceInfo: data.practiceInfo as PracticeInfo,
         availability: data.availability as Availability,
-        matchingPreferences: data.matchingPreferences as MatchingPreferences,
-        mentoringStyle: data.mentoringStyle as MentoringStyle,
+        matchingPreferences: matchingPreferencesWithDefaults,
+        mentoringStyle: mentoringStyleWithDefaults,
         agreements: formData,
       })
 
       setIsSubmitted(true)
     } catch (error) {
       console.error('Failed to submit form:', error)
-      setErrors({ submit: 'Failed to submit form. Please try again.' })
+      if (error instanceof Error) {
+        setErrors({ submit: error.message })
+      } else {
+        setErrors({ submit: 'Failed to submit form. Please try again.' })
+      }
     } finally {
       setIsSubmitting(false)
     }

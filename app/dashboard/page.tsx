@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
+import { PostSignupHandler } from '@/components/post-signup-handler'
 
 export default function DashboardPage() {
   const user = useQuery(api.users.current)
@@ -24,18 +25,21 @@ export default function DashboardPage() {
       }
       // If no userType, stay on this page to show setup options
     }
-  }, [user?.userType])
+  }, [user?.userType, router, user])
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Loading your dashboard...</span>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        <PostSignupHandler />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="flex items-center gap-4 p-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Loading your dashboard...</span>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     )
   }
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id, Doc } from '@/convex/_generated/dataModel'
+import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -98,7 +98,52 @@ export default function PreceptorMatches() {
   const reviewingCount = confirmedMatches?.length || 0
   const acceptedCount = acceptedMatches?.length || 0
 
-  const renderStudentCard = (match: any, showActions: boolean = true) => (
+  const renderStudentCard = (match: {
+    _id: string
+    studentName?: string
+    degreeTrack?: string
+    schoolName?: string
+    yearInProgram?: string
+    matchScore?: number
+    mentorFitScore?: number
+    tier?: string | {name: string; color: string; description: string} | null
+    notes?: string
+    student?: {
+      schoolInfo?: {
+        expectedGraduation?: string
+      }
+      personalInfo?: {
+        email?: string
+        phone?: string
+      }
+      rotationNeeds?: {
+        rotationTypes?: string[]
+      }
+    } | null
+    matchDetails?: {
+      compatibility?: number
+      strengths?: string[]
+      concerns?: string[]
+    }
+    rotationDetails?: {
+      rotationType?: string
+      startDate?: string
+      endDate?: string
+      weeklyHours?: number
+      location?: string
+    }
+    hoursCompleted?: number
+    matchReason?: string | null
+    adminNotes?: string
+    updatedAt?: number
+    status?: string
+    rotationType?: string
+    startDate?: string
+    endDate?: string
+    weeklyHours?: number
+    specialty?: string
+    location?: string
+  }, showActions: boolean = true) => (
     <Card key={match._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -114,13 +159,13 @@ export default function PreceptorMatches() {
             </div>
             <div className="flex items-center gap-4">
               <Badge variant="outline" className={`${
-                match.tier === 'Gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                match.tier === 'Silver' ? 'bg-gray-50 text-gray-700 border-gray-200' :
-                match.tier === 'Bronze' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Silver' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Bronze' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                 'bg-green-50 text-green-700 border-green-200'
               }`}>
                 <Target className="h-3 w-3 mr-1" />
-                {match.tier || 'High'} Match • {match.mentorFitScore}/10
+                {typeof match.tier === 'string' ? match.tier : match.tier?.name || 'High'} Match • {match.mentorFitScore}/10
               </Badge>
               <Badge variant="outline">
                 {match.rotationDetails?.rotationType || 'Clinical Rotation'}

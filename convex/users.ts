@@ -41,6 +41,13 @@ export const deleteFromClerk = internalMutation({
   },
 });
 
+export const getAllUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("users").collect();
+  },
+});
+
 export const updateUserType = mutation({
   args: {
     userId: v.id("users"),
@@ -56,6 +63,13 @@ export const getUserById = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.userId);
+  },
+});
+
+export const getUserByClerkId = query({
+  args: { clerkId: v.string() },
+  handler: async (ctx, { clerkId }) => {
+    return await userByExternalId(ctx, clerkId);
   },
 });
 

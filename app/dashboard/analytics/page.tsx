@@ -18,27 +18,22 @@ import {
   MapPin,
   BookOpen,
   Brain,
-  PieChart,
   LineChart,
   Filter,
-  Download,
-  Calendar
+  Download
 } from 'lucide-react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-
 export default function AnalyticsDashboard() {
   const [dateRange, setDateRange] = useState('30d')
   const [specialty, setSpecialty] = useState('all')
   const [selectedTab, setSelectedTab] = useState('overview')
 
   // Get analytics data from Convex
-  const overviewStats = useQuery(api.analytics.getOverviewStats, { dateRange })
-  const surveyInsights = useQuery(api.analytics.getSurveyInsights, { dateRange, specialty })
-  const qualityMetrics = useQuery(api.analytics.getQualityMetrics, { dateRange, specialty })
-  const specialtyBreakdown = useQuery(api.analytics.getSpecialtyBreakdown, { dateRange })
-  const performanceTrends = useQuery(api.analytics.getPerformanceTrends, { dateRange, specialty })
-  const geographicData = useQuery(api.analytics.getGeographicDistribution, { dateRange, specialty })
+  // const overviewStats = useQuery(api.analytics.getOverviewStats, { dateRange })
+  // const surveyInsights = useQuery(api.analytics.getSurveyInsights, { dateRange, specialty })
+  // const qualityMetrics = useQuery(api.analytics.getQualityMetrics, { dateRange, specialty })
+  // const specialtyBreakdown = useQuery(api.analytics.getSpecialtyBreakdown, { dateRange })
+  // const performanceTrends = useQuery(api.analytics.getPerformanceTrends, { dateRange, specialty })
+  // const geographicData = useQuery(api.analytics.getGeographicDistribution, { dateRange, specialty })
 
   // Mock analytics data - fallback for when queries are loading
   const mockAnalytics = {

@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
+// import { useState } from 'react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
-import { StatsCard } from '@/components/dashboard/stats-card'
+// import { Id } from '@/convex/_generated/dataModel'
+// import { StatsCard } from '@/components/dashboard/stats-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
-import { QuickActions } from '@/components/dashboard/quick-actions'
+// import { QuickActions } from '@/components/dashboard/quick-actions'
 import { NotificationPanel } from '@/components/dashboard/notification-panel'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
@@ -19,7 +19,7 @@ import {
   Calendar, 
   Clock, 
   MapPin, 
-  Phone, 
+  // Phone, 
   Mail, 
   CheckCircle2, 
   XCircle,
@@ -31,7 +31,7 @@ import {
   Stethoscope,
   Target,
   User,
-  BookOpen,
+  // BookOpen,
   ChartBar
 } from 'lucide-react'
 import Link from 'next/link'
@@ -65,43 +65,43 @@ export default function PreceptorDashboard() {
   const intakeProgress = dashboardStats.profileCompletionPercentage
 
   // Quick actions configuration
-  const quickActions = [
-    {
-      id: 'matches',
-      title: 'Review Matches',
-      description: 'Review and respond to student match requests',
-      icon: Target,
-      href: '/dashboard/preceptor/matches',
-      badge: dashboardStats.pendingMatchesCount > 0 ? {
-        text: dashboardStats.pendingMatchesCount.toString(),
-        variant: 'default' as const
-      } : undefined
-    },
-    {
-      id: 'students', 
-      title: 'My Students',
-      description: 'Manage your current and past students',
-      icon: Users,
-      href: '/dashboard/preceptor/students',
-      variant: 'outline' as const
-    },
-    {
-      id: 'schedule',
-      title: 'Manage Schedule', 
-      description: 'Update your availability and schedule',
-      icon: Calendar,
-      href: '/dashboard/preceptor/schedule',
-      variant: 'outline' as const
-    },
-    {
-      id: 'profile',
-      title: 'Update Profile',
-      description: 'Edit your preceptor profile and preferences',
-      icon: User,
-      href: '/preceptor-intake',
-      variant: 'outline' as const
-    }
-  ]
+  // const quickActions = [
+  //   {
+  //     id: 'matches',
+  //     title: 'Review Matches',
+  //     description: 'Review and respond to student match requests',
+  //     icon: Target,
+  //     href: '/dashboard/preceptor/matches',
+  //     badge: dashboardStats.pendingMatchesCount > 0 ? {
+  //       text: dashboardStats.pendingMatchesCount.toString(),
+  //       variant: 'default' as const
+  //     } : undefined
+  //   },
+  //   {
+  //     id: 'students', 
+  //     title: 'My Students',
+  //     description: 'Manage your current and past students',
+  //     icon: Users,
+  //     href: '/dashboard/preceptor/students',
+  //     variant: 'outline' as const
+  //   },
+  //   {
+  //     id: 'schedule',
+  //     title: 'Manage Schedule', 
+  //     description: 'Update your availability and schedule',
+  //     icon: Calendar,
+  //     href: '/dashboard/preceptor/schedule',
+  //     variant: 'outline' as const
+  //   },
+  //   {
+  //     id: 'profile',
+  //     title: 'Update Profile',
+  //     description: 'Edit your preceptor profile and preferences',
+  //     icon: User,
+  //     href: '/preceptor-intake',
+  //     variant: 'outline' as const
+  //   }
+  // ]
 
   return (
     <div className="space-y-8">
@@ -283,8 +283,8 @@ export default function PreceptorDashboard() {
                       (new Date(match.rotationDetails.endDate).getTime() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
                     );
                     const totalHours = match.rotationDetails.weeklyHours * totalWeeks;
-                    const progressPercentage = totalHours ? 
-                      Math.round((match.hoursCompleted / totalHours) * 100) : 0;
+                    // const progressPercentage = totalHours ? 
+                    //   Math.round((match.hoursCompleted / totalHours) * 100) : 0;
                     const currentWeek = Math.ceil(
                       (Date.now() - new Date(match.rotationDetails.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000)
                     );
@@ -352,7 +352,18 @@ export default function PreceptorDashboard() {
           {/* Recent Activity */}
           {recentActivity && (
             <ActivityFeed 
-              activities={recentActivity as any}
+              activities={recentActivity as Array<{
+                id: string
+                type: 'match' | 'rotation' | 'evaluation' | 'payment' | 'message' | 'system'
+                title: string
+                description: string
+                timestamp: number
+                status?: 'success' | 'warning' | 'error' | 'info'
+                actor?: {
+                  name: string
+                  type: 'student' | 'preceptor' | 'admin' | 'system'
+                }
+              }>}
               title="Recent Activity"
             />
           )}

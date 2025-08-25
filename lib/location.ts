@@ -1,4 +1,12 @@
 import { z } from 'zod'
+import { 
+  SUPPORTED_STATE_CODES, 
+  isSupportedZipCode, 
+  isSupportedState,
+  getStateFromZip,
+  getMetroAreaFromZip as getMetroFromZip,
+  getCountyFromZip as getCountyFromZipConfig
+} from './states-config'
 
 export interface LocationData {
   city: string
@@ -30,99 +38,30 @@ export interface IPLocationResponse {
   asn: string
 }
 
-// Texas ZIP code ranges
-const TEXAS_ZIP_RANGES = [
-  { min: 73301, max: 73344 }, // West Texas
-  { min: 75001, max: 75501 }, // North Texas (Dallas area)
-  { min: 75701, max: 75799 }, // East Texas
-  { min: 76001, max: 76798 }, // Central Texas
-  { min: 77001, max: 77299 }, // Houston area
-  { min: 77301, max: 77598 }, // Greater Houston
-  { min: 78101, max: 78799 }, // South/Central Texas (Austin/San Antonio)
-  { min: 79001, max: 79999 }, // West Texas/Panhandle
-  { min: 88510, max: 88589 }, // El Paso area
-]
+// Re-export functions from states-config for backward compatibility
+export const getMetroAreaFromZip = getMetroFromZip
+export const getCountyFromZip = getCountyFromZipConfig
 
-// Major Texas metropolitan areas
-export const TEXAS_METRO_AREAS = {
-  'Dallas-Fort Worth': {
-    counties: ['Dallas', 'Tarrant', 'Collin', 'Denton', 'Rockwall', 'Ellis', 'Johnson', 'Parker', 'Wise', 'Kaufman', 'Hunt'],
-    zipRanges: [
-      { min: 75001, max: 75501 },
-      { min: 76001, max: 76199 }
-    ]
-  },
-  'Houston': {
-    counties: ['Harris', 'Fort Bend', 'Montgomery', 'Brazoria', 'Galveston', 'Liberty', 'Waller', 'Chambers'],
-    zipRanges: [
-      { min: 77001, max: 77299 },
-      { min: 77301, max: 77598 }
-    ]
-  },
-  'San Antonio': {
-    counties: ['Bexar', 'Comal', 'Guadalupe', 'Wilson', 'Medina', 'Kendall', 'Bandera'],
-    zipRanges: [
-      { min: 78101, max: 78299 }
-    ]
-  },
-  'Austin': {
-    counties: ['Travis', 'Williamson', 'Hays', 'Caldwell', 'Bastrop'],
-    zipRanges: [
-      { min: 78701, max: 78799 },
-      { min: 78613, max: 78681 }
-    ]
-  }
+// Legacy function for backward compatibility
+export function isTexasZipCode(zipCode: string): boolean {
+  const state = getStateFromZip(zipCode)
+  return state === 'TX'
 }
 
 export const locationSchema = z.object({
   city: z.string().min(1, 'City is required'),
-  state: z.literal('TX', { errorMap: () => ({ message: 'Only Texas locations are supported' }) }),
+  state: z.enum(SUPPORTED_STATE_CODES as [string, ...string[]], { 
+    errorMap: () => ({ message: 'State must be one of the supported states' }) 
+  }),
   zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code format').refine(
-    (zip) => isTexasZipCode(zip),
-    { message: 'ZIP code must be in Texas' }
+    (zip) => isSupportedZipCode(zip),
+    { message: 'ZIP code must be in a supported state' }
   ),
   county: z.string().optional(),
   ipAddress: z.string().ip().optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
 })
-
-export function isTexasZipCode(zipCode: string): boolean {
-  const cleanZip = zipCode.replace(/-.*/, '') // Remove ZIP+4 extension
-  const zipNum = parseInt(cleanZip, 10)
-  
-  if (isNaN(zipNum)) return false
-  
-  return TEXAS_ZIP_RANGES.some(range => 
-    zipNum >= range.min && zipNum <= range.max
-  )
-}
-
-export function getMetroAreaFromZip(zipCode: string): string | null {
-  const cleanZip = zipCode.replace(/-.*/, '')
-  const zipNum = parseInt(cleanZip, 10)
-  
-  if (isNaN(zipNum)) return null
-  
-  for (const [metroName, metroData] of Object.entries(TEXAS_METRO_AREAS)) {
-    const inRange = metroData.zipRanges.some(range => 
-      zipNum >= range.min && zipNum <= range.max
-    )
-    if (inRange) return metroName
-  }
-  
-  return 'Other Texas'
-}
-
-export function getCountyFromZip(zipCode: string): string | null {
-  // This would normally use a comprehensive ZIP to county database
-  // For now, returning based on metro area mapping
-  const metro = getMetroAreaFromZip(zipCode)
-  if (!metro || metro === 'Other Texas') return null
-  
-  const metroData = TEXAS_METRO_AREAS[metro as keyof typeof TEXAS_METRO_AREAS]
-  return metroData.counties[0] // Return primary county
-}
 
 export async function getLocationFromIP(ipAddress: string): Promise<LocationData | null> {
   try {
@@ -135,8 +74,8 @@ export async function getLocationFromIP(ipAddress: string): Promise<LocationData
     
     const data: IPLocationResponse = await response.json()
     
-    // Only allow Texas locations
-    if (data.region_code !== 'TX' || data.country_code !== 'US') {
+    // Only allow locations in supported states
+    if (!isSupportedState(data.region_code) || data.country_code !== 'US') {
       return null
     }
     
@@ -155,13 +94,18 @@ export async function getLocationFromIP(ipAddress: string): Promise<LocationData
   }
 }
 
-export function validateTexasLocation(location: Partial<LocationData>): boolean {
+export function validateSupportedLocation(location: Partial<LocationData>): boolean {
   try {
     locationSchema.parse(location)
     return true
   } catch {
     return false
   }
+}
+
+// Legacy function for backward compatibility
+export function validateTexasLocation(location: Partial<LocationData>): boolean {
+  return validateSupportedLocation(location) && location.state === 'TX'
 }
 
 export function getClientIP(request: Request): string | undefined {
@@ -187,7 +131,7 @@ export function getClientIP(request: Request): string | undefined {
   return '127.0.0.1'
 }
 
-// Texas regions for analytics display
+// Legacy - Texas regions for analytics display
 export const TEXAS_REGIONS = [
   'Dallas-Fort Worth',
   'Houston',
@@ -201,17 +145,54 @@ export const TEXAS_REGIONS = [
   'Panhandle'
 ]
 
+// All supported regions for analytics display
+export const SUPPORTED_REGIONS = [
+  // Texas
+  'Dallas-Fort Worth',
+  'Houston',
+  'San Antonio',
+  'Austin',
+  'El Paso',
+  // Arizona
+  'Phoenix',
+  'Tucson',
+  'Flagstaff',
+  // California
+  'Los Angeles',
+  'San Francisco Bay Area',
+  'San Diego',
+  'Sacramento',
+  // Colorado
+  'Denver',
+  'Colorado Springs',
+  'Boulder',
+  'Fort Collins',
+  // Florida
+  'Miami-Fort Lauderdale',
+  'Tampa-St. Petersburg',
+  'Orlando',
+  'Jacksonville',
+  // Louisiana
+  'New Orleans',
+  'Baton Rouge',
+  'Shreveport',
+  'Lafayette',
+  // New Mexico
+  'Albuquerque',
+  'Santa Fe',
+  'Las Cruces',
+  // Oklahoma
+  'Oklahoma City',
+  'Tulsa',
+  'Norman',
+  // Arkansas
+  'Little Rock',
+  'Fayetteville-Springdale',
+  'Fort Smith'
+]
+
 export function getRegionFromMetro(metroArea: string): string {
-  switch (metroArea) {
-    case 'Dallas-Fort Worth':
-      return 'North Texas'
-    case 'Houston':
-      return 'East Texas'
-    case 'San Antonio':
-      return 'South Texas'
-    case 'Austin':
-      return 'Central Texas'
-    default:
-      return 'Other Texas'
-  }
+  // This now returns the metro area itself as the region
+  // since we're supporting multiple states with different regional structures
+  return metroArea || 'Other'
 }

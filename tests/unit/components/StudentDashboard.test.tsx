@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import StudentDashboardPage from '@/app/dashboard/student/page'
+import { useQuery } from 'convex/react'
 
 // Mock Next.js Link
 vi.mock('next/link', () => ({
@@ -11,10 +12,8 @@ vi.mock('next/link', () => ({
 }))
 
 // Mock Convex hooks
-const mockUseQuery = vi.fn()
-
 vi.mock('convex/react', () => ({
-  useQuery: mockUseQuery
+  useQuery: vi.fn()
 }))
 
 // Mock dashboard components
@@ -90,6 +89,13 @@ vi.mock('@/components/ui/badge', () => ({
 const mockDashboardStats = {
   student: {
     _id: 'student123',
+    personalInfo: {
+      fullName: 'John Student',
+      email: 'john.student@example.com',
+      phone: '555-1234',
+      dateOfBirth: '1998-01-15',
+      preferredContact: 'email'
+    },
     profile: {
       firstName: 'John',
       lastName: 'Student',
@@ -177,6 +183,8 @@ const mockNotifications = [
 ]
 
 describe('StudentDashboardPage Component', () => {
+  const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>
+  
   beforeEach(() => {
     vi.clearAllMocks()
     

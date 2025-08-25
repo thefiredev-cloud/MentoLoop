@@ -11,7 +11,6 @@ import {
   IconReport,
   IconSettings,
   IconUsers,
-  IconSparkles,
   IconBrandOpenai,
   IconCalendar,
   IconClock,
@@ -39,7 +38,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ChatMaxingIconColoured } from "@/components/logo"
+// import { ChatMaxingIconColoured } from "@/components/logo"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
@@ -293,33 +292,33 @@ const enterpriseNavData = {
   ],
 }
 
-const defaultNavData = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: IconDashboard,
-    },
-    {
-      title: "Payment gated",
-      url: "/dashboard/payment-gated",
-      icon: IconSparkles,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "/help",
-      icon: IconHelp,
-    },
-  ],
-  documents: [],
-}
+// const defaultNavData = {
+//   navMain: [
+//     {
+//       title: "Dashboard",
+//       url: "/dashboard",
+//       icon: IconDashboard,
+//     },
+//     {
+//       title: "Payment gated",
+//       url: "/dashboard/payment-gated",
+//       icon: IconSparkles,
+//     },
+//   ],
+//   navSecondary: [
+//     {
+//       title: "Settings",
+//       url: "#",
+//       icon: IconSettings,
+//     },
+//     {
+//       title: "Get Help",
+//       url: "/help",
+//       icon: IconHelp,
+//     },
+//   ],
+//   documents: [],
+// }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useQuery(api.users.current)

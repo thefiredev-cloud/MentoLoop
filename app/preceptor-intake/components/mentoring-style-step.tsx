@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Brain, Users, Target } from 'lucide-react'
+import MentorFitGate from '@/components/mentorfit-gate'
 
 interface MentoringStyleStepProps {
   data: Record<string, unknown>
@@ -71,17 +72,8 @@ export default function MentoringStyleStep({
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    const requiredFields = [
-      'mentoringApproach', 'rotationStart', 'feedbackApproach', 'learningMaterials',
-      'patientInteractions', 'questionPreference', 'autonomyLevel', 'evaluationFrequency',
-      'newStudentPreference', 'idealDynamic'
-    ]
-
-    requiredFields.forEach(field => {
-      if (!formData[field as keyof typeof formData]) {
-        newErrors[field] = 'This field is required for optimal student matching'
-      }
-    })
+    // MentorFit questions are now optional (premium feature)
+    // Basic form can be submitted without them
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -95,17 +87,18 @@ export default function MentoringStyleStep({
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            MentorFit™ Teaching Style Assessment
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            These questions help us match you with students whose learning style complements your teaching approach, 
-            creating more successful and rewarding mentorship experiences.
-          </p>
-        </CardHeader>
+      <MentorFitGate userType="preceptor" onSkip={handleNext}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              MentorFit™ Teaching Style Assessment
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              These questions help us match you with students whose learning style complements your teaching approach, 
+              creating more successful and rewarding mentorship experiences.
+            </p>
+          </CardHeader>
         <CardContent className="space-y-8">
           <div className="space-y-4">
             <Label>1. What best describes your mentoring style? *</Label>
@@ -527,6 +520,7 @@ export default function MentoringStyleStep({
           </div>
         </CardContent>
       </Card>
+      </MentorFitGate>
 
       <Card className="bg-muted/50">
         <CardContent className="pt-6">

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { Authenticated, Unauthenticated } from "convex/react"
+import { SignInButton } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -55,6 +57,21 @@ export default function PreceptorIntakePage() {
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="container mx-auto px-4 max-w-4xl">
+        <Unauthenticated>
+          <div className="text-center space-y-6 py-12">
+            <h1 className="text-3xl font-bold mb-2">Sign In Required</h1>
+            <p className="text-muted-foreground text-lg mb-8">
+              Please sign in to complete your preceptor application and join our network of healthcare professionals.
+            </p>
+            <SignInButton mode="modal">
+              <Button size="lg">
+                Sign In to Continue
+              </Button>
+            </SignInButton>
+          </div>
+        </Unauthenticated>
+
+        <Authenticated>
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Shape the future of advanced nursing</h1>
@@ -133,6 +150,7 @@ export default function PreceptorIntakePage() {
             Your expertise and mentorship will help shape the next generation of advanced practice nurses.
           </p>
         </div>
+        </Authenticated>
       </div>
     </div>
   )

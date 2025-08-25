@@ -4,7 +4,7 @@ import MentoLoopBackground from '@/components/mentoloop-background'
 
 export default function CallToAction() {
     return (
-        <section className="py-16 px-6">
+        <section className="py-20 md:py-32 px-6">
             <div className="mx-auto max-w-5xl">
                 <MentoLoopBackground className="rounded-3xl px-6 py-12 md:py-20 lg:py-32" showIcons={false}>
                     <div className="text-center">
@@ -25,7 +25,7 @@ export default function CallToAction() {
                                 asChild
                                 size="lg"
                                 variant="outline"
-                                className="border-white/30 text-white hover:bg-white/10 hover:text-white">
+                                className="border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm">
                                 <Link href="/preceptor-intake">
                                     <span>Become a Preceptor</span>
                                 </Link>

@@ -12,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar"
 
 import { useClerk, useUser } from "@clerk/nextjs"
@@ -20,14 +19,14 @@ import { dark } from '@clerk/themes'
 import { useTheme } from "next-themes"
 
 export function NavUser() {
-  const { isMobile } = useSidebar()
+  // const { isMobile } = useSidebar()
   const { openUserProfile } = useClerk()
   const { theme } = useTheme()
   const { user: clerkUser } = useUser();
 
-  const appearance = {
-    baseTheme: theme === "dark" ? dark : undefined,
-  }
+  // const appearance = {
+  //   baseTheme: theme === "dark" ? dark : undefined,
+  // }
 
   return (
     <SidebarMenu>

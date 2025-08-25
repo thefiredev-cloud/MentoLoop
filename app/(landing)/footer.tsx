@@ -4,28 +4,36 @@ import FooterWaveBackground from '@/components/footer-wave-background'
 
 const links = [
     {
-        title: 'Features',
-        href: '#',
+        title: 'How It Works',
+        href: '/help',
     },
     {
-        title: 'Solution',
-        href: '#',
+        title: 'For Students',
+        href: '/student-intake',
     },
     {
-        title: 'Customers',
-        href: '#',
+        title: 'For Preceptors',
+        href: '/preceptor-intake',
     },
     {
-        title: 'Pricing',
-        href: '#',
+        title: 'For Institutions',
+        href: '/institutions',
     },
     {
-        title: 'Help',
-        href: '#',
+        title: 'Help Center',
+        href: '/help',
     },
     {
-        title: 'About',
-        href: '#',
+        title: 'Contact Us',
+        href: '/contact',
+    },
+    {
+        title: 'Privacy Policy',
+        href: '/privacy',
+    },
+    {
+        title: 'Terms of Service',
+        href: '/terms',
     },
 ]
 

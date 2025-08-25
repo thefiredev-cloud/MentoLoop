@@ -17,7 +17,7 @@ import {
   Archive, 
   ArchiveRestore,
   Clock,
-  User,
+  // User,
   Stethoscope,
   BookOpen
 } from 'lucide-react'

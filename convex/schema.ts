@@ -11,14 +11,14 @@ export default defineSchema({
       permissions: v.optional(v.array(v.string())),
       email: v.optional(v.string()),
       createdAt: v.optional(v.number()),
-      // Texas-only location tracking
+      // Location tracking for supported states
       location: v.optional(v.object({
         city: v.string(),
-        state: v.string(), // Must be "TX"
+        state: v.string(), // AR, AZ, CA, CO, FL, LA, NM, OK, TX
         zipCode: v.string(),
         county: v.optional(v.string()),
-        metroArea: v.optional(v.string()), // Dallas-Fort Worth, Houston, Austin, San Antonio, etc.
-        region: v.optional(v.string()), // North Texas, East Texas, Central Texas, etc.
+        metroArea: v.optional(v.string()), // Major metro areas in each state
+        region: v.optional(v.string()), // Regional designation within state
         ipAddress: v.optional(v.string()),
         lat: v.optional(v.number()),
         lng: v.optional(v.number()),
@@ -292,10 +292,10 @@ export default defineSchema({
         rotationType: v.string(),
         location: v.optional(v.string()),
       }),
-      // Texas-specific location data for analytics
+      // Location data for analytics (multi-state)
       locationData: v.optional(v.object({
         city: v.string(),
-        state: v.string(), // Always "TX"
+        state: v.string(), // AR, AZ, CA, CO, FL, LA, NM, OK, TX
         zipCode: v.string(),
         county: v.optional(v.string()),
         metroArea: v.optional(v.string()),
@@ -374,10 +374,10 @@ export default defineSchema({
         // Open-ended feedback
         comments: v.optional(v.string()),
       }),
-      // Texas location data for regional analytics
+      // Location data for regional analytics (multi-state)
       locationData: v.optional(v.object({
         city: v.string(),
-        state: v.string(), // Always "TX"
+        state: v.string(), // AR, AZ, CA, CO, FL, LA, NM, OK, TX
         zipCode: v.string(),
         county: v.optional(v.string()),
         metroArea: v.optional(v.string()),

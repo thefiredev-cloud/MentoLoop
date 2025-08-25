@@ -1,5 +1,9 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { 
   BookOpen, 
   UserCheck, 
@@ -7,10 +11,10 @@ import {
   Settings, 
   Shield,
   Search,
-  Star,
   Clock,
   Users,
-  FileText
+  FileText,
+  HelpCircle
 } from 'lucide-react'
 
 export default function HelpCenter() {
@@ -35,11 +39,11 @@ After submission, you'll receive a confirmation and unlock matching access.`
         },
         {
           title: 'Finding Your First Preceptor Match',
-          content: 'Once your profile is submitted, our MentorFit™ engine identifies compatible preceptors. You\'ll be notified of matches to review and confirm. Paperwork and onboarding follow once you accept.'
+          content: 'Once your profile is submitted, our proprietary matching system identifies compatible preceptors. You\'ll be notified of potential matches to review and confirm. Paperwork and onboarding follow once you accept.'
         },
         {
           title: 'Understanding Our Matching Process',
-          content: 'Our hybrid approach blends algorithmic scoring and manual review. We evaluate compatibility, availability, and alignment with your clinical goals, then notify you when a top match is found.'
+          content: 'Our proprietary matching system ensures compatibility by evaluating multiple factors including clinical specialty needs, availability, learning preferences, and alignment with your educational goals. You\'ll be notified when a suitable match is found.'
         },
         {
           title: 'Setting Up Your Preferences',
@@ -58,21 +62,8 @@ After submission, you'll receive a confirmation and unlock matching access.`
       color: 'bg-green-500',
       items: [
         {
-          title: 'How MentorFit™ Algorithm Works',
-          content: `MentorFit™ is our proprietary 10-factor compatibility scoring system that evaluates:
-
-Learning Style Match - How your preferred learning method aligns with their mentoring approach
-Feedback Alignment - Whether your feedback preferences match their communication style  
-Autonomy Match - If your comfort level aligns with their supervision approach
-Structure Preference - How your need for organization matches their teaching style
-Resource Needs - Whether they provide the learning materials you prefer
-Observation Style - If your shadowing preferences match their patient interaction style
-Correction Method - How your preferred correction style aligns with their feedback approach
-Retention Method - Whether your learning retention style matches their teaching questions
-Relationship Dynamic - If your preferred mentor relationship matches their ideal dynamic
-Professional Values - Overlap in core healthcare values and ethics
-
-Scores are weighted by importance and combined into a 0-10 MentorFit™ score. Gold tier (8.0+) indicates exceptional compatibility, Silver tier (5.0-7.9) shows strong compatibility, and Bronze tier (0-4.9) suggests basic compatibility with potential for growth.`
+          title: 'How Our Matching System Works',
+          content: `Our proprietary matching system ensures compatibility between students and preceptors by evaluating multiple compatibility factors including learning styles, communication preferences, supervision approaches, and professional values. The system provides match recommendations based on comprehensive compatibility analysis to optimize your clinical learning experience.`
         },
         {
           title: 'What Makes a Good Match?',
@@ -89,70 +80,6 @@ Scores are weighted by importance and combined into a 0-10 MentorFit™ score. G
         {
           title: 'Match Timeline & Expectations',
           content: 'Most students receive a match in 1-3 weeks. Some specialties or rural areas may take longer. We\'ll keep you updated throughout.'
-        }
-      ]
-    },
-    {
-      id: 'mentorfit-algorithm',
-      title: 'MentorFit™ Algorithm',
-      icon: Star,
-      color: 'bg-indigo-500',
-      items: [
-        {
-          title: 'Understanding Your MentorFit™ Score',
-          content: `Your MentorFit™ score is a comprehensive 0-10 rating that predicts how well you'll work with a specific preceptor. Higher scores indicate better compatibility and learning outcomes.
-
-🥇 Gold Tier (8.0-10.0): Exceptional compatibility - these matches typically result in outstanding learning experiences
-🥈 Silver Tier (5.0-7.9): Strong compatibility - these matches work very well with minor adjustments  
-🥉 Bronze Tier (0-4.9): Basic compatibility - these matches can work but may require more communication upfront`
-        },
-        {
-          title: 'The 10 Compatibility Factors',
-          content: `1. Learning Style Match (High Weight) - Visual, auditory, kinesthetic, or mixed learning preferences
-2. Feedback Alignment (High Weight) - Real-time, daily check-ins, or weekly summaries
-3. Autonomy Match (Medium Weight) - Comfort with independence vs. close supervision
-4. Structure Preference (Medium Weight) - Need for clear schedules vs. flexible approach
-5. Resource Needs (Low Weight) - Preference for additional learning materials and resources
-6. Observation Style (Medium Weight) - Shadowing first vs. jumping into patient care
-7. Correction Method (Medium Weight) - Direct feedback vs. supportive private discussions
-8. Retention Method (Low Weight) - How you best process and remember information
-9. Relationship Dynamic (High Weight) - Preferred mentor-student relationship style
-10. Professional Values (Medium Weight) - Alignment on healthcare values and ethics`
-        },
-        {
-          title: 'How Scoring Works',
-          content: `Each factor receives a 0-2 point score based on compatibility:
-• 2 points = Perfect match (identical preferences)
-• 1 point = Good match (complementary preferences)  
-• 0 points = Mismatch (conflicting preferences)
-
-Factors are weighted by importance - learning style and feedback alignment count more heavily than resource preferences. The final score is calculated and rounded to one decimal place.
-
-Our AI enhancement layer then analyzes contextual factors like schedule compatibility and clinical exposure opportunities to provide additional insights.`
-        },
-        {
-          title: 'Why MentorFit™ Matters',
-          content: `Research shows that learning style compatibility significantly impacts clinical education outcomes. Students with higher MentorFit™ scores report:
-
-• 87% higher satisfaction with their rotation experience
-• 34% better learning objective achievement  
-• 62% improved confidence in clinical skills
-• 78% likelihood to recommend their preceptor to other students
-• 45% faster integration into the clinical team
-
-MentorFit™ goes beyond just finding availability - it finds the right educational partnership for your success.`
-        },
-        {
-          title: 'Improving Your Matches',
-          content: `To get better MentorFit™ scores:
-
-✓ Complete your learning style assessment thoughtfully and honestly
-✓ Update your preferences as you gain more clinical experience
-✓ Provide detailed feedback after rotations to refine the algorithm
-✓ Consider being open to different mentoring styles - some of the best learning happens when you're slightly outside your comfort zone
-✓ Communicate with your preceptor about preferences early in the rotation
-
-Remember: A Bronze tier match can still be valuable if both parties communicate well and set clear expectations.`
         }
       ]
     },
@@ -315,6 +242,14 @@ Contact our technical team at tech@mentoloop.com for complex technical issues.`
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Find answers to common questions and get the support you need to make the most of MentoLoop.
           </p>
+          <div className="mt-6">
+            <Button asChild>
+              <Link href="/faq" className="inline-flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                View All FAQs
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Quick Links */}
@@ -322,7 +257,19 @@ Contact our technical team at tech@mentoloop.com for complex technical issues.`
           {sections.map((section) => {
             const IconComponent = section.icon
             return (
-              <Card key={section.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+              <Card 
+                key={section.id} 
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => {
+                  const element = document.getElementById(section.id)
+                  if (element) {
+                    element.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    })
+                  }
+                }}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-2">
                     <div className={`p-2 rounded-lg ${section.color}`}>
@@ -344,7 +291,7 @@ Contact our technical team at tech@mentoloop.com for complex technical issues.`
           {sections.map((section) => {
             const IconComponent = section.icon
             return (
-              <div key={section.id} id={section.id}>
+              <div key={section.id} id={section.id} className="scroll-mt-20">
                 <div className="flex items-center gap-3 mb-6">
                   <div className={`p-2 rounded-lg ${section.color}`}>
                     <IconComponent className="h-6 w-6 text-white" />
@@ -379,19 +326,26 @@ Contact our technical team at tech@mentoloop.com for complex technical issues.`
               Can&apos;t find what you&apos;re looking for? Our support team is here to help.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`}
-                className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                <FileText className="h-4 w-4" />
-                Email Support
-              </a>
-              <a 
-                href="/contact"
-                className="inline-flex items-center justify-center gap-2 border border-border px-6 py-3 rounded-lg hover:bg-muted transition-colors"
-              >
-                Contact Form
-              </a>
+              <Button asChild>
+                <Link href="/faq" className="inline-flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  Browse FAQs
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/contact" className="inline-flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Submit Question
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <a 
+                  href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`}
+                  className="inline-flex items-center gap-2"
+                >
+                  Email Support
+                </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

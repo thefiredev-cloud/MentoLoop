@@ -147,20 +147,80 @@ export default function AgreementsStep({
 
     setIsSubmitting(true)
     try {
+      // Debug: Log the data being submitted
+      console.log('Submitting student intake form with data:')
+      console.log('personalInfo:', data.personalInfo)
+      console.log('schoolInfo:', data.schoolInfo)
+      console.log('rotationNeeds:', data.rotationNeeds)
+      console.log('matchingPreferences:', data.matchingPreferences)
+      console.log('learningStyle:', data.learningStyle)
+      console.log('agreements:', formData)
+      
+      // Validate required fields exist
+      if (!data.personalInfo || Object.keys(data.personalInfo).length === 0) {
+        throw new Error('Personal information is missing. Please complete all steps.')
+      }
+      if (!data.schoolInfo || Object.keys(data.schoolInfo).length === 0) {
+        throw new Error('School information is missing. Please complete all steps.')
+      }
+      if (!data.rotationNeeds || Object.keys(data.rotationNeeds).length === 0) {
+        throw new Error('Rotation needs are missing. Please complete all steps.')
+      }
+      if (!data.learningStyle || Object.keys(data.learningStyle).length === 0) {
+        throw new Error('Learning style preferences are missing. Please complete all steps.')
+      }
+      
+      // Ensure learning style has all required fields with defaults
+      // Filter out empty strings from learningStyle data to allow defaults to be used
+      const learningStyleData = data.learningStyle || {}
+      const filteredLearningStyle = Object.entries(learningStyleData).reduce((acc, [key, value]) => {
+        // Only include non-empty values
+        if (value !== '' && value !== undefined && value !== null) {
+          acc[key] = value
+        }
+        return acc
+      }, {} as Record<string, unknown>)
+      
+      const learningStyleWithDefaults = {
+        learningMethod: "hands-on",
+        clinicalComfort: "somewhat-comfortable",
+        feedbackPreference: "real-time",
+        structurePreference: "general-guidance",
+        mentorRelationship: "teacher-coach",
+        observationPreference: "mix-both",
+        correctionStyle: "supportive-private",
+        retentionStyle: "watching-doing",
+        additionalResources: "occasionally",
+        proactiveQuestions: 3,
+        ...filteredLearningStyle,
+      } as LearningStyle
+      
+      // Ensure matching preferences has defaults
+      const matchingPreferencesWithDefaults = {
+        comfortableWithSharedPlacements: false,
+        languagesSpoken: [],
+        idealPreceptorQualities: "",
+        ...(data.matchingPreferences || {}),
+      } as MatchingPreferences
+      
       // Submit all form data to Convex
       await createOrUpdateStudent({
         personalInfo: data.personalInfo as PersonalInfo,
         schoolInfo: data.schoolInfo as SchoolInfo,
         rotationNeeds: data.rotationNeeds as RotationNeeds,
-        matchingPreferences: data.matchingPreferences as MatchingPreferences,
-        learningStyle: data.learningStyle as LearningStyle,
+        matchingPreferences: matchingPreferencesWithDefaults,
+        learningStyle: learningStyleWithDefaults,
         agreements: formData,
       })
 
       setIsSubmitted(true)
     } catch (error) {
       console.error('Failed to submit form:', error)
-      setErrors({ submit: 'Failed to submit form. Please try again.' })
+      if (error instanceof Error) {
+        setErrors({ submit: error.message })
+      } else {
+        setErrors({ submit: 'Failed to submit form. Please try again.' })
+      }
     } finally {
       setIsSubmitting(false)
     }

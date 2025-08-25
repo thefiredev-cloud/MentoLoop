@@ -53,8 +53,26 @@ interface Match {
   }
   createdAt: number
   updatedAt: number
-  student: any
-  preceptor: any
+  student: {
+    _id: string
+    firstName: string
+    lastName: string
+    email: string
+    school?: string
+    personalInfo?: {
+      fullName?: string
+    }
+  } | null
+  preceptor: {
+    _id: string
+    firstName: string
+    lastName: string
+    email: string
+    specialty?: string
+    personalInfo?: {
+      fullName?: string
+    }
+  } | null
 }
 
 export default function MatchManagementPage() {
@@ -88,14 +106,14 @@ export default function MatchManagementPage() {
   const forceCreateMatch = useMutation(api.admin.forceCreateMatch)
 
   // Handle match selection
-  const handleViewMatch = (match: Match) => {
-    setSelectedMatch(match)
+  const handleViewMatch = (match: {_id: string; [key: string]: unknown}) => {
+    setSelectedMatch(match as unknown as Match)
     setShowMatchDetails(true)
   }
 
-  const handleOverrideScore = (match: Match) => {
-    setSelectedMatch(match)
-    setOverrideScore([match.mentorFitScore])
+  const handleOverrideScore = (match: {_id: string; mentorFitScore?: number; [key: string]: unknown}) => {
+    setSelectedMatch(match as unknown as Match)
+    setOverrideScore([match.mentorFitScore || 5])
     setShowOverrideDialog(true)
   }
 
@@ -319,7 +337,7 @@ export default function MatchManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {matchesData.map((match: Match) => (
+                  {matchesData.map((match) => (
                     <TableRow key={match._id}>
                       <TableCell>
                         <div>

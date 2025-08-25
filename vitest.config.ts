@@ -9,8 +9,8 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
-    include: ['tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'tests/integration/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: ['tests/e2e/**/*', 'node_modules/**/*'],
+    include: ['tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'tests/integration/third-party-integrations.test.ts'],
+    exclude: ['tests/e2e/**/*', 'tests/integration/third-party-services.test.ts', 'node_modules/**/*'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

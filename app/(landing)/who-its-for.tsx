@@ -16,7 +16,8 @@ export default function WhoItsFor() {
                 "Quality-vetted preceptors"
             ],
             buttonText: "Find My Preceptor",
-            buttonLink: "/student-intake"
+            buttonLink: "/student-intake",
+            iconColor: "blue"
         },
         {
             icon: Stethoscope,
@@ -29,7 +30,8 @@ export default function WhoItsFor() {
                 "Administrative support"
             ],
             buttonText: "Become a Preceptor", 
-            buttonLink: "/preceptor-intake"
+            buttonLink: "/preceptor-intake",
+            iconColor: "purple"
         },
         {
             icon: Building2,
@@ -42,7 +44,8 @@ export default function WhoItsFor() {
                 "Partnership opportunities"
             ],
             buttonText: "Partner With Us",
-            buttonLink: "/contact"
+            buttonLink: "/contact",
+            iconColor: "green"
         }
     ]
 
@@ -60,12 +63,41 @@ export default function WhoItsFor() {
                 <div className="grid gap-8 md:grid-cols-3">
                     {audiences.map((audience, index) => {
                         const IconComponent = audience.icon
+                        
+                        const getIconStyles = (color: string) => {
+                            switch(color) {
+                                case 'blue':
+                                    return {
+                                        gradient: 'from-blue-500 to-blue-700',
+                                        iconClass: 'text-blue-600'
+                                    }
+                                case 'purple':
+                                    return {
+                                        gradient: 'from-purple-500 to-pink-500',
+                                        iconClass: 'text-purple-600'
+                                    }
+                                case 'green':
+                                    return {
+                                        gradient: 'from-green-500 to-emerald-500',
+                                        iconClass: 'text-green-600'
+                                    }
+                                default:
+                                    return {
+                                        gradient: 'from-primary to-primary',
+                                        iconClass: 'text-primary'
+                                    }
+                            }
+                        }
+                        
+                        const iconStyles = getIconStyles(audience.iconColor)
+                        
                         return (
                             <Card key={index} className="text-center h-full flex flex-col">
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-center mb-4">
-                                        <div className="p-4 rounded-full bg-primary/10">
-                                            <IconComponent className="h-8 w-8 text-primary" />
+                                        <div className="relative flex items-center justify-center w-16 h-16">
+                                            <div className={`absolute inset-0 bg-gradient-to-br ${iconStyles.gradient} rounded-lg opacity-20`} />
+                                            <IconComponent className={`h-10 w-10 ${iconStyles.iconClass} relative z-10`} strokeWidth={2.5} />
                                         </div>
                                     </div>
                                     <CardTitle className="text-2xl">{audience.title}</CardTitle>

@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import { ClerkProvider } from '@clerk/nextjs'
 import ConvexClientProvider from '@/components/ConvexClientProvider'
+import { NavHeader } from '@/components/nav-header'
+import { DemoRoleSwitcher } from '@/components/demo-role-switcher'
 
 
 const geistSans = Geist({
@@ -72,7 +74,9 @@ export default function RootLayout({
         >
           <ClerkProvider>
             <ConvexClientProvider>
+              <NavHeader />
               {children}
+              <DemoRoleSwitcher />
             </ConvexClientProvider>
           </ClerkProvider>
         </ThemeProvider>

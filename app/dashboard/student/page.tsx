@@ -17,9 +17,9 @@ import {
   MessageCircle, 
   User,
   TrendingUp,
-  FileText,
-  BookOpen,
-  AlertCircle,
+  // FileText,
+  // BookOpen,
+  // AlertCircle,
   Search
 } from 'lucide-react'
 import Link from 'next/link'
@@ -40,7 +40,7 @@ export default function StudentDashboardPage() {
     )
   }
 
-  const { student, user, currentMatch } = dashboardStats
+  const { student, currentMatch } = dashboardStats
 
   // Quick actions configuration
   const quickActions = [
@@ -303,7 +303,18 @@ export default function StudentDashboardPage() {
 
         {/* Recent Activity */}
         <ActivityFeed
-          activities={recentActivity as any || []}
+          activities={recentActivity as Array<{
+            id: string
+            type: 'match' | 'rotation' | 'evaluation' | 'payment' | 'message' | 'system'
+            title: string
+            description: string
+            timestamp: number
+            status?: 'success' | 'warning' | 'error' | 'info'
+            actor?: {
+              name: string
+              type: 'student' | 'preceptor' | 'admin' | 'system'
+            }
+          }> || []}
           title="Recent Activity"
           maxItems={5}
         />

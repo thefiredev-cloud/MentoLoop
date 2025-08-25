@@ -9,6 +9,13 @@ async function userByExternalId(ctx: QueryCtx, externalId: string) {
     .unique();
 }
 
+export const getAllPaymentAttempts = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("paymentAttempts").collect();
+  },
+});
+
 export const savePaymentAttempt = internalMutation({
   args: { 
     paymentAttemptData: paymentAttemptDataValidator

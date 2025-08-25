@@ -1,96 +1,193 @@
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Shield, Users, Zap, FileCheck } from 'lucide-react'
+import { Shield, Users, FileCheck, Brain, Clock, Award, Heart, Star, Target, Zap, BookOpen, CheckCircle } from 'lucide-react'
+import { BentoGridCarousel, BentoGridItem } from '@/components/ui/bento-grid'
 
 export default function FeaturesOne() {
+    // Row 1 - Moving Left (6 features) with enhanced colored icons
+    const featuresRow1 = [
+        {
+            title: "Verified Preceptors",
+            description: "Each preceptor is meticulously vetted with specialization in NP education.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg opacity-20" />
+                    <Shield className="h-8 w-8 text-blue-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-blue-500/20 via-blue-400/10 to-transparent dark:from-blue-400/20 dark:via-blue-500/10 dark:to-transparent"
+        },
+        {
+            title: "AI-Powered Matching",
+            description: "Smart algorithm with human oversight for perfect matches.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg opacity-20" />
+                    <Brain className="h-8 w-8 text-purple-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-purple-500/20 via-pink-400/10 to-transparent dark:from-purple-400/20 dark:via-pink-500/10 dark:to-transparent"
+        },
+        {
+            title: "Fast Placements",
+            description: "Average placement in 72 hours with our extensive network.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg opacity-20" />
+                    <Clock className="h-8 w-8 text-orange-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-orange-500/20 via-amber-400/10 to-transparent dark:from-orange-400/20 dark:via-amber-500/10 dark:to-transparent"
+        },
+        {
+            title: "Excellence Guaranteed",
+            description: "98% student satisfaction rate with quality assurance.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg opacity-20" />
+                    <Award className="h-8 w-8 text-yellow-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-yellow-500/20 via-yellow-400/10 to-transparent dark:from-yellow-400/20 dark:via-yellow-500/10 dark:to-transparent"
+        },
+        {
+            title: "Mission Driven",
+            description: "Committed to transforming NP education one match at a time.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-rose-500 rounded-lg opacity-20" />
+                    <Target className="h-8 w-8 text-red-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-red-500/20 via-rose-400/10 to-transparent dark:from-red-400/20 dark:via-rose-500/10 dark:to-transparent"
+        },
+        {
+            title: "Quality Focused",
+            description: "Premium clinical experiences that exceed educational standards.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg opacity-20" />
+                    <Star className="h-8 w-8 text-indigo-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-indigo-500/20 via-indigo-400/10 to-transparent dark:from-indigo-400/20 dark:via-indigo-500/10 dark:to-transparent"
+        }
+    ];
+
+    // Row 2 - Moving Right (6 features) with enhanced colored icons
+    const featuresRow2 = [
+        {
+            title: "Mentorship Loop",
+            description: "Sustainable ecosystem where students become future preceptors.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-lg opacity-20" />
+                    <Users className="h-8 w-8 text-teal-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-teal-500/20 via-cyan-400/10 to-transparent dark:from-teal-400/20 dark:via-cyan-500/10 dark:to-transparent"
+        },
+        {
+            title: "Seamless Support",
+            description: "Full documentation assistance and ongoing guidance throughout.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg opacity-20" />
+                    <FileCheck className="h-8 w-8 text-green-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-green-500/20 via-emerald-400/10 to-transparent dark:from-green-400/20 dark:via-emerald-500/10 dark:to-transparent"
+        },
+        {
+            title: "Community First",
+            description: "Building lasting relationships in healthcare education.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg opacity-20" />
+                    <Heart className="h-8 w-8 text-pink-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-pink-500/20 via-rose-400/10 to-transparent dark:from-pink-400/20 dark:via-rose-500/10 dark:to-transparent"
+        },
+        {
+            title: "Evidence Based",
+            description: "Grounded in best practices and educational research.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-blue-500 rounded-lg opacity-20" />
+                    <BookOpen className="h-8 w-8 text-sky-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-sky-500/20 via-blue-400/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent"
+        },
+        {
+            title: "Instant Access",
+            description: "Connect with preceptors through our streamlined platform.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-500 rounded-lg opacity-20" />
+                    <Zap className="h-8 w-8 text-violet-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-violet-500/20 via-purple-400/10 to-transparent dark:from-violet-400/20 dark:via-purple-500/10 dark:to-transparent"
+        },
+        {
+            title: "Success Stories",
+            description: "Thousands of successful placements and growing.",
+            icon: (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="absolute inset-0 bg-gradient-to-br from-lime-500 to-green-500 rounded-lg opacity-20" />
+                    <CheckCircle className="h-8 w-8 text-lime-600 relative z-10" strokeWidth={2.5} />
+                </div>
+            ),
+            gradient: "from-lime-500/20 via-green-400/10 to-transparent dark:from-lime-400/20 dark:via-green-500/10 dark:to-transparent"
+        }
+    ];
+
     return (
-        <section id="how-it-works" className="py-16 md:py-32 bg-muted/30">
-            <div className="py-24">
-                <div className="mx-auto w-full max-w-6xl px-6">
+        <section id="how-it-works" className="relative py-20 md:py-32 overflow-hidden">
+            {/* Aurora gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 dark:from-primary/10 dark:to-secondary/10" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+            
+            <div className="relative">
+                <div className="mx-auto w-full max-w-7xl px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-foreground text-4xl font-semibold mb-4">Why MentoLoop?</h2>
-                        <p className="text-muted-foreground text-balance text-lg max-w-3xl mx-auto">
+                        <h2 className="text-foreground text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+                            Why MentoLoop?
+                        </h2>
+                        <p className="text-muted-foreground text-balance text-xl max-w-3xl mx-auto leading-relaxed">
                             We are more than just matchmakers. We are your dedicated partner in your clinical journey, 
                             offering unique support and guidance.
                         </p>
                     </div>
 
-                    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-                        <Card className="p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="p-3 rounded-full bg-primary/10">
-                                    <Shield className="h-6 w-6 text-primary" />
-                                </div>
-                            </div>
-                            <h3 className="text-foreground text-lg font-semibold mb-2">Verified Preceptors</h3>
-                            <p className="text-muted-foreground text-sm">
-                                Each preceptor in our network is meticulously vetted and holds a specialization in nurse practitioner education. 
-                                This ensures you receive the highest quality guidance.
-                            </p>
-                        </Card>
+                    <div className="space-y-8">
+                        {/* Row 1 - Moving Left */}
+                        <BentoGridCarousel direction="left" className="mx-auto">
+                            {featuresRow1.map((feature, i) => (
+                                <BentoGridItem
+                                    key={`row1-${i}`}
+                                    title={feature.title}
+                                    description={feature.description}
+                                    icon={feature.icon}
+                                    gradient={feature.gradient}
+                                    carousel={true}
+                                />
+                            ))}
+                        </BentoGridCarousel>
 
-                        <Card className="p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="p-3 rounded-full bg-primary/10">
-                                    <Zap className="h-6 w-6 text-primary" />
-                                </div>
-                            </div>
-                            <h3 className="text-foreground text-lg font-semibold mb-2">AI-Powered Matching</h3>
-                            <p className="text-muted-foreground text-sm">
-                                Our unique algorithm finds your perfect match, with human oversight, ensuring connections are 
-                                based on both data and personal compatibility.
-                            </p>
-                        </Card>
-
-                        <Card className="p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="p-3 rounded-full bg-primary/10">
-                                    <Users className="h-6 w-6 text-primary" />
-                                </div>
-                            </div>
-                            <h3 className="text-foreground text-lg font-semibold mb-2">Mentorship Loop</h3>
-                            <p className="text-muted-foreground text-sm">
-                                We create a sustainable ecosystem where current students become future preceptors, 
-                                ensuring a continuous cycle of support and learning.
-                            </p>
-                        </Card>
-
-                        <Card className="p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="p-3 rounded-full bg-primary/10">
-                                    <FileCheck className="h-6 w-6 text-primary" />
-                                </div>
-                            </div>
-                            <h3 className="text-foreground text-lg font-semibold mb-2">Seamless Paperwork</h3>
-                            <p className="text-muted-foreground text-sm">
-                                Full-service support including documentation assistance, scheduling coordination, 
-                                and ongoing guidance to relieve administrative burdens.
-                            </p>
-                        </Card>
-                    </div>
-
-                    <div className="mt-20 text-center">
-                        <div className="flex flex-wrap justify-center gap-4 mb-8">
-                            <Badge variant="secondary" className="px-4 py-2">
-                                HIPAA-Compliant
-                            </Badge>
-                            <Badge variant="secondary" className="px-4 py-2">
-                                FERPA-Aware
-                            </Badge>
-                            <Badge variant="secondary" className="px-4 py-2">
-                                Built by NPs
-                            </Badge>
-                            <Badge variant="secondary" className="px-4 py-2">
-                                Designed by NPs
-                            </Badge>
-                        </div>
-                        
-                        <blockquote className="before:bg-primary relative mt-12 max-w-2xl mx-auto pl-6 before:absolute before:inset-y-0 before:left-0 before:w-1 before:rounded-full">
-                            <p className="text-foreground text-lg italic">
-                                &quot;This isn&apos;t about filling spots. It&apos;s about fixing the pipeline. MentoLoop exists to transform NP education - 
-                                one match, one mentor, one future provider at a time.&quot;
-                            </p>
-                        </blockquote>
+                        {/* Row 2 - Moving Right */}
+                        <BentoGridCarousel direction="right" className="mx-auto">
+                            {featuresRow2.map((feature, i) => (
+                                <BentoGridItem
+                                    key={`row2-${i}`}
+                                    title={feature.title}
+                                    description={feature.description}
+                                    icon={feature.icon}
+                                    gradient={feature.gradient}
+                                    carousel={true}
+                                />
+                            ))}
+                        </BentoGridCarousel>
                     </div>
                 </div>
             </div>

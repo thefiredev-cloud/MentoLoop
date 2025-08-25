@@ -115,14 +115,25 @@ export const handleStripeWebhook = action({
   },
   handler: async (ctx, args) => {
     const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     
-    if (!stripeWebhookSecret) {
-      throw new Error("Stripe webhook secret not configured");
+    if (!stripeWebhookSecret || !stripeSecretKey) {
+      throw new Error("Stripe configuration missing");
     }
 
     try {
-      // In a real implementation, you'd verify the webhook signature here
-      // For now, we'll parse the payload directly
+      // Verify webhook signature to ensure it's from Stripe
+      const verificationResult = await ctx.runAction(internal.paymentsNode.verifyStripeSignature, {
+        payload: args.payload,
+        signature: args.signature,
+        webhookSecret: stripeWebhookSecret,
+      });
+
+      if (!verificationResult.verified) {
+        throw new Error("Invalid webhook signature");
+      }
+
+      // Parse the verified event
       const event = JSON.parse(args.payload);
 
       switch (event.type) {
@@ -146,6 +157,7 @@ export const handleStripeWebhook = action({
     }
   },
 });
+
 
 async function handleCheckoutCompleted(ctx: any, session: any) {
   const matchId = session.metadata?.matchId;

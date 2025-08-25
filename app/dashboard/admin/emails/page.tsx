@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
@@ -73,7 +72,7 @@ export default function EmailAnalyticsPage() {
     try {
       await sendTestEmail({
         to: testEmail,
-        templateKey: testTemplate as any,
+        templateKey: testTemplate as 'WELCOME_STUDENT' | 'WELCOME_PRECEPTOR' | 'MATCH_CONFIRMED_STUDENT' | 'MATCH_CONFIRMED_PRECEPTOR' | 'PAYMENT_RECEIVED' | 'ROTATION_COMPLETE_STUDENT' | 'ROTATION_COMPLETE_PRECEPTOR',
         variables: {
           firstName: 'Test User',
           preceptorName: 'Dr. Jane Smith',

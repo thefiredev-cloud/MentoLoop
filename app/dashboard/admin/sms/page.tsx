@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
@@ -70,7 +69,6 @@ export default function SMSAnalyticsPage() {
     }
     
     // Validate phone number format
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
     const cleanPhone = testPhone.replace(/\D/g, '')
     if (cleanPhone.length < 10) {
       toast.error('Please enter a valid phone number')
@@ -80,7 +78,7 @@ export default function SMSAnalyticsPage() {
     try {
       await sendTestSMS({
         to: testPhone,
-        templateKey: testTemplate as any,
+        templateKey: testTemplate as 'MATCH_CONFIRMATION' | 'PAYMENT_REMINDER' | 'ROTATION_START_REMINDER' | 'SURVEY_REQUEST' | 'WELCOME_CONFIRMATION',
         variables: {
           firstName: 'Test User',
           studentName: 'John Doe',

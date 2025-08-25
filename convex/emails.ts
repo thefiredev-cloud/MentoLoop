@@ -98,6 +98,40 @@ Match Cycle: {{term}}
 You'll receive a confirmation packet soon. Let's make this a great rotation!
 
 - The MentoLoop Team
+    `
+  },
+
+  CONTACT_FORM: {
+    subject: "New Contact Form Submission - {{category}}",
+    content: `
+New contact form submission received:
+
+Name: {{name}}
+Email: {{email}}
+Category: {{category}}
+Subject: {{subject}}
+
+Message:
+{{message}}
+
+Timestamp: {{timestamp}}
+
+---
+This is an automated message from MentoLoop Contact Form.
+    `
+  },
+
+  CONTACT_FORM_CONFIRMATION: {
+    subject: "We've Received Your Message - MentoLoop",
+    content: `
+Hi {{name}},
+
+Thank you for contacting MentoLoop. We've received your message regarding "{{subject}}" and will respond within 24-48 hours.
+
+If this is an urgent matter, please feel free to call us at 1-800-MENTOR-1 during business hours (Mon-Fri 9AM-5PM EST).
+
+Best regards,
+The MentoLoop Support Team
 Match. Mentor. Master.
     `
   },
@@ -189,7 +223,9 @@ export const sendEmail = action({
       v.literal("MATCH_CONFIRMED_PRECEPTOR"),
       v.literal("PAYMENT_RECEIVED"),
       v.literal("ROTATION_COMPLETE_STUDENT"),
-      v.literal("ROTATION_COMPLETE_PRECEPTOR")
+      v.literal("ROTATION_COMPLETE_PRECEPTOR"),
+      v.literal("CONTACT_FORM"),
+      v.literal("CONTACT_FORM_CONFIRMATION")
     ),
     variables: v.record(v.string(), v.string()),
     fromName: v.optional(v.string()),
@@ -433,7 +469,9 @@ export const sendBulkEmail = action({
       v.literal("MATCH_CONFIRMED_PRECEPTOR"),
       v.literal("PAYMENT_RECEIVED"),
       v.literal("ROTATION_COMPLETE_STUDENT"),
-      v.literal("ROTATION_COMPLETE_PRECEPTOR")
+      v.literal("ROTATION_COMPLETE_PRECEPTOR"),
+      v.literal("CONTACT_FORM"),
+      v.literal("CONTACT_FORM_CONFIRMATION")
     ),
     fromName: v.optional(v.string()),
     replyTo: v.optional(v.string()),
@@ -533,6 +571,14 @@ export const getEmailAnalytics = query({
   },
 });
 
+// Get all email logs
+export const getAllEmailLogs = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("emailLogs").order("desc").collect();
+  },
+});
+
 // Get email logs for debugging
 export const getEmailLogs = query({
   args: {
@@ -570,7 +616,9 @@ export const sendEmailInternal = internalAction({
       v.literal("MATCH_CONFIRMED_PRECEPTOR"),
       v.literal("PAYMENT_RECEIVED"),
       v.literal("ROTATION_COMPLETE_STUDENT"),
-      v.literal("ROTATION_COMPLETE_PRECEPTOR")
+      v.literal("ROTATION_COMPLETE_PRECEPTOR"),
+      v.literal("CONTACT_FORM"),
+      v.literal("CONTACT_FORM_CONFIRMATION")
     ),
     variables: v.record(v.string(), v.string()),
     fromName: v.optional(v.string()),
@@ -663,6 +711,50 @@ export const sendEmailInternal = internalAction({
       });
 
       throw error;
+    }
+  },
+});
+
+// Send contact form email
+export const sendContactFormEmail = action({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    subject: v.string(),
+    category: v.string(),
+    message: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      // Send email to support team
+      await ctx.runAction(internal.emails.sendEmailInternal, {
+        to: process.env.SENDGRID_FROM_EMAIL || 'support@mentoloop.com',
+        templateKey: 'CONTACT_FORM',
+        variables: {
+          name: args.name,
+          email: args.email,
+          subject: args.subject,
+          category: args.category,
+          message: args.message,
+          timestamp: new Date().toLocaleString(),
+        },
+        replyTo: args.email,
+      });
+
+      // Send confirmation to user
+      await ctx.runAction(internal.emails.sendEmailInternal, {
+        to: args.email,
+        templateKey: 'CONTACT_FORM_CONFIRMATION',
+        variables: {
+          name: args.name,
+          subject: args.subject,
+        },
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to send contact form email:', error);
+      throw new Error('Failed to send message');
     }
   },
 });

@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { isTexasZipCode } from '@/lib/location'
+import { isSupportedZipCode, getStateFromZip } from '@/lib/states-config'
+import { STATE_OPTIONS } from '@/lib/states-config'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface PracticeInfoStepProps {
   data: Record<string, unknown>
@@ -40,7 +42,7 @@ export default function PracticeInfoStep({
     practiceSettings: [] as string[],
     address: '',
     city: '',
-    state: 'TX', // Default to Texas
+    state: '', // No default state - user must select
     zipCode: '',
     website: '',
     emrUsed: '',
@@ -93,16 +95,22 @@ export default function PracticeInfoStep({
 
     if (!formData.state.trim()) {
       newErrors.state = 'State is required'
-    } else if (formData.state !== 'TX') {
-      newErrors.state = 'Practice must be located in Texas'
+    } else if (!STATE_OPTIONS.find(opt => opt.value === formData.state)) {
+      newErrors.state = 'Please select a supported state'
     }
 
     if (!formData.zipCode.trim()) {
       newErrors.zipCode = 'ZIP code is required'
     } else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) {
       newErrors.zipCode = 'Please enter a valid ZIP code'
-    } else if (!isTexasZipCode(formData.zipCode)) {
-      newErrors.zipCode = 'Practice must be located in Texas (invalid Texas ZIP code)'
+    } else if (!isSupportedZipCode(formData.zipCode)) {
+      newErrors.zipCode = 'ZIP code must be in a supported state'
+    } else {
+      // Check if ZIP matches selected state
+      const zipState = getStateFromZip(formData.zipCode)
+      if (zipState && formData.state && zipState !== formData.state) {
+        newErrors.zipCode = `ZIP code is not in ${formData.state}`
+      }
     }
 
     if (formData.website && !/^https?:\/\/.+\..+/.test(formData.website)) {
@@ -202,14 +210,20 @@ export default function PracticeInfoStep({
 
         <div className="space-y-2">
           <Label htmlFor="state">State *</Label>
-          <Input
-            id="state"
-            value="TX"
-            disabled
-            className="bg-muted"
-          />
+          <Select value={formData.state} onValueChange={(value) => handleInputChange('state', value)}>
+            <SelectTrigger id="state" className={errors.state ? 'border-destructive' : ''}>
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATE_OPTIONS.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-muted-foreground">
-            MentoLoop currently operates only in Texas
+            Select the state where your practice is located
           </p>
           {errors.state && (
             <p className="text-sm text-destructive">{errors.state}</p>
@@ -222,11 +236,11 @@ export default function PracticeInfoStep({
             id="zipCode"
             value={formData.zipCode}
             onChange={(e) => handleZipChange(e.target.value)}
-            placeholder="Texas ZIP code (e.g., 75201)"
+            placeholder="ZIP code (e.g., 75201)"
             className={errors.zipCode ? 'border-destructive' : ''}
           />
           <p className="text-xs text-muted-foreground">
-            Must be a valid Texas ZIP code
+            Enter your practice&apos;s ZIP code
           </p>
           {errors.zipCode && (
             <p className="text-sm text-destructive">{errors.zipCode}</p>

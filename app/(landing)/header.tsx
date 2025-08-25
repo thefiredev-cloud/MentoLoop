@@ -7,7 +7,8 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton } from "@clerk/nextjs";
+import { CustomSignupModal } from '@/components/custom-signup-modal'
 
 import { dark } from '@clerk/themes'
 import { useTheme } from "next-themes"
@@ -24,10 +25,19 @@ const menuItems = [
 export const HeroHeader = () => {
     const [menuState, setMenuState] = React.useState(false)
     const [isScrolled, setIsScrolled] = React.useState(false)
+    const [showSignupModal, setShowSignupModal] = React.useState(false)
     const { theme } = useTheme()
 
     const appearance = {
         baseTheme: theme === "dark" ? dark : undefined,
+        elements: {
+            footerAction: "hidden", // Hide "What is Clerk?" link
+        },
+        layout: {
+          helpPageUrl: "/help",
+          privacyPageUrl: "/privacy",
+          termsPageUrl: "/terms"
+        }
     }
 
     React.useEffect(() => {
@@ -38,12 +48,13 @@ export const HeroHeader = () => {
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
     return (
-        <header>
-            <nav
-                data-state={menuState && 'active'}
-                className="fixed z-20 w-full px-2">
-                <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12', isScrolled && 'glass-navbar-enhanced max-w-4xl rounded-2xl lg:px-5')}>
-                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
+        <>
+            <header>
+                <nav
+                    data-state={menuState && 'active'}
+                    className="fixed z-20 w-full px-2">
+                    <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12', isScrolled && 'glass-navbar-enhanced max-w-4xl rounded-2xl lg:px-5')}>
+                        <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
                         <div className="flex w-full justify-between lg:w-auto">
                             <Link
                                 href="/"
@@ -117,26 +128,18 @@ export const HeroHeader = () => {
                                             </Link>
                                         </Button>
                                     </SignInButton>
-                                    <SignUpButton mode="modal">
-                                        <Button
-                                            asChild
-                                            size="sm"
-                                            className={cn(isScrolled && 'lg:hidden')}>
-                                            <Link href="#">
-                                                <span>Sign Up</span>
-                                            </Link>
-                                        </Button>
-                                    </SignUpButton>
-                                    <SignUpButton mode="modal">
-                                        <Button
-                                            asChild
-                                            size="sm"
-                                            className={cn(isScrolled ? 'lg:inline-flex' : 'hidden')}>
-                                            <Link href="#">
-                                                <span>Get Started</span>
-                                            </Link>
-                                        </Button>
-                                    </SignUpButton>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setShowSignupModal(true)}
+                                        className={cn(isScrolled && 'lg:hidden')}>
+                                        <span>Sign Up</span>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setShowSignupModal(true)}
+                                        className={cn(isScrolled ? 'lg:inline-flex' : 'hidden')}>
+                                        <span>Get Started</span>
+                                    </Button>
                                 </Unauthenticated>
                             </div>
                         </div>
@@ -144,5 +147,10 @@ export const HeroHeader = () => {
                 </div>
             </nav>
         </header>
+        <CustomSignupModal 
+            isOpen={showSignupModal}
+            onClose={() => setShowSignupModal(false)}
+        />
+        </>
     )
 }

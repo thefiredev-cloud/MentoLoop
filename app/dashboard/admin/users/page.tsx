@@ -82,8 +82,8 @@ export default function UserManagementPage() {
   // Mutations
   const updateUser = useMutation(api.admin.updateUser)
   const approvePreceptor = useMutation(api.admin.approvePreceptor)
-  const rejectPreceptor = useMutation(api.admin.rejectPreceptor)
-  const deleteUser = useMutation(api.admin.deleteUser)
+  // const rejectPreceptor = useMutation(api.admin.rejectPreceptor)
+  // const deleteUser = useMutation(api.admin.deleteUser)
 
   // Handle user selection
   const handleViewUser = (user: User) => {

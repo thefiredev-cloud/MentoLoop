@@ -39,6 +39,7 @@ yarn-error.log*
 next-env.d.ts
 
 # local environment variables
+.env
 .env.local
 .env.*.local
 

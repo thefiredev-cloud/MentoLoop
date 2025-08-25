@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { STATE_OPTIONS } from '@/lib/states-config'
 
 interface PersonalContactStepProps {
   data: Record<string, unknown>
@@ -35,8 +36,8 @@ const specialties = [
   { value: 'other', label: 'Other' },
 ]
 
-// Texas-only operations - only allow Texas licensing
-const states = ['Texas']
+// Supported states for licensing
+const states = STATE_OPTIONS.map(opt => opt.label)
 
 export default function PersonalContactStep({ 
   data, 

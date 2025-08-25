@@ -151,12 +151,12 @@ export default function EnterpriseDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {enterpriseStats.recentStudents?.slice(0, 5).map((student: any) => (
+                    {enterpriseStats.recentStudents?.slice(0, 5).map((student) => student && (
                       <div key={student._id} className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{student.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {student.program} • {student.year}
+                            {(student as {program?: string; year?: string} & typeof student).program} • {(student as {program?: string; year?: string} & typeof student).year}
                           </p>
                         </div>
                         <Badge 
@@ -177,7 +177,7 @@ export default function EnterpriseDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {enterpriseStats.upcomingRotations?.slice(0, 5).map((rotation: any) => (
+                    {enterpriseStats.upcomingRotations?.slice(0, 5).map((rotation) => rotation && (
                       <div key={rotation._id} className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{rotation.studentName}</p>

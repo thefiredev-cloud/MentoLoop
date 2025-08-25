@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -71,79 +73,66 @@ export default function AdminFinancialPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  // Mock data - in production, these would be real queries
-  const mockFinancialData = {
-    totalRevenue: 45280,
-    monthlyRecurring: 12450,
-    oneTimePayments: 8750,
-    refunds: 1200,
-    pendingPayments: 15,
-    successfulPayments: 247,
-    failedPayments: 8,
-    churnRate: 3.2,
-    averageRevenuePerUser: 185,
-    paymentMethods: {
-      creditCard: 78,
-      paypal: 12,
-      other: 3
-    },
-    subscriptionPlans: {
-      basic: { count: 45, revenue: 4500 },
-      premium: { count: 28, revenue: 8400 },
-      enterprise: { count: 8, revenue: 12000 }
-    }
-  }
+  // Get real financial data from Convex
+  const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
+  const allMatches = useQuery(api.matches.getAllMatches, {})
+  const allUsers = useQuery(api.users.getAllUsers)
 
-  // Mock payment data
-  const mockPayments = useMemo((): Payment[] => [
-    {
-      id: 'pay_123',
-      customerEmail: 'student@university.edu',
-      amount: 299,
-      currency: 'USD',
-      status: 'succeeded',
-      method: 'card',
-      description: 'Spring 2025 Rotation Match',
-      createdAt: Date.now() - 86400000,
-      invoiceUrl: '#'
-    },
-    {
-      id: 'pay_124',
-      customerEmail: 'another@university.edu',
-      amount: 299,
-      currency: 'USD',
-      status: 'pending',
-      method: 'card',
-      description: 'Spring 2025 Rotation Match',
-      createdAt: Date.now() - 172800000,
-      invoiceUrl: '#'
-    },
-    {
-      id: 'pay_125',
-      customerEmail: 'enterprise@healthsystem.com',
-      amount: 1500,
-      currency: 'USD',
-      status: 'succeeded',
-      method: 'card',
-      description: 'Enterprise Plan - Q1 2025',
-      createdAt: Date.now() - 259200000,
-      invoiceUrl: '#'
-    },
-    {
-      id: 'pay_126',
-      customerEmail: 'failed@test.com',
-      amount: 299,
-      currency: 'USD',
-      status: 'failed',
-      method: 'card',
-      description: 'Spring 2025 Rotation Match',
-      createdAt: Date.now() - 345600000,
-      invoiceUrl: '#'
+  // Calculate financial metrics from real data
+  const financialData = useMemo(() => {
+    if (!paymentAttempts) return null
+    
+    const succeeded = paymentAttempts.filter(p => p.status === 'succeeded')
+    const pending = paymentAttempts.filter(p => p.status === 'pending')
+    const failed = paymentAttempts.filter(p => p.status === 'failed')
+    
+    const totalRevenue = succeeded.reduce((sum, p) => sum + (p.amount || 0), 0)
+    const monthlyRecurring = 0 // Would need subscription data
+    const oneTimePayments = totalRevenue
+    const refunds = 0 // Would need refund tracking
+    
+    return {
+      totalRevenue,
+      monthlyRecurring,
+      oneTimePayments,
+      refunds,
+      pendingPayments: pending.length,
+      successfulPayments: succeeded.length,
+      failedPayments: failed.length,
+      churnRate: 0,
+      averageRevenuePerUser: allUsers?.length ? totalRevenue / allUsers.length : 0,
+      paymentMethods: {
+        creditCard: succeeded.length,
+        paypal: 0,
+        other: 0
+      },
+      subscriptionPlans: {
+        basic: { count: 0, revenue: 0 },
+        premium: { count: 0, revenue: 0 },
+        enterprise: { count: 0, revenue: 0 }
+      }
     }
-  ], [])
+  }, [paymentAttempts, allUsers])
+
+  // Convert payment attempts to display format
+  const payments = useMemo((): Payment[] => {
+    if (!paymentAttempts) return []
+    
+    return paymentAttempts.map(payment => ({
+      id: payment._id,
+      customerEmail: 'User', // Would need to join with users table
+      amount: payment.amount,
+      currency: payment.currency || 'USD',
+      status: payment.status,
+      method: 'card',
+      description: 'Rotation Match Payment',
+      createdAt: payment.createdAt,
+      invoiceUrl: '#'
+    }))
+  }, [paymentAttempts])
 
   const filteredPayments = useMemo(() => {
-    return mockPayments.filter(payment => {
+    return payments.filter(payment => {
       const matchesSearch = !searchQuery || 
         payment.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
         payment.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -153,7 +142,7 @@ export default function AdminFinancialPage() {
       
       return matchesSearch && matchesStatus
     })
-  }, [searchQuery, statusFilter, mockPayments])
+  }, [searchQuery, statusFilter, payments])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -282,7 +271,7 @@ export default function AdminFinancialPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(mockFinancialData.totalRevenue * 100)}</div>
+            <div className="text-2xl font-bold">{formatCurrency((financialData?.totalRevenue || 0) * 100)}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               +12.5% from last month
@@ -296,7 +285,7 @@ export default function AdminFinancialPage() {
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(mockFinancialData.monthlyRecurring * 100)}</div>
+            <div className="text-2xl font-bold">{formatCurrency((financialData?.monthlyRecurring || 0) * 100)}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               +8.2% from last month
@@ -310,9 +299,9 @@ export default function AdminFinancialPage() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockFinancialData.successfulPayments}</div>
+            <div className="text-2xl font-bold">{financialData?.successfulPayments}</div>
             <p className="text-xs text-muted-foreground">
-              {mockFinancialData.pendingPayments} pending
+              {financialData?.pendingPayments} pending
             </p>
           </CardContent>
         </Card>
@@ -323,7 +312,7 @@ export default function AdminFinancialPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(mockFinancialData.averageRevenuePerUser * 100)}</div>
+            <div className="text-2xl font-bold">{formatCurrency((financialData?.averageRevenuePerUser || 0) * 100)}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <TrendingDown className="h-3 w-3" />
               -2.1% from last month
@@ -471,7 +460,7 @@ export default function AdminFinancialPage() {
 
         <TabsContent value="subscriptions" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            {Object.entries(mockFinancialData.subscriptionPlans).map(([plan, data]) => (
+            {financialData?.subscriptionPlans && Object.entries(financialData.subscriptionPlans).map(([plan, data]) => (
               <Card key={plan}>
                 <CardHeader>
                   <CardTitle className="capitalize">{plan} Plan</CardTitle>
@@ -505,7 +494,7 @@ export default function AdminFinancialPage() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{mockFinancialData.churnRate}%</div>
+                  <div className="text-2xl font-bold">{financialData?.churnRate}%</div>
                   <div className="text-sm text-muted-foreground">Churn Rate</div>
                 </div>
                 <div className="text-center">
@@ -536,7 +525,7 @@ export default function AdminFinancialPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {Object.entries(mockFinancialData.paymentMethods).map(([method, count]) => (
+                  {financialData?.paymentMethods && Object.entries(financialData.paymentMethods).map(([method, count]) => (
                     <div key={method} className="flex justify-between items-center">
                       <span className="capitalize text-sm">{method.replace(/([A-Z])/g, ' $1')}</span>
                       <div className="flex items-center gap-2">
@@ -565,20 +554,20 @@ export default function AdminFinancialPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-sm">Subscription Revenue:</span>
-                    <span className="font-medium">{formatCurrency(mockFinancialData.monthlyRecurring * 100)}</span>
+                    <span className="font-medium">{formatCurrency((financialData?.monthlyRecurring || 0) * 100)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">One-time Payments:</span>
-                    <span className="font-medium">{formatCurrency(mockFinancialData.oneTimePayments * 100)}</span>
+                    <span className="font-medium">{formatCurrency((financialData?.oneTimePayments || 0) * 100)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Refunds:</span>
-                    <span className="font-medium text-red-600">-{formatCurrency(mockFinancialData.refunds * 100)}</span>
+                    <span className="font-medium text-red-600">-{formatCurrency((financialData?.refunds || 0) * 100)}</span>
                   </div>
                   <div className="border-t pt-2">
                     <div className="flex justify-between font-semibold">
                       <span>Net Revenue:</span>
-                      <span>{formatCurrency((mockFinancialData.monthlyRecurring + mockFinancialData.oneTimePayments - mockFinancialData.refunds) * 100)}</span>
+                      <span>{formatCurrency(((financialData?.monthlyRecurring || 0) + (financialData?.oneTimePayments || 0) - (financialData?.refunds || 0)) * 100)}</span>
                     </div>
                   </div>
                 </div>

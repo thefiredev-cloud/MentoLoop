@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { 
   User,
-  UserCheck,
-  Calendar,
+  // UserCheck,
+  // Calendar,
   Target,
   MessageSquare,
   CreditCard,
@@ -17,18 +17,18 @@ import {
   Clock,
   AlertCircle,
   Play,
-  Pause,
+  // Pause,
   RotateCcw,
-  FileText,
-  MapPin,
+  // FileText,
+  // MapPin,
   Stethoscope,
   GraduationCap,
-  Bell,
-  Mail,
-  Phone
+  // Bell,
+  // Mail,
+  // Phone
 } from 'lucide-react'
-import { useAction, useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+// import { useAction, useMutation, useQuery } from 'convex/react'
+// import { api } from '@/convex/_generated/api'
 import { toast } from 'sonner'
 
 interface TestStep {

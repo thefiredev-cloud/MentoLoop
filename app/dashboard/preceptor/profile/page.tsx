@@ -4,19 +4,19 @@ import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { 
   User, 
-  Mail, 
-  Phone, 
+  // Mail, 
+  // Phone, 
   MapPin,
   Stethoscope,
   Building,
   Calendar,
   Edit,
-  Save,
+  // Save,
   X,
   CheckCircle2,
   AlertCircle
