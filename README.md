@@ -418,4 +418,4 @@ This project is licensed under the MIT License.
 
 **Stop rebuilding the same foundation over and over.** Starter.diy eliminates weeks of integration work by providing a complete, production-ready SaaS template with authentication, payments, and real-time data working seamlessly out of the box.
 
-Built with ❤️ using Next.js 15, Convex, Clerk, and modern web technologies.
+Built using Next.js 15, Convex, Clerk, and modern web technologies.
