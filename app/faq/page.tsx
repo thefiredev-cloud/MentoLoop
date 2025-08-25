@@ -251,7 +251,7 @@ export default function FAQPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              Can't find the answer you're looking for? Our support team is here to help.
+              Can&apos;t find the answer you&apos;re looking for? Our support team is here to help.
             </p>
             <div className="flex gap-4">
               <Button asChild>

@@ -75,7 +75,7 @@ export default function AdminFinancialPage() {
 
   // Get real financial data from Convex
   const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
-  const allMatches = useQuery(api.matches.getAllMatches, {})
+  // const allMatches = useQuery(api.matches.getAllMatches, {}) // TODO: Use when needed
   const allUsers = useQuery(api.users.getAllUsers)
 
   // Calculate financial metrics from real data

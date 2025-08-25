@@ -191,7 +191,7 @@ export function CustomSignupModal({
               </SignUpButton>
 
               <div className="mt-4 text-center text-sm text-muted-foreground">
-                <p>You'll be redirected to complete your profile after signing up</p>
+                <p>You&apos;ll be redirected to complete your profile after signing up</p>
               </div>
 
               <div className="mt-6 pt-6 border-t">
