@@ -134,7 +134,7 @@ export function CustomSignupModal({
 
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <span>Already have an account?</span>
-              <SignInButton mode="modal" redirectUrl="/dashboard">
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                 <Button variant="link" className="p-0 h-auto">
                   Sign in
                 </Button>
@@ -178,8 +178,7 @@ export function CustomSignupModal({
 
               <SignUpButton 
                 mode="modal"
-                redirectUrl={getRedirectUrl()}
-                afterSignUpUrl={getRedirectUrl()}
+                forceRedirectUrl={getRedirectUrl()}
               >
                 <Button 
                   className="w-full" 
@@ -197,7 +196,7 @@ export function CustomSignupModal({
               <div className="mt-6 pt-6 border-t">
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <span>Already have an account?</span>
-                  <SignInButton mode="modal" redirectUrl="/dashboard">
+                  <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                     <Button variant="link" className="p-0 h-auto">
                       Sign in instead
                     </Button>

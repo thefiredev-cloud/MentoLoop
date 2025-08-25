@@ -35,8 +35,8 @@ setup('authenticate as student', async ({ page }) => {
     // Use Clerk's test mode authentication
     await page.evaluate((testUser) => {
       // @ts-ignore - Clerk test mode global
-      if (window.__clerk_test_mode) {
-        window.__clerk_test_mode.signIn({
+      if ((window as any).__clerk_test_mode) {
+        (window as any).__clerk_test_mode.signIn({
           identifier: testUser.email,
           password: testUser.password
         });
@@ -65,8 +65,8 @@ setup('authenticate as preceptor', async ({ page }) => {
   if (process.env.CLERK_TEST_MODE === 'true') {
     await page.evaluate((testUser) => {
       // @ts-ignore
-      if (window.__clerk_test_mode) {
-        window.__clerk_test_mode.signIn({
+      if ((window as any).__clerk_test_mode) {
+        (window as any).__clerk_test_mode.signIn({
           identifier: testUser.email,
           password: testUser.password
         });
@@ -92,8 +92,8 @@ setup('authenticate as admin', async ({ page }) => {
   if (process.env.CLERK_TEST_MODE === 'true') {
     await page.evaluate((testUser) => {
       // @ts-ignore
-      if (window.__clerk_test_mode) {
-        window.__clerk_test_mode.signIn({
+      if ((window as any).__clerk_test_mode) {
+        (window as any).__clerk_test_mode.signIn({
           identifier: testUser.email,
           password: testUser.password
         });
@@ -134,7 +134,7 @@ export async function mockAuthentication(page: any, role: 'student' | 'preceptor
   ]);
   
   // Set any required localStorage items
-  await page.evaluate((userData) => {
+  await page.evaluate((userData: any) => {
     localStorage.setItem('test_user', JSON.stringify(userData));
   }, user);
 }

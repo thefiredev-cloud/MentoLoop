@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, Loader2, Mail, MessageSquare, Phone } from 'lucide-react'
-import { useMutation } from 'convex/react'
+import { useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useUser } from '@clerk/nextjs'
 
@@ -26,7 +26,7 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState('')
 
-  const sendContactEmail = useMutation(api.emails.sendContactFormEmail)
+  const sendContactEmail = useAction(api.emails.sendContactFormEmail)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

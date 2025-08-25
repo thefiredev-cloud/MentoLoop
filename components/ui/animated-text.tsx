@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, Variants } from "framer-motion";
 import { useRef } from "react";
 
 interface AnimatedTextProps {
@@ -25,9 +25,9 @@ export function AnimatedText({
   const words = text.split(" ");
   const characters = text.split("");
   
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
-    visible: (i = 1) => ({
+    visible: (_i = 1) => ({
       opacity: 1,
       transition: { 
         staggerChildren: type === "character" ? 0.03 : 0.12, 
@@ -36,7 +36,7 @@ export function AnimatedText({
     }),
   };
 
-  const child = {
+  const child: Variants = {
     visible: {
       opacity: 1,
       y: 0,
