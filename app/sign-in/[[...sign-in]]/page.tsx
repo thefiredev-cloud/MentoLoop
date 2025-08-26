@@ -12,8 +12,8 @@ export default function SignInPage() {
             card: "bg-white shadow-xl",
           }
         }}
-        redirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || '/dashboard'}
-        afterSignInUrl="/dashboard"
+        fallbackRedirectUrl="/dashboard"
+        forceRedirectUrl="/dashboard"
         signUpUrl="/sign-up"
       />
     </div>

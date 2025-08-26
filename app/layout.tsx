@@ -79,8 +79,8 @@ export default function RootLayout({
             localization={CLERK_CONFIG.localization}
             signInUrl={CLERK_CONFIG.signInUrl}
             signUpUrl={CLERK_CONFIG.signUpUrl}
-            afterSignInUrl={CLERK_CONFIG.afterSignInUrl}
-            afterSignUpUrl={CLERK_CONFIG.afterSignUpUrl}
+            signInFallbackRedirectUrl={CLERK_CONFIG.signInFallbackRedirectUrl}
+            signUpFallbackRedirectUrl={CLERK_CONFIG.signUpFallbackRedirectUrl}
             signInForceRedirectUrl={CLERK_CONFIG.signInForceRedirectUrl}
             signUpForceRedirectUrl={CLERK_CONFIG.signUpForceRedirectUrl}
           >
