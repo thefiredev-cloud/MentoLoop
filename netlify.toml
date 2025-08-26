@@ -135,21 +135,21 @@
 
 # Force HTTPS redirect
 [[redirects]]
-  from = "http://mentoloop.com/*"
-  to = "https://mentoloop.com/:splat"
+  from = "http://sandboxmentoloop.online/*"
+  to = "https://sandboxmentoloop.online/:splat"
   status = 301
   force = true
 
 [[redirects]]
-  from = "http://www.mentoloop.com/*"
-  to = "https://mentoloop.com/:splat"
+  from = "http://www.sandboxmentoloop.online/*"
+  to = "https://sandboxmentoloop.online/:splat"
   status = 301
   force = true
 
 # WWW to non-WWW redirect
 [[redirects]]
-  from = "https://www.mentoloop.com/*"
-  to = "https://mentoloop.com/:splat"
+  from = "https://www.sandboxmentoloop.online/*"
+  to = "https://sandboxmentoloop.online/:splat"
   status = 301
   force = true
 
