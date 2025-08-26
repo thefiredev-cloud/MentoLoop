@@ -1,10 +1,11 @@
 export default {
   providers: [
     {
-      // Use the actual Clerk instance domain
-      // For development: https://loved-lamprey-34.clerk.accounts.dev
-      // For production: https://clerk.sandboxmentoloop.online (if custom domain is set up)
-      domain: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API_URL || "https://loved-lamprey-34.clerk.accounts.dev",
+      // Use Clerk domain from environment variable
+      // This should match your Clerk instance and JWT template configuration
+      domain: process.env.CLERK_JWT_ISSUER_DOMAIN || 
+        process.env.NEXT_PUBLIC_CLERK_FRONTEND_API_URL || 
+        "https://loved-lamprey-34.clerk.accounts.dev",
       applicationID: "convex",
     },
   ]
