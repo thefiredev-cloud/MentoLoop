@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { useAuth } from '@clerk/nextjs'
 
 if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
   throw new Error('Missing NEXT_PUBLIC_CONVEX_URL in your .env file')
@@ -46,16 +45,7 @@ const ConvexProviderWrapper = dynamic(
     import('@clerk/nextjs'),
     import('convex/react')
   ]).then(([clerkReactMod, clerkMod, convexMod]) => {
-    const convex = new convexMod.ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!, {
-      // Add retry logic for WebSocket connections
-      maxReconnectAttempts: 5,
-      reconnectBackoff: (attemptNumber: number) => {
-        // Exponential backoff with jitter
-        const baseDelay = Math.min(1000 * Math.pow(2, attemptNumber), 30000)
-        const jitter = Math.random() * 1000
-        return baseDelay + jitter
-      }
-    } as any)
+    const convex = new convexMod.ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
     
     return {
       default: function ConvexProvider({ children }: { children: ReactNode }) {
@@ -64,7 +54,7 @@ const ConvexProviderWrapper = dynamic(
 
         // Handle authentication errors
         useEffect(() => {
-          const handleAuthError = (error: any) => {
+          const handleAuthError = (error: { message?: string }) => {
             // Only set error for actual authentication failures, not loading states
             if (error?.message?.includes('No auth provider found') && isLoaded && isSignedIn) {
               console.warn('Auth provider mismatch detected, will retry...')
