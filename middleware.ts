@@ -11,21 +11,31 @@ const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)'])
 const isEnterpriseRoute = createRouteMatcher(['/dashboard/enterprise(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
-  // Create response object first
-  let response = NextResponse.next();
-  
-  // Add security headers to all responses
-  response = addSecurityHeaders(response);
-  
-  // Configure CORS for API routes
-  if (req.nextUrl.pathname.startsWith('/api/')) {
-    response = configureCORS(req, response);
-  }
-  // Allow public routes and API webhooks without location check
-  if (isPublicRoute(req)) {
-    if (isProtectedRoute(req)) await auth.protect()
-    return response
-  }
+  try {
+    // Create response object first
+    let response = NextResponse.next();
+    
+    // Add security headers to all responses
+    response = addSecurityHeaders(response);
+    
+    // Configure CORS for API routes
+    if (req.nextUrl.pathname.startsWith('/api/')) {
+      response = configureCORS(req, response);
+    }
+    
+    // Allow public routes and API webhooks without location check
+    if (isPublicRoute(req)) {
+      if (isProtectedRoute(req)) {
+        try {
+          await auth.protect()
+        } catch (error) {
+          console.error('Auth protection error:', error)
+          // Redirect to sign-in on auth error
+          return NextResponse.redirect(new URL('/sign-in', req.url))
+        }
+      }
+      return response
+    }
 
   // Get client IP for location verification
   const clientIP = getClientIP(req)
@@ -36,7 +46,6 @@ export default clerkMiddleware(async (auth, req) => {
     return response
   }
 
-  try {
     // Check if user is accessing from a supported state
     if (clientIP) {
       const locationData = await getLocationFromIP(clientIP)
@@ -50,7 +59,13 @@ export default clerkMiddleware(async (auth, req) => {
 
     // Proceed with normal authentication for users in supported states
     if (isProtectedRoute(req)) {
-      await auth.protect()
+      try {
+        await auth.protect()
+      } catch (error) {
+        console.error('Route protection error:', error)
+        // Redirect to sign-in on auth error
+        return NextResponse.redirect(new URL('/sign-in', req.url))
+      }
       
       // Role-based route protection
       const { userId } = await auth()
@@ -71,10 +86,15 @@ export default clerkMiddleware(async (auth, req) => {
         return response
       }
     }
+    return response
   } catch (error) {
-    console.error('Location verification error:', error)
-    // Allow access on location service errors in production, log for monitoring
-    if (isProtectedRoute(req)) await auth.protect()
+    console.error('Middleware error:', error)
+    // On any middleware error, redirect to sign-in for protected routes
+    if (isProtectedRoute(req)) {
+      return NextResponse.redirect(new URL('/sign-in', req.url))
+    }
+    // For public routes, continue with the request
+    return NextResponse.next()
   }
 })
 

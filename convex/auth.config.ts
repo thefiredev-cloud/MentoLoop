@@ -1,8 +1,8 @@
 export default {
-    providers: [
-      {
-        domain: process.env.CLERK_JWT_ISSUER_DOMAIN!,
-        applicationID: "convex",
-      },
-    ]
-  };
+  providers: [
+    {
+      domain: "https://loved-lamprey-34.clerk.accounts.dev",
+      applicationID: "convex",
+    },
+  ]
+};

@@ -4,7 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import { ClerkProvider } from '@clerk/nextjs'
+import { CLERK_CONFIG } from '@/lib/clerk-config'
 import ConvexClientProvider from '@/components/ConvexClientProvider'
+import { AuthProvider } from '@/components/auth-provider'
 import { NavHeader } from '@/components/nav-header'
 import { DemoRoleSwitcher } from '@/components/demo-role-switcher'
 
@@ -72,11 +74,20 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ClerkProvider>
+          <ClerkProvider
+            appearance={CLERK_CONFIG.appearance}
+            localization={CLERK_CONFIG.localization}
+            signInUrl={CLERK_CONFIG.signInUrl}
+            signUpUrl={CLERK_CONFIG.signUpUrl}
+            afterSignInUrl={CLERK_CONFIG.afterSignInUrl}
+            afterSignUpUrl={CLERK_CONFIG.afterSignUpUrl}
+          >
             <ConvexClientProvider>
-              <NavHeader />
-              {children}
-              <DemoRoleSwitcher />
+              <AuthProvider>
+                <NavHeader />
+                {children}
+                <DemoRoleSwitcher />
+              </AuthProvider>
             </ConvexClientProvider>
           </ClerkProvider>
         </ThemeProvider>
