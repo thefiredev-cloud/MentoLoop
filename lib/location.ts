@@ -109,7 +109,24 @@ export function validateTexasLocation(location: Partial<LocationData>): boolean 
 }
 
 export function getClientIP(request: Request): string | undefined {
-  // Check various headers for the real IP address
+  // Check Netlify-specific headers first (for production on Netlify)
+  const netlifyIP = request.headers.get('x-nf-client-connection-ip')
+  const bbIP = request.headers.get('x-bb-ip')
+  const clientIP = request.headers.get('client-ip')
+  
+  if (netlifyIP) {
+    return netlifyIP
+  }
+  
+  if (bbIP) {
+    return bbIP
+  }
+  
+  if (clientIP) {
+    return clientIP
+  }
+  
+  // Check standard headers for other hosting providers
   const xForwardedFor = request.headers.get('x-forwarded-for')
   const xRealIP = request.headers.get('x-real-ip')
   const cfConnectingIP = request.headers.get('cf-connecting-ip')
