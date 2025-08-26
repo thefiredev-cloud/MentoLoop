@@ -1,0 +1,72 @@
+{
+  "mcpServers": {
+    "clerk": {
+      "command": "npx",
+      "args": ["-y", "@clerk/mcp"],
+      "env": {
+        "CLERK_SECRET_KEY": "env:CLERK_SECRET_KEY",
+        "CLERK_WEBHOOK_SECRET": "env:CLERK_WEBHOOK_SECRET"
+      }
+    },
+    "convex": {
+      "command": "npx",
+      "args": ["-y", "@convex-dev/mcp-server"],
+      "env": {
+        "CONVEX_DEPLOYMENT": "env:CONVEX_DEPLOYMENT",
+        "NEXT_PUBLIC_CONVEX_URL": "env:NEXT_PUBLIC_CONVEX_URL"
+      }
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp-server"],
+      "env": {
+        "STRIPE_SECRET_KEY": "env:STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET": "env:STRIPE_WEBHOOK_SECRET"
+      }
+    },
+    "google": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/mcp-server"],
+      "env": {
+        "GEMINI_API_KEY": "env:GEMINI_API_KEY",
+        "GOOGLE_ANALYTICS_ID": "env:GOOGLE_ANALYTICS_ID",
+        "GOOGLE_APPLICATION_CREDENTIALS": "env:GOOGLE_APPLICATION_CREDENTIALS"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "env:GITHUB_PERSONAL_ACCESS_TOKEN"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/Users/Tanner/Mentoloop"]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"]
+    },
+    "docker": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-docker"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "ide": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-vscode"]
+    }
+  }
+}
