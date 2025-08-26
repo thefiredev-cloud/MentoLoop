@@ -7,8 +7,9 @@ import React from 'react'
 import { motion, useMotionValue } from 'framer-motion'
 
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { ThemeToggle } from '@/components/theme-toggle'
+import { CustomSignupModal } from '@/components/custom-signup-modal'
 
 import { dark } from '@clerk/themes'
 import { useTheme } from "next-themes"
@@ -23,7 +24,9 @@ const menuItems = [
 
 export const NavHeader = () => {
     const [menuState, setMenuState] = React.useState(false)
+    const [showSignupModal, setShowSignupModal] = React.useState(false)
     const { theme } = useTheme()
+    const { isSignedIn, isLoaded } = useUser()
 
     const appearance = {
         baseTheme: theme === "dark" ? dark : undefined,
@@ -118,19 +121,18 @@ export const NavHeader = () => {
                                     Sign In
                                 </Button>
                             </SignInButton>
-                            <SignUpButton mode="modal">
-                                <Button 
-                                    size="sm"
-                                    className="relative overflow-hidden group">
-                                    <span className="relative z-10">Get Started</span>
-                                    <motion.div
-                                        className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary"
-                                        animate={{ x: ["-100%", "100%"] }}
-                                        transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
-                                        style={{ backgroundSize: "200% 100%" }}
-                                    />
-                                </Button>
-                            </SignUpButton>
+                            <Button 
+                                size="sm"
+                                className="relative overflow-hidden group"
+                                onClick={() => setShowSignupModal(true)}>
+                                <span className="relative z-10">Get Started</span>
+                                <motion.div
+                                    className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary"
+                                    animate={{ x: ["-100%", "100%"] }}
+                                    transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                                    style={{ backgroundSize: "200% 100%" }}
+                                />
+                            </Button>
                         </Unauthenticated>
 
                         {/* Mobile Menu Button */}
@@ -165,5 +167,13 @@ export const NavHeader = () => {
                 </div>
             )}
         </motion.header>
+
+        {/* Custom Signup Modal */}
+        {isLoaded && !isSignedIn && (
+            <CustomSignupModal 
+                isOpen={showSignupModal}
+                onClose={() => setShowSignupModal(false)}
+            />
+        )}
     )
 }
