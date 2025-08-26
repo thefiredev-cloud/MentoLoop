@@ -2,15 +2,15 @@ import { ClerkProvider } from '@clerk/nextjs'
 
 // Clerk configuration constants
 export const CLERK_CONFIG = {
-  // Sign in/up URLs
-  signInUrl: '/sign-in',
-  signUpUrl: '/sign-up',
+  // Sign in/up URLs (code-side configuration as recommended by Clerk)
+  signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || '/sign-in',
+  signUpUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || '/sign-up',
   
-  // After auth URLs
-  afterSignInUrl: '/dashboard',
-  afterSignUpUrl: '/dashboard',
+  // After auth URLs - these are critical for OAuth redirect flow
+  afterSignInUrl: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || '/dashboard',
+  afterSignUpUrl: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || '/dashboard',
   
-  // Force redirect URLs (from environment)
+  // Force redirect URLs (from environment) - ensures OAuth returns to correct page
   signInForceRedirectUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL || '/dashboard',
   signUpForceRedirectUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL || '/dashboard',
   signInFallbackRedirectUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL || '/dashboard',
@@ -87,4 +87,35 @@ export function getClerkDomain(): string {
   }
   
   return 'https://loved-lamprey-34.clerk.accounts.dev'
+}
+
+// Helper to get OAuth redirect URLs for current environment
+export function getOAuthRedirectUrls(): string[] {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const netlifyUrl = 'https://bejewelled-cassata-453411.netlify.app'
+  const customDomain = 'https://sandboxmentoloop.online'
+  
+  // Include all possible redirect URLs
+  const urls = [
+    `${appUrl}/sso-callback/google`,
+    `${appUrl}/sign-in`,
+    `${appUrl}/sign-up`,
+    `${appUrl}/dashboard`,
+  ]
+  
+  // Add production URLs if in production
+  if (process.env.NODE_ENV === 'production') {
+    urls.push(
+      `${customDomain}/sso-callback/google`,
+      `${customDomain}/sign-in`,
+      `${customDomain}/sign-up`,
+      `${customDomain}/dashboard`,
+      `${netlifyUrl}/sso-callback/google`,
+      `${netlifyUrl}/sign-in`,
+      `${netlifyUrl}/sign-up`,
+      `${netlifyUrl}/dashboard`
+    )
+  }
+  
+  return [...new Set(urls)] // Remove duplicates
 }

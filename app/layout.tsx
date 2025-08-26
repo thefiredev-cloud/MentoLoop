@@ -79,6 +79,10 @@ export default function RootLayout({
             localization={CLERK_CONFIG.localization}
             signInUrl={CLERK_CONFIG.signInUrl}
             signUpUrl={CLERK_CONFIG.signUpUrl}
+            afterSignInUrl={CLERK_CONFIG.afterSignInUrl}
+            afterSignUpUrl={CLERK_CONFIG.afterSignUpUrl}
+            signInForceRedirectUrl={CLERK_CONFIG.signInForceRedirectUrl}
+            signUpForceRedirectUrl={CLERK_CONFIG.signUpForceRedirectUrl}
           >
             <ConvexClientProvider>
               <AuthProvider>
