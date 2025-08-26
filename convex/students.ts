@@ -98,9 +98,76 @@ export const createOrUpdateStudent = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    // Log incoming data for debugging
+    console.log("Received student profile submission:", {
+      hasPersonalInfo: !!args.personalInfo,
+      hasSchoolInfo: !!args.schoolInfo,
+      hasRotationNeeds: !!args.rotationNeeds,
+      hasMatchingPreferences: !!args.matchingPreferences,
+      hasLearningStyle: !!args.learningStyle,
+      hasAgreements: !!args.agreements,
+      learningStyleKeys: args.learningStyle ? Object.keys(args.learningStyle) : [],
+    });
+
     const userId = await getUserId(ctx);
     if (!userId) {
-      throw new Error("Must be authenticated to create student profile");
+      console.error("Authentication failed: No user ID found in context");
+      throw new Error("Authentication required. Please sign in and try again.");
+    }
+
+    // Validate required fields
+    try {
+      // Validate personalInfo
+      if (!args.personalInfo?.fullName) {
+        throw new Error("Full name is required");
+      }
+      if (!args.personalInfo?.email) {
+        throw new Error("Email is required");
+      }
+      if (!args.personalInfo?.phone) {
+        throw new Error("Phone number is required");
+      }
+      
+      // Validate schoolInfo
+      if (!args.schoolInfo?.programName) {
+        throw new Error("Program name is required");
+      }
+      if (!args.schoolInfo?.degreeTrack) {
+        throw new Error("Degree track is required");
+      }
+      
+      // Validate rotationNeeds
+      if (!args.rotationNeeds?.rotationTypes || args.rotationNeeds.rotationTypes.length === 0) {
+        throw new Error("At least one rotation type is required");
+      }
+      if (!args.rotationNeeds?.startDate) {
+        throw new Error("Start date is required");
+      }
+      if (!args.rotationNeeds?.endDate) {
+        throw new Error("End date is required");
+      }
+      
+      // Validate learningStyle required fields
+      if (!args.learningStyle?.learningMethod) {
+        throw new Error("Learning method is required");
+      }
+      if (!args.learningStyle?.clinicalComfort) {
+        throw new Error("Clinical comfort level is required");
+      }
+      
+      // Validate agreements
+      if (!args.agreements?.agreedToPaymentTerms) {
+        throw new Error("Must agree to payment terms");
+      }
+      if (!args.agreements?.agreedToTermsAndPrivacy) {
+        throw new Error("Must agree to terms and privacy policy");
+      }
+      if (!args.agreements?.digitalSignature) {
+        throw new Error("Digital signature is required");
+      }
+    } catch (validationError) {
+      console.error("Student profile validation error:", validationError);
+      throw validationError;
     }
 
     // Check if student profile already exists

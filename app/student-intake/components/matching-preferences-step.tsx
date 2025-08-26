@@ -31,40 +31,42 @@ export default function MatchingPreferencesStep({
   isFirstStep, 
   isLastStep 
 }: MatchingPreferencesStepProps) {
+  // Ensure all RadioGroup values have proper defaults and filter out undefined values
+  const safeMatchingPreferences = (data.matchingPreferences || {}) as Record<string, unknown>
+  const safeLearningStyle = (data.learningStyle || {}) as Record<string, unknown>
+  
   const [formData, setFormData] = useState({
-    // Basic matching preferences
-    comfortableWithSharedPlacements: undefined as boolean | undefined,
-    languagesSpoken: [] as string[],
-    idealPreceptorQualities: '',
+    // Basic matching preferences - use empty string for RadioGroup compatibility
+    comfortableWithSharedPlacements: (safeMatchingPreferences.comfortableWithSharedPlacements as string) || '',
+    languagesSpoken: (safeMatchingPreferences.languagesSpoken as string[]) || [] as string[],
+    idealPreceptorQualities: (safeMatchingPreferences.idealPreceptorQualities as string) || '',
     // MentorFit Learning Style Assessment - Basic (1-10)
-    learningMethod: '',
-    clinicalComfort: '',
-    feedbackPreference: '',
-    structurePreference: '',
-    mentorRelationship: '',
-    observationPreference: '',
-    correctionStyle: '',
-    retentionStyle: '',
-    additionalResources: '',
-    proactiveQuestions: [3],
-    // Phase 2.0 Extended Questions (11-18) - Initialize as undefined for optional fields
-    feedbackType: undefined,
-    mistakeApproach: undefined,
-    motivationType: undefined,
-    preparationStyle: undefined,
-    learningCurve: undefined,
-    frustrations: undefined,
-    environment: undefined,
-    observationNeeds: undefined,
+    learningMethod: (safeLearningStyle.learningMethod as string) || '',
+    clinicalComfort: (safeLearningStyle.clinicalComfort as string) || '',
+    feedbackPreference: (safeLearningStyle.feedbackPreference as string) || '',
+    structurePreference: (safeLearningStyle.structurePreference as string) || '',
+    mentorRelationship: (safeLearningStyle.mentorRelationship as string) || '',
+    observationPreference: (safeLearningStyle.observationPreference as string) || '',
+    correctionStyle: (safeLearningStyle.correctionStyle as string) || '',
+    retentionStyle: (safeLearningStyle.retentionStyle as string) || '',
+    additionalResources: (safeLearningStyle.additionalResources as string) || '',
+    proactiveQuestions: (safeLearningStyle.proactiveQuestions as number[]) || [3],
+    // Phase 2.0 Extended Questions (11-18) - Use empty strings for RadioGroups
+    feedbackType: (safeLearningStyle.feedbackType as string) || '',
+    mistakeApproach: (safeLearningStyle.mistakeApproach as string) || '',
+    motivationType: (safeLearningStyle.motivationType as string) || '',
+    preparationStyle: (safeLearningStyle.preparationStyle as string) || '',
+    learningCurve: (safeLearningStyle.learningCurve as string) || '',
+    frustrations: (safeLearningStyle.frustrations as string) || '',
+    environment: (safeLearningStyle.environment as string) || '',
+    observationNeeds: (safeLearningStyle.observationNeeds as string) || '',
     // Personality & Values
-    professionalValues: [] as string[],
-    clinicalEnvironment: undefined,
+    professionalValues: (safeLearningStyle.professionalValues as string[]) || [] as string[],
+    clinicalEnvironment: (safeLearningStyle.clinicalEnvironment as string) || '',
     // Experience Level
-    programStage: undefined,
+    programStage: (safeLearningStyle.programStage as string) || '',
     // Flexibility
-    scheduleFlexibility: undefined,
-    ...(data.matchingPreferences || {}),
-    ...(data.learningStyle || {})
+    scheduleFlexibility: (safeLearningStyle.scheduleFlexibility as string) || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -77,6 +79,13 @@ export default function MatchingPreferencesStep({
       idealPreceptorQualities,
       ...learningStyleData 
     } = updatedData
+
+    // Convert string boolean back to actual boolean for comfortableWithSharedPlacements
+    const matchingPrefsData = {
+      comfortableWithSharedPlacements: comfortableWithSharedPlacements === '' ? undefined : comfortableWithSharedPlacements === 'true',
+      languagesSpoken,
+      idealPreceptorQualities,
+    }
 
     // Clean learning style data - convert empty strings to undefined for optional fields
     const cleanedLearningStyleData = Object.entries(learningStyleData).reduce((acc, [key, value]) => {
@@ -95,15 +104,13 @@ export default function MatchingPreferencesStep({
       return acc
     }, {} as Record<string, unknown>)
 
-    updateFormData('matchingPreferences', {
-      comfortableWithSharedPlacements,
-      languagesSpoken,
-      idealPreceptorQualities,
-    })
+    updateFormData('matchingPreferences', matchingPrefsData)
 
     updateFormData('learningStyle', {
       ...cleanedLearningStyleData,
-      proactiveQuestions: learningStyleData.proactiveQuestions[0] || 3,
+      proactiveQuestions: Array.isArray(learningStyleData.proactiveQuestions) 
+        ? learningStyleData.proactiveQuestions[0] || 3
+        : learningStyleData.proactiveQuestions || 3,
     })
   }
 
@@ -169,8 +176,8 @@ export default function MatchingPreferencesStep({
             <Label>Comfortable with shared student placements?</Label>
             <p className="text-sm text-muted-foreground">Some preceptors take multiple students during the same rotation period.</p>
             <RadioGroup
-              value={formData.comfortableWithSharedPlacements?.toString()}
-              onValueChange={(value) => handleInputChange('comfortableWithSharedPlacements', value === 'true')}
+              value={formData.comfortableWithSharedPlacements}
+              onValueChange={(value) => handleInputChange('comfortableWithSharedPlacements', value)}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="true" id="shared-yes" />

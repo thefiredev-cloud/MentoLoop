@@ -41,7 +41,8 @@ export default clerkMiddleware(async (auth, req) => {
   const clientIP = getClientIP(req)
   
   // Skip location check for localhost/development
-  if (clientIP === '127.0.0.1' || clientIP?.startsWith('192.168.') || clientIP?.startsWith('10.') || process.env.NODE_ENV === 'development') {
+  // ALWAYS skip in development mode to avoid region restrictions during testing
+  if (process.env.NODE_ENV !== 'production' || clientIP === '127.0.0.1' || clientIP?.startsWith('192.168.') || clientIP?.startsWith('10.')) {
     if (isProtectedRoute(req)) await auth.protect()
     return response
   }

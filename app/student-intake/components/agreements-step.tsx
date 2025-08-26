@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, CheckCircle, FileText, Shield } from 'lucide-react'
-import { useMutation } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { useAuth } from '@clerk/nextjs'
 import Link from 'next/link'
 
 interface AgreementsStepProps {
@@ -40,7 +41,9 @@ export default function AgreementsStep({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
+  const { isLoaded, isSignedIn } = useAuth()
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
+  const currentUser = useQuery(api.users.current)
   
   // Type definitions for form data from previous steps
   type PersonalInfo = {
@@ -143,6 +146,24 @@ export default function AgreementsStep({
   }
 
   const handleSubmit = async () => {
+    // Check authentication status before submitting
+    if (!isLoaded || !isSignedIn) {
+      setErrors({ submit: 'You must be signed in to submit this form. Please sign in and try again.' })
+      return
+    }
+
+    // Wait for user data to load
+    if (currentUser === undefined) {
+      setErrors({ submit: 'Loading user data... Please wait a moment and try again.' })
+      return
+    }
+
+    // Verify user exists in our system
+    if (!currentUser) {
+      setErrors({ submit: 'User profile not found. Please refresh the page and try again.' })
+      return
+    }
+
     if (!validateForm()) return
 
     setIsSubmitting(true)
@@ -152,9 +173,14 @@ export default function AgreementsStep({
       console.log('personalInfo:', data.personalInfo)
       console.log('schoolInfo:', data.schoolInfo)
       console.log('rotationNeeds:', data.rotationNeeds)
-      console.log('matchingPreferences:', data.matchingPreferences)
-      console.log('learningStyle:', data.learningStyle)
+      console.log('matchingPreferences (raw):', data.matchingPreferences)
+      console.log('learningStyle (raw):', data.learningStyle)
       console.log('agreements:', formData)
+      
+      // Log the specific problematic field (safely access properties)
+      const matchingPrefs = data.matchingPreferences as Record<string, unknown>
+      console.log('comfortableWithSharedPlacements type:', typeof matchingPrefs?.comfortableWithSharedPlacements)
+      console.log('comfortableWithSharedPlacements value:', matchingPrefs?.comfortableWithSharedPlacements)
       
       // Validate required fields exist
       if (!data.personalInfo || Object.keys(data.personalInfo).length === 0) {
@@ -195,31 +221,50 @@ export default function AgreementsStep({
         ...filteredLearningStyle,
       } as LearningStyle
       
-      // Ensure matching preferences has defaults
+      // Ensure matching preferences has defaults and proper boolean conversion
+      const matchingPrefsRaw = (data.matchingPreferences || {}) as Record<string, unknown>
       const matchingPreferencesWithDefaults = {
-        comfortableWithSharedPlacements: false,
-        languagesSpoken: [],
-        idealPreceptorQualities: "",
-        ...(data.matchingPreferences || {}),
+        comfortableWithSharedPlacements: 
+          matchingPrefsRaw.comfortableWithSharedPlacements === 'true' ? true :
+          matchingPrefsRaw.comfortableWithSharedPlacements === 'false' ? false :
+          matchingPrefsRaw.comfortableWithSharedPlacements === true ? true :
+          matchingPrefsRaw.comfortableWithSharedPlacements === false ? false :
+          matchingPrefsRaw.comfortableWithSharedPlacements ?? false,
+        languagesSpoken: matchingPrefsRaw.languagesSpoken || [],
+        idealPreceptorQualities: matchingPrefsRaw.idealPreceptorQualities || "",
       } as MatchingPreferences
       
-      // Submit all form data to Convex
-      await createOrUpdateStudent({
+      // Log the final processed data before submission
+      const finalData = {
         personalInfo: data.personalInfo as PersonalInfo,
         schoolInfo: data.schoolInfo as SchoolInfo,
         rotationNeeds: data.rotationNeeds as RotationNeeds,
         matchingPreferences: matchingPreferencesWithDefaults,
         learningStyle: learningStyleWithDefaults,
         agreements: formData,
-      })
+      }
+      
+      console.log('Final processed data for Convex:')
+      console.log('matchingPreferences (processed):', finalData.matchingPreferences)
+      console.log('learningStyle (processed):', finalData.learningStyle)
+      console.log('comfortableWithSharedPlacements final type:', typeof finalData.matchingPreferences.comfortableWithSharedPlacements)
+      console.log('comfortableWithSharedPlacements final value:', finalData.matchingPreferences.comfortableWithSharedPlacements)
+      
+      // Submit all form data to Convex
+      await createOrUpdateStudent(finalData)
 
       setIsSubmitted(true)
     } catch (error) {
       console.error('Failed to submit form:', error)
       if (error instanceof Error) {
-        setErrors({ submit: error.message })
+        // Check for specific authentication error
+        if (error.message.includes('Authentication required') || error.message.includes('authenticated')) {
+          setErrors({ submit: 'Your session has expired. Please refresh the page and sign in again to continue.' })
+        } else {
+          setErrors({ submit: error.message })
+        }
       } else {
-        setErrors({ submit: 'Failed to submit form. Please try again.' })
+        setErrors({ submit: 'Failed to submit form. Please try again or contact support if the issue persists.' })
       }
     } finally {
       setIsSubmitting(false)
