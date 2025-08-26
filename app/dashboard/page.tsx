@@ -1,15 +1,20 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useQuery } from 'convex/react'
 import { useRouter } from 'next/navigation'
-import { api } from '@/convex/_generated/api'
 import { Card, CardContent } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
+import { Loader2, AlertCircle } from 'lucide-react'
 import { PostSignupHandler } from '@/components/post-signup-handler'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { Button } from '@/components/ui/button'
 
 export default function DashboardPage() {
-  const user = useQuery(api.users.current)
+  const { user, isLoading, error, refetch } = useCurrentUser({
+    autoSync: true,
+    onError: (err) => {
+      console.error('Dashboard user sync error:', err)
+    }
+  })
   const router = useRouter()
   const hasRedirected = useRef(false)
 
@@ -27,7 +32,7 @@ export default function DashboardPage() {
     }
   }, [user?.userType, router, user])
 
-  if (!user) {
+  if (isLoading) {
     return (
       <>
         <PostSignupHandler />
@@ -40,6 +45,40 @@ export default function DashboardPage() {
           </Card>
         </div>
       </>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card>
+          <CardContent className="p-8 text-center space-y-4">
+            <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
+            <h3 className="font-semibold">Failed to load user profile</h3>
+            <p className="text-sm text-muted-foreground">
+              We encountered an error while loading your profile. Please try again.
+            </p>
+            <Button onClick={() => refetch()}>Retry</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card>
+          <CardContent className="p-8 text-center space-y-4">
+            <AlertCircle className="h-8 w-8 text-warning mx-auto" />
+            <h3 className="font-semibold">Setting up your profile</h3>
+            <p className="text-sm text-muted-foreground">
+              Please wait while we create your user profile...
+            </p>
+            <Button onClick={() => window.location.reload()}>Refresh</Button>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 

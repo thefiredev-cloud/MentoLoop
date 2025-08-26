@@ -43,6 +43,7 @@ export default function AgreementsStep({
 
   const { isLoaded, isSignedIn } = useAuth()
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
+  const ensureUserExists = useMutation(api.users.ensureUserExists)
   const currentUser = useQuery(api.users.current)
   
   // Type definitions for form data from previous steps
@@ -152,9 +153,22 @@ export default function AgreementsStep({
       return
     }
 
+    // Ensure user exists in the database
+    try {
+      await ensureUserExists()
+    } catch (error) {
+      console.error('Failed to ensure user exists:', error)
+      setErrors({ submit: 'Failed to create user profile. Please try again or contact support.' })
+      return
+    }
+
     // Wait for user data to load
     if (currentUser === undefined) {
       setErrors({ submit: 'Loading user data... Please wait a moment and try again.' })
+      // Give the query a moment to update after user creation
+      setTimeout(() => {
+        handleSubmit()
+      }, 1000)
       return
     }
 

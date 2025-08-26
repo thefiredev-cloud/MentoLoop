@@ -43,8 +43,9 @@ const ConvexProviderWrapper = dynamic(
   () => Promise.all([
     import('convex/react-clerk'),
     import('@clerk/nextjs'),
-    import('convex/react')
-  ]).then(([clerkReactMod, clerkMod, convexMod]) => {
+    import('convex/react'),
+    import('./UserSyncWrapper')
+  ]).then(([clerkReactMod, clerkMod, convexMod, userSyncMod]) => {
     const convex = new convexMod.ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
     
     return {
@@ -90,7 +91,9 @@ const ConvexProviderWrapper = dynamic(
               client={convex} 
               useAuth={clerkMod.useAuth}
             >
-              {children}
+              <userSyncMod.UserSyncWrapper>
+                {children}
+              </userSyncMod.UserSyncWrapper>
             </clerkReactMod.ConvexProviderWithClerk>
           </AuthErrorBoundary>
         )

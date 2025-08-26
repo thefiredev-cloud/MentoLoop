@@ -59,6 +59,37 @@ export const updateUserType = mutation({
   },
 });
 
+export const ensureUserExists = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    // Check if user already exists
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .unique();
+
+    if (existingUser) {
+      return { userId: existingUser._id, isNew: false };
+    }
+
+    // Create new user if doesn't exist
+    const userId = await ctx.db.insert("users", {
+      name: identity.name ?? identity.email ?? "Unknown User",
+      externalId: identity.subject,
+      userType: "student", // Default to student
+      email: identity.email ?? "",
+      createdAt: Date.now(),
+    });
+
+    return { userId, isNew: true };
+  },
+});
+
 export const getUserById = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
