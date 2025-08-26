@@ -50,6 +50,7 @@ export const NavHeader = () => {
     }
 
     return (
+        <>
         <motion.header 
             initial={{ y: -100 }}
             animate={{ y: 0 }}
@@ -175,5 +176,6 @@ export const NavHeader = () => {
                 onClose={() => setShowSignupModal(false)}
             />
         )}
+        </>
     )
 }
