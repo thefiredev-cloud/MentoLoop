@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { SignUpButton, SignInButton } from '@clerk/nextjs'
+import { useState, useEffect } from 'react'
+import { SignUpButton, SignInButton, useUser } from '@clerk/nextjs'
 import { 
   Dialog, 
   DialogContent, 
@@ -31,8 +31,19 @@ export function CustomSignupModal({
   onClose, 
   defaultRole 
 }: CustomSignupModalProps) {
+  const { isSignedIn, isLoaded } = useUser()
   const [selectedRole, setSelectedRole] = useState<string | null>(defaultRole || null)
   const [showSignUp, setShowSignUp] = useState(false)
+
+  // Prevent modal from opening if user is already signed in
+  useEffect(() => {
+    if (isLoaded && isSignedIn && isOpen) {
+      console.warn('CustomSignupModal: User is already signed in, redirecting to dashboard')
+      onClose()
+      // Optionally redirect to dashboard
+      window.location.href = '/dashboard'
+    }
+  }, [isLoaded, isSignedIn, isOpen, onClose])
 
   const roles = [
     {
@@ -89,6 +100,11 @@ export function CustomSignupModal({
     if (selectedRole) {
       sessionStorage.setItem('selectedUserRole', selectedRole)
     }
+  }
+
+  // Don't render the modal if user is already signed in
+  if (isLoaded && isSignedIn) {
+    return null
   }
 
   return (
