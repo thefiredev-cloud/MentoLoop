@@ -7,7 +7,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { CustomSignupModal } from '@/components/custom-signup-modal'
 
 import { dark } from '@clerk/themes'
@@ -27,6 +27,7 @@ export const HeroHeader = () => {
     const [isScrolled, setIsScrolled] = React.useState(false)
     const [showSignupModal, setShowSignupModal] = React.useState(false)
     const { theme } = useTheme()
+    const { isSignedIn, isLoaded } = useUser()
 
     const appearance = {
         baseTheme: theme === "dark" ? dark : undefined,
@@ -147,10 +148,13 @@ export const HeroHeader = () => {
                 </div>
             </nav>
         </header>
-        <CustomSignupModal 
-            isOpen={showSignupModal}
-            onClose={() => setShowSignupModal(false)}
-        />
+        {/* Only render CustomSignupModal when user is not signed in */}
+        {isLoaded && !isSignedIn && (
+            <CustomSignupModal 
+                isOpen={showSignupModal}
+                onClose={() => setShowSignupModal(false)}
+            />
+        )}
         </>
     )
 }
