@@ -33,7 +33,7 @@ export default clerkMiddleware(async (auth, req) => {
   // Skip location check for localhost/development
   if (clientIP === '127.0.0.1' || clientIP?.startsWith('192.168.') || clientIP?.startsWith('10.') || process.env.NODE_ENV === 'development') {
     if (isProtectedRoute(req)) await auth.protect()
-    return
+    return response
   }
 
   try {
