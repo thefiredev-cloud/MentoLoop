@@ -109,10 +109,24 @@ export const createOrUpdateStudent = mutation({
       learningStyleKeys: args.learningStyle ? Object.keys(args.learningStyle) : [],
     });
 
+    // Check authentication first
+    const identity = await ctx.auth.getUserIdentity();
+    console.log("Student submission - Identity check:", {
+      hasIdentity: !!identity,
+      subject: identity?.subject,
+      email: identity?.email
+    });
+
     const userId = await getUserId(ctx);
     if (!userId) {
-      console.error("Authentication failed: No user ID found in context");
-      throw new Error("Authentication required. Please sign in and try again.");
+      console.error("Authentication failed: No user ID found in context", {
+        hasIdentity: !!identity,
+        identitySubject: identity?.subject
+      });
+      
+      // Don't attempt to create user here - it should be handled by ensureUserExists mutation
+      // from the client side before submission
+      throw new Error("Authentication required. Please ensure you are signed in and try again.");
     }
 
     // Validate required fields

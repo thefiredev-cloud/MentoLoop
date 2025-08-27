@@ -155,26 +155,21 @@ export default function AgreementsStep({
 
     // Ensure user exists in the database
     try {
-      await ensureUserExists()
+      const userResult = await ensureUserExists()
+      console.log('User exists/created:', userResult)
+      
+      // Give Convex a moment to sync the user creation
+      await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
       console.error('Failed to ensure user exists:', error)
       setErrors({ submit: 'Failed to create user profile. Please try again or contact support.' })
       return
     }
 
-    // Wait for user data to load
-    if (currentUser === undefined) {
-      setErrors({ submit: 'Loading user data... Please wait a moment and try again.' })
-      // Give the query a moment to update after user creation
-      setTimeout(() => {
-        handleSubmit()
-      }, 1000)
-      return
-    }
-
-    // Verify user exists in our system
-    if (!currentUser) {
-      setErrors({ submit: 'User profile not found. Please refresh the page and try again.' })
+    // Verify user was created/exists - don't depend on currentUser query
+    // as it may not have updated yet
+    if (!isSignedIn) {
+      setErrors({ submit: 'Authentication lost. Please sign in again.' })
       return
     }
 

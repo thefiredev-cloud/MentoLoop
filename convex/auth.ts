@@ -6,8 +6,11 @@ export async function getUserId(
 ): Promise<Id<"users"> | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
+    console.log("getUserId: No identity found in auth context");
     return null;
   }
+
+  console.log("getUserId: Identity found for subject:", identity.subject);
 
   // Check if user exists in our users table
   const user = await ctx.db
@@ -16,22 +19,12 @@ export async function getUserId(
     .unique();
 
   if (!user) {
-    // Can only create user in mutation context
-    if ('insert' in ctx.db) {
-      const userId = await (ctx.db as any).insert("users", {
-        name: identity.name ?? identity.email ?? "Unknown User",
-        externalId: identity.subject,
-        userType: "student", // Default to student, will be updated when they complete intake
-        email: identity.email ?? "",
-        createdAt: Date.now(),
-      });
-      return userId;
-    } else {
-      // In query context, return null if user doesn't exist
-      return null;
-    }
+    console.log("getUserId: No user found for external ID:", identity.subject, "- user needs to be created via ensureUserExists");
+    // Don't attempt to create user here - should be handled by explicit user creation mutations
+    return null;
   }
 
+  console.log("getUserId: Found existing user with ID:", user._id);
   return user._id;
 }
 
