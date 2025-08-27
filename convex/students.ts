@@ -98,8 +98,10 @@ export const createOrUpdateStudent = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    // Log incoming data for debugging
-    console.log("Received student profile submission:", {
+    console.log("[createOrUpdateStudent] Starting submission processing");
+    
+    // Enhanced logging for debugging
+    console.log("[createOrUpdateStudent] Received data structure:", {
       hasPersonalInfo: !!args.personalInfo,
       hasSchoolInfo: !!args.schoolInfo,
       hasRotationNeeds: !!args.rotationNeeds,
@@ -107,26 +109,68 @@ export const createOrUpdateStudent = mutation({
       hasLearningStyle: !!args.learningStyle,
       hasAgreements: !!args.agreements,
       learningStyleKeys: args.learningStyle ? Object.keys(args.learningStyle) : [],
+      matchingPrefsKeys: args.matchingPreferences ? Object.keys(args.matchingPreferences) : [],
     });
 
-    // Check authentication first
+    // Step 1: Check authentication
+    console.log("[createOrUpdateStudent] Step 1: Checking authentication");
     const identity = await ctx.auth.getUserIdentity();
-    console.log("Student submission - Identity check:", {
+    console.log("[createOrUpdateStudent] Identity check:", {
       hasIdentity: !!identity,
       subject: identity?.subject,
-      email: identity?.email
+      email: identity?.email,
+      name: identity?.name
     });
 
-    const userId = await getUserId(ctx);
+    if (!identity) {
+      console.error("[createOrUpdateStudent] No identity found - user not authenticated");
+      throw new Error("Not authenticated. Please sign in and try again.");
+    }
+
+    // Step 2: Get or create user
+    console.log("[createOrUpdateStudent] Step 2: Getting user ID");
+    let userId = await getUserId(ctx);
+    
     if (!userId) {
-      console.error("Authentication failed: No user ID found in context", {
-        hasIdentity: !!identity,
-        identitySubject: identity?.subject
-      });
+      console.log("[createOrUpdateStudent] User not found, attempting to create");
       
-      // Don't attempt to create user here - it should be handled by ensureUserExists mutation
-      // from the client side before submission
-      throw new Error("Authentication required. Please ensure you are signed in and try again.");
+      try {
+        // Attempt to create the user if not exists
+        const existingUser = await ctx.db
+          .query("users")
+          .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+          .unique();
+        
+        if (!existingUser) {
+          console.log("[createOrUpdateStudent] Creating new user record");
+          userId = await ctx.db.insert("users", {
+            name: identity.name ?? identity.email ?? "Unknown User",
+            externalId: identity.subject,
+            userType: "student",
+            email: identity.email ?? "",
+            createdAt: Date.now(),
+          });
+          console.log("[createOrUpdateStudent] User created with ID:", userId);
+        } else {
+          userId = existingUser._id;
+          console.log("[createOrUpdateStudent] Found existing user with ID:", userId);
+        }
+      } catch (userCreationError) {
+        console.error("[createOrUpdateStudent] Error during user creation/lookup:", userCreationError);
+        // Try one more time with getUserId in case there was a race condition
+        userId = await getUserId(ctx);
+        if (!userId) {
+          throw new Error("Unable to create or find user profile. Please try again.");
+        }
+      }
+    } else {
+      console.log("[createOrUpdateStudent] Found user with ID:", userId);
+    }
+
+    // Re-verify we have a user ID
+    if (!userId) {
+      console.error("[createOrUpdateStudent] Failed to get or create user ID");
+      throw new Error("Unable to process your request. Please refresh the page and try again.");
     }
 
     // Validate required fields
@@ -202,42 +246,61 @@ export const createOrUpdateStudent = mutation({
       updatedAt: Date.now(),
     };
 
+    let result;
+    
     if (existingStudent) {
+      console.log("[createOrUpdateStudent] Updating existing student profile");
       // Update existing student
       await ctx.db.patch(existingStudent._id, studentData);
-      return existingStudent._id;
+      result = existingStudent._id;
+      console.log("[createOrUpdateStudent] Student profile updated successfully:", result);
     } else {
+      console.log("[createOrUpdateStudent] Creating new student profile");
       // Create new student
       const studentId = await ctx.db.insert("students", {
         ...studentData,
         createdAt: Date.now(),
       });
+      console.log("[createOrUpdateStudent] Student profile created with ID:", studentId);
       
-      // Update user type
-      const identity = await ctx.auth.getUserIdentity();
-      const user = await ctx.db
-        .query("users")
-        .withIndex("byExternalId", (q) => q.eq("externalId", identity?.subject ?? ""))
-        .first();
-      
-      if (user) {
-        await ctx.db.patch(user._id, { userType: "student" });
+      // Update user type (non-blocking)
+      try {
+        const identity = await ctx.auth.getUserIdentity();
+        const user = await ctx.db
+          .query("users")
+          .withIndex("byExternalId", (q) => q.eq("externalId", identity?.subject ?? ""))
+          .first();
         
-        // Send welcome email for new students
-        try {
-          await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
-            email: args.personalInfo.email,
-            firstName: args.personalInfo.fullName.split(' ')[0] || 'Student',
-            userType: "student",
-          });
-        } catch (error) {
-          console.error("Failed to send welcome email to student:", error);
-          // Don't fail the profile creation if email fails
+        if (user) {
+          await ctx.db.patch(user._id, { userType: "student" });
+          console.log("[createOrUpdateStudent] User type updated to 'student'");
+          
+          // Send welcome email for new students (completely optional)
+          try {
+            console.log("[createOrUpdateStudent] Attempting to schedule welcome email");
+            const emailScheduled = await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
+              email: args.personalInfo.email,
+              firstName: args.personalInfo.fullName.split(' ')[0] || 'Student',
+              userType: "student",
+            });
+            console.log("[createOrUpdateStudent] Welcome email scheduled successfully:", emailScheduled);
+          } catch (emailError) {
+            console.error("[createOrUpdateStudent] Failed to schedule welcome email:", emailError);
+            // This is completely optional - continue without email
+          }
+        } else {
+          console.warn("[createOrUpdateStudent] Could not find user to update type - continuing anyway");
         }
+      } catch (userUpdateError) {
+        console.error("[createOrUpdateStudent] Failed to update user type:", userUpdateError);
+        // Non-critical - the student profile was created successfully
       }
       
-      return studentId;
+      result = studentId;
     }
+    
+    console.log("[createOrUpdateStudent] Successfully processed student submission");
+    return result;
   },
 });
 
