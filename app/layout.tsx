@@ -23,11 +23,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "MentoLoop - Medical Mentorship Platform",
+    default: "MentoLoop - Nurse Practitioner Platform",
     template: "%s | MentoLoop"
   },
-  description: "Connect medical students with experienced preceptors for personalized mentorship and clinical rotations",
-  keywords: ["medical mentorship", "clinical rotations", "preceptors", "medical students", "healthcare education"],
+  description: "Connect nurse practitioner students with experienced preceptors for personalized mentorship and clinical rotations",
+  keywords: ["nurse practitioner", "NP mentorship", "clinical rotations", "preceptors", "nurse practitioner students", "healthcare education", "nursing"],
   authors: [{ name: "MentoLoop" }],
   creator: "MentoLoop",
   publisher: "MentoLoop",
@@ -36,14 +36,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://mentoloop.com",
-    title: "MentoLoop - Medical Mentorship Platform",
-    description: "Connect medical students with experienced preceptors for personalized mentorship and clinical rotations",
+    title: "MentoLoop - Nurse Practitioner Platform",
+    description: "Connect nurse practitioner students with experienced preceptors for personalized mentorship and clinical rotations",
     siteName: "MentoLoop",
   },
   twitter: {
     card: "summary_large_image",
-    title: "MentoLoop - Medical Mentorship Platform",
-    description: "Connect medical students with experienced preceptors for personalized mentorship and clinical rotations",
+    title: "MentoLoop - Nurse Practitioner Platform",
+    description: "Connect nurse practitioner students with experienced preceptors for personalized mentorship and clinical rotations",
   },
   robots: {
     index: true,

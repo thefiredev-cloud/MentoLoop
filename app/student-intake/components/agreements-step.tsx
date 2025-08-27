@@ -44,6 +44,7 @@ export default function AgreementsStep({
   const { isLoaded, isSignedIn } = useAuth()
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
+  const ensureUserExistsWithRetry = useMutation(api.users.ensureUserExistsWithRetry)
   const currentUser = useQuery(api.users.current)
   
   // Type definitions for form data from previous steps
@@ -153,43 +154,47 @@ export default function AgreementsStep({
       return
     }
 
-    // Ensure user exists in the database
-    try {
-      const userResult = await ensureUserExists()
-      console.log('User exists/created:', userResult)
-      
-      // Give Convex a moment to sync the user creation
-      await new Promise(resolve => setTimeout(resolve, 500))
-    } catch (error) {
-      console.error('Failed to ensure user exists:', error)
-      setErrors({ submit: 'Failed to create user profile. Please try again or contact support.' })
-      return
-    }
-
-    // Verify user was created/exists - don't depend on currentUser query
-    // as it may not have updated yet
-    if (!isSignedIn) {
-      setErrors({ submit: 'Authentication lost. Please sign in again.' })
-      return
-    }
-
     if (!validateForm()) return
 
     setIsSubmitting(true)
+    
+    console.log('[Client] Starting form submission process')
+    
     try {
+      // Use the enhanced retry mechanism to ensure user exists
+      console.log('[Client] Ensuring user exists with retry mechanism')
+      
+      try {
+        const userResult = await ensureUserExistsWithRetry()
+        console.log('[Client] User verification result:', userResult)
+        
+        if (!userResult?.ready) {
+          throw new Error('User verification did not complete successfully')
+        }
+        
+        // Add a small delay to ensure database consistency
+        console.log('[Client] Waiting for database synchronization')
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+      } catch (userError) {
+        console.error('[Client] User verification failed:', userError)
+        // Fallback to regular ensureUserExists
+        console.log('[Client] Falling back to regular user ensure')
+        const fallbackResult = await ensureUserExists()
+        console.log('[Client] Fallback result:', fallbackResult)
+        
+        // Wait longer for fallback
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+
       // Debug: Log the data being submitted
-      console.log('Submitting student intake form with data:')
+      console.log('[Client] Preparing submission data')
       console.log('personalInfo:', data.personalInfo)
       console.log('schoolInfo:', data.schoolInfo)
       console.log('rotationNeeds:', data.rotationNeeds)
       console.log('matchingPreferences (raw):', data.matchingPreferences)
       console.log('learningStyle (raw):', data.learningStyle)
       console.log('agreements:', formData)
-      
-      // Log the specific problematic field (safely access properties)
-      const matchingPrefs = data.matchingPreferences as Record<string, unknown>
-      console.log('comfortableWithSharedPlacements type:', typeof matchingPrefs?.comfortableWithSharedPlacements)
-      console.log('comfortableWithSharedPlacements value:', matchingPrefs?.comfortableWithSharedPlacements)
       
       // Validate required fields exist
       if (!data.personalInfo || Object.keys(data.personalInfo).length === 0) {
@@ -206,7 +211,6 @@ export default function AgreementsStep({
       }
       
       // Ensure learning style has all required fields with defaults
-      // Filter out empty strings from learningStyle data to allow defaults to be used
       const learningStyleData = data.learningStyle || {}
       const filteredLearningStyle = Object.entries(learningStyleData).reduce((acc, [key, value]) => {
         // Only include non-empty values
@@ -230,7 +234,7 @@ export default function AgreementsStep({
         ...filteredLearningStyle,
       } as LearningStyle
       
-      // Ensure matching preferences has defaults and proper boolean conversion
+      // Ensure matching preferences has proper boolean conversion
       const matchingPrefsRaw = (data.matchingPreferences || {}) as Record<string, unknown>
       const matchingPreferencesWithDefaults = {
         comfortableWithSharedPlacements: 
@@ -253,22 +257,27 @@ export default function AgreementsStep({
         agreements: formData,
       }
       
-      console.log('Final processed data for Convex:')
+      console.log('[Client] Final processed data for Convex:')
       console.log('matchingPreferences (processed):', finalData.matchingPreferences)
       console.log('learningStyle (processed):', finalData.learningStyle)
-      console.log('comfortableWithSharedPlacements final type:', typeof finalData.matchingPreferences.comfortableWithSharedPlacements)
-      console.log('comfortableWithSharedPlacements final value:', finalData.matchingPreferences.comfortableWithSharedPlacements)
       
       // Submit all form data to Convex
+      console.log('[Client] Submitting to Convex mutation')
       await createOrUpdateStudent(finalData)
-
+      
+      console.log('[Client] Submission successful!')
       setIsSubmitted(true)
+      
     } catch (error) {
-      console.error('Failed to submit form:', error)
+      console.error('[Client] Failed to submit form:', error)
       if (error instanceof Error) {
         // Check for specific authentication error
-        if (error.message.includes('Authentication required') || error.message.includes('authenticated')) {
+        if (error.message.includes('Authentication required') || 
+            error.message.includes('authenticated') || 
+            error.message.includes('Not authenticated')) {
           setErrors({ submit: 'Your session has expired. Please refresh the page and sign in again to continue.' })
+        } else if (error.message.includes('User verification')) {
+          setErrors({ submit: 'Unable to verify your user profile. Please refresh the page and try again.' })
         } else {
           setErrors({ submit: error.message })
         }

@@ -90,6 +90,83 @@ export const ensureUserExists = mutation({
   },
 });
 
+export const ensureUserExistsWithRetry = mutation({
+  args: {},
+  handler: async (ctx) => {
+    console.log("[ensureUserExistsWithRetry] Starting user verification");
+    
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      console.error("[ensureUserExistsWithRetry] No identity found");
+      throw new Error("Not authenticated. Please sign in again.");
+    }
+
+    console.log("[ensureUserExistsWithRetry] Identity found:", {
+      subject: identity.subject,
+      email: identity.email,
+      name: identity.name
+    });
+
+    // Attempt to find existing user with retries
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`[ensureUserExistsWithRetry] Attempt ${attempts} of ${maxAttempts}`);
+      
+      // Check if user already exists
+      const existingUser = await ctx.db
+        .query("users")
+        .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+        .unique();
+
+      if (existingUser) {
+        console.log("[ensureUserExistsWithRetry] Found existing user:", existingUser._id);
+        return { 
+          userId: existingUser._id, 
+          isNew: false, 
+          attempts,
+          ready: true 
+        };
+      }
+
+      // If this is our last attempt, create the user
+      if (attempts === maxAttempts) {
+        console.log("[ensureUserExistsWithRetry] Creating new user after failed lookups");
+        
+        try {
+          const userId = await ctx.db.insert("users", {
+            name: identity.name ?? identity.email ?? "Unknown User",
+            externalId: identity.subject,
+            userType: "student", // Default to student
+            email: identity.email ?? "",
+            createdAt: Date.now(),
+          });
+
+          console.log("[ensureUserExistsWithRetry] User created successfully:", userId);
+          return { 
+            userId, 
+            isNew: true, 
+            attempts,
+            ready: true 
+          };
+        } catch (error) {
+          console.error("[ensureUserExistsWithRetry] Failed to create user:", error);
+          throw new Error("Failed to create user profile. Please try again.");
+        }
+      }
+
+      // Wait briefly before next attempt (exponential backoff)
+      const waitTime = Math.min(100 * Math.pow(2, attempts - 1), 500);
+      console.log(`[ensureUserExistsWithRetry] Waiting ${waitTime}ms before retry`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+
+    throw new Error("Unable to verify user profile. Please refresh and try again.");
+  },
+});
+
 export const getUserById = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

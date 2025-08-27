@@ -54,11 +54,31 @@ async function validateRequest(req: Request): Promise<WebhookEvent | null> {
     "svix-timestamp": req.headers.get("svix-timestamp")!,
     "svix-signature": req.headers.get("svix-signature")!,
   };
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
+  
+  // Check if webhook secret is configured
+  if (!process.env.CLERK_WEBHOOK_SECRET) {
+    console.error("CLERK_WEBHOOK_SECRET is not configured");
+    return null;
+  }
+  
+  // Log header presence for debugging
+  if (!svixHeaders["svix-id"] || !svixHeaders["svix-timestamp"] || !svixHeaders["svix-signature"]) {
+    console.error("Missing required svix headers", {
+      hasSvixId: !!svixHeaders["svix-id"],
+      hasSvixTimestamp: !!svixHeaders["svix-timestamp"],
+      hasSvixSignature: !!svixHeaders["svix-signature"]
+    });
+    return null;
+  }
+  
+  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
   try {
-    return wh.verify(payloadString, svixHeaders) as unknown as WebhookEvent;
+    const event = wh.verify(payloadString, svixHeaders) as unknown as WebhookEvent;
+    console.log("Webhook event verified successfully:", (event as any).type);
+    return event;
   } catch (error) {
     console.error("Error verifying webhook event", error);
+    console.error("Webhook verification failed - check if CLERK_WEBHOOK_SECRET matches Clerk dashboard");
     return null;
   }
 }
