@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import MessagesPage from '@/app/dashboard/messages/page'
-import { useQuery, useMutation } from 'convex/react'
 
 // Mock Convex hooks
 vi.mock('convex/react', () => ({
@@ -10,397 +8,271 @@ vi.mock('convex/react', () => ({
   useMutation: vi.fn()
 }))
 
-// Mock Sonner toast
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn()
-  }
+// Mock Next.js router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn()
+  }),
+  useSearchParams: () => ({
+    get: vi.fn()
+  })
 }))
 
 // Mock UI components
 vi.mock('@/components/ui/card', () => ({
-  Card: ({ children, className }: any) => <div className={className}>{children}</div>,
+  Card: ({ children }: any) => <div>{children}</div>,
   CardContent: ({ children }: any) => <div>{children}</div>,
   CardHeader: ({ children }: any) => <div>{children}</div>,
   CardTitle: ({ children }: any) => <h3>{children}</h3>
 }))
 
 vi.mock('@/components/ui/button', () => ({
-  Button: ({ children, onClick, disabled, ...props }: any) => (
-    <button onClick={onClick} disabled={disabled} {...props}>
-      {children}
-    </button>
-  )
+  Button: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>
 }))
 
 vi.mock('@/components/ui/input', () => ({
-  Input: ({ value, onChange, placeholder, ...props }: any) => (
-    <input
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      {...props}
-    />
-  )
-}))
-
-vi.mock('@/components/ui/badge', () => ({
-  Badge: ({ children, variant }: any) => (
-    <span className={`badge-${variant}`}>{children}</span>
+  Input: ({ value, onChange, placeholder }: any) => (
+    <input value={value} onChange={onChange} placeholder={placeholder} />
   )
 }))
 
 vi.mock('@/components/ui/scroll-area', () => ({
-  ScrollArea: ({ children }: any) => <div className="scroll-area">{children}</div>
+  ScrollArea: ({ children }: any) => <div>{children}</div>
 }))
 
-vi.mock('@/components/ui/separator', () => ({
-  Separator: () => <hr />
+vi.mock('@/components/ui/badge', () => ({
+  Badge: ({ children }: any) => <span>{children}</span>
 }))
 
 vi.mock('@/components/ui/avatar', () => ({
-  Avatar: ({ children }: any) => <div className="avatar">{children}</div>,
-  AvatarFallback: ({ children }: any) => <div className="avatar-fallback">{children}</div>
+  Avatar: ({ children }: any) => <div>{children}</div>,
+  AvatarFallback: ({ children }: any) => <span>{children}</span>,
+  AvatarImage: ({ src, alt }: any) => <img src={src} alt={alt} />
 }))
 
-// Mock data
+// Import component after mocks
+import MessagesPage from '@/app/dashboard/messages/page'
+import { useQuery, useMutation } from 'convex/react'
+
 const mockConversations = [
   {
     _id: 'conv1',
-    partner: {
-      id: 'preceptor1',
-      name: 'Dr. Jane Smith',
-      type: 'preceptor' as const
-    },
-    match: {
-      id: 'match1',
-      status: 'active',
-      rotationType: 'family-medicine',
-      startDate: '2025-01-15',
-      endDate: '2025-03-15'
-    },
-    lastMessagePreview: 'Looking forward to working with you!',
-    lastMessageAt: Date.now() - 3600000, // 1 hour ago
+    matchId: 'match1',
+    lastMessage: 'Hello there!',
+    lastMessageAt: Date.now() - 3600000,
     unreadCount: 2,
-    status: 'active' as const
+    otherUser: {
+      name: 'Dr. Jane Smith',
+      role: 'preceptor'
+    }
   },
   {
     _id: 'conv2',
-    partner: {
-      id: 'student1',
-      name: 'John Doe',
-      type: 'student' as const
-    },
-    match: {
-      id: 'match2',
-      status: 'completed',
-      rotationType: 'pediatrics',
-      startDate: '2024-11-01',
-      endDate: '2024-12-31'
-    },
-    lastMessagePreview: 'Thank you for the great rotation!',
-    lastMessageAt: Date.now() - 86400000, // 1 day ago
+    matchId: 'match2',
+    lastMessage: 'See you tomorrow',
+    lastMessageAt: Date.now() - 86400000,
     unreadCount: 0,
-    status: 'active' as const
+    otherUser: {
+      name: 'John Student',
+      role: 'student'
+    }
   }
 ]
 
 const mockMessages = [
   {
     _id: 'msg1',
-    senderId: 'preceptor1',
-    senderType: 'preceptor' as const,
-    messageType: 'text' as const,
-    content: 'Hello! Welcome to your family medicine rotation.',
-    createdAt: Date.now() - 7200000, // 2 hours ago
-    isRead: true
+    conversationId: 'conv1',
+    senderId: 'user1',
+    content: 'Hello there!',
+    createdAt: Date.now() - 3600000,
+    isRead: false,
+    senderName: 'Dr. Jane Smith'
   },
   {
     _id: 'msg2',
-    senderId: 'student1',
-    senderType: 'student' as const,
-    messageType: 'text' as const,
-    content: 'Thank you! I\'m excited to start learning.',
-    createdAt: Date.now() - 3600000, // 1 hour ago
-    isRead: true
-  },
-  {
-    _id: 'msg3',
-    senderId: 'preceptor1',
-    senderType: 'preceptor' as const,
-    messageType: 'text' as const,
-    content: 'Looking forward to working with you!',
-    createdAt: Date.now() - 1800000, // 30 minutes ago
-    isRead: false
+    conversationId: 'conv1',
+    senderId: 'user2',
+    content: 'Hi, how are you?',
+    createdAt: Date.now() - 3000000,
+    isRead: true,
+    senderName: 'You'
   }
 ]
 
-describe('MessagesPage Component', () => {
-  const mockSendMessage = vi.fn()
-  const mockMarkAsRead = vi.fn()
-  const mockUpdateStatus = vi.fn()
+describe('MessagesPage', () => {
   const mockUseQuery = vi.mocked(useQuery)
   const mockUseMutation = vi.mocked(useMutation)
+  const mockSendMessage = vi.fn()
+  const mockMarkAsRead = vi.fn()
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
-    // Setup default mock returns
-    mockUseQuery
-      .mockReturnValueOnce(mockConversations) // getUserConversations
-      .mockReturnValueOnce(undefined) // getMessages (no conversation selected)
-      .mockReturnValueOnce(3) // getUnreadMessageCount
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage) // sendMessage
-      .mockReturnValueOnce(mockMarkAsRead) // markAsRead
-      .mockReturnValueOnce(mockUpdateStatus) // updateStatus
+    mockUseMutation.mockReturnValue(mockSendMessage)
   })
 
-  it('renders conversations list', () => {
+  it('renders loading state', () => {
+    mockUseQuery.mockReturnValue(undefined)
+    
     render(<MessagesPage />)
+    
+    expect(screen.getByText(/Loading messages/i)).toBeInTheDocument()
+  })
 
-    expect(screen.getByText('Messages')).toBeInTheDocument()
+  it('displays conversation list', () => {
+    mockUseQuery
+      .mockReturnValueOnce(mockConversations)
+      .mockReturnValueOnce(mockMessages)
+    
+    render(<MessagesPage />)
+    
     expect(screen.getByText('Dr. Jane Smith')).toBeInTheDocument()
-    expect(screen.getByText('John Doe')).toBeInTheDocument()
-    expect(screen.getByText('Looking forward to working with you!')).toBeInTheDocument()
-    expect(screen.getByText('Thank you for the great rotation!')).toBeInTheDocument()
+    expect(screen.getByText('John Student')).toBeInTheDocument()
   })
 
-  it('displays unread message counts', () => {
-    render(<MessagesPage />)
-
-    // Should show unread count for conversation with unread messages
-    expect(screen.getByText('2')).toBeInTheDocument() // unread count for conv1
-  })
-
-  it('shows conversation details when selected', async () => {
-    const user = userEvent.setup()
-    
-    // Mock messages for selected conversation
-    mockUseQuery
-      .mockReturnValueOnce(mockConversations)
-      .mockReturnValueOnce(mockMessages) // messages for selected conversation
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
-    render(<MessagesPage />)
-
-    // Click on first conversation
-    const conversationItem = screen.getByText('Dr. Jane Smith').closest('div')
-    await user.click(conversationItem!)
-
-    // Should show messages
-    await waitFor(() => {
-      expect(screen.getByText('Hello! Welcome to your family medicine rotation.')).toBeInTheDocument()
-      expect(screen.getByText('Thank you! I\'m excited to start learning.')).toBeInTheDocument()
-    })
-  })
-
-  it('allows sending new messages', async () => {
-    const user = userEvent.setup()
-    
-    // Mock with selected conversation and messages
+  it('shows unread count badge', () => {
     mockUseQuery
       .mockReturnValueOnce(mockConversations)
       .mockReturnValueOnce(mockMessages)
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
-    mockSendMessage.mockResolvedValueOnce('new-message-id')
-
+    
     render(<MessagesPage />)
+    
+    expect(screen.getByText('2')).toBeInTheDocument() // unread count
+  })
 
-    // Type a message
-    const messageInput = screen.getByPlaceholderText('Type your message...')
-    await user.type(messageInput, 'Hello, this is a test message!')
+  it('displays messages in conversation', () => {
+    mockUseQuery
+      .mockReturnValueOnce(mockConversations)
+      .mockReturnValueOnce(mockMessages)
+    
+    render(<MessagesPage />)
+    
+    expect(screen.getByText('Hello there!')).toBeInTheDocument()
+    expect(screen.getByText('Hi, how are you?')).toBeInTheDocument()
+  })
 
-    // Send the message
+  it('allows sending a message', async () => {
+    mockUseQuery
+      .mockReturnValueOnce(mockConversations)
+      .mockReturnValueOnce(mockMessages)
+    
+    mockSendMessage.mockResolvedValueOnce('new-msg-id')
+    
+    render(<MessagesPage />)
+    
+    const input = screen.getByPlaceholderText(/Type a message/i)
     const sendButton = screen.getByRole('button', { name: /send/i })
-    await user.click(sendButton)
-
-    // Should call sendMessage mutation
+    
+    await userEvent.type(input, 'New message')
+    fireEvent.click(sendButton)
+    
     await waitFor(() => {
-      expect(mockSendMessage).toHaveBeenCalledWith({
-        conversationId: expect.any(String),
-        content: 'Hello, this is a test message!',
-        messageType: 'text'
-      })
+      expect(mockSendMessage).toHaveBeenCalledWith(expect.objectContaining({
+        content: 'New message'
+      }))
     })
   })
 
-  it('toggles between active and archived conversations', async () => {
-    const user = userEvent.setup()
-    
-    render(<MessagesPage />)
-
-    // Should show toggle for archived messages
-    const archivedToggle = screen.getByText(/show archived/i)
-    await user.click(archivedToggle)
-
-    // Should call useQuery with archived status
-    expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.any(Function),
-      { status: 'archived' }
-    )
-  })
-
-  it('archives conversation', async () => {
-    const user = userEvent.setup()
-    
-    // Mock with selected conversation
+  it('marks messages as read when conversation is selected', () => {
     mockUseQuery
       .mockReturnValueOnce(mockConversations)
       .mockReturnValueOnce(mockMessages)
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
-    mockUpdateStatus.mockResolvedValueOnce(undefined)
-
-    render(<MessagesPage />)
-
-    // Find and click archive button
-    const archiveButton = screen.getByRole('button', { name: /archive/i })
-    await user.click(archiveButton)
-
-    // Should call updateStatus mutation
-    await waitFor(() => {
-      expect(mockUpdateStatus).toHaveBeenCalledWith({
-        conversationId: expect.any(String),
-        status: 'archived'
-      })
-    })
-  })
-
-  it('handles empty message input', async () => {
-    const user = userEvent.setup()
     
+    mockUseMutation
+      .mockReturnValueOnce(mockSendMessage)
+      .mockReturnValueOnce(mockMarkAsRead)
+    
+    render(<MessagesPage />)
+    
+    const conversation = screen.getByText('Dr. Jane Smith')
+    fireEvent.click(conversation)
+    
+    expect(mockMarkAsRead).toHaveBeenCalled()
+  })
+
+  it('shows empty state when no conversations', () => {
+    mockUseQuery
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([])
+    
+    render(<MessagesPage />)
+    
+    expect(screen.getByText(/No conversations yet/i)).toBeInTheDocument()
+  })
+
+  it('filters conversations by search term', async () => {
     mockUseQuery
       .mockReturnValueOnce(mockConversations)
       .mockReturnValueOnce(mockMessages)
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
+    
     render(<MessagesPage />)
-
-    // Try to send empty message
-    const sendButton = screen.getByRole('button', { name: /send/i })
-    await user.click(sendButton)
-
-    // Should not call sendMessage
-    expect(mockSendMessage).not.toHaveBeenCalled()
+    
+    const searchInput = screen.getByPlaceholderText(/Search conversations/i)
+    
+    await userEvent.type(searchInput, 'Jane')
+    
+    expect(screen.getByText('Dr. Jane Smith')).toBeInTheDocument()
+    expect(screen.queryByText('John Student')).not.toBeInTheDocument()
   })
 
-  it('displays conversation metadata correctly', () => {
-    render(<MessagesPage />)
-
-    // Should show rotation type and dates
-    expect(screen.getByText(/family-medicine/i)).toBeInTheDocument()
-    expect(screen.getByText(/pediatrics/i)).toBeInTheDocument()
-  })
-
-  it('handles message loading states', () => {
-    // Mock loading state
-    mockUseQuery
-      .mockReturnValueOnce(mockConversations)
-      .mockReturnValueOnce(undefined) // messages loading
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
-    render(<MessagesPage />)
-
-    // Should handle loading state gracefully
-    expect(screen.getByText('Messages')).toBeInTheDocument()
-  })
-
-  it('formats message timestamps correctly', () => {
+  it('displays message timestamps', () => {
     mockUseQuery
       .mockReturnValueOnce(mockConversations)
       .mockReturnValueOnce(mockMessages)
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
+    
     render(<MessagesPage />)
-
-    // Should display relative timestamps
+    
+    // Should show relative timestamps
     expect(screen.getByText(/ago/i)).toBeInTheDocument()
   })
 
-  it('handles system notification messages', () => {
-    const systemMessage = {
-      _id: 'sys1',
-      senderId: 'system',
-      senderType: 'system' as const,
-      messageType: 'system_notification' as const,
-      content: 'Rotation has started',
-      createdAt: Date.now(),
-      metadata: {
-        systemEventType: 'rotation_start'
-      }
-    }
-
-    mockUseQuery
-      .mockReturnValueOnce(mockConversations)
-      .mockReturnValueOnce([...mockMessages, systemMessage])
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
-    render(<MessagesPage />)
-
-    expect(screen.getByText('Rotation has started')).toBeInTheDocument()
-  })
-
-  it('scrolls to bottom when new messages arrive', () => {
-    const mockScrollIntoView = vi.fn()
-    
-    // Mock scrollIntoView
-    Object.defineProperty(HTMLDivElement.prototype, 'scrollIntoView', {
-      value: mockScrollIntoView,
-      writable: true
-    })
-
+  it('handles message send error', async () => {
     mockUseQuery
       .mockReturnValueOnce(mockConversations)
       .mockReturnValueOnce(mockMessages)
-      .mockReturnValueOnce(3)
-
-    mockUseMutation
-      .mockReturnValueOnce(mockSendMessage)
-      .mockReturnValueOnce(mockMarkAsRead)
-      .mockReturnValueOnce(mockUpdateStatus)
-
+    
+    mockSendMessage.mockRejectedValueOnce(new Error('Failed to send'))
+    
     render(<MessagesPage />)
+    
+    const input = screen.getByPlaceholderText(/Type a message/i)
+    const sendButton = screen.getByRole('button', { name: /send/i })
+    
+    await userEvent.type(input, 'New message')
+    fireEvent.click(sendButton)
+    
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to send/i)).toBeInTheDocument()
+    })
+  })
 
-    // Should call scrollIntoView
-    expect(mockScrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+  it('shows typing indicator when other user is typing', () => {
+    const conversationsWithTyping = [
+      {
+        ...mockConversations[0],
+        isOtherUserTyping: true
+      }
+    ]
+    
+    mockUseQuery
+      .mockReturnValueOnce(conversationsWithTyping)
+      .mockReturnValueOnce(mockMessages)
+    
+    render(<MessagesPage />)
+    
+    expect(screen.getByText(/is typing/i)).toBeInTheDocument()
+  })
+
+  it('disables send button when message is empty', () => {
+    mockUseQuery
+      .mockReturnValueOnce(mockConversations)
+      .mockReturnValueOnce(mockMessages)
+    
+    render(<MessagesPage />)
+    
+    const sendButton = screen.getByRole('button', { name: /send/i })
+    
+    expect(sendButton).toBeDisabled()
   })
 })

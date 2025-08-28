@@ -236,7 +236,7 @@ export function validateRequestBody<T>(schema: z.ZodSchema<T>) {
           errors: result.errors.errors.map(e => `${e.path.join('.')}: ${e.message}`),
         };
       }
-    } catch (_error) {
+    } catch {
       return {
         valid: false,
         errors: ['Invalid request body'],

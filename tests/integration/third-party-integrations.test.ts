@@ -532,7 +532,7 @@ describe('Third-Party Service Integrations', () => {
 
       const result = await callWithRetry('openai', mockApiCall)
 
-      expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockApiCall).toHaveBeenCalledTimes(2)
       expect(result.success).toBe(true)
     })
 
@@ -549,7 +549,7 @@ describe('Third-Party Service Integrations', () => {
 
       const result = await callWithRetry('sendgrid', mockApiCall, { maxRetries: 3 })
 
-      expect(mockFetch).toHaveBeenCalledTimes(4) // Initial call + 3 retries
+      expect(mockApiCall).toHaveBeenCalledTimes(4) // Initial call + 3 retries
       expect(result.success).toBe(false)
     })
   })
