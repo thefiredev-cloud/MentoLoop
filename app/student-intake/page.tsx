@@ -7,29 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
-import PersonalInfoStep from './components/personal-info-step'
-import SchoolInfoStep from './components/school-info-step'
-import RotationNeedsStep from './components/rotation-needs-step'
-import MatchingPreferencesStep from './components/matching-preferences-step'
-import AgreementsStep from './components/agreements-step'
+import SimplifiedIntakeStep from './components/simplified-intake-step'
+import MembershipSelectionStep from './components/membership-selection-step'
+import StripeCheckoutStep from './components/stripe-checkout-step'
 
 const steps = [
-  { id: 1, name: 'Personal Info', component: PersonalInfoStep },
-  { id: 2, name: 'School Information', component: SchoolInfoStep },
-  { id: 3, name: 'Rotation Needs', component: RotationNeedsStep },
-  { id: 4, name: 'Matching Preferences', component: MatchingPreferencesStep },
-  { id: 5, name: 'Payment & Agreement', component: AgreementsStep },
+  { id: 1, name: 'Student Information', component: SimplifiedIntakeStep },
+  { id: 2, name: 'Membership Selection', component: MembershipSelectionStep },
+  { id: 3, name: 'Secure Payment', component: StripeCheckoutStep },
 ]
 
 export default function StudentIntakePage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
-    personalInfo: {},
-    schoolInfo: {},
-    rotationNeeds: {},
-    matchingPreferences: {},
-    learningStyle: {},
-    agreements: {},
+    studentInfo: {},
+    membership: {},
+    payment: {},
   })
 
   const updateFormData = (section: string, data: Record<string, unknown>) => {
@@ -74,14 +67,13 @@ export default function StudentIntakePage() {
         <Authenticated>
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Start Your Clinical Journey with MentoLoop</h1>
+          <h1 className="text-3xl font-bold mb-2">Student Intake Form</h1>
           <p className="text-muted-foreground text-lg">
-            Smarter matches. Supportive preceptors. Stress-free placements.
+            Complete your profile to get matched with the perfect preceptor
           </p>
           <p className="text-muted-foreground mt-4">
-            MentoLoop was created to make the NP clinical placement process faster, fairer, and more personalized. 
-            We connect nurse practitioner students with thoroughly vetted preceptors who align with your goals, 
-            schedule, and learning style.
+            Our streamlined process takes just a few minutes. Tell us about yourself, 
+            choose your membership plan, and we&apos;ll handle the rest.
           </p>
         </div>
 

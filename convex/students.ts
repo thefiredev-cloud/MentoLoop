@@ -96,6 +96,7 @@ export const createOrUpdateStudent = mutation({
       digitalSignature: v.string(),
       submissionDate: v.string(),
     }),
+    membershipPlan: v.optional(v.union(v.literal("core"), v.literal("pro"), v.literal("premium"))),
   },
   handler: async (ctx, args) => {
     console.log("[createOrUpdateStudent] Starting submission processing");
@@ -242,6 +243,7 @@ export const createOrUpdateStudent = mutation({
       matchingPreferences: args.matchingPreferences,
       learningStyle: args.learningStyle,
       agreements: args.agreements,
+      membershipPlan: args.membershipPlan,
       status: "submitted" as const,
       updatedAt: Date.now(),
     };

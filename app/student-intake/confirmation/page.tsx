@@ -1,0 +1,198 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { 
+  CheckCircle, 
+  Clock, 
+  Mail,
+  User,
+  Calendar,
+  MessageSquare
+} from 'lucide-react'
+import Link from 'next/link'
+
+export default function StudentIntakeConfirmationPage() {
+  // const router = useRouter() // Will be used for future navigation
+  const searchParams = useSearchParams()
+  const success = searchParams.get('success')
+  const sessionId = searchParams.get('session_id')
+
+  useEffect(() => {
+    // Clear any stored form data after successful submission
+    if (success === 'true') {
+      sessionStorage.removeItem('studentIntakeData')
+    }
+  }, [success])
+
+  if (success !== 'true') {
+    return (
+      <div className="min-h-screen bg-background py-12">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive">Payment Incomplete</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">Your payment was not completed. Please try again.</p>
+              <Link href="/student-intake">
+                <Button>Return to Intake Form</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background py-12">
+      <div className="container mx-auto px-4 max-w-3xl">
+        {/* Success Header */}
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-10 w-10 text-green-600" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Welcome to MentoLoop!</h1>
+          <p className="text-lg text-muted-foreground">
+            Your registration is complete and payment has been processed
+          </p>
+        </div>
+
+        {/* Next Steps */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>What Happens Next?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold">1</span>
+              </div>
+              <div>
+                <p className="font-medium">We&apos;ll Match You</p>
+                <p className="text-sm text-muted-foreground">
+                  Our AI-powered system will find the perfect preceptor for your clinical rotation within 24-48 hours
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold">2</span>
+              </div>
+              <div>
+                <p className="font-medium">Review Your Match</p>
+                <p className="text-sm text-muted-foreground">
+                  You&apos;ll receive an email with your preceptor match details and can review their profile
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold">3</span>
+              </div>
+              <div>
+                <p className="font-medium">Connect & Schedule</p>
+                <p className="text-sm text-muted-foreground">
+                  Once you accept your match, you can message your preceptor and schedule your rotation
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Confirmation Details */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Confirmation Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span>Payment processed successfully</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4 text-green-600" />
+              <span>Confirmation email sent to your registered email</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4 text-green-600" />
+              <span>Student profile created</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4 text-green-600" />
+              <span>Matching process initiated</span>
+            </div>
+            {sessionId && (
+              <div className="mt-4 p-3 bg-muted rounded-md">
+                <p className="text-xs text-muted-foreground">
+                  Reference ID: {sessionId}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Important Information */}
+        <Alert className="mb-6">
+          <Mail className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Check your email!</strong> We&apos;ve sent you important information about your account, 
+            including login credentials and next steps. If you don&apos;t see it, check your spam folder.
+          </AlertDescription>
+        </Alert>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid md:grid-cols-2 gap-3">
+              <Link href="/dashboard/student">
+                <Button className="w-full" variant="default">
+                  <User className="h-4 w-4 mr-2" />
+                  Go to Dashboard
+                </Button>
+              </Link>
+              <Link href="/dashboard/student/profile">
+                <Button className="w-full" variant="outline">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Complete Profile
+                </Button>
+              </Link>
+            </div>
+            <Link href="/dashboard/student/messages">
+              <Button className="w-full" variant="outline">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                View Messages
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Support */}
+        <div className="text-center mt-8 text-sm text-muted-foreground">
+          <p>
+            Need help? Contact our support team at{' '}
+            <a href="mailto:support@mentoloop.com" className="text-primary hover:underline">
+              support@mentoloop.com
+            </a>
+          </p>
+          <p className="mt-2">
+            Or visit our{' '}
+            <Link href="/help" className="text-primary hover:underline">
+              Help Center
+            </Link>
+            {' '}for FAQs and resources
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}

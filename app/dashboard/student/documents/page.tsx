@@ -1,0 +1,236 @@
+'use client'
+
+import { RoleGuard } from '@/components/role-guard'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { 
+  FileText, 
+  Upload, 
+  Download, 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle,
+  FileCheck,
+  File,
+  Eye,
+  Trash2,
+  Plus
+} from 'lucide-react'
+
+export default function StudentDocumentsPage() {
+  return (
+    <RoleGuard requiredRole="student">
+      <StudentDocumentsContent />
+    </RoleGuard>
+  )
+}
+
+function StudentDocumentsContent() {
+  const requiredDocuments = [
+    {
+      id: 1,
+      name: 'Resume/CV',
+      status: 'uploaded',
+      uploadedAt: '2024-01-15',
+      fileSize: '245 KB',
+      required: true
+    },
+    {
+      id: 2,
+      name: 'Nursing License',
+      status: 'uploaded',
+      uploadedAt: '2024-01-14',
+      fileSize: '1.2 MB',
+      required: true
+    },
+    {
+      id: 3,
+      name: 'CPR Certification',
+      status: 'uploaded',
+      uploadedAt: '2024-01-14',
+      fileSize: '890 KB',
+      required: true
+    },
+    {
+      id: 4,
+      name: 'Immunization Records',
+      status: 'pending',
+      uploadedAt: null,
+      fileSize: null,
+      required: true
+    },
+    {
+      id: 5,
+      name: 'Background Check',
+      status: 'pending',
+      uploadedAt: null,
+      fileSize: null,
+      required: true
+    },
+    {
+      id: 6,
+      name: 'Professional Liability Insurance',
+      status: 'pending',
+      uploadedAt: null,
+      fileSize: null,
+      required: true
+    }
+  ]
+
+  const uploadedCount = requiredDocuments.filter(doc => doc.status === 'uploaded').length
+  const completionPercentage = (uploadedCount / requiredDocuments.length) * 100
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
+        <Button>
+          <Upload className="mr-2 h-4 w-4" />
+          Upload Document
+        </Button>
+      </div>
+
+      {/* Progress Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Completion</CardTitle>
+          <CardDescription>
+            Upload all required documents to complete your profile
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>{uploadedCount} of {requiredDocuments.length} documents uploaded</span>
+              <span className="font-medium">{Math.round(completionPercentage)}%</span>
+            </div>
+            <Progress value={completionPercentage} className="h-2" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Required Documents */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Required Documents</CardTitle>
+          <CardDescription>
+            These documents are required for your clinical placements
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {requiredDocuments.map((doc) => (
+              <div key={doc.id}>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-lg p-2 bg-muted">
+                      {doc.status === 'uploaded' ? (
+                        <FileCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <File className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{doc.name}</p>
+                        {doc.status === 'uploaded' ? (
+                          <Badge variant="secondary" className="text-green-600">
+                            <CheckCircle2 className="mr-1 h-3 w-3" />
+                            Uploaded
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-orange-600">
+                            <Clock className="mr-1 h-3 w-3" />
+                            Pending
+                          </Badge>
+                        )}
+                      </div>
+                      {doc.uploadedAt && (
+                        <p className="text-sm text-muted-foreground">
+                          Uploaded on {new Date(doc.uploadedAt).toLocaleDateString()} • {doc.fileSize}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {doc.status === 'uploaded' ? (
+                      <>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button size="sm">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Additional Documents */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Documents</CardTitle>
+          <CardDescription>
+            Optional documents that may strengthen your application
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-8 border-2 border-dashed rounded-lg">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Plus className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-sm font-medium">No additional documents</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upload transcripts, certifications, or other relevant documents
+              </p>
+              <Button variant="outline" className="mt-4">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Document
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Document Requirements Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Requirements</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-4">
+            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div className="flex-1 space-y-2">
+              <p className="text-sm">
+                All documents must be current and valid. Expired certifications will not be accepted.
+              </p>
+              <p className="text-sm">
+                Documents should be uploaded in PDF, JPG, or PNG format (max 10MB per file).
+              </p>
+              <p className="text-sm">
+                Your documents will be securely stored and only shared with matched preceptors.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

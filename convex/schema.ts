@@ -51,6 +51,24 @@ export default defineSchema({
       .index("byStripeSessionId", ["stripeSessionId"])
       .index("byStatus", ["status"]),
 
+    // Student intake payment attempts
+    intakePaymentAttempts: defineTable({
+      customerEmail: v.string(),
+      customerName: v.string(),
+      membershipPlan: v.string(), // core, pro, premium
+      stripeSessionId: v.string(),
+      stripeCustomerId: v.optional(v.string()),
+      amount: v.number(), // Amount in cents
+      currency: v.optional(v.string()),
+      status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
+      failureReason: v.optional(v.string()),
+      paidAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+    }).index("byStripeSessionId", ["stripeSessionId"])
+      .index("byCustomerEmail", ["customerEmail"])
+      .index("byStatus", ["status"]),
+
     // Payments table for completed transactions
     payments: defineTable({
       userId: v.id("users"),
@@ -169,6 +187,10 @@ export default defineSchema({
         digitalSignature: v.string(),
         submissionDate: v.string(),
       }),
+      // Membership and payment information
+      membershipPlan: v.optional(v.union(v.literal("core"), v.literal("pro"), v.literal("premium"))),
+      stripeCustomerId: v.optional(v.string()),
+      paymentStatus: v.optional(v.union(v.literal("pending"), v.literal("paid"), v.literal("failed"))),
       // Status tracking
       status: v.union(
         v.literal("incomplete"), v.literal("submitted"), 

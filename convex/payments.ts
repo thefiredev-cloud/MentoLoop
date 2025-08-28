@@ -2,6 +2,84 @@ import { v } from "convex/values";
 import { action, internalAction, internalMutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 
+// Stripe payment processing for student intake
+export const createStudentCheckoutSession = action({
+  args: {
+    priceId: v.string(),
+    customerEmail: v.string(),
+    customerName: v.string(),
+    membershipPlan: v.string(),
+    metadata: v.record(v.string(), v.string()),
+    successUrl: v.string(),
+    cancelUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    try {
+      // Map membership plan to actual Stripe price IDs
+      const stripePriceIds: Record<string, string> = {
+        'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1QTLBCRxUy8PQw7tYqMqxQ4M',
+        'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1QTLBCRxUy8PQw7tJyyzGNTn',
+        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1QTLBCRxUy8PQw7tCCyJB0sF'
+      };
+
+      const actualPriceId = stripePriceIds[args.priceId] || args.priceId;
+
+      // Create Stripe checkout session for student intake
+      const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeSecretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          "mode": "payment",
+          "line_items[0][price]": actualPriceId,
+          "line_items[0][quantity]": "1",
+          "customer_email": args.customerEmail,
+          "success_url": args.successUrl,
+          "cancel_url": args.cancelUrl,
+          ...Object.entries(args.metadata).reduce((acc, [key, value]) => {
+            acc[`metadata[${key}]`] = value;
+            return acc;
+          }, {} as Record<string, string>),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Stripe API error: ${response.status} - ${errorText}`);
+      }
+
+      const session = await response.json();
+
+      // Log the intake payment attempt
+      await ctx.runMutation(internal.payments.logIntakePaymentAttempt, {
+        customerEmail: args.customerEmail,
+        customerName: args.customerName,
+        membershipPlan: args.membershipPlan,
+        stripeSessionId: session.id,
+        amount: 0, // Will be updated from webhook
+        status: "pending",
+      });
+
+      return {
+        sessionId: session.id,
+        sessionUrl: session.url,
+      };
+
+    } catch (error) {
+      console.error("Failed to create student checkout session:", error);
+      throw new Error(`Checkout session creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
 // Stripe payment processing for match confirmations
 export const createPaymentSession = action({
   args: {
@@ -258,6 +336,29 @@ export const logPaymentAttempt = internalMutation({
   },
 });
 
+// Log student intake payment attempts
+export const logIntakePaymentAttempt = internalMutation({
+  args: {
+    customerEmail: v.string(),
+    customerName: v.string(),
+    membershipPlan: v.string(),
+    stripeSessionId: v.string(),
+    amount: v.number(),
+    status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("intakePaymentAttempts", {
+      customerEmail: args.customerEmail,
+      customerName: args.customerName,
+      membershipPlan: args.membershipPlan,
+      stripeSessionId: args.stripeSessionId,
+      amount: args.amount,
+      status: args.status,
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const updatePaymentAttempt = internalMutation({
   args: {
     stripeSessionId: v.string(),
@@ -339,6 +440,78 @@ export const getPaymentAnalytics = query({
       : 0;
     
     return analytics;
+  },
+});
+
+// Create Stripe Connect account for preceptors
+export const createPreceptorConnectAccount = action({
+  args: {
+    email: v.string(),
+    returnUrl: v.string(),
+    refreshUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    try {
+      // Create a Stripe Connect account
+      const accountResponse = await fetch("https://api.stripe.com/v1/accounts", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeSecretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          "type": "express",
+          "country": "US",
+          "email": args.email,
+          "capabilities[card_payments][requested]": "true",
+          "capabilities[transfers][requested]": "true",
+        }),
+      });
+
+      if (!accountResponse.ok) {
+        const errorText = await accountResponse.text();
+        throw new Error(`Stripe API error: ${accountResponse.status} - ${errorText}`);
+      }
+
+      const account = await accountResponse.json();
+
+      // Create an account link for onboarding
+      const accountLinkResponse = await fetch("https://api.stripe.com/v1/account_links", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeSecretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          "account": account.id,
+          "return_url": args.returnUrl,
+          "refresh_url": args.refreshUrl,
+          "type": "account_onboarding",
+        }),
+      });
+
+      if (!accountLinkResponse.ok) {
+        const errorText = await accountLinkResponse.text();
+        throw new Error(`Stripe API error: ${accountLinkResponse.status} - ${errorText}`);
+      }
+
+      const accountLink = await accountLinkResponse.json();
+
+      return {
+        accountId: account.id,
+        accountLink: accountLink.url,
+      };
+
+    } catch (error) {
+      console.error("Failed to create Stripe Connect account:", error);
+      throw new Error(`Stripe Connect setup failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
   },
 });
 

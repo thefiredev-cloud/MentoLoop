@@ -7,29 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
-import PersonalContactStep from './components/personal-contact-step'
-import PracticeInfoStep from './components/practice-info-step'
-import AvailabilityStep from './components/availability-step'
-import MentoringStyleStep from './components/mentoring-style-step'
-import PreceptorAgreementsStep from './components/preceptor-agreements-step'
+import SimplifiedPreceptorIntakeStep from './components/simplified-preceptor-intake-step'
+import VerificationStep from './components/verification-step'
+import StripeConnectStep from './components/stripe-connect-step'
 
 const steps = [
-  { id: 1, name: 'Personal & Contact', component: PersonalContactStep },
-  { id: 2, name: 'Practice Information', component: PracticeInfoStep },
-  { id: 3, name: 'Availability', component: AvailabilityStep },
-  { id: 4, name: 'Mentoring Style', component: MentoringStyleStep },
-  { id: 5, name: 'Agreements', component: PreceptorAgreementsStep },
+  { id: 1, name: 'Preceptor Information', component: SimplifiedPreceptorIntakeStep },
+  { id: 2, name: 'Verification', component: VerificationStep },
+  { id: 3, name: 'Payment Setup', component: StripeConnectStep },
 ]
 
 export default function PreceptorIntakePage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
-    personalInfo: {},
-    practiceInfo: {},
-    availability: {},
-    matchingPreferences: {},
-    mentoringStyle: {},
-    agreements: {},
+    preceptorInfo: {},
+    verification: {},
+    stripeConnect: {},
   })
 
   const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
@@ -74,19 +67,13 @@ export default function PreceptorIntakePage() {
         <Authenticated>
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Shape the future of advanced nursing</h1>
+          <h1 className="text-3xl font-bold mb-2">Preceptor Intake Form</h1>
           <p className="text-muted-foreground text-lg">
-            One student at a time.
+            Join our network of healthcare professionals
           </p>
           <p className="text-muted-foreground mt-4 max-w-3xl mx-auto">
-            Thank you for your interest in becoming a preceptor with MentoLoop. We connect experienced, 
-            mission-driven NPs and clinicians with students who are eager to learn, grow, and serve their communities. 
-            Whether you&apos;ve mentored before or are new to teaching, we make the process simple, rewarding, and fully supported.
-          </p>
-          <p className="text-muted-foreground mt-2 max-w-3xl mx-auto">
-            Make a lasting impact and pass on your knowledge, skills, and experience to the next generation of nurse practitioners. 
-            We handle the details, from matching to school paperwork, we streamline the entire placement process, 
-            so you can focus on teaching.
+            Complete your profile, verify your credentials, and set up payments to start 
+            receiving student match requests. The entire process takes less than 10 minutes.
           </p>
         </div>
 
