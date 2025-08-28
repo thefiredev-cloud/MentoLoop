@@ -69,6 +69,14 @@ TROUBLESHOOTING.md
 PROJECT-STATUS.md
 MentoLoop Guide/
 
+# Sensitive documentation files with API keys
+NETLIFY_DEPLOYMENT_INSTRUCTIONS.md
+CLERK_DASHBOARD_SETUP.md
+PRODUCTION_KEYS_CHECKLIST.md
+*_KEYS_*.md
+*_SECRETS_*.md
+*_CREDENTIALS_*.md
+
 # Duplicate directories
 MentoLoop/
 
