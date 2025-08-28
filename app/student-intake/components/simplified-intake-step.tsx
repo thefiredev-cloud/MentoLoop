@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -69,12 +69,10 @@ export default function SimplifiedIntakeStep({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    updateFormData('studentInfo', formData)
-  }, [formData, updateFormData])
-
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    // Update parent form data immediately when field changes
+    updateFormData('studentInfo', { ...formData, [field]: value })
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }

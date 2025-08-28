@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -88,23 +88,20 @@ export default function MembershipSelectionStep({
   )
   const [error, setError] = useState<string>('')
 
-  useEffect(() => {
-    if (selectedPlan) {
-      const plan = MEMBERSHIP_PLANS.find(p => p.id === selectedPlan)
-      if (plan) {
-        updateFormData('membership', {
-          plan: selectedPlan,
-          planName: plan.name,
-          price: plan.price,
-          priceId: plan.priceId
-        })
-      }
-    }
-  }, [selectedPlan, updateFormData])
-
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId)
     setError('')
+    
+    // Update parent form data immediately when plan is selected
+    const plan = MEMBERSHIP_PLANS.find(p => p.id === planId)
+    if (plan) {
+      updateFormData('membership', {
+        plan: planId,
+        planName: plan.name,
+        price: plan.price,
+        priceId: plan.priceId
+      })
+    }
   }
 
   const handleNext = () => {

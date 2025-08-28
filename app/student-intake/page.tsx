@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Authenticated, Unauthenticated } from "convex/react"
 import { SignInButton } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,12 +25,12 @@ export default function StudentIntakePage() {
     payment: {},
   })
 
-  const updateFormData = (section: string, data: Record<string, unknown>) => {
+  const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
     setFormData(prev => ({
       ...prev,
       [section]: { ...prev[section as keyof typeof prev], ...data }
     }))
-  }
+  }, [])
 
   const nextStep = () => {
     if (currentStep < steps.length) {
