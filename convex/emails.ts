@@ -341,6 +341,30 @@ export const sendWelcomeEmail = internalAction({
   },
 });
 
+// Send student welcome email after intake payment completion
+export const sendStudentWelcomeEmail = internalAction({
+  args: {
+    email: v.string(),
+    firstName: v.string(),
+    membershipPlan: v.string(),
+    school: v.string(),
+    specialty: v.string(),
+  },
+  handler: async (ctx, args): Promise<any> => {
+    return await ctx.runAction(internal.emails.sendEmailInternal, {
+      to: args.email,
+      templateKey: "WELCOME_STUDENT",
+      variables: {
+        firstName: args.firstName,
+        membershipPlan: args.membershipPlan.charAt(0).toUpperCase() + args.membershipPlan.slice(1),
+        school: args.school,
+        specialty: args.specialty,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.mentoloop.com'}/dashboard/student`,
+      },
+    });
+  },
+});
+
 // Send match confirmation emails
 export const sendMatchConfirmationEmails = internalAction({
   args: {

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { internalQuery, internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { getUserId } from "./auth";
 
@@ -356,6 +356,41 @@ export const updateStudentStatus = mutation({
       status: args.status,
       updatedAt: Date.now(),
     });
+  },
+});
+
+// Update student payment status after successful payment
+export const updateStudentPaymentStatus = internalMutation({
+  args: {
+    userId: v.id("users"),
+    paymentStatus: v.string(),
+    membershipPlan: v.string(),
+    stripeSessionId: v.string(),
+    paidAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Find the student by userId
+    const student = await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (student) {
+      // Update student record with payment information
+      await ctx.db.patch(student._id, {
+        paymentStatus: args.paymentStatus as "pending" | "failed" | "paid",
+        membershipPlan: args.membershipPlan as "core" | "pro" | "premium",
+        stripeCustomerId: args.stripeSessionId, // Store session ID as customer ID for tracking
+        status: "active" as const,
+        updatedAt: Date.now(),
+      });
+      
+      console.log(`Updated student ${student._id} with payment status: ${args.paymentStatus}`);
+    } else {
+      console.error(`No student found for userId: ${args.userId}`);
+    }
+    
+    return { success: true };
   },
 });
 

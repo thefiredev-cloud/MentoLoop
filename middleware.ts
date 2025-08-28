@@ -8,6 +8,8 @@ const isStudentRoute = createRouteMatcher(['/dashboard/student(.*)'])
 const isPreceptorRoute = createRouteMatcher(['/dashboard/preceptor(.*)'])
 const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)'])
 const isEnterpriseRoute = createRouteMatcher(['/dashboard/enterprise(.*)'])
+const isStudentIntakeRoute = createRouteMatcher(['/student-intake(.*)'])
+const isDashboardRoute = createRouteMatcher(['/dashboard(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
   try {
@@ -26,6 +28,9 @@ export default clerkMiddleware(async (auth, req) => {
     if (isProtectedRoute(req)) {
       try {
         await auth.protect()
+        
+        // Note: User metadata checks are handled by RoleGuard component
+        // Middleware only handles basic authentication
       } catch (error) {
         console.error('Auth protection error:', error)
         // Redirect to sign-in on auth error

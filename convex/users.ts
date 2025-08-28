@@ -90,6 +90,49 @@ export const ensureUserExists = mutation({
   },
 });
 
+// Internal query to get user by email
+export const getUserByEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("email"), email))
+      .first();
+    return user;
+  },
+});
+
+// Internal action to update user metadata in Clerk
+export const updateUserMetadata = internalMutation({
+  args: {
+    userId: v.id("users"),
+    publicMetadata: v.object({
+      intakeCompleted: v.boolean(),
+      paymentCompleted: v.boolean(),
+      intakeCompletedAt: v.string(),
+      membershipPlan: v.string(),
+    }),
+  },
+  handler: async (ctx, { userId, publicMetadata }) => {
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Update the user record - store metadata as user type
+    // Note: Actual intake completion status is stored in Clerk metadata
+    await ctx.db.patch(userId, {
+      userType: "student" as const,
+    });
+
+    // Note: Actual Clerk metadata update would happen via Clerk SDK
+    // This is handled by the webhook or a separate server action
+    console.log(`Updated user ${userId} metadata:`, publicMetadata);
+    
+    return { success: true };
+  },
+});
+
 export const ensureUserExistsWithRetry = mutation({
   args: {},
   handler: async (ctx) => {

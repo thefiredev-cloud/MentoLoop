@@ -151,11 +151,14 @@ export default function StripeCheckoutStep({
       })
 
       if (session.sessionUrl) {
-        // Store session ID for tracking
+        // Store session ID and membership plan for tracking
         updateFormData('payment', {
           sessionId: session.sessionId,
           status: 'redirecting'
         })
+        
+        // Store membership plan for confirmation page
+        sessionStorage.setItem('selectedMembershipPlan', membership.plan)
         
         // Redirect to Stripe checkout
         window.location.href = session.sessionUrl

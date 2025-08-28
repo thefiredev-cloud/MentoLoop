@@ -238,6 +238,13 @@ export const handleStripeWebhook = action({
 
 
 async function handleCheckoutCompleted(ctx: any, session: any) {
+  // Check if this is a student intake payment
+  if (session.metadata?.membershipPlan && session.metadata?.studentName) {
+    console.log("Processing student intake payment completion");
+    await handleStudentIntakePaymentCompleted(ctx, session);
+    return;
+  }
+
   const matchId = session.metadata?.matchId;
   if (!matchId) {
     console.error("No matchId in session metadata");
@@ -297,6 +304,69 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
         });
       }
     }
+  }
+}
+
+async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
+  const { customerEmail, membershipPlan, studentName, school, specialty } = session.metadata || {};
+  
+  if (!customerEmail) {
+    console.error("No customer email in session metadata");
+    return;
+  }
+
+  try {
+    // Find the user by email
+    const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
+    
+    if (user) {
+      // Update user metadata in the database
+      await ctx.runMutation(internal.users.updateUserMetadata, {
+        userId: user._id,
+        publicMetadata: {
+          intakeCompleted: true,
+          paymentCompleted: true,
+          intakeCompletedAt: new Date().toISOString(),
+          membershipPlan: membershipPlan || 'core',
+        }
+      });
+
+      // Update student record with payment confirmation
+      await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
+        userId: user._id,
+        paymentStatus: 'completed',
+        membershipPlan: membershipPlan || 'core',
+        stripeSessionId: session.id,
+        paidAt: Date.now(),
+      });
+      
+      // Note: Clerk metadata update happens via server action in the confirmation page
+      // or through a separate webhook endpoint
+    }
+
+    // Log the intake payment
+    await ctx.runMutation(internal.payments.logIntakePaymentAttempt, {
+      customerEmail,
+      customerName: studentName || '',
+      membershipPlan: membershipPlan || 'core',
+      stripeSessionId: session.id,
+      amount: session.amount_total,
+      status: "succeeded",
+    });
+
+    // Send welcome email to student
+    await ctx.runAction(internal.emails.sendStudentWelcomeEmail, {
+      email: customerEmail,
+      firstName: studentName?.split(' ')[0] || '',
+      membershipPlan: membershipPlan || 'core',
+      school: school || '',
+      specialty: specialty || '',
+    });
+
+    console.log(`Student intake payment completed for ${customerEmail}`);
+  } catch (error) {
+    console.error("Error processing student intake payment:", error);
+    throw error;
   }
 }
 

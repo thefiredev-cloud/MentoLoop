@@ -7,6 +7,9 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle } from 'lucide-react'
+import { useUser } from '@clerk/nextjs'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface RoleGuardProps {
   children: React.ReactNode
@@ -22,6 +25,7 @@ export function RoleGuard({
   fallback 
 }: RoleGuardProps) {
   const user = useQuery(api.users.current)
+  const { user: clerkUser } = useUser()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -40,6 +44,43 @@ export function RoleGuard({
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     )
+  }
+
+  // Check if student has completed intake
+  if (requiredRole === 'student' && user.userType === 'student' && clerkUser) {
+    const intakeCompleted = clerkUser.publicMetadata?.intakeCompleted as boolean
+    const paymentCompleted = clerkUser.publicMetadata?.paymentCompleted as boolean
+    
+    if (!intakeCompleted || !paymentCompleted) {
+      return (
+        <div className="flex items-center justify-center min-h-screen p-8">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-warning" />
+                Complete Your Registration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                You need to complete your intake form and payment before accessing your dashboard.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Our simple intake process takes just a few minutes and will help us match you with the perfect preceptor.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <Link href="/student-intake" className="flex-1">
+                  <Button className="w-full">Complete Intake Form</Button>
+                </Link>
+                <Link href="/help" className="flex-1">
+                  <Button variant="outline" className="w-full">Get Help</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
   }
 
   // Check role access

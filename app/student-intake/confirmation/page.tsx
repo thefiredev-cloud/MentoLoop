@@ -14,19 +14,33 @@ import {
   MessageSquare
 } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@clerk/nextjs'
+import { markIntakeComplete } from '@/app/actions/clerk-metadata'
 
 export default function StudentIntakeConfirmationPage() {
   // const router = useRouter() // Will be used for future navigation
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
   const sessionId = searchParams.get('session_id')
+  const { userId } = useAuth()
 
   useEffect(() => {
-    // Clear any stored form data after successful submission
-    if (success === 'true') {
+    // Clear any stored form data and update metadata after successful submission
+    if (success === 'true' && userId) {
       sessionStorage.removeItem('studentIntakeData')
+      
+      // Update Clerk metadata to mark intake as complete
+      const membershipPlan = sessionStorage.getItem('selectedMembershipPlan') || 'core'
+      markIntakeComplete(userId, membershipPlan)
+        .then(() => {
+          console.log('User metadata updated successfully')
+          sessionStorage.removeItem('selectedMembershipPlan')
+        })
+        .catch(error => {
+          console.error('Failed to update user metadata:', error)
+        })
     }
-  }, [success])
+  }, [success, userId])
 
   if (success !== 'true') {
     return (
