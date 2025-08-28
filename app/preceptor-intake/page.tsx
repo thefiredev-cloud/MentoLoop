@@ -7,12 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
-import SimplifiedPreceptorIntakeStep from './components/simplified-preceptor-intake-step'
+import ProtectedPreceptorIntakeStep from './components/protected-preceptor-intake-step'
 import VerificationStep from './components/verification-step'
 import StripeConnectStep from './components/stripe-connect-step'
 
 const steps = [
-  { id: 1, name: 'Preceptor Information', component: SimplifiedPreceptorIntakeStep },
+  { id: 1, name: 'Preceptor Information', component: ProtectedPreceptorIntakeStep },
   { id: 2, name: 'Verification', component: VerificationStep },
   { id: 3, name: 'Payment Setup', component: StripeConnectStep },
 ]

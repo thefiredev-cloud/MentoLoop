@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { RoleGuard } from '@/components/role-guard'
 import { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -56,6 +57,23 @@ interface Conversation {
 }
 
 export default function MessagesPage() {
+  const user = useQuery(api.users.current)
+  const isStudent = user?.userType === 'student'
+  
+  // For students, require intake completion before accessing messages
+  if (isStudent) {
+    return (
+      <RoleGuard requiredRole="student">
+        <MessagesContent />
+      </RoleGuard>
+    )
+  }
+  
+  // For other user types, show messages directly
+  return <MessagesContent />
+}
+
+function MessagesContent() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
   const [showArchived, setShowArchived] = useState(false)

@@ -7,18 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
-import SimplifiedIntakeStep from './components/simplified-intake-step'
+import ProtectedIntakeStep from './components/protected-intake-step'
 import MembershipSelectionStep from './components/membership-selection-step'
 import StripeCheckoutStep from './components/stripe-checkout-step'
 
 const steps = [
-  { id: 1, name: 'Student Information', component: SimplifiedIntakeStep },
+  { id: 1, name: 'Student Information', component: ProtectedIntakeStep },
   { id: 2, name: 'Membership Selection', component: MembershipSelectionStep },
   { id: 3, name: 'Secure Payment', component: StripeCheckoutStep },
 ]
 
 export default function StudentIntakePage() {
   const [currentStep, setCurrentStep] = useState(1)
+  const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [formData, setFormData] = useState({
     studentInfo: {},
     membership: {},
@@ -32,17 +33,57 @@ export default function StudentIntakePage() {
     }))
   }, [])
 
-  const nextStep = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
+  // Validate if a step is completed based on form data
+  const validateStep = useCallback((stepNumber: number): boolean => {
+    switch (stepNumber) {
+      case 1: // Student Information
+        const studentInfo = formData.studentInfo as {
+          fullName?: string
+          email?: string
+          school?: string
+          specialty?: string
+          hoursRequired?: string
+          state?: string
+        }
+        return !!(studentInfo.fullName && studentInfo.email && studentInfo.school && 
+                 studentInfo.specialty && studentInfo.hoursRequired && studentInfo.state)
+      case 2: // Membership Selection
+        const membership = formData.membership as {
+          plan?: string
+          planName?: string
+          price?: number
+        }
+        return !!(membership.plan && membership.planName && membership.price)
+      case 3: // Payment (this step completes with redirect)
+        return false // This step is always validated externally via Stripe
+      default:
+        return false
     }
-  }
+  }, [formData])
 
-  const prevStep = () => {
+  const nextStep = useCallback(() => {
+    // Validate current step before proceeding
+    if (validateStep(currentStep)) {
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps(prev => [...prev, currentStep])
+      }
+      if (currentStep < steps.length) {
+        setCurrentStep(currentStep + 1)
+      }
+    }
+  }, [currentStep, validateStep, completedSteps])
+
+  const prevStep = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
-  }
+  }, [currentStep])
+
+  // Prevent users from jumping to steps they haven't completed
+  const canAccessStep = useCallback((stepNumber: number): boolean => {
+    if (stepNumber === 1) return true // First step is always accessible
+    return completedSteps.includes(stepNumber - 1) // Can only access if previous step is completed
+  }, [completedSteps])
 
   const progress = (currentStep / steps.length) * 100
   const CurrentStepComponent = steps[currentStep - 1].component
@@ -87,28 +128,47 @@ export default function StudentIntakePage() {
             <Progress value={progress} className="mb-6" />
             
             <div className="flex justify-between">
-              {steps.map((step) => (
-                <div key={step.id} className="flex flex-col items-center">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 mb-2 ${
-                    step.id < currentStep 
-                      ? 'bg-primary border-primary text-primary-foreground' 
-                      : step.id === currentStep
-                      ? 'border-primary text-primary'
-                      : 'border-muted-foreground text-muted-foreground'
-                  }`}>
-                    {step.id < currentStep ? (
-                      <CheckCircle className="w-5 h-5" />
-                    ) : (
-                      <span className="text-sm font-medium">{step.id}</span>
-                    )}
+              {steps.map((step) => {
+                const isCompleted = completedSteps.includes(step.id)
+                const isCurrent = step.id === currentStep
+                const isAccessible = canAccessStep(step.id)
+                
+                return (
+                  <div key={step.id} className="flex flex-col items-center">
+                    <div 
+                      className={`flex items-center justify-center w-8 h-8 rounded-full border-2 mb-2 ${
+                        isCompleted
+                          ? 'bg-green-500 border-green-500 text-white' 
+                          : isCurrent
+                          ? 'border-primary text-primary'
+                          : isAccessible
+                          ? 'border-muted-foreground text-muted-foreground hover:border-primary cursor-pointer'
+                          : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                      } transition-colors`}
+                      onClick={() => {
+                        if (isAccessible && step.id !== currentStep) {
+                          setCurrentStep(step.id)
+                        }
+                      }}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="w-5 h-5" />
+                      ) : (
+                        <span className="text-sm font-medium">{step.id}</span>
+                      )}
+                    </div>
+                    <span className={`text-xs text-center max-w-20 ${
+                      isCompleted || isCurrent 
+                        ? 'text-foreground' 
+                        : isAccessible 
+                        ? 'text-muted-foreground' 
+                        : 'text-gray-400'
+                    }`}>
+                      {step.name}
+                    </span>
                   </div>
-                  <span className={`text-xs text-center max-w-20 ${
-                    step.id <= currentStep ? 'text-foreground' : 'text-muted-foreground'
-                  }`}>
-                    {step.name}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>

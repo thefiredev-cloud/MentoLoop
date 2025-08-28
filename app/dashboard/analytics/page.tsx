@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +26,23 @@ import {
   Download
 } from 'lucide-react'
 export default function AnalyticsDashboard() {
+  const user = useQuery(api.users.current)
+  const isStudent = user?.userType === 'student'
+  
+  // For students, require intake completion before accessing analytics
+  if (isStudent) {
+    return (
+      <RoleGuard requiredRole="student">
+        <AnalyticsContent />
+      </RoleGuard>
+    )
+  }
+  
+  // For other user types, show analytics directly
+  return <AnalyticsContent />
+}
+
+function AnalyticsContent() {
   const [dateRange, setDateRange] = useState('30d')
   const [specialty, setSpecialty] = useState('all')
   const [selectedTab, setSelectedTab] = useState('overview')

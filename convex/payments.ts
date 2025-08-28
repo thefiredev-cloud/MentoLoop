@@ -658,3 +658,55 @@ export const getStripePricing = action({
     }
   },
 });
+
+// Check if a user has completed payment for intake form access
+export const checkUserPaymentStatus = query({
+  args: {
+    userEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Check if user has any successful intake payment
+    const successfulPayment = await ctx.db
+      .query("intakePaymentAttempts")
+      .withIndex("byCustomerEmail", (q) => q.eq("customerEmail", args.userEmail))
+      .filter((q) => q.eq(q.field("status"), "succeeded"))
+      .first();
+
+    return {
+      hasPayment: !!successfulPayment,
+      membershipPlan: successfulPayment?.membershipPlan || null,
+      paidAt: successfulPayment?.createdAt || null,
+    };
+  },
+});
+
+// Check payment status by user ID (for authenticated users)
+export const checkUserPaymentByUserId = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args): Promise<{
+    hasPayment: boolean;
+    membershipPlan: string | null;
+    paidAt: number | null;
+  }> => {
+    // Get user to find their email
+    const user = await ctx.db.get(args.userId);
+    if (!user?.email) {
+      return { hasPayment: false, membershipPlan: null, paidAt: null };
+    }
+
+    // Check if user has any successful intake payment
+    const successfulPayment = await ctx.db
+      .query("intakePaymentAttempts")
+      .withIndex("byCustomerEmail", (q) => q.eq("customerEmail", user.email!))
+      .filter((q) => q.eq(q.field("status"), "succeeded"))
+      .first();
+
+    return {
+      hasPayment: !!successfulPayment,
+      membershipPlan: successfulPayment?.membershipPlan || null,
+      paidAt: successfulPayment?.createdAt || null,
+    };
+  },
+});

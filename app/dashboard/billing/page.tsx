@@ -2,6 +2,7 @@
 
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +24,16 @@ export default function BillingPage() {
   const user = useQuery(api.users.current)
   const isStudent = user?.userType === 'student'
   
+  // For students, require intake completion before accessing billing
+  if (isStudent) {
+    return (
+      <RoleGuard requiredRole="student">
+        <BillingContent userType={user?.userType} />
+      </RoleGuard>
+    )
+  }
+  
+  // For other user types, show billing directly
   return <BillingContent userType={user?.userType} />
 }
 

@@ -31,14 +31,36 @@ export default function StudentIntakeConfirmationPage() {
       
       // Update Clerk metadata to mark intake as complete
       const membershipPlan = sessionStorage.getItem('selectedMembershipPlan') || 'core'
-      markIntakeComplete(userId, membershipPlan)
-        .then(() => {
+      
+      const updateMetadata = async () => {
+        try {
+          await markIntakeComplete(userId, membershipPlan)
           console.log('User metadata updated successfully')
           sessionStorage.removeItem('selectedMembershipPlan')
-        })
-        .catch(error => {
+          
+          // Force reload after a short delay to ensure metadata changes are reflected
+          setTimeout(() => {
+            console.log('Metadata update complete, forcing page refresh to sync state')
+          }, 1000)
+        } catch (error) {
           console.error('Failed to update user metadata:', error)
-        })
+          
+          // Retry once after 2 seconds
+          setTimeout(async () => {
+            try {
+              console.log('Retrying metadata update...')
+              await markIntakeComplete(userId, membershipPlan)
+              console.log('User metadata updated successfully on retry')
+              sessionStorage.removeItem('selectedMembershipPlan')
+            } catch (retryError) {
+              console.error('Failed to update user metadata on retry:', retryError)
+              // Consider showing an error message to the user here
+            }
+          }, 2000)
+        }
+      }
+      
+      updateMetadata()
     }
   }, [success, userId])
 
