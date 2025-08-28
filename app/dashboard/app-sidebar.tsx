@@ -320,24 +320,41 @@ const enterpriseNavData = {
 //   documents: [],
 // }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: Omit<React.ComponentProps<typeof Sidebar>, 'variant'>) {
   const user = useQuery(api.users.current)
   const unreadCount = useQuery(api.messages.getUnreadMessageCount) || 0
   
   // Determine navigation data based on user type
   const navigationData = React.useMemo(() => {
     let navData;
-    if (user?.userType === 'student') {
-      navData = studentNavData
-    } else if (user?.userType === 'preceptor') {
-      navData = preceptorNavData
-    } else if (user?.userType === 'enterprise') {
-      navData = enterpriseNavData
-    } else if (user?.userType === 'admin') {
-      navData = adminNavData
-    } else {
-      // Default to admin navigation for testing purposes
-      navData = adminNavData
+    switch(user?.userType) {
+      case 'student':
+        navData = studentNavData
+        break
+      case 'preceptor':
+        navData = preceptorNavData
+        break
+      case 'enterprise':
+        navData = enterpriseNavData
+        break
+      case 'admin':
+        navData = adminNavData
+        break
+      default:
+        // Return minimal navigation for users without a role
+        navData = {
+          navMain: [{
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: IconDashboard,
+          }],
+          navSecondary: [{
+            title: "Help Center",
+            url: "/help",
+            icon: IconHelp,
+          }],
+          documents: []
+        }
     }
 
     // Add unread message count to Messages item
@@ -356,21 +373,48 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return navData;
   }, [user?.userType, unreadCount])
 
+  // Get role-specific styling
+  const getRoleBadgeVariant = () => {
+    switch(user?.userType) {
+      case 'admin': return 'destructive'
+      case 'enterprise': return 'default'
+      case 'preceptor': return 'secondary'
+      case 'student': return 'outline'
+      default: return 'outline'
+    }
+  }
+
+  const getRoleIcon = () => {
+    switch(user?.userType) {
+      case 'admin': return <IconUsers className="size-4" />
+      case 'enterprise': return <IconSchool className="size-4" />
+      case 'preceptor': return <IconStethoscope className="size-4" />
+      case 'student': return <IconUser className="size-4" />
+      default: return null
+    }
+  }
+
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="offcanvas" className="border-r" {...props}>
+      <SidebarHeader className="border-b">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5"
+              className="data-[slot=sidebar-menu-button]:p-1.5 h-auto"
             >
-              <Link href="/">
-                <IconHeart className="size-6 text-primary" />
-                <span className="text-base font-semibold text-white">MentoLoop</span>
+              <Link href="/" className="flex flex-col items-start gap-1 py-2">
+                <div className="flex items-center gap-2">
+                  <IconHeart className="size-6 text-primary" />
+                  <span className="text-base font-semibold">MentoLoop</span>
+                </div>
                 {user?.userType && (
-                  <Badge variant="outline" className="text-muted-foreground text-xs capitalize">
-                    {user.userType}
+                  <Badge 
+                    variant={getRoleBadgeVariant()} 
+                    className="text-xs capitalize flex items-center gap-1"
+                  >
+                    {getRoleIcon()}
+                    {user.userType} Portal
                   </Badge>
                 )}
               </Link>
@@ -378,14 +422,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <NavMain items={navigationData.navMain} />
         {navigationData.documents.length > 0 && (
           <NavDocuments items={navigationData.documents} />
         )}
         <NavSecondary items={navigationData.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <NavUser />
       </SidebarFooter>
     </Sidebar>

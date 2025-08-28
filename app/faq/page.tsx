@@ -211,7 +211,7 @@ export default function FAQPage() {
               <div key={category}>
                 <h2 className="text-xl font-semibold mb-4">{category}</h2>
                 <div className="space-y-3">
-                  {categoryFAQs.map((faq, index) => {
+                  {categoryFAQs.map((faq, _index) => {
                     const globalIndex = faqs.indexOf(faq)
                     const isOpen = openIndex === globalIndex
                     

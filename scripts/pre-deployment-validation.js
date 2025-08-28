@@ -94,7 +94,7 @@ convexFiles.forEach(file => {
 console.log('\n🛣️ Validating Application Routes...\n');
 
 const appRoutes = [
-  { path: 'app/page.tsx', desc: 'Landing page' },
+  { path: 'app/(landing)/page.tsx', desc: 'Landing page' },
   { path: 'app/layout.tsx', desc: 'Root layout' },
   { path: 'app/dashboard/page.tsx', desc: 'Dashboard routing' },
   { path: 'app/dashboard/student/page.tsx', desc: 'Student dashboard' },

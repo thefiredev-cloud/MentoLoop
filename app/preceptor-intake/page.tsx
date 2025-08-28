@@ -6,7 +6,7 @@ import { SignInButton } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle, Circle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import PersonalContactStep from './components/personal-contact-step'
 import PracticeInfoStep from './components/practice-info-step'
 import AvailabilityStep from './components/availability-step'

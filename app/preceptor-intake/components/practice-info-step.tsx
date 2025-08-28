@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { isSupportedZipCode, getStateFromZip } from '@/lib/states-config'
 import { STATE_OPTIONS } from '@/lib/states-config'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -35,7 +34,7 @@ export default function PracticeInfoStep({
   onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: PracticeInfoStepProps) {
   const [formData, setFormData] = useState({
     practiceName: '',

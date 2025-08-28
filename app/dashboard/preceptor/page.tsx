@@ -3,6 +3,7 @@
 // import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { RoleGuard } from '@/components/role-guard'
 // import { Id } from '@/convex/_generated/dataModel'
 // import { StatsCard } from '@/components/dashboard/stats-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
@@ -37,6 +38,14 @@ import {
 import Link from 'next/link'
 
 export default function PreceptorDashboard() {
+  return (
+    <RoleGuard requiredRole="preceptor">
+      <PreceptorDashboardContent />
+    </RoleGuard>
+  )
+}
+
+function PreceptorDashboardContent() {
   const user = useQuery(api.users.current)
   const dashboardStats = useQuery(api.preceptors.getPreceptorDashboardStats)
   const recentActivity = useQuery(api.preceptors.getPreceptorRecentActivity, { limit: 5 })
@@ -60,7 +69,7 @@ export default function PreceptorDashboard() {
     )
   }
 
-  const { preceptor, user: userData } = dashboardStats
+  const { preceptor, user: _userData } = dashboardStats
   const hasCompletedIntake = !!preceptor
   const intakeProgress = dashboardStats.profileCompletionPercentage
 

@@ -55,6 +55,7 @@ export function PostSignupHandler() {
     }
 
     handlePostSignup()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user, currentUser, updateUserType, router, isProcessing])
 
   const redirectBasedOnRole = (role: string) => {

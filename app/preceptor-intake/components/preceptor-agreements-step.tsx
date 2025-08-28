@@ -24,10 +24,10 @@ interface PreceptorAgreementsStepProps {
 export default function PreceptorAgreementsStep({ 
   data, 
   updateFormData, 
-  onNext, 
+  onNext: _onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: PreceptorAgreementsStepProps) {
   const [formData, setFormData] = useState({
     openToScreening: false,

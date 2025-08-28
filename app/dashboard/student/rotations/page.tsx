@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -63,7 +61,7 @@ export default function StudentRotationsPage() {
     }
   }
 
-  const getProgressColor = (percentage: number) => {
+  const _getProgressColor = (percentage: number) => {
     if (percentage >= 90) return 'bg-green-500'
     if (percentage >= 70) return 'bg-yellow-500'
     return 'bg-blue-500'

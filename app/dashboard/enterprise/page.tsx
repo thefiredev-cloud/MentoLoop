@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +20,14 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
 export default function EnterpriseDashboardPage() {
+  return (
+    <RoleGuard requiredRole="enterprise">
+      <EnterpriseDashboardContent />
+    </RoleGuard>
+  )
+}
+
+function EnterpriseDashboardContent() {
   const [activeTab, setActiveTab] = useState('overview')
 
   // Queries

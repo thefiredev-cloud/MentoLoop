@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
@@ -73,7 +72,7 @@ interface StudentData {
 
 export default function PreceptorStudents() {
   const user = useQuery(api.users.current)
-  const activeStudents = useQuery(api.matches.getActiveStudentsForPreceptor,
+  const _activeStudents = useQuery(api.matches.getActiveStudentsForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
 

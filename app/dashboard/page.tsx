@@ -21,14 +21,27 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user && !hasRedirected.current) {
       // Redirect to appropriate dashboard based on user type
-      if (user.userType === 'student') {
-        hasRedirected.current = true
-        router.replace('/dashboard/student')
-      } else if (user.userType === 'preceptor') {
-        hasRedirected.current = true
-        router.replace('/dashboard/preceptor')
+      switch (user.userType) {
+        case 'student':
+          hasRedirected.current = true
+          router.replace('/dashboard/student')
+          break
+        case 'preceptor':
+          hasRedirected.current = true
+          router.replace('/dashboard/preceptor')
+          break
+        case 'admin':
+          hasRedirected.current = true
+          router.replace('/dashboard/admin')
+          break
+        case 'enterprise':
+          hasRedirected.current = true
+          router.replace('/dashboard/enterprise')
+          break
+        default:
+          // If no userType, stay on this page to show setup options
+          break
       }
-      // If no userType, stay on this page to show setup options
     }
   }, [user?.userType, router, user])
 

@@ -45,7 +45,7 @@ export default function PersonalContactStep({
   onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: PersonalContactStepProps) {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -60,7 +60,7 @@ export default function PersonalContactStep({
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [stateInput, setStateInput] = useState('')
+  const [_stateInput, setStateInput] = useState('')
 
   useEffect(() => {
     updateFormData('personalInfo', formData)

@@ -1,4 +1,3 @@
-import { ClerkProvider } from '@clerk/nextjs'
 
 // Clerk configuration constants
 export const CLERK_CONFIG = {

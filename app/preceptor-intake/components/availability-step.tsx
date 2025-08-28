@@ -53,7 +53,7 @@ export default function AvailabilityStep({
   onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: AvailabilityStepProps) {
   const [formData, setFormData] = useState({
     // Availability

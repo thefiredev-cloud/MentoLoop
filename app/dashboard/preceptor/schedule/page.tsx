@@ -34,7 +34,7 @@ import { toast } from 'sonner'
 
 export default function PreceptorSchedule() {
   const user = useQuery(api.users.current)
-  const preceptor = useQuery(api.preceptors.getByUserId, 
+  const _preceptor = useQuery(api.preceptors.getByUserId, 
     user ? { userId: user._id } : "skip"
   )
 

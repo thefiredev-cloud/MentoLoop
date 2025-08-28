@@ -24,10 +24,10 @@ interface AgreementsStepProps {
 export default function AgreementsStep({ 
   data, 
   updateFormData, 
-  onNext, 
+  onNext: _onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: AgreementsStepProps) {
   const [formData, setFormData] = useState({
     agreedToPaymentTerms: false,
@@ -45,7 +45,7 @@ export default function AgreementsStep({
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
   const ensureUserExistsWithRetry = useMutation(api.users.ensureUserExistsWithRetry)
-  const currentUser = useQuery(api.users.current)
+  const _currentUser = useQuery(api.users.current)
   
   // Type definitions for form data from previous steps
   type PersonalInfo = {

@@ -43,7 +43,7 @@ interface TestStep {
 export default function TestUserJourneys() {
   const [activeJourney, setActiveJourney] = useState<'student' | 'preceptor' | null>(null)
   const [isRunning, setIsRunning] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
+  const [_currentStep, setCurrentStep] = useState(0)
 
   // Test scenarios for student journey
   const studentJourneySteps: TestStep[] = [

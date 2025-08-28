@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +25,14 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
 export default function AdminDashboard() {
+  return (
+    <RoleGuard requiredRole="admin">
+      <AdminDashboardContent />
+    </RoleGuard>
+  )
+}
+
+function AdminDashboardContent() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTab, setSelectedTab] = useState('overview')
 

@@ -2,6 +2,8 @@
 
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { RoleGuard } from '@/components/role-guard'
+import { DashboardContainer, DashboardGrid, DashboardSection } from '@/components/dashboard/dashboard-container'
 import { StatsCard } from '@/components/dashboard/stats-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { QuickActions } from '@/components/dashboard/quick-actions'
@@ -25,6 +27,14 @@ import {
 import Link from 'next/link'
 
 export default function StudentDashboardPage() {
+  return (
+    <RoleGuard requiredRole="student">
+      <StudentDashboardContent />
+    </RoleGuard>
+  )
+}
+
+function StudentDashboardContent() {
   const dashboardStats = useQuery(api.students.getStudentDashboardStats)
   const recentActivity = useQuery(api.students.getStudentRecentActivity, { limit: 5 })
   const notifications = useQuery(api.students.getStudentNotifications)
@@ -91,35 +101,24 @@ export default function StudentDashboardPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Welcome back, {student.personalInfo.fullName.split(' ')[0]}!
-          </h1>
-          <p className="text-muted-foreground">
-            {student.schoolInfo.degreeTrack} Student • Expected graduation {student.schoolInfo.expectedGraduation}
-          </p>
-          <Badge className="mt-2" variant={student.status === 'submitted' ? 'default' : 'secondary'}>
+    <DashboardContainer
+      title={`Welcome back, ${student.personalInfo.fullName.split(' ')[0]}!`}
+      subtitle={`${student.schoolInfo.degreeTrack} Student • ${student.schoolInfo.programName} • Expected graduation ${student.schoolInfo.expectedGraduation}`}
+      headerAction={
+        <div className="flex items-center gap-2">
+          <Badge variant={student.status === 'submitted' ? 'default' : 'secondary'}>
             {student.status === 'submitted' ? 'Active' : student.status}
           </Badge>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Program</p>
-          <p className="font-medium">{student.schoolInfo.programName}</p>
           {dashboardStats.mentorFitScore > 0 && (
-            <div className="mt-2">
-              <Badge variant="outline">
-                MentorFit: {dashboardStats.mentorFitScore}/10
-              </Badge>
-            </div>
+            <Badge variant="outline">
+              MentorFit: {dashboardStats.mentorFitScore}/10
+            </Badge>
           )}
         </div>
-      </div>
-
+      }
+    >
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <DashboardGrid columns={4}>
         <StatsCard
           title="Profile Completion"
           value={`${dashboardStats.profileCompletionPercentage}%`}
@@ -169,10 +168,11 @@ export default function StudentDashboardPage() {
             variant: 'default'
           } : undefined}
         />
-      </div>
+      </DashboardGrid>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <DashboardSection>
+        <div className="grid gap-6 lg:grid-cols-2">
         {/* Quick Actions */}
         <QuickActions
           title="Quick Actions"
@@ -242,10 +242,12 @@ export default function StudentDashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </DashboardSection>
 
       {/* Progress & Activity Row */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <DashboardSection>
+        <div className="grid gap-6 lg:grid-cols-2">
         {/* Progress Overview */}
         <Card>
           <CardHeader>
@@ -318,14 +320,17 @@ export default function StudentDashboardPage() {
           title="Recent Activity"
           maxItems={5}
         />
-      </div>
+        </div>
+      </DashboardSection>
 
       {/* Notifications */}
       {notifications && notifications.length > 0 && (
-        <NotificationPanel
-          notifications={notifications}
-        />
+        <DashboardSection>
+          <NotificationPanel
+            notifications={notifications}
+          />
+        </DashboardSection>
       )}
-    </div>
+    </DashboardContainer>
   )
 }

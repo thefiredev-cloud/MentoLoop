@@ -51,6 +51,25 @@ export default defineSchema({
       .index("byStripeSessionId", ["stripeSessionId"])
       .index("byStatus", ["status"]),
 
+    // Payments table for completed transactions
+    payments: defineTable({
+      userId: v.id("users"),
+      matchId: v.optional(v.id("matches")),
+      stripePaymentIntentId: v.string(),
+      stripeCustomerId: v.optional(v.string()),
+      amount: v.number(), // Amount in cents
+      currency: v.string(),
+      status: v.union(v.literal("succeeded"), v.literal("refunded"), v.literal("partially_refunded")),
+      description: v.optional(v.string()),
+      receiptUrl: v.optional(v.string()),
+      refundedAmount: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+    }).index("byUserId", ["userId"])
+      .index("byMatchId", ["matchId"])
+      .index("byStripePaymentIntentId", ["stripePaymentIntentId"])
+      .index("byStatus", ["status"]),
+
     // Student profiles and intake data
     students: defineTable({
       userId: v.id("users"),

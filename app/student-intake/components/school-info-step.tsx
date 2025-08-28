@@ -36,7 +36,7 @@ export default function SchoolInfoStep({
   onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: SchoolInfoStepProps) {
   const [formData, setFormData] = useState({
     programName: '',

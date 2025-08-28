@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Brain, Users, Target } from 'lucide-react'
+import { Brain, Target } from 'lucide-react'
 import MentorFitGate from '@/components/mentorfit-gate'
 
 interface MentoringStyleStepProps {
@@ -23,7 +23,7 @@ export default function MentoringStyleStep({
   onNext, 
   onPrev, 
   isFirstStep, 
-  isLastStep 
+  isLastStep: _isLastStep 
 }: MentoringStyleStepProps) {
   const [formData, setFormData] = useState({
     // Basic questions (1-10)
