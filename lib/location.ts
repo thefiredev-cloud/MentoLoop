@@ -65,21 +65,55 @@ export const locationSchema = z.object({
 
 export async function getLocationFromIP(ipAddress: string): Promise<LocationData | null> {
   try {
+    // Debug logging
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Fetching location for IP:', ipAddress)
+    }
+    
     // Using ipapi.co for IP geolocation (free tier available)
     const response = await fetch(`https://ipapi.co/${ipAddress}/json/`)
     
     if (!response.ok) {
+      console.error(`[Location] API response not OK: ${response.status} ${response.statusText}`)
       throw new Error('Failed to fetch location data')
     }
     
     const data: IPLocationResponse = await response.json()
     
-    // Only allow locations in supported states
-    if (!isSupportedState(data.region_code) || data.country_code !== 'US') {
+    // Debug logging
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] API Response:', {
+        city: data.city,
+        region: data.region,
+        region_code: data.region_code,
+        country_code: data.country_code,
+        postal: data.postal,
+        org: data.org,
+        asn: data.asn
+      })
+    }
+    
+    // Check if response indicates an error
+    const dataWithError = data as IPLocationResponse & { error?: boolean }
+    if (dataWithError.error) {
+      console.error('[Location] API Error:', dataWithError)
       return null
     }
     
-    return {
+    // Only allow locations in supported states
+    if (!isSupportedState(data.region_code) || data.country_code !== 'US') {
+      if (process.env.DEBUG_LOCATION === 'true') {
+        console.log('[Location] Location not in supported state:', {
+          state: data.region_code,
+          country: data.country_code,
+          isSupported: isSupportedState(data.region_code),
+          supportedStates: SUPPORTED_STATE_CODES
+        })
+      }
+      return null
+    }
+    
+    const locationData = {
       city: data.city,
       state: data.region_code,
       zipCode: data.postal,
@@ -88,8 +122,14 @@ export async function getLocationFromIP(ipAddress: string): Promise<LocationData
       lat: data.latitude,
       lng: data.longitude,
     }
+    
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Returning location data:', locationData)
+    }
+    
+    return locationData
   } catch (error) {
-    console.error('Error fetching location from IP:', error)
+    console.error('[Location] Error fetching location from IP:', error)
     return null
   }
 }
@@ -109,20 +149,44 @@ export function validateTexasLocation(location: Partial<LocationData>): boolean 
 }
 
 export function getClientIP(request: Request): string | undefined {
+  // Debug logging of all headers if enabled
+  if (process.env.DEBUG_LOCATION === 'true') {
+    const headers: Record<string, string> = {}
+    request.headers.forEach((value, key) => {
+      if (key.toLowerCase().includes('ip') || 
+          key.toLowerCase().includes('forwarded') || 
+          key.toLowerCase().includes('client') ||
+          key.toLowerCase().includes('x-nf') ||
+          key.toLowerCase().includes('x-bb')) {
+        headers[key] = value
+      }
+    })
+    console.log('[Location] Request headers containing IP info:', headers)
+  }
+  
   // Check Netlify-specific headers first (for production on Netlify)
   const netlifyIP = request.headers.get('x-nf-client-connection-ip')
   const bbIP = request.headers.get('x-bb-ip')
   const clientIP = request.headers.get('client-ip')
   
   if (netlifyIP) {
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Using Netlify IP:', netlifyIP)
+    }
     return netlifyIP
   }
   
   if (bbIP) {
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Using BB IP:', bbIP)
+    }
     return bbIP
   }
   
   if (clientIP) {
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Using Client IP:', clientIP)
+    }
     return clientIP
   }
   
@@ -133,18 +197,31 @@ export function getClientIP(request: Request): string | undefined {
   
   if (xForwardedFor) {
     // X-Forwarded-For can contain multiple IPs, get the first one
-    return xForwardedFor.split(',')[0].trim()
+    const firstIP = xForwardedFor.split(',')[0].trim()
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Using X-Forwarded-For IP:', firstIP, 'from:', xForwardedFor)
+    }
+    return firstIP
   }
   
   if (xRealIP) {
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Using X-Real-IP:', xRealIP)
+    }
     return xRealIP
   }
   
   if (cfConnectingIP) {
+    if (process.env.DEBUG_LOCATION === 'true') {
+      console.log('[Location] Using CF-Connecting-IP:', cfConnectingIP)
+    }
     return cfConnectingIP
   }
   
   // Fallback - this won't work in production behind a proxy
+  if (process.env.DEBUG_LOCATION === 'true') {
+    console.log('[Location] No IP headers found, using fallback 127.0.0.1')
+  }
   return '127.0.0.1'
 }
 
