@@ -17,7 +17,7 @@ export function usePaymentProtection(): PaymentStatus {
   const { user, isLoaded } = useUser();
   const convex = useConvex();
   
-  // Query payment status using user's email
+  // Query payment status using user's email with error handling
   const paymentStatus = useQuery(
     api.payments.checkUserPaymentStatus,
     user?.emailAddresses?.[0]?.emailAddress 
@@ -34,12 +34,34 @@ export function usePaymentProtection(): PaymentStatus {
     };
   }
 
+  // Handle query loading state
   if (paymentStatus === undefined) {
     return {
       hasPayment: false,
       membershipPlan: null,
       paidAt: null,
       loading: true,
+    };
+  }
+
+  // Handle query error - fail safely by denying access
+  if (paymentStatus instanceof Error) {
+    console.error("Payment verification error:", paymentStatus);
+    return {
+      hasPayment: false,
+      membershipPlan: null,
+      paidAt: null,
+      loading: false,
+    };
+  }
+
+  // Handle null response - no payment found
+  if (!paymentStatus) {
+    return {
+      hasPayment: false,
+      membershipPlan: null,
+      paidAt: null,
+      loading: false,
     };
   }
 
