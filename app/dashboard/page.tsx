@@ -12,34 +12,67 @@ export default function DashboardPage() {
   const { user, isLoading, error, refetch } = useCurrentUser({
     autoSync: true,
     onError: (err) => {
-      console.error('Dashboard user sync error:', err)
+      console.error('[Dashboard] User sync error:', {
+        error: err,
+        timestamp: new Date().toISOString(),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
+        url: typeof window !== 'undefined' ? window.location.href : 'SSR'
+      })
+      
+      // Log to monitoring service in production
+      if (process.env.NODE_ENV === 'production') {
+        // This would send to your monitoring service (e.g., Sentry)
+        console.error('[Dashboard] Production error - User sync failed')
+      }
     }
   })
   const router = useRouter()
   const hasRedirected = useRef(false)
+  
+  // Log dashboard access
+  useEffect(() => {
+    console.log('[Dashboard] Page loaded:', {
+      isLoading,
+      hasUser: !!user,
+      userType: user?.userType,
+      timestamp: new Date().toISOString()
+    })
+  }, [isLoading, user])
 
   useEffect(() => {
     if (user && !hasRedirected.current) {
+      console.log('[Dashboard] Routing user:', {
+        userId: user._id,
+        userType: user.userType,
+        email: user.email,
+        timestamp: new Date().toISOString()
+      })
+      
       // Redirect to appropriate dashboard based on user type
       switch (user.userType) {
         case 'student':
           hasRedirected.current = true
+          console.log('[Dashboard] Redirecting to student dashboard')
           router.replace('/dashboard/student')
           break
         case 'preceptor':
           hasRedirected.current = true
+          console.log('[Dashboard] Redirecting to preceptor dashboard')
           router.replace('/dashboard/preceptor')
           break
         case 'admin':
           hasRedirected.current = true
+          console.log('[Dashboard] Redirecting to admin dashboard')
           router.replace('/dashboard/admin')
           break
         case 'enterprise':
           hasRedirected.current = true
+          console.log('[Dashboard] Redirecting to enterprise dashboard')
           router.replace('/dashboard/enterprise')
           break
         default:
           // If no userType, stay on this page to show setup options
+          console.log('[Dashboard] No userType set, showing setup options')
           break
       }
     }
