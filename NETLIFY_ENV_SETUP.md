@@ -31,8 +31,8 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/dashboard
 ### 3. Convex Database Variables
 
 ```bash
-CONVEX_DEPLOYMENT=prod:colorful-retriever-431
-NEXT_PUBLIC_CONVEX_URL=https://colorful-retriever-431.convex.cloud
+CONVEX_DEPLOYMENT=prod:[your-convex-deployment-name]
+NEXT_PUBLIC_CONVEX_URL=https://[your-convex-url].convex.cloud
 ```
 
 ### 4. Other Required Variables
@@ -40,7 +40,7 @@ NEXT_PUBLIC_CONVEX_URL=https://colorful-retriever-431.convex.cloud
 ```bash
 # Application
 NODE_ENV=production
-NEXT_PUBLIC_APP_URL=https://sandboxmentoloop.online
+NEXT_PUBLIC_APP_URL=https://[your-domain].netlify.app
 
 # AI Services
 OPENAI_API_KEY=[your_openai_key]
@@ -53,7 +53,7 @@ STRIPE_WEBHOOK_SECRET=[your_stripe_webhook_secret]
 
 # SendGrid
 SENDGRID_API_KEY=[your_sendgrid_key]
-SENDGRID_FROM_EMAIL=support@sandboxmentoloop.online
+SENDGRID_FROM_EMAIL=support@[your-domain].com
 
 # Twilio
 TWILIO_ACCOUNT_SID=[your_twilio_sid]

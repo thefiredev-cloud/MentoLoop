@@ -2,13 +2,13 @@
 
 ## 🚀 Deployment Status
 
-Your MentoLoop application has been configured for production deployment at **sandboxmentoloop.online**
+Your MentoLoop application has been configured for production deployment at **your-domain.com**
 
 ### ✅ Completed Setup
 
 1. **Convex Production Database**
-   - Deployment: `colorful-retriever-431`
-   - URL: https://colorful-retriever-431.convex.cloud
+   - Deployment: `your-convex-deployment`
+   - URL: https://your-convex-url.convex.cloud
    - Webhook secret configured
 
 2. **Environment Configuration**
@@ -37,11 +37,11 @@ In Netlify Dashboard → Site Settings → Environment Variables, add ALL variab
 #### Critical Variables (Add These First):
 
 ```
-CONVEX_DEPLOYMENT=prod:colorful-retriever-431
-NEXT_PUBLIC_CONVEX_URL=https://colorful-retriever-431.convex.cloud
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_bG92ZWQtbGFtcHJleS0zNC5jbGVyay5hY2NvdW50cy5kZXYk
-CLERK_SECRET_KEY=sk_test_ExhcxVSZ20AFIr2Dn53U9xm6cBzy1IGiagtI21QhxZ
-NEXT_PUBLIC_APP_URL=https://sandboxmentoloop.online
+CONVEX_DEPLOYMENT=prod:YOUR_CONVEX_DEPLOYMENT_NAME
+NEXT_PUBLIC_CONVEX_URL=https://YOUR_CONVEX_URL.convex.cloud
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_YOUR_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY=sk_test_YOUR_CLERK_SECRET_KEY
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
 #### All Other Variables:
@@ -50,7 +50,7 @@ Copy each variable from `.env.production` file into Netlify's environment variab
 ### Step 3: Configure Custom Domain
 
 1. Go to Domain Settings in Netlify
-2. Add custom domain: `sandboxmentoloop.online`
+2. Add custom domain: `your-domain.com`
 3. Configure DNS (at your domain registrar):
    - Add CNAME record pointing to your Netlify subdomain
    - Or use Netlify DNS
@@ -59,27 +59,27 @@ Copy each variable from `.env.production` file into Netlify's environment variab
 
 1. Trigger deploy from Netlify dashboard
 2. Monitor build logs
-3. Once deployed, visit https://sandboxmentoloop.online
+3. Once deployed, visit https://your-domain.com
 
 ## ⚠️ Important Notes
 
 ### Clerk Authentication
 - Currently using TEST keys (pk_test_, sk_test_)
 - For production use, upgrade to production Clerk keys
-- Update redirect URLs in Clerk dashboard to use sandboxmentoloop.online
+- Update redirect URLs in Clerk dashboard to use your-domain.com
 
 ### Stripe Payments
 - Using LIVE Stripe keys - ready for real payments
-- Configure webhooks in Stripe dashboard for sandboxmentoloop.online
+- Configure webhooks in Stripe dashboard for your-domain.com
 
 ### Email Configuration
-- SendGrid will send from: support@sandboxmentoloop.online
+- SendGrid will send from: support@your-domain.com
 - Verify domain in SendGrid for better deliverability
 
 ## 🧪 Testing Checklist
 
 After deployment, test:
-- [ ] Homepage loads at sandboxmentoloop.online
+- [ ] Homepage loads at your-domain.com
 - [ ] Sign up/Sign in with Clerk
 - [ ] Dashboard access after authentication
 - [ ] Convex database operations
@@ -112,4 +112,4 @@ After deployment, test:
 
 ## 🎉 Ready to Deploy!
 
-Your application is fully configured and ready for deployment to sandboxmentoloop.online!
+Your application is fully configured and ready for deployment to your-domain.com!
