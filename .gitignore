@@ -38,10 +38,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local environment variables
+# local environment variables - NEVER commit these!
 .env
+.env.*
 .env.local
+.env.production
+.env.test
+.env.staging
 .env.*.local
+!.env.example
 
 # IDE and editor files
 .vscode/
@@ -56,11 +61,6 @@ Thumbs.db
 .playwright-mcp/
 playwright-report/
 test-results/
-
-# Environment files with sensitive data
-.env.test
-.env.production
-.env.staging
 
 # Internal documentation (not for public GitHub)
 TODOS.md
