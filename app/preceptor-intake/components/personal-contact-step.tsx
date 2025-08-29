@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { STATE_OPTIONS } from '@/lib/states-config'
 
 interface PersonalContactStepProps {
   data: Record<string, unknown>
@@ -36,8 +35,16 @@ const specialties = [
   { value: 'other', label: 'Other' },
 ]
 
-// Supported states for licensing
-const states = STATE_OPTIONS.map(opt => opt.label)
+// Common US states for manual entry
+const commonStates = [
+  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+  'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+  'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+  'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+  'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+  'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+]
 
 export default function PersonalContactStep({ 
   data, 
@@ -296,7 +303,7 @@ export default function PersonalContactStep({
             <SelectValue placeholder="Add Texas license" />
           </SelectTrigger>
           <SelectContent>
-            {states
+            {commonStates
               .filter(state => !formData.statesLicensed.includes(state))
               .map((state) => (
                 <SelectItem key={state} value={state}>

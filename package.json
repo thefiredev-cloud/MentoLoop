@@ -3,7 +3,7 @@
   "version": "0.9.7",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -14,8 +14,6 @@
     "test:e2e": "playwright test tests/e2e",
     "test:integration": "playwright test tests/integration",
     "test:all": "npm run test:unit:run && npm run test:e2e && npm run test:integration",
-    "validate": "node scripts/pre-deployment-validation.js",
-    "deploy:validate": "npm run validate && npm run build && npm run test:all",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

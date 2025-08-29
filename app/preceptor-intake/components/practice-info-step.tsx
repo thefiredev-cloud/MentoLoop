@@ -6,9 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
-import { isSupportedZipCode, getStateFromZip } from '@/lib/states-config'
-import { STATE_OPTIONS } from '@/lib/states-config'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface PracticeInfoStepProps {
   data: Record<string, unknown>
@@ -94,22 +91,12 @@ export default function PracticeInfoStep({
 
     if (!formData.state.trim()) {
       newErrors.state = 'State is required'
-    } else if (!STATE_OPTIONS.find(opt => opt.value === formData.state)) {
-      newErrors.state = 'Please select a supported state'
     }
 
     if (!formData.zipCode.trim()) {
       newErrors.zipCode = 'ZIP code is required'
     } else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) {
       newErrors.zipCode = 'Please enter a valid ZIP code'
-    } else if (!isSupportedZipCode(formData.zipCode)) {
-      newErrors.zipCode = 'ZIP code must be in a supported state'
-    } else {
-      // Check if ZIP matches selected state
-      const zipState = getStateFromZip(formData.zipCode)
-      if (zipState && formData.state && zipState !== formData.state) {
-        newErrors.zipCode = `ZIP code is not in ${formData.state}`
-      }
     }
 
     if (formData.website && !/^https?:\/\/.+\..+/.test(formData.website)) {
@@ -209,20 +196,15 @@ export default function PracticeInfoStep({
 
         <div className="space-y-2">
           <Label htmlFor="state">State *</Label>
-          <Select value={formData.state} onValueChange={(value) => handleInputChange('state', value)}>
-            <SelectTrigger id="state" className={errors.state ? 'border-destructive' : ''}>
-              <SelectValue placeholder="Select state" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATE_OPTIONS.map((state) => (
-                <SelectItem key={state.value} value={state.value}>
-                  {state.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            id="state"
+            value={formData.state}
+            onChange={(e) => handleInputChange('state', e.target.value)}
+            placeholder="Enter state (e.g., Texas)"
+            className={errors.state ? 'border-destructive' : ''}
+          />
           <p className="text-xs text-muted-foreground">
-            Select the state where your practice is located
+            Enter the state where your practice is located
           </p>
           {errors.state && (
             <p className="text-sm text-destructive">{errors.state}</p>

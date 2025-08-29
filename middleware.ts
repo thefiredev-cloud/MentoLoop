@@ -1,13 +1,12 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { addSecurityHeaders, configureCORS } from './lib/security-headers'
+import { addSecurityHeaders } from './lib/security-headers'
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/student-intake', '/preceptor-intake'])
-const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)', '/', '/api/webhook(.*)', '/help', '/terms', '/privacy', '/location-restricted'])
+const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)', '/', '/api/webhook(.*)', '/help', '/terms', '/privacy'])
 const isStudentRoute = createRouteMatcher(['/dashboard/student(.*)'])
 const isPreceptorRoute = createRouteMatcher(['/dashboard/preceptor(.*)'])
 const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)'])
-const isEnterpriseRoute = createRouteMatcher(['/dashboard/enterprise(.*)'])
 const isStudentIntakeRoute = createRouteMatcher(['/student-intake(.*)'])
 const isDashboardRoute = createRouteMatcher(['/dashboard(.*)'])
 
@@ -18,11 +17,6 @@ export default clerkMiddleware(async (auth, req) => {
     
     // Add security headers to all responses
     response = addSecurityHeaders(response);
-    
-    // Configure CORS for API routes
-    if (req.nextUrl.pathname.startsWith('/api/')) {
-      response = configureCORS(req, response);
-    }
     
     // Handle authentication for protected routes
     if (isProtectedRoute(req)) {

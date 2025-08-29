@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { STATE_OPTIONS } from '@/lib/states-config'
 
 interface SchoolInfoStepProps {
   data: Record<string, unknown>
@@ -185,18 +184,13 @@ export default function SchoolInfoStep({
 
         <div className="space-y-2">
           <Label htmlFor="schoolState">School Location - State *</Label>
-          <Select value={formData.schoolState} onValueChange={(value) => handleInputChange('schoolState', value)}>
-            <SelectTrigger id="schoolState" className={errors.schoolState ? 'border-destructive' : ''}>
-              <SelectValue placeholder="Select state" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATE_OPTIONS.map((state) => (
-                <SelectItem key={state.value} value={state.value}>
-                  {state.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            id="schoolState"
+            value={formData.schoolState}
+            onChange={(e) => handleInputChange('schoolState', e.target.value)}
+            placeholder="Enter state (e.g., Texas)"
+            className={errors.schoolState ? 'border-destructive' : ''}
+          />
           {errors.schoolState && (
             <p className="text-sm text-destructive">{errors.schoolState}</p>
           )}

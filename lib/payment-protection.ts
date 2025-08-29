@@ -86,13 +86,17 @@ export function canAccessComprehensiveIntake(paymentStatus: PaymentStatus): bool
 export function getRequiredMembershipForSection(section: string): string[] {
   switch (section) {
     case 'personal-info':
-      return ['core', 'pro', 'premium'];
+      return []; // No payment required
     case 'school-info':
-      return ['core', 'pro', 'premium'];
+      return []; // No payment required
     case 'rotation-needs':
-      return ['pro', 'premium'];
+      return []; // No payment required
+    case 'payment-agreement':
+      return []; // This is the payment step itself
     case 'matching-preferences':
-      return ['pro', 'premium'];
+      return ['core', 'pro', 'premium']; // Only this step is gated
+    case 'mentorfit':
+      return ['core', 'pro', 'premium'];
     case 'learning-style':
       return ['premium'];
     case 'agreements':
@@ -109,13 +113,24 @@ export function canAccessFormSection(
   paymentStatus: PaymentStatus, 
   section: string
 ): boolean {
-  if (!paymentStatus.hasPayment || paymentStatus.loading) {
+  const requiredTiers = getRequiredMembershipForSection(section);
+  
+  // If no tiers required (empty array), section is open to all
+  if (requiredTiers.length === 0) {
+    return true;
+  }
+
+  // If loading, don't grant access to protected sections
+  if (paymentStatus.loading) {
     return false;
   }
 
-  const requiredTiers = getRequiredMembershipForSection(section);
+  // If no payment, no access to protected sections
+  if (!paymentStatus.hasPayment) {
+    return false;
+  }
+
   const userTier = paymentStatus.membershipPlan;
-  
   return userTier ? requiredTiers.includes(userTier) : false;
 }
 
