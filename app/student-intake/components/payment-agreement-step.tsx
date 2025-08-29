@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useAction } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { useAuth } from '@clerk/nextjs'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -27,7 +31,7 @@ const MEMBERSHIP_BLOCKS = [
     hours: 60,
     price: 695,
     pricePerHour: 11.58,
-    priceId: 'price_core_block', // Will be replaced with actual Stripe price ID
+    priceId: 'price_core', // Stripe price ID
     features: [
       '✅ Guaranteed preceptor match',
       '✅ Standard support + hour tracking',
@@ -44,7 +48,7 @@ const MEMBERSHIP_BLOCKS = [
     hours: 120,
     price: 1295,
     pricePerHour: 10.79,
-    priceId: 'price_pro_block', // Will be replaced with actual Stripe price ID
+    priceId: 'price_pro', // Stripe price ID
     features: [
       '✅ Priority matching (within 14 days)',
       '✅ Extended banking — hours roll across academic year',
@@ -62,7 +66,7 @@ const MEMBERSHIP_BLOCKS = [
     hours: 180,
     price: 1895,
     pricePerHour: 10.53,
-    priceId: 'price_premium_block', // Will be replaced with actual Stripe price ID
+    priceId: 'price_premium', // Stripe price ID
     features: [
       '✅ Top priority matching (within 7 days)',
       '✅ Dedicated support line',
@@ -96,6 +100,8 @@ export default function PaymentAgreementStep({
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const { isLoaded, isSignedIn } = useAuth()
+  const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
 
   const handleSelectBlock = (blockId: string) => {
     setSelectedBlock(blockId)
@@ -171,27 +177,75 @@ export default function PaymentAgreementStep({
   const handlePayment = async () => {
     if (!validateForm()) return
 
+    // Check authentication
+    if (!isLoaded || !isSignedIn) {
+      setErrors({ payment: 'You must be signed in to complete payment. Please sign in and try again.' })
+      return
+    }
+
     setLoading(true)
     try {
       const block = MEMBERSHIP_BLOCKS.find(b => b.id === selectedBlock)
       if (!block) throw new Error('No block selected')
 
-      // In a real implementation, you would:
-      // 1. Call your backend to create a Stripe checkout session
-      // 2. Redirect to Stripe checkout
-      // 3. Handle the return URL with payment confirmation
+      // Get student information from previous steps
+      const personalInfo = data.personalInfo as {
+        fullName?: string
+        email?: string
+      }
+      const schoolInfo = data.schoolInfo as {
+        university?: string
+        specialty?: string
+      }
       
-      // For now, we'll simulate payment completion
-      updateFormData('paymentAgreement', {
-        ...(data.paymentAgreement as Record<string, unknown> || {}),
-        paymentCompleted: true
+      if (!personalInfo?.fullName || !personalInfo?.email) {
+        throw new Error('Missing student information. Please complete previous steps.')
+      }
+
+      // Create Stripe checkout session
+      const session = await createStudentCheckoutSession({
+        priceId: block.priceId,
+        customerEmail: personalInfo.email,
+        customerName: personalInfo.fullName,
+        membershipPlan: block.id,
+        metadata: {
+          studentName: personalInfo.fullName,
+          school: schoolInfo?.university || '',
+          specialty: schoolInfo?.specialty || '',
+          membershipPlan: block.id,
+          addOnHours: addOnHours.toString(),
+          totalPrice: calculateTotal().toString()
+        },
+        successUrl: `${window.location.origin}/student-intake/confirmation?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/student-intake`
       })
-      
-      // Move to the next step (matching preferences)
-      onNext()
+
+      if (session.sessionUrl) {
+        // Store session info for tracking
+        updateFormData('paymentAgreement', {
+          ...(data.paymentAgreement as Record<string, unknown> || {}),
+          sessionId: session.sessionId,
+          status: 'redirecting'
+        })
+        
+        // Store membership plan for confirmation page
+        sessionStorage.setItem('selectedMembershipPlan', block.id)
+        sessionStorage.setItem('membershipDetails', JSON.stringify({
+          plan: block.id,
+          planName: block.name,
+          price: calculateTotal(),
+          hours: block.hours + addOnHours
+        }))
+        
+        // Redirect to Stripe checkout
+        window.location.href = session.sessionUrl
+      } else {
+        throw new Error('No checkout session URL returned')
+      }
     } catch (error) {
       console.error('Payment error:', error)
-      setErrors({ payment: 'Payment processing failed. Please try again.' })
+      setErrors({ payment: error instanceof Error ? error.message : 'Payment processing failed. Please try again.' })
+      toast.error('Payment initialization failed')
     } finally {
       setLoading(false)
     }
