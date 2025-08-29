@@ -4,11 +4,19 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Switch } from '@/components/ui/switch'
-import { Card, CardContent } from '@/components/ui/card'
-import { STATE_OPTIONS } from '@/lib/states-config'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
+import { MapPin, Clock, Calendar, Crown, Stethoscope } from 'lucide-react'
+import LockedSection from '@/components/form-protection/locked-section'
+import { usePaymentProtection, canAccessFormSection } from '@/lib/payment-protection'
 
 interface RotationNeedsStepProps {
   data: Record<string, unknown>
@@ -16,28 +24,34 @@ interface RotationNeedsStepProps {
   onNext: () => void
   onPrev: () => void
   isFirstStep: boolean
-  isLastStep: boolean
 }
 
-const rotationTypes = [
-  { value: 'family-practice', label: 'Family Practice' },
+const ROTATION_TYPES = [
+  { value: 'primary-care', label: 'Primary Care/Family Medicine' },
+  { value: 'internal-medicine', label: 'Internal Medicine' },
   { value: 'pediatrics', label: 'Pediatrics' },
-  { value: 'psych-mental-health', label: 'Psych/Mental Health' },
-  { value: 'womens-health', label: 'Women\'s Health' },
-  { value: 'adult-gero', label: 'Adult/Gero' },
-  { value: 'acute-care', label: 'Acute Care' },
-  { value: 'telehealth', label: 'Telehealth' },
-  { value: 'other', label: 'Other' },
+  { value: 'women-health', label: "Women's Health/OB-GYN" },
+  { value: 'emergency', label: 'Emergency Medicine' },
+  { value: 'urgent-care', label: 'Urgent Care' },
+  { value: 'cardiology', label: 'Cardiology' },
+  { value: 'psychiatry', label: 'Psychiatry/Mental Health' },
+  { value: 'dermatology', label: 'Dermatology' },
+  { value: 'orthopedics', label: 'Orthopedics' },
+  { value: 'endocrinology', label: 'Endocrinology' },
+  { value: 'nephrology', label: 'Nephrology' },
+  { value: 'pulmonology', label: 'Pulmonology' },
+  { value: 'gastroenterology', label: 'Gastroenterology' },
+  { value: 'neurology', label: 'Neurology' },
+  { value: 'oncology', label: 'Oncology' },
+  { value: 'other', label: 'Other' }
 ]
 
-const daysOfWeek = [
-  { value: 'monday', label: 'Monday' },
-  { value: 'tuesday', label: 'Tuesday' },
-  { value: 'wednesday', label: 'Wednesday' },
-  { value: 'thursday', label: 'Thursday' },
-  { value: 'friday', label: 'Friday' },
-  { value: 'saturday', label: 'Saturday' },
-  { value: 'sunday', label: 'Sunday' },
+const SCHEDULE_PREFERENCES = [
+  { value: 'full-time', label: 'Full-time (5 days/week)' },
+  { value: 'part-time', label: 'Part-time (2-4 days/week)' },
+  { value: 'weekends', label: 'Weekends Available' },
+  { value: 'evenings', label: 'Evening Shifts' },
+  { value: 'flexible', label: 'Flexible Schedule' }
 ]
 
 export default function RotationNeedsStep({ 
@@ -45,127 +59,78 @@ export default function RotationNeedsStep({
   updateFormData, 
   onNext, 
   onPrev, 
-  isFirstStep, 
-  isLastStep: _isLastStep 
+  isFirstStep 
 }: RotationNeedsStepProps) {
+  const paymentStatus = usePaymentProtection()
+  const canAccessSection = canAccessFormSection(paymentStatus, 'rotation-needs')
+  
   const [formData, setFormData] = useState({
-    rotationTypes: [] as string[],
-    otherRotationType: '',
-    startDate: '',
-    endDate: '',
-    weeklyHours: '',
-    daysAvailable: [] as string[],
+    rotationTypes: [],
+    schedulePreferences: [],
+    preferredStartDate: '',
+    maxTravelDistance: '',
     willingToTravel: false,
-    preferredCity: '',
-    preferredState: '',
+    transportationMethod: '',
+    availableDays: [],
+    timeCommitment: '',
+    specialRequirements: '',
+    previousExperience: '',
+    learningObjectives: '',
     ...(data.rotationNeeds || {})
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
-    const updatedData = { ...formData, [field]: value }
-    setFormData(updatedData)
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    updateFormData('rotationNeeds', { ...formData, [field]: value })
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
-    
-    // Update parent form data immediately
-    // Extract preferredCity and preferredState to exclude them from the data sent to Convex
-    const { preferredCity, preferredState, ...cleanedData } = updatedData
-    const rotationData = {
-      ...cleanedData,
-      preferredLocation: updatedData.willingToTravel ? {
-        city: preferredCity,
-        state: preferredState,
-      } : undefined
-    }
-    updateFormData('rotationNeeds', rotationData)
   }
 
-  const handleRotationTypeChange = (rotationType: string, checked: boolean) => {
-    const updatedTypes = checked 
-      ? [...formData.rotationTypes, rotationType]
-      : formData.rotationTypes.filter(type => type !== rotationType)
+  const handleArrayChange = (field: string, value: string, checked: boolean) => {
+    setFormData(prev => {
+      const currentArray = prev[field as keyof typeof prev] as string[] || []
+      const newArray = checked 
+        ? [...currentArray, value]
+        : currentArray.filter(item => item !== value)
+      
+      const newData = { ...prev, [field]: newArray }
+      updateFormData('rotationNeeds', newData)
+      return newData
+    })
     
-    const updatedData = { ...formData, rotationTypes: updatedTypes }
-    setFormData(updatedData)
-    
-    if (errors.rotationTypes) {
-      setErrors(prev => ({ ...prev, rotationTypes: '' }))
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }))
     }
-    
-    // Update parent form data immediately
-    // Extract preferredCity and preferredState to exclude them from the data sent to Convex
-    const { preferredCity, preferredState, ...cleanedData } = updatedData
-    const rotationData = {
-      ...cleanedData,
-      preferredLocation: updatedData.willingToTravel ? {
-        city: preferredCity,
-        state: preferredState,
-      } : undefined
-    }
-    updateFormData('rotationNeeds', rotationData)
-  }
-
-  const handleDayChange = (day: string, checked: boolean) => {
-    const updatedDays = checked 
-      ? [...formData.daysAvailable, day]
-      : formData.daysAvailable.filter(d => d !== day)
-    
-    const updatedData = { ...formData, daysAvailable: updatedDays }
-    setFormData(updatedData)
-    
-    if (errors.daysAvailable) {
-      setErrors(prev => ({ ...prev, daysAvailable: '' }))
-    }
-    
-    // Update parent form data immediately
-    // Extract preferredCity and preferredState to exclude them from the data sent to Convex
-    const { preferredCity, preferredState, ...cleanedData } = updatedData
-    const rotationData = {
-      ...cleanedData,
-      preferredLocation: updatedData.willingToTravel ? {
-        city: preferredCity,
-        state: preferredState,
-      } : undefined
-    }
-    updateFormData('rotationNeeds', rotationData)
   }
 
   const validateForm = () => {
+    if (!canAccessSection) {
+      return false
+    }
+
     const newErrors: Record<string, string> = {}
 
-    if (formData.rotationTypes.length === 0) {
-      newErrors.rotationTypes = 'Please select at least one rotation type'
+    if (!formData.rotationTypes || (formData.rotationTypes as string[]).length === 0) {
+      newErrors.rotationTypes = 'At least one rotation type is required'
     }
 
-    if (formData.rotationTypes.includes('other') && !formData.otherRotationType.trim()) {
-      newErrors.otherRotationType = 'Please specify the other rotation type'
+    if (!formData.schedulePreferences || (formData.schedulePreferences as string[]).length === 0) {
+      newErrors.schedulePreferences = 'At least one schedule preference is required'
     }
 
-    if (!formData.startDate) {
-      newErrors.startDate = 'Rotation start date is required'
+    if (!formData.preferredStartDate.trim()) {
+      newErrors.preferredStartDate = 'Preferred start date is required'
     }
 
-    if (!formData.endDate) {
-      newErrors.endDate = 'Rotation end date is required'
+    if (!formData.maxTravelDistance.trim()) {
+      newErrors.maxTravelDistance = 'Maximum travel distance is required'
     }
 
-    if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
-      newErrors.endDate = 'End date must be after start date'
-    }
-
-    if (!formData.weeklyHours) {
-      newErrors.weeklyHours = 'Weekly hour requirements are required'
-    }
-
-    if (formData.daysAvailable.length === 0) {
-      newErrors.daysAvailable = 'Please select at least one available day'
-    }
-
-    if (formData.willingToTravel && (!formData.preferredCity.trim() || !formData.preferredState.trim())) {
-      newErrors.preferredLocation = 'Please specify preferred city and state for placement'
+    if (!formData.timeCommitment.trim()) {
+      newErrors.timeCommitment = 'Time commitment is required'
     }
 
     setErrors(newErrors)
@@ -178,189 +143,231 @@ export default function RotationNeedsStep({
     }
   }
 
+  if (!canAccessSection) {
+    return (
+      <LockedSection 
+        sectionTitle="Rotation Needs & Preferences"
+        preview="Specific rotation types, scheduling preferences, availability, travel willingness, location preferences, and learning objectives for optimal preceptor matching."
+        requiredTier={['pro']}
+        userTier={paymentStatus.membershipPlan}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <Label>Type(s) of Rotation Needed *</Label>
-          <div className="grid gap-3 md:grid-cols-2">
-            {rotationTypes.map((type) => (
-              <div key={type.value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={type.value}
-                  checked={formData.rotationTypes.includes(type.value)}
-                  onCheckedChange={(checked) => handleRotationTypeChange(type.value, checked as boolean)}
-                />
-                <Label htmlFor={type.value} className="text-sm font-normal">
-                  {type.label}
-                </Label>
-              </div>
-            ))}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Stethoscope className="h-5 w-5" />
+            Rotation Needs & Preferences
+            <div className="ml-auto flex items-center gap-2">
+              <Crown className="h-4 w-4 text-purple-500" />
+              <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                PRO REQUIRED
+              </span>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Rotation Types */}
+          <div className="space-y-3">
+            <Label>Rotation Types Needed *</Label>
+            <div className="grid md:grid-cols-2 gap-2">
+              {ROTATION_TYPES.map((type) => (
+                <div key={type.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`rotation-${type.value}`}
+                    checked={(formData.rotationTypes as string[])?.includes(type.value)}
+                    onCheckedChange={(checked) => 
+                      handleArrayChange('rotationTypes', type.value, checked as boolean)
+                    }
+                  />
+                  <Label 
+                    htmlFor={`rotation-${type.value}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {type.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {errors.rotationTypes && (
+              <p className="text-sm text-destructive">{errors.rotationTypes}</p>
+            )}
           </div>
-          {errors.rotationTypes && (
-            <p className="text-sm text-destructive">{errors.rotationTypes}</p>
-          )}
 
-          {formData.rotationTypes.includes('other') && (
+          {/* Schedule Preferences */}
+          <div className="space-y-3">
+            <Label>Schedule Preferences *</Label>
+            <div className="grid md:grid-cols-2 gap-2">
+              {SCHEDULE_PREFERENCES.map((schedule) => (
+                <div key={schedule.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`schedule-${schedule.value}`}
+                    checked={(formData.schedulePreferences as string[])?.includes(schedule.value)}
+                    onCheckedChange={(checked) => 
+                      handleArrayChange('schedulePreferences', schedule.value, checked as boolean)
+                    }
+                  />
+                  <Label 
+                    htmlFor={`schedule-${schedule.value}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {schedule.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {errors.schedulePreferences && (
+              <p className="text-sm text-destructive">{errors.schedulePreferences}</p>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="otherRotationType">Please specify other rotation type *</Label>
-              <Input
-                id="otherRotationType"
-                value={formData.otherRotationType}
-                onChange={(e) => handleInputChange('otherRotationType', e.target.value)}
-                placeholder="Specify other rotation type"
-                className={errors.otherRotationType ? 'border-destructive' : ''}
-              />
-              {errors.otherRotationType && (
-                <p className="text-sm text-destructive">{errors.otherRotationType}</p>
+              <Label htmlFor="preferredStartDate">Preferred Start Date *</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="preferredStartDate"
+                  type="date"
+                  value={formData.preferredStartDate}
+                  onChange={(e) => handleInputChange('preferredStartDate', e.target.value)}
+                  className={`pl-9 ${errors.preferredStartDate ? 'border-destructive' : ''}`}
+                />
+              </div>
+              {errors.preferredStartDate && (
+                <p className="text-sm text-destructive">{errors.preferredStartDate}</p>
               )}
             </div>
-          )}
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Rotation Start Date *</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => handleInputChange('startDate', e.target.value)}
-              className={errors.startDate ? 'border-destructive' : ''}
-            />
-            {errors.startDate && (
-              <p className="text-sm text-destructive">{errors.startDate}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="endDate">Rotation End Date *</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={formData.endDate}
-              onChange={(e) => handleInputChange('endDate', e.target.value)}
-              className={errors.endDate ? 'border-destructive' : ''}
-            />
-            {errors.endDate && (
-              <p className="text-sm text-destructive">{errors.endDate}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="weeklyHours">Weekly Hour Requirements *</Label>
-            <Select 
-              value={formData.weeklyHours} 
-              onValueChange={(value) => handleInputChange('weeklyHours', value)}
-            >
-              <SelectTrigger className={errors.weeklyHours ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Select weekly hours" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="<8">Less than 8 hours</SelectItem>
-                <SelectItem value="8-16">8-16 hours</SelectItem>
-                <SelectItem value="16-24">16-24 hours</SelectItem>
-                <SelectItem value="24-32">24-32 hours</SelectItem>
-                <SelectItem value="32+">32+ hours</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.weeklyHours && (
-              <p className="text-sm text-destructive">{errors.weeklyHours}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <Label>Days Available *</Label>
-          <div className="grid gap-3 md:grid-cols-4">
-            {daysOfWeek.map((day) => (
-              <div key={day.value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={day.value}
-                  checked={formData.daysAvailable.includes(day.value)}
-                  onCheckedChange={(checked) => handleDayChange(day.value, checked as boolean)}
-                />
-                <Label htmlFor={day.value} className="text-sm font-normal">
-                  {day.label}
-                </Label>
+            <div className="space-y-2">
+              <Label htmlFor="timeCommitment">Time Commitment *</Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                <Select value={formData.timeCommitment} onValueChange={(value) => handleInputChange('timeCommitment', value)}>
+                  <SelectTrigger className={`pl-9 ${errors.timeCommitment ? 'border-destructive' : ''}`}>
+                    <SelectValue placeholder="Select time commitment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="8-12-weeks">8-12 weeks</SelectItem>
+                    <SelectItem value="12-16-weeks">12-16 weeks</SelectItem>
+                    <SelectItem value="16-20-weeks">16-20 weeks</SelectItem>
+                    <SelectItem value="full-semester">Full semester</SelectItem>
+                    <SelectItem value="flexible">Flexible</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
+              {errors.timeCommitment && (
+                <p className="text-sm text-destructive">{errors.timeCommitment}</p>
+              )}
+            </div>
           </div>
-          {errors.daysAvailable && (
-            <p className="text-sm text-destructive">{errors.daysAvailable}</p>
-          )}
-        </div>
 
-        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="maxTravelDistance">Maximum Travel Distance *</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                <Select value={formData.maxTravelDistance} onValueChange={(value) => handleInputChange('maxTravelDistance', value)}>
+                  <SelectTrigger className={`pl-9 ${errors.maxTravelDistance ? 'border-destructive' : ''}`}>
+                    <SelectValue placeholder="Select max travel distance" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10-miles">Up to 10 miles</SelectItem>
+                    <SelectItem value="25-miles">Up to 25 miles</SelectItem>
+                    <SelectItem value="50-miles">Up to 50 miles</SelectItem>
+                    <SelectItem value="100-miles">Up to 100 miles</SelectItem>
+                    <SelectItem value="unlimited">No distance limit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {errors.maxTravelDistance && (
+                <p className="text-sm text-destructive">{errors.maxTravelDistance}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="transportationMethod">Transportation Method</Label>
+              <Select value={formData.transportationMethod} onValueChange={(value) => handleInputChange('transportationMethod', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select transportation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="own-car">Own vehicle</SelectItem>
+                  <SelectItem value="public-transport">Public transportation</SelectItem>
+                  <SelectItem value="rideshare">Rideshare/Uber/Lyft</SelectItem>
+                  <SelectItem value="bicycle">Bicycle</SelectItem>
+                  <SelectItem value="walking">Walking</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="flex items-center space-x-2">
-            <Switch
+            <Checkbox
               id="willingToTravel"
               checked={formData.willingToTravel}
               onCheckedChange={(checked) => handleInputChange('willingToTravel', checked)}
             />
-            <Label htmlFor="willingToTravel">Willing to travel for preceptor?</Label>
+            <Label htmlFor="willingToTravel" className="font-normal">
+              I&apos;m willing to travel or relocate for exceptional opportunities
+            </Label>
           </div>
 
-          {formData.willingToTravel && (
-            <div className="grid gap-4 md:grid-cols-2 p-4 border rounded-lg bg-muted/30">
-              <div className="space-y-2">
-                <Label htmlFor="preferredCity">Preferred City for Placement *</Label>
-                <Input
-                  id="preferredCity"
-                  value={formData.preferredCity}
-                  onChange={(e) => handleInputChange('preferredCity', e.target.value)}
-                  placeholder="City"
-                  className={errors.preferredLocation ? 'border-destructive' : ''}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="preferredState">Preferred State for Placement *</Label>
-                <Select value={formData.preferredState} onValueChange={(value) => handleInputChange('preferredState', value)}>
-                  <SelectTrigger id="preferredState" className={errors.preferredLocation ? 'border-destructive' : ''}>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATE_OPTIONS.map((state) => (
-                      <SelectItem key={state.value} value={state.value}>
-                        {state.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {errors.preferredLocation && (
-                <p className="text-sm text-destructive md:col-span-2">{errors.preferredLocation}</p>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="learningObjectives">Learning Objectives & Goals</Label>
+            <Textarea
+              id="learningObjectives"
+              value={formData.learningObjectives}
+              onChange={(e) => handleInputChange('learningObjectives', e.target.value)}
+              placeholder="What specific skills or knowledge do you hope to gain from this rotation? What are your learning goals?"
+              rows={3}
+            />
+          </div>
 
-      <Card className="bg-muted/50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 bg-primary rounded-full mt-2 shrink-0"></div>
-            <div>
-              <p className="text-sm font-medium mb-1">Rotation Matching</p>
-              <p className="text-xs text-muted-foreground">
-                We&apos;ll use this information to find preceptors who can accommodate your schedule and rotation needs. 
-                Our algorithm prioritizes matches based on your availability, specialty requirements, and location preferences.
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="previousExperience">Relevant Experience (Optional)</Label>
+            <Textarea
+              id="previousExperience"
+              value={formData.previousExperience}
+              onChange={(e) => handleInputChange('previousExperience', e.target.value)}
+              placeholder="Describe any relevant clinical experience, certifications, or special training you have..."
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="specialRequirements">Special Requirements or Accommodations</Label>
+            <Textarea
+              id="specialRequirements"
+              value={formData.specialRequirements}
+              onChange={(e) => handleInputChange('specialRequirements', e.target.value)}
+              placeholder="Any special requirements, accommodations, or considerations we should know about..."
+              rows={3}
+            />
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex justify-between pt-6">
+      <div className="flex justify-between">
+        {!isFirstStep && (
+          <Button 
+            onClick={onPrev} 
+            variant="outline"
+            size="lg"
+          >
+            Previous
+          </Button>
+        )}
         <Button 
-          variant="outline" 
-          onClick={onPrev} 
-          disabled={isFirstStep}
+          onClick={handleNext}
+          size="lg"
+          className="ml-auto"
         >
-          Previous
-        </Button>
-        <Button onClick={handleNext}>
-          Next: Matching Preferences
+          Continue to Matching Preferences
         </Button>
       </div>
     </div>

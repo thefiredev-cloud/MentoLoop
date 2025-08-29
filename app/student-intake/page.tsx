@@ -8,13 +8,21 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
 import ProtectedIntakeStep from './components/protected-intake-step'
+import DetailedPersonalStep from './components/detailed-personal-step'
+import RotationNeedsStep from './components/rotation-needs-step'
+import AdvancedMatchingStep from './components/advanced-matching-step'
+import MentorFitAssessmentStep from './components/mentorfit-assessment-step'
 import MembershipSelectionStep from './components/membership-selection-step'
 import StripeCheckoutStep from './components/stripe-checkout-step'
 
 const steps = [
-  { id: 1, name: 'Student Information', component: ProtectedIntakeStep },
-  { id: 2, name: 'Membership Selection', component: MembershipSelectionStep },
-  { id: 3, name: 'Secure Payment', component: StripeCheckoutStep },
+  { id: 1, name: 'Basic Information', component: ProtectedIntakeStep },
+  { id: 2, name: 'Personal Details', component: DetailedPersonalStep },
+  { id: 3, name: 'Rotation Needs', component: RotationNeedsStep },
+  { id: 4, name: 'Matching Preferences', component: AdvancedMatchingStep },
+  { id: 5, name: 'MentorFit Assessment', component: MentorFitAssessmentStep },
+  { id: 6, name: 'Membership Selection', component: MembershipSelectionStep },
+  { id: 7, name: 'Secure Payment', component: StripeCheckoutStep },
 ]
 
 export default function StudentIntakePage() {
@@ -22,6 +30,10 @@ export default function StudentIntakePage() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [formData, setFormData] = useState({
     studentInfo: {},
+    detailedPersonalInfo: {},
+    rotationNeeds: {},
+    advancedMatching: {},
+    mentorFitAssessment: {},
     membership: {},
     payment: {},
   })
@@ -36,7 +48,7 @@ export default function StudentIntakePage() {
   // Validate if a step is completed based on form data
   const validateStep = useCallback((stepNumber: number): boolean => {
     switch (stepNumber) {
-      case 1: // Student Information
+      case 1: // Basic Student Information
         const studentInfo = formData.studentInfo as {
           fullName?: string
           email?: string
@@ -47,15 +59,60 @@ export default function StudentIntakePage() {
         }
         return !!(studentInfo.fullName && studentInfo.email && studentInfo.school && 
                  studentInfo.specialty && studentInfo.hoursRequired && studentInfo.state)
-      case 2: // Membership Selection
+      
+      case 2: // Detailed Personal Information
+        const personalInfo = formData.detailedPersonalInfo as {
+          phoneNumber?: string
+          dateOfBirth?: string
+          preferredContactMethod?: string
+          emergencyContactName?: string
+          emergencyContactPhone?: string
+        }
+        return !!(personalInfo.phoneNumber && personalInfo.dateOfBirth && 
+                 personalInfo.preferredContactMethod && personalInfo.emergencyContactName && 
+                 personalInfo.emergencyContactPhone)
+      
+      case 3: // Rotation Needs
+        const rotationNeeds = formData.rotationNeeds as {
+          rotationTypes?: string[]
+          schedulePreferences?: string[]
+          preferredStartDate?: string
+          maxTravelDistance?: string
+          timeCommitment?: string
+        }
+        return !!(rotationNeeds.rotationTypes?.length && rotationNeeds.schedulePreferences?.length &&
+                 rotationNeeds.preferredStartDate && rotationNeeds.maxTravelDistance && 
+                 rotationNeeds.timeCommitment)
+      
+      case 4: // Advanced Matching
+        const advancedMatching = formData.advancedMatching as {
+          languagesSpoken?: string[]
+          sharedPlacementComfort?: string
+          communicationStyle?: string
+          feedbackPreference?: string
+        }
+        return !!(advancedMatching.languagesSpoken?.length && advancedMatching.sharedPlacementComfort &&
+                 advancedMatching.communicationStyle && advancedMatching.feedbackPreference)
+      
+      case 5: // MentorFit Assessment
+        const mentorFit = formData.mentorFitAssessment as {
+          assessmentAnswers?: Record<string, string>
+        }
+        const expectedQuestions = 15 // Total number of assessment questions
+        const answeredQuestions = mentorFit.assessmentAnswers ? Object.keys(mentorFit.assessmentAnswers).length : 0
+        return answeredQuestions >= expectedQuestions
+      
+      case 6: // Membership Selection
         const membership = formData.membership as {
           plan?: string
           planName?: string
           price?: number
         }
         return !!(membership.plan && membership.planName && membership.price)
-      case 3: // Payment (this step completes with redirect)
+      
+      case 7: // Payment (this step completes with redirect)
         return false // This step is always validated externally via Stripe
+      
       default:
         return false
     }
@@ -108,13 +165,14 @@ export default function StudentIntakePage() {
         <Authenticated>
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Student Intake Form</h1>
+          <h1 className="text-3xl font-bold mb-2">Comprehensive Student Intake</h1>
           <p className="text-muted-foreground text-lg">
-            Complete your profile to get matched with the perfect preceptor
+            Complete your comprehensive profile for precision preceptor matching
           </p>
           <p className="text-muted-foreground mt-4">
-            Our streamlined process takes just a few minutes. Tell us about yourself, 
-            choose your membership plan, and we&apos;ll handle the rest.
+            Our detailed intake process includes basic information, detailed personal data, 
+            rotation needs, matching preferences, and our proprietary MentorFit assessment 
+            for the most accurate preceptor matching available.
           </p>
         </div>
 
