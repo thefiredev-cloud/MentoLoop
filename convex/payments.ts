@@ -21,16 +21,22 @@ export const createStudentCheckoutSession = action({
     }
 
     try {
-      // Map membership plan to actual Stripe price IDs
-      const stripePriceIds: Record<string, string> = {
-        'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1QTLBCRxUy8PQw7tYqMqxQ4M',
-        'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1QTLBCRxUy8PQw7tJyyzGNTn',
-        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1QTLBCRxUy8PQw7tCCyJB0sF'
+      // For now, create the checkout session with dynamic pricing
+      // This will create a one-time payment with the specified amount
+      // TODO: Replace with actual Stripe product/price IDs once created in Stripe dashboard
+      
+      const amountMap: Record<string, number> = {
+        'price_core': 69500, // $695.00 in cents
+        'price_pro': 129500, // $1,295.00 in cents
+        'price_premium': 189500 // $1,895.00 in cents
       };
+      
+      const amount = amountMap[args.priceId];
+      if (!amount) {
+        throw new Error(`Invalid price ID: ${args.priceId}`);
+      }
 
-      const actualPriceId = stripePriceIds[args.priceId] || args.priceId;
-
-      // Create Stripe checkout session for student intake
+      // Create Stripe checkout session for student intake with dynamic pricing
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
         headers: {
@@ -39,7 +45,10 @@ export const createStudentCheckoutSession = action({
         },
         body: new URLSearchParams({
           "mode": "payment",
-          "line_items[0][price]": actualPriceId,
+          "line_items[0][price_data][currency]": "usd",
+          "line_items[0][price_data][product_data][name]": `MentoLoop ${args.membershipPlan.charAt(0).toUpperCase() + args.membershipPlan.slice(1)} Membership`,
+          "line_items[0][price_data][product_data][description]": `${args.membershipPlan === 'core' ? '60 hours' : args.membershipPlan === 'pro' ? '120 hours' : '180 hours'} of clinical rotation support`,
+          "line_items[0][price_data][unit_amount]": amount.toString(),
           "line_items[0][quantity]": "1",
           "customer_email": args.customerEmail,
           "success_url": args.successUrl,

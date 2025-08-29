@@ -15,12 +15,9 @@ import type {
 } from "convex/server";
 import type * as admin from "../admin.js";
 import type * as aiMatching from "../aiMatching.js";
-import type * as analytics from "../analytics.js";
-import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as clinicalHours from "../clinicalHours.js";
 import type * as emails from "../emails.js";
-import type * as enterprises from "../enterprises.js";
 import type * as http from "../http.js";
 import type * as matchHelpers from "../matchHelpers.js";
 import type * as matches from "../matches.js";
@@ -49,12 +46,9 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   aiMatching: typeof aiMatching;
-  analytics: typeof analytics;
-  auditLogs: typeof auditLogs;
   auth: typeof auth;
   clinicalHours: typeof clinicalHours;
   emails: typeof emails;
-  enterprises: typeof enterprises;
   http: typeof http;
   matchHelpers: typeof matchHelpers;
   matches: typeof matches;
