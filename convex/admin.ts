@@ -136,7 +136,7 @@ export const getUserDetails = query({
     }
 
     // Audit logs removed - functionality deprecated
-    const auditLogs = [];
+    const auditLogs: any[] = [];
 
     return {
       user,
