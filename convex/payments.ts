@@ -301,16 +301,24 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
         endDate: match.rotationDetails.endDate,
       });
 
-      // Send SMS confirmations if available
-      if (student.personalInfo?.phone && preceptor.personalInfo?.phone) {
-        await ctx.runAction(internal.sms.sendMatchConfirmationSMS, {
-          studentPhone: student.personalInfo.phone,
-          preceptorPhone: preceptor.personalInfo.phone,
-          studentName: student.personalInfo.fullName || "",
-          preceptorName: preceptor.personalInfo.fullName || "",
-          specialty: match.rotationDetails.rotationType,
-          startDate: match.rotationDetails.startDate,
-        });
+      // Optional SMS notifications - don't fail if SMS service not configured
+      try {
+        if (student.personalInfo?.phone && preceptor.personalInfo?.phone) {
+          const hasSmsConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN;
+          if (hasSmsConfig) {
+            await ctx.runAction(internal.sms.sendMatchConfirmationSMS, {
+              studentPhone: student.personalInfo.phone,
+              preceptorPhone: preceptor.personalInfo.phone,
+              studentName: student.personalInfo.fullName || "",
+              preceptorName: preceptor.personalInfo.fullName || "",
+              specialty: match.rotationDetails.rotationType,
+              startDate: match.rotationDetails.startDate,
+            });
+          }
+        }
+      } catch (smsError) {
+        console.log("SMS notification skipped:", smsError);
+        // Continue without SMS - it's optional
       }
     }
   }
@@ -325,35 +333,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
   }
 
   try {
-    // Find the user by email
-    const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
-    
-    if (user) {
-      // Update user metadata in the database
-      await ctx.runMutation(internal.users.updateUserMetadata, {
-        userId: user._id,
-        publicMetadata: {
-          intakeCompleted: true,
-          paymentCompleted: true,
-          intakeCompletedAt: new Date().toISOString(),
-          membershipPlan: membershipPlan || 'core',
-        }
-      });
-
-      // Update student record with payment confirmation
-      await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
-        userId: user._id,
-        paymentStatus: 'completed',
-        membershipPlan: membershipPlan || 'core',
-        stripeSessionId: session.id,
-        paidAt: Date.now(),
-      });
-      
-      // Note: Clerk metadata update happens via server action in the confirmation page
-      // or through a separate webhook endpoint
-    }
-
-    // Log the intake payment
+    // Always log the intake payment first (even if user not found yet)
     await ctx.runMutation(internal.payments.logIntakePaymentAttempt, {
       customerEmail,
       customerName: studentName || '',
@@ -362,20 +342,75 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       amount: session.amount_total,
       status: "succeeded",
     });
+    
+    console.log(`Payment logged for ${customerEmail} - amount: ${session.amount_total}`);
 
-    // Send welcome email to student
-    await ctx.runAction(internal.emails.sendStudentWelcomeEmail, {
-      email: customerEmail,
-      firstName: studentName?.split(' ')[0] || '',
-      membershipPlan: membershipPlan || 'core',
-      school: school || '',
-      specialty: specialty || '',
-    });
+    // Try to find the user by email with error handling
+    let user = null;
+    try {
+      user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
+    } catch (error) {
+      console.warn(`Failed to find user by email ${customerEmail}:`, error);
+    }
+    
+    if (user) {
+      console.log(`Found user ${user._id} for email ${customerEmail}`);
+      
+      // Update user metadata in the database
+      try {
+        await ctx.runMutation(internal.users.updateUserMetadata, {
+          userId: user._id,
+          publicMetadata: {
+            intakeCompleted: true,
+            paymentCompleted: true,
+            intakeCompletedAt: new Date().toISOString(),
+            membershipPlan: membershipPlan || 'core',
+          }
+        });
+        console.log(`Updated user metadata for ${user._id}`);
+      } catch (error) {
+        console.error("Failed to update user metadata:", error);
+        // Continue - payment was successful
+      }
 
-    console.log(`Student intake payment completed for ${customerEmail}`);
+      // Try to update student record if it exists
+      try {
+        await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
+          userId: user._id,
+          paymentStatus: 'completed',
+          membershipPlan: membershipPlan || 'core',
+          stripeSessionId: session.id,
+          paidAt: Date.now(),
+        });
+        console.log(`Updated student payment status for user ${user._id}`);
+      } catch (error) {
+        console.warn("Student record may not exist yet - will be created when intake form is completed:", error);
+        // This is expected if payment happens before full intake completion
+      }
+    } else {
+      console.warn(`User not found for email ${customerEmail} - payment recorded, user will sync later`);
+    }
+
+    // Send welcome email to student (optional - don't fail if email service is down)
+    try {
+      await ctx.runAction(internal.emails.sendStudentWelcomeEmail, {
+        email: customerEmail,
+        firstName: studentName?.split(' ')[0] || '',
+        membershipPlan: membershipPlan || 'core',
+        school: school || '',
+        specialty: specialty || '',
+      });
+      console.log(`Welcome email sent to ${customerEmail}`);
+    } catch (emailError) {
+      console.error("Failed to send welcome email (non-critical):", emailError);
+      // Don't fail payment processing if email fails
+    }
+
+    console.log(`Student intake payment completed successfully for ${customerEmail}`);
   } catch (error) {
     console.error("Error processing student intake payment:", error);
-    throw error;
+    // Don't throw - payment was successful in Stripe, just log the error
+    // The payment has been recorded and will be synced when the user completes intake
   }
 }
 
