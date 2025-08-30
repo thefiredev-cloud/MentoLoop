@@ -135,12 +135,8 @@ export const getUserDetails = query({
       enterpriseData = await ctx.db.get(user.enterpriseId);
     }
 
-    // Get audit logs for this user
-    const auditLogs = await ctx.runQuery(internal.auditLogs.getEntityAuditLogs, {
-      entityType: "user",
-      entityId: user._id,
-      limit: 20,
-    });
+    // Audit logs removed - functionality deprecated
+    const auditLogs = [];
 
     return {
       user,
@@ -201,17 +197,7 @@ export const updateUser = mutation({
 
     await ctx.db.patch(args.userId, updatedFields);
 
-    // Log the action
-    await ctx.runMutation(internal.auditLogs.logUserAction, {
-      action: "update_user",
-      userId: args.userId,
-      performedBy: currentUser._id,
-      details: {
-        previousValue,
-        newValue: args.updates,
-        reason: args.reason,
-      },
-    });
+    // Audit logging removed - functionality deprecated
 
     return args.userId;
   },
@@ -246,17 +232,7 @@ export const approvePreceptor = mutation({
       updatedAt: Date.now(),
     });
 
-    // Log the action
-    await ctx.runMutation(internal.auditLogs.logUserAction, {
-      action: "approve_preceptor",
-      userId: preceptor.userId,
-      performedBy: currentUser._id,
-      details: {
-        previousValue: { verificationStatus: previousStatus },
-        newValue: { verificationStatus: "verified" },
-        reason: args.reason,
-      },
-    });
+    // Audit logging removed - functionality deprecated
 
     return args.preceptorId;
   },
@@ -291,17 +267,7 @@ export const rejectPreceptor = mutation({
       updatedAt: Date.now(),
     });
 
-    // Log the action
-    await ctx.runMutation(internal.auditLogs.logUserAction, {
-      action: "reject_preceptor",
-      userId: preceptor.userId,
-      performedBy: currentUser._id,
-      details: {
-        previousValue: { verificationStatus: previousStatus },
-        newValue: { verificationStatus: "rejected" },
-        reason: args.reason,
-      },
-    });
+    // Audit logging removed - functionality deprecated
 
     return args.preceptorId;
   },
@@ -338,17 +304,7 @@ export const overrideMatchScore = mutation({
       updatedAt: Date.now(),
     });
 
-    // Log the action
-    await ctx.runMutation(internal.auditLogs.logMatchAction, {
-      action: "override_match",
-      matchId: args.matchId,
-      performedBy: currentUser._id,
-      details: {
-        previousValue: { mentorFitScore: previousScore },
-        newValue: { mentorFitScore: args.newScore },
-        reason: args.reason,
-      },
-    });
+    // Audit logging removed - functionality deprecated
 
     return args.matchId;
   },
@@ -401,20 +357,7 @@ export const forceCreateMatch = mutation({
       updatedAt: Date.now(),
     });
 
-    // Log the action
-    await ctx.runMutation(internal.auditLogs.logMatchAction, {
-      action: "force_match",
-      matchId: matchId,
-      performedBy: currentUser._id,
-      details: {
-        reason: args.reason,
-        metadata: {
-          studentName: (student as any).personalInfo?.fullName || "Unknown Student",
-          preceptorName: (preceptor as any).personalInfo?.fullName || "Unknown Preceptor",
-          rotationType: args.rotationDetails.rotationType,
-        },
-      },
-    });
+    // Audit logging removed - functionality deprecated
 
     return matchId;
   },
@@ -546,16 +489,7 @@ export const deleteUser = mutation({
     // Delete the user
     await ctx.db.delete(args.userId);
 
-    // Log the action
-    await ctx.runMutation(internal.auditLogs.logUserAction, {
-      action: "delete_user",
-      userId: args.userId,
-      performedBy: currentUser._id,
-      details: {
-        previousValue: userData,
-        reason: args.reason,
-      },
-    });
+    // Audit logging removed - functionality deprecated
 
     return { success: true };
   },
