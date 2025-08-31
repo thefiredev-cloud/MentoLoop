@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useAction } from 'convex/react'
+import { useAction, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -102,6 +102,7 @@ export default function PaymentAgreementStep({
   const [loading, setLoading] = useState(false)
   const { isLoaded, isSignedIn } = useAuth()
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
+  const ensureUserExists = useMutation(api.users.ensureUserExists)
 
   const handleSelectBlock = (blockId: string) => {
     setSelectedBlock(blockId)
@@ -187,6 +188,9 @@ export default function PaymentAgreementStep({
 
     setLoading(true)
     try {
+      // First ensure user exists in Convex database
+      await ensureUserExists()
+      
       const block = MEMBERSHIP_BLOCKS.find(b => b.id === selectedBlock)
       if (!block) throw new Error('No block selected')
 
