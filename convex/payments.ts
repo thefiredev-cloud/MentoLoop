@@ -1136,7 +1136,7 @@ export const validateDiscountCode = query({
       const existingUsage = await ctx.db
         .query("discountUsage")
         .withIndex("byCouponAndEmail", (q) => 
-          q.eq("couponId", coupon._id).eq("customerEmail", args.email)
+          q.eq("couponId", coupon._id).eq("customerEmail", args.email!)
         )
         .first();
 
