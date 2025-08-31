@@ -170,26 +170,51 @@ export const createStudentCheckoutSession = action({
       if (args.discountCode) {
         console.log('Validating discount code:', args.discountCode);
         
-        // Validate the discount code
-        const validation = await ctx.runQuery(api.payments.validateDiscountCode, {
-          code: args.discountCode,
-          email: args.customerEmail,
-        });
+        try {
+          // Validate the discount code
+          const validation = await ctx.runQuery(api.payments.validateDiscountCode, {
+            code: args.discountCode,
+            email: args.customerEmail,
+          });
 
-        if (validation.valid) {
-          console.log(`Applying discount: ${validation.percentOff}% off`);
-          
-          // Apply the coupon to the checkout session
-          checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
-          discountApplied = true;
-          discountAmount = validation.percentOff || 0;
-          
-          // Add discount info to metadata
-          checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
-          checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
-        } else {
-          console.warn(`Invalid discount code: ${args.discountCode} - ${validation.error}`);
+          if (validation.valid) {
+            console.log(`Applying discount: ${validation.percentOff}% off`);
+            
+            // Only apply Stripe coupon if it's not 100% off
+            // For 100% off, we'll handle it differently to avoid Stripe issues
+            if (validation.percentOff === 100) {
+              // For 100% discount, we'll create a free checkout session
+              console.log('Applying 100% discount - creating free checkout session');
+              discountApplied = true;
+              discountAmount = 100;
+              
+              // Add discount info to metadata
+              checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
+              checkoutParams["metadata[discountPercent]"] = "100";
+              checkoutParams["metadata[originalPrice]"] = checkoutParams["line_items[0][price]"];
+              
+              // Override the price to a free/minimal price if available
+              // Or we'll need to handle this differently in Stripe
+              checkoutParams["payment_method_types[0]"] = "card";
+              checkoutParams["allow_promotion_codes"] = "false";
+            } else {
+              // Apply the coupon to the checkout session for partial discounts
+              checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
+              discountApplied = true;
+              discountAmount = validation.percentOff || 0;
+              
+              // Add discount info to metadata
+              checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
+              checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
+            }
+          } else {
+            console.warn(`Invalid discount code: ${args.discountCode} - ${validation.error}`);
+            // Don't throw error, just proceed without discount
+          }
+        } catch (error) {
+          console.error('Error validating discount code:', error);
           // Don't throw error, just proceed without discount
+          console.warn('Proceeding without discount due to validation error');
         }
       }
       
@@ -1095,65 +1120,73 @@ export const validateDiscountCode = query({
     email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Check if the code exists in our database
-    const coupon = await ctx.db
-      .query("discountCodes")
-      .withIndex("byCode", (q) => q.eq("code", args.code.toUpperCase()))
-      .first();
-
-    if (!coupon) {
-      return {
-        valid: false,
-        error: "Invalid discount code",
-      };
-    }
-
-    // Check if coupon is expired
-    if (coupon.redeemBy && coupon.redeemBy < Date.now()) {
-      return {
-        valid: false,
-        error: "This discount code has expired",
-      };
-    }
-
-    // Check redemption limit
-    if (coupon.maxRedemptions) {
-      const redemptions = await ctx.db
-        .query("discountUsage")
-        .withIndex("byCouponId", (q) => q.eq("couponId", coupon._id))
-        .collect();
-
-      if (redemptions.length >= coupon.maxRedemptions) {
-        return {
-          valid: false,
-          error: "This discount code has reached its usage limit",
-        };
-      }
-    }
-
-    // Check if user has already used this code (if email provided)
-    if (args.email) {
-      const existingUsage = await ctx.db
-        .query("discountUsage")
-        .withIndex("byCouponAndEmail", (q) => 
-          q.eq("couponId", coupon._id).eq("customerEmail", args.email!)
-        )
+    try {
+      // Check if the code exists in our database
+      const coupon = await ctx.db
+        .query("discountCodes")
+        .withIndex("byCode", (q) => q.eq("code", args.code.toUpperCase()))
         .first();
 
-      if (existingUsage) {
+      if (!coupon) {
         return {
           valid: false,
-          error: "You have already used this discount code",
+          error: "Invalid discount code",
         };
       }
-    }
 
-    return {
-      valid: true,
-      percentOff: coupon.percentOff,
-      code: coupon.code,
-      description: `${coupon.percentOff}% off`,
-    };
+      // Check if coupon is expired
+      if (coupon.redeemBy && coupon.redeemBy < Date.now()) {
+        return {
+          valid: false,
+          error: "This discount code has expired",
+        };
+      }
+
+      // Check redemption limit
+      if (coupon.maxRedemptions) {
+        const redemptions = await ctx.db
+          .query("discountUsage")
+          .withIndex("byCouponId", (q) => q.eq("couponId", coupon._id))
+          .collect();
+
+        if (redemptions.length >= coupon.maxRedemptions) {
+          return {
+            valid: false,
+            error: "This discount code has reached its usage limit",
+          };
+        }
+      }
+
+      // Check if user has already used this code (if email provided)
+      if (args.email) {
+        const existingUsage = await ctx.db
+          .query("discountUsage")
+          .withIndex("byCouponAndEmail", (q) => 
+            q.eq("couponId", coupon._id).eq("customerEmail", args.email!)
+          )
+          .first();
+
+        if (existingUsage) {
+          return {
+            valid: false,
+            error: "You have already used this discount code",
+          };
+        }
+      }
+
+      return {
+        valid: true,
+        percentOff: coupon.percentOff,
+        code: coupon.code,
+        description: `${coupon.percentOff}% off`,
+      };
+    } catch (error) {
+      console.error("Error validating discount code:", error);
+      return {
+        valid: false,
+        error: "Unable to validate discount code. Please try again.",
+      };
+    }
   },
 });
 
