@@ -62,6 +62,8 @@ export default defineSchema({
       currency: v.optional(v.string()),
       status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
       failureReason: v.optional(v.string()),
+      discountCode: v.optional(v.string()), // Discount code used
+      discountPercent: v.optional(v.number()), // Percentage discounted
       paidAt: v.optional(v.number()),
       createdAt: v.number(),
       updatedAt: v.optional(v.number()),
@@ -719,4 +721,32 @@ export default defineSchema({
     .index("byResult", ["result"])
     .index("byUserAndTable", ["userId", "accessedTable"])
     .index("byTableAndRecord", ["accessedTable", "accessedRecordId"]),
+
+  // Discount codes for promotional offers
+  discountCodes: defineTable({
+    couponId: v.string(), // Stripe coupon ID
+    code: v.string(), // User-facing discount code (e.g., "NP12345")
+    percentOff: v.number(), // Percentage discount (0-100)
+    duration: v.string(), // "once", "repeating", or "forever"
+    maxRedemptions: v.optional(v.number()), // Maximum number of times code can be used
+    redeemBy: v.optional(v.number()), // Expiration timestamp
+    metadata: v.optional(v.record(v.string(), v.string())), // Additional metadata
+    active: v.boolean(), // Whether the code is currently active
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("byCode", ["code"])
+    .index("byCouponId", ["couponId"])
+    .index("byActive", ["active"]),
+
+  // Track discount code usage
+  discountUsage: defineTable({
+    couponId: v.id("discountCodes"), // Reference to the discount code
+    customerEmail: v.string(), // Email of the customer who used the code
+    stripeSessionId: v.string(), // Stripe checkout session where the code was used
+    amountDiscounted: v.number(), // Amount discounted in cents
+    usedAt: v.number(), // Timestamp when the code was used
+  }).index("byCouponId", ["couponId"])
+    .index("byCustomerEmail", ["customerEmail"])
+    .index("byCouponAndEmail", ["couponId", "customerEmail"])
+    .index("byStripeSessionId", ["stripeSessionId"]),
   });

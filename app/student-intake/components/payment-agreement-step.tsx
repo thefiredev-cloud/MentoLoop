@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useAction, useMutation } from 'convex/react'
+import { useAction, useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -100,9 +100,20 @@ export default function PaymentAgreementStep({
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [discountCode, setDiscountCode] = useState<string>('')
+  const [discountValidation, setDiscountValidation] = useState<{
+    valid: boolean;
+    percentOff?: number;
+    description?: string;
+    error?: string;
+  } | null>(null)
+  const [validatingDiscount, setValidatingDiscount] = useState(false)
   const { isLoaded, isSignedIn } = useAuth()
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
+  const validateDiscountCode = useQuery(api.payments.validateDiscountCode, 
+    discountCode.length > 0 ? { code: discountCode } : 'skip'
+  )
 
   const handleSelectBlock = (blockId: string) => {
     setSelectedBlock(blockId)
@@ -188,8 +199,22 @@ export default function PaymentAgreementStep({
 
     setLoading(true)
     try {
-      // First ensure user exists in Convex database
-      await ensureUserExists()
+      // First ensure user exists in Convex database with retry logic
+      try {
+        await ensureUserExists()
+      } catch (authError) {
+        // If authentication fails, wait and retry once
+        console.warn('Initial ensureUserExists failed, retrying after delay...', authError)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Check auth status again
+        if (!isSignedIn) {
+          throw new Error('Lost authentication. Please sign in and try again.')
+        }
+        
+        // Retry the mutation
+        await ensureUserExists()
+      }
       
       const block = MEMBERSHIP_BLOCKS.find(b => b.id === selectedBlock)
       if (!block) throw new Error('No block selected')
@@ -208,7 +233,7 @@ export default function PaymentAgreementStep({
         throw new Error('Missing student information. Please complete previous steps.')
       }
 
-      // Create Stripe checkout session
+      // Create Stripe checkout session with discount code if valid
       const session = await createStudentCheckoutSession({
         priceId: block.priceId,
         customerEmail: personalInfo.email,
@@ -223,7 +248,8 @@ export default function PaymentAgreementStep({
           totalPrice: calculateTotal().toString()
         },
         successUrl: `${window.location.origin}/student-intake/confirmation?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/student-intake`
+        cancelUrl: `${window.location.origin}/student-intake`,
+        ...(validateDiscountCode?.valid && discountCode ? { discountCode } : {})
       })
 
       if (session.url) {
@@ -426,6 +452,53 @@ export default function PaymentAgreementStep({
         <Card className="border-2 border-primary/20 shadow-lg">
           <CardContent className="pt-6">
             <div className="space-y-6">
+              {/* Discount Code Section */}
+              <div className="bg-background/80 rounded-lg p-4">
+                <Label htmlFor="discountCode" className="text-sm font-medium mb-2 block">
+                  Have a discount code?
+                </Label>
+                <div className="flex gap-3">
+                  <Input
+                    id="discountCode"
+                    type="text"
+                    placeholder="Enter discount code"
+                    value={discountCode}
+                    onChange={(e) => {
+                      setDiscountCode(e.target.value.toUpperCase())
+                      setDiscountValidation(null)
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      if (discountCode) {
+                        setValidatingDiscount(true)
+                        // The validateDiscountCode query will be triggered automatically
+                        // due to the reactive query setup
+                        setValidatingDiscount(false)
+                      }
+                    }}
+                    disabled={!discountCode || validatingDiscount}
+                  >
+                    {validatingDiscount ? 'Validating...' : 'Apply'}
+                  </Button>
+                </div>
+                {validateDiscountCode && (
+                  <div className="mt-2">
+                    {validateDiscountCode.valid ? (
+                      <p className="text-sm text-green-600 flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4" />
+                        {validateDiscountCode.description || `${validateDiscountCode.percentOff}% discount applied`}
+                      </p>
+                    ) : validateDiscountCode.error ? (
+                      <p className="text-sm text-destructive">{validateDiscountCode.error}</p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+
               <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6">
                 <div className="flex justify-between items-center">
                   <div>
@@ -437,9 +510,23 @@ export default function PaymentAgreementStep({
                       {MEMBERSHIP_BLOCKS.find(b => b.id === selectedBlock)?.hours || 0}
                       {addOnHours > 0 && ` + ${addOnHours}`} hours
                     </p>
-                    <span className="text-3xl font-bold text-primary">
-                      ${calculateTotal().toLocaleString()}
-                    </span>
+                    {validateDiscountCode?.valid && validateDiscountCode.percentOff ? (
+                      <div>
+                        <span className="text-lg line-through text-muted-foreground">
+                          ${calculateTotal().toLocaleString()}
+                        </span>
+                        <span className="text-3xl font-bold text-primary block">
+                          ${(calculateTotal() * (1 - validateDiscountCode.percentOff / 100)).toLocaleString()}
+                        </span>
+                        <Badge variant="secondary" className="mt-1">
+                          {validateDiscountCode.percentOff}% OFF
+                        </Badge>
+                      </div>
+                    ) : (
+                      <span className="text-3xl font-bold text-primary">
+                        ${calculateTotal().toLocaleString()}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

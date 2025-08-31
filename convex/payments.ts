@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { action, internalAction, internalMutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { action, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 
 // Internal action to create or update Stripe customer for a user  
 export const createOrUpdateStripeCustomerInternal = internalAction({
@@ -105,8 +105,9 @@ export const createStudentCheckoutSession = action({
     metadata: v.record(v.string(), v.string()),
     successUrl: v.string(),
     cancelUrl: v.string(),
+    discountCode: v.optional(v.string()), // Add discount code support
   },
-  handler: async (ctx, args): Promise<{ sessionId: string; url: string }> => {
+  handler: async (ctx, args): Promise<{ sessionId: string; url: string; discountApplied?: boolean; finalAmount?: number }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     
     if (!stripeSecretKey) {
@@ -147,8 +148,8 @@ export const createStudentCheckoutSession = action({
         }
       });
 
-      // Create Stripe checkout session using actual price IDs and customer
-      const checkoutParams = {
+      // Prepare checkout session parameters
+      const checkoutParams: Record<string, string> = {
         "mode": "payment",
         "line_items[0][price]": stripePriceId,
         "line_items[0][quantity]": "1",
@@ -161,9 +162,42 @@ export const createStudentCheckoutSession = action({
           return acc;
         }, {} as Record<string, string>),
       };
+
+      let discountApplied = false;
+      let discountAmount = 0;
+
+      // Handle discount code if provided
+      if (args.discountCode) {
+        console.log('Validating discount code:', args.discountCode);
+        
+        // Validate the discount code
+        const validation = await ctx.runQuery(api.payments.validateDiscountCode, {
+          code: args.discountCode,
+          email: args.customerEmail,
+        });
+
+        if (validation.valid) {
+          console.log(`Applying discount: ${validation.percentOff}% off`);
+          
+          // Apply the coupon to the checkout session
+          checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
+          discountApplied = true;
+          discountAmount = validation.percentOff || 0;
+          
+          // Add discount info to metadata
+          checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
+          checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
+        } else {
+          console.warn(`Invalid discount code: ${args.discountCode} - ${validation.error}`);
+          // Don't throw error, just proceed without discount
+        }
+      }
       
       console.log('Stripe checkout session params:', checkoutParams);
       console.log('Specifically, price being sent to Stripe:', checkoutParams["line_items[0][price]"]);
+      if (discountApplied) {
+        console.log('Discount coupon applied:', checkoutParams["discounts[0][coupon]"]);
+      }
       
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
@@ -181,19 +215,44 @@ export const createStudentCheckoutSession = action({
 
       const session = await response.json();
 
-      // Log the intake payment attempt
+      // Calculate final amount based on discount
+      const basePrice = args.membershipPlan === 'core' ? 695 : 
+                       args.membershipPlan === 'pro' ? 1295 : 1895;
+      const finalAmount = discountApplied ? basePrice * (1 - discountAmount / 100) : basePrice;
+
+      // Log the intake payment attempt with discount info
       await ctx.runMutation(internal.payments.logIntakePaymentAttempt, {
         customerEmail: args.customerEmail,
         customerName: args.customerName,
         membershipPlan: args.membershipPlan,
         stripeSessionId: session.id,
-        amount: 0, // Will be updated from webhook
+        amount: finalAmount * 100, // Convert to cents
         status: "pending",
+        discountCode: discountApplied && args.discountCode ? args.discountCode : undefined,
+        discountPercent: discountApplied ? discountAmount : undefined,
       });
+
+      // Track discount usage if applied
+      if (discountApplied && args.discountCode) {
+        const coupon = await ctx.runQuery(internal.payments.checkCouponExists, {
+          code: args.discountCode,
+        });
+        
+        if (coupon) {
+          await ctx.runMutation(internal.payments.trackDiscountUsage, {
+            couponId: coupon._id,
+            customerEmail: args.customerEmail,
+            stripeSessionId: session.id,
+            amountDiscounted: basePrice * (discountAmount / 100) * 100, // In cents
+          });
+        }
+      }
 
       return {
         sessionId: session.id,
         url: session.url,
+        discountApplied,
+        finalAmount: finalAmount * 100, // Return in cents
       };
 
     } catch (error) {
@@ -621,6 +680,8 @@ export const logIntakePaymentAttempt = internalMutation({
     stripeSessionId: v.string(),
     amount: v.number(),
     status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
+    discountCode: v.optional(v.string()),
+    discountPercent: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("intakePaymentAttempts", {
@@ -630,6 +691,8 @@ export const logIntakePaymentAttempt = internalMutation({
       stripeSessionId: args.stripeSessionId,
       amount: args.amount,
       status: args.status,
+      discountCode: args.discountCode,
+      discountPercent: args.discountPercent,
       createdAt: Date.now(),
     });
   },
@@ -953,6 +1016,248 @@ export const getStripePricing = action({
       console.error("Failed to fetch pricing:", error);
       throw new Error(`Pricing fetch failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
+  },
+});
+
+// Create a discount coupon in Stripe
+export const createDiscountCoupon = action({
+  args: {
+    code: v.string(),
+    percentOff: v.number(),
+    duration: v.union(v.literal("once"), v.literal("repeating"), v.literal("forever")),
+    maxRedemptions: v.optional(v.number()),
+    redeemBy: v.optional(v.number()), // Unix timestamp for expiration
+    metadata: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (ctx, args) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    try {
+      // Create the coupon with the specified discount
+      const couponResponse = await fetch("https://api.stripe.com/v1/coupons", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeSecretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          "id": args.code,
+          "percent_off": args.percentOff.toString(),
+          "duration": args.duration,
+          ...(args.maxRedemptions && { "max_redemptions": args.maxRedemptions.toString() }),
+          ...(args.redeemBy && { "redeem_by": args.redeemBy.toString() }),
+          ...(args.metadata && Object.entries(args.metadata).reduce((acc, [key, value]) => {
+            acc[`metadata[${key}]`] = value;
+            return acc;
+          }, {} as Record<string, string>)),
+        }),
+      });
+
+      if (!couponResponse.ok) {
+        const errorText = await couponResponse.text();
+        throw new Error(`Stripe API error: ${couponResponse.status} - ${errorText}`);
+      }
+
+      const coupon = await couponResponse.json();
+
+      // Store coupon in database for tracking
+      await ctx.runMutation(internal.payments.storeCouponDetails, {
+        couponId: coupon.id,
+        code: args.code,
+        percentOff: args.percentOff,
+        duration: args.duration,
+        maxRedemptions: args.maxRedemptions,
+        redeemBy: args.redeemBy,
+        metadata: args.metadata,
+      });
+
+      return {
+        success: true,
+        couponId: coupon.id,
+        code: args.code,
+        percentOff: args.percentOff,
+      };
+    } catch (error) {
+      console.error("Failed to create discount coupon:", error);
+      throw new Error(`Coupon creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
+// Validate a discount code
+export const validateDiscountCode = query({
+  args: {
+    code: v.string(),
+    email: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Check if the code exists in our database
+    const coupon = await ctx.db
+      .query("discountCodes")
+      .withIndex("byCode", (q) => q.eq("code", args.code.toUpperCase()))
+      .first();
+
+    if (!coupon) {
+      return {
+        valid: false,
+        error: "Invalid discount code",
+      };
+    }
+
+    // Check if coupon is expired
+    if (coupon.redeemBy && coupon.redeemBy < Date.now()) {
+      return {
+        valid: false,
+        error: "This discount code has expired",
+      };
+    }
+
+    // Check redemption limit
+    if (coupon.maxRedemptions) {
+      const redemptions = await ctx.db
+        .query("discountUsage")
+        .withIndex("byCouponId", (q) => q.eq("couponId", coupon._id))
+        .collect();
+
+      if (redemptions.length >= coupon.maxRedemptions) {
+        return {
+          valid: false,
+          error: "This discount code has reached its usage limit",
+        };
+      }
+    }
+
+    // Check if user has already used this code (if email provided)
+    if (args.email) {
+      const existingUsage = await ctx.db
+        .query("discountUsage")
+        .withIndex("byCouponAndEmail", (q) => 
+          q.eq("couponId", coupon._id).eq("customerEmail", args.email)
+        )
+        .first();
+
+      if (existingUsage) {
+        return {
+          valid: false,
+          error: "You have already used this discount code",
+        };
+      }
+    }
+
+    return {
+      valid: true,
+      percentOff: coupon.percentOff,
+      code: coupon.code,
+      description: `${coupon.percentOff}% off`,
+    };
+  },
+});
+
+// Initialize the NP12345 discount code (100% off)
+export const initializeNPDiscountCode = action({
+  handler: async (ctx): Promise<{
+    success: boolean;
+    message: string;
+    couponId?: string;
+    code?: string;
+    percentOff?: number;
+  }> => {
+    try {
+      // Check if the code already exists
+      const existingCoupon: any = await ctx.runQuery(internal.payments.checkCouponExists, {
+        code: "NP12345",
+      });
+
+      if (existingCoupon) {
+        return {
+          success: true,
+          message: "Discount code NP12345 already exists",
+          couponId: existingCoupon.couponId,
+        };
+      }
+
+      // Create the 100% off coupon
+      const result: any = await ctx.runAction(api.payments.createDiscountCoupon, {
+        code: "NP12345",
+        percentOff: 100,
+        duration: "once",
+        metadata: {
+          description: "100% off for special NP students",
+          createdBy: "system",
+        },
+      });
+
+      return {
+        success: true,
+        message: "Successfully created discount code NP12345 with 100% off",
+        ...result,
+      };
+    } catch (error) {
+      console.error("Failed to initialize NP discount code:", error);
+      throw new Error(`Failed to initialize discount code: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
+// Internal mutation to store coupon details
+export const storeCouponDetails = internalMutation({
+  args: {
+    couponId: v.string(),
+    code: v.string(),
+    percentOff: v.number(),
+    duration: v.string(),
+    maxRedemptions: v.optional(v.number()),
+    redeemBy: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("discountCodes", {
+      couponId: args.couponId,
+      code: args.code.toUpperCase(),
+      percentOff: args.percentOff,
+      duration: args.duration,
+      maxRedemptions: args.maxRedemptions,
+      redeemBy: args.redeemBy,
+      metadata: args.metadata,
+      createdAt: Date.now(),
+      active: true,
+    });
+  },
+});
+
+// Internal query to check if coupon exists
+export const checkCouponExists = internalQuery({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("discountCodes")
+      .withIndex("byCode", (q) => q.eq("code", args.code.toUpperCase()))
+      .first();
+  },
+});
+
+// Track discount code usage
+export const trackDiscountUsage = internalMutation({
+  args: {
+    couponId: v.id("discountCodes"),
+    customerEmail: v.string(),
+    stripeSessionId: v.string(),
+    amountDiscounted: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("discountUsage", {
+      couponId: args.couponId,
+      customerEmail: args.customerEmail,
+      stripeSessionId: args.stripeSessionId,
+      amountDiscounted: args.amountDiscounted,
+      usedAt: Date.now(),
+    });
   },
 });
 
