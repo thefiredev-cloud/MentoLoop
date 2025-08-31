@@ -85,3 +85,6 @@ nul
 
 # Claude Code helper files
 PROJECT_INDEX.json
+
+# Local Netlify folder
+.netlify

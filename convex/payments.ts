@@ -133,13 +133,39 @@ export const createStudentCheckoutSession = action({
 
     try {
       // Log the incoming price ID for debugging
+      console.log('=== PAYMENT DEBUG ===');
+      console.log('Timestamp:', new Date().toISOString());
       console.log('Incoming priceId from client:', args.priceId);
+      console.log('Customer email:', args.customerEmail);
+      console.log('Membership plan:', args.membershipPlan);
+      
+      // Define old/legacy price IDs for detection and mapping
+      const oldPriceIds = [
+        'price_1S1ylsKVzfTBpytSRBfYbhzd',  // Old Core
+        'price_1S1yltKVzfTBpytSoqseGrEF',  // Old Pro
+        'price_1S1yltKVzfTBpytSOdNgTEFP'   // Old Premium
+      ];
+      
+      if (oldPriceIds.includes(args.priceId)) {
+        console.error('!!! OLD PRICE ID DETECTED - WILL CONVERT !!!');
+        console.error('Received obsolete price ID:', args.priceId);
+        console.error('User info:', {
+          email: args.customerEmail,
+          name: args.customerName,
+          userAgent: args.metadata?.userAgent || 'unknown'
+        });
+        // Don't throw error - we'll map it to the new ID below
+      }
       
       // Map membership plans to actual Stripe price IDs
       const priceIdMap: Record<string, string> = {
         'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S22LRB1lwwjVYGvHmZ7gtYq',
         'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1S22LdB1lwwjVYGvqYOegswu',
-        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S22LqB1lwwjVYGvR5hlPOvs'
+        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S22LqB1lwwjVYGvR5hlPOvs',
+        // Legacy mapping - automatically convert old IDs to new ones
+        'price_1S1ylsKVzfTBpytSRBfYbhzd': process.env.STRIPE_PRICE_ID_CORE || 'price_1S22LRB1lwwjVYGvHmZ7gtYq', // Old Core -> New Core
+        'price_1S1yltKVzfTBpytSoqseGrEF': process.env.STRIPE_PRICE_ID_PRO || 'price_1S22LdB1lwwjVYGvqYOegswu',  // Old Pro -> New Pro
+        'price_1S1yltKVzfTBpytSOdNgTEFP': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S22LqB1lwwjVYGvR5hlPOvs' // Old Premium -> New Premium
       };
       
       console.log('Price ID map:', priceIdMap);
@@ -150,6 +176,14 @@ export const createStudentCheckoutSession = action({
       });
       
       const stripePriceId = priceIdMap[args.priceId];
+      
+      // Check if we're doing a legacy conversion
+      if (oldPriceIds.includes(args.priceId)) {
+        console.warn('!!! LEGACY PRICE ID CONVERTED !!!');
+        console.warn(`Converting ${args.priceId} to ${stripePriceId}`);
+        console.warn('This should not happen - client needs update');
+      }
+      
       console.log('Selected Stripe price ID:', stripePriceId);
       
       if (!stripePriceId) {
