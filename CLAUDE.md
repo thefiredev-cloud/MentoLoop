@@ -50,6 +50,21 @@ npm run test         # Run Playwright tests
 npm run validate     # Run pre-deployment validation
 ```
 
+### Netlify Access
+```bash
+# List all Netlify sites
+npx -y netlify-cli sites:list --json
+
+# Get site info
+npx -y netlify-cli sites:info --json
+
+# List environment variables
+npx -y netlify-cli env:list
+
+# Deploy to Netlify
+npx -y netlify-cli deploy --prod
+```
+
 ### File Structure
 - `/app` - Next.js app router pages
 - `/components` - Reusable React components
@@ -70,3 +85,88 @@ npm run validate     # Run pre-deployment validation
 - Ensure all validation checks pass before deployment
 - Update environment variables in production
 - Test payment flows in Stripe test mode first
+
+## MCP Tools Available
+
+Claude Code has access to the following MCP (Model Context Protocol) tools globally configured in `C:\Users\Tanner\.claude.json`:
+
+### Project-Specific MCP Integrations
+
+#### Production Services
+- **Netlify** (`mcp__netlify__*`) - Production deployment and hosting
+  - Site management and deployment
+  - Environment variable configuration
+  - Build and deploy status monitoring
+  - Connected to MentoLoop production site
+
+- **Convex** (`mcp__convex__*`) - Serverless backend for this project
+  - Database operations (queries, mutations, actions)
+  - Real-time data synchronization
+  - Function execution and monitoring
+  - Environment variable management
+  - Connected to production Convex deployment
+
+- **Clerk** (`mcp__clerk__*`) - Authentication for this project
+  - User authentication and management
+  - Organization management
+  - Membership and invitation handling
+  - User metadata management
+  - Connected to production Clerk instance
+
+- **Stripe** (`mcp__stripe__*`) - Payment processing for this project
+  - Payment intent creation and management
+  - Customer management
+  - Subscription handling
+  - Product and pricing management
+  - Connected to production Stripe account
+
+- **GitHub** (`mcp__github__*`) - Source control for this repository
+  - Repository operations (create, fork, search)
+  - File operations (read, write, push)
+  - Issues and pull requests
+  - Branch management
+  - Connected to this project's GitHub repository
+
+### Development & Testing Tools
+- **Filesystem** (`mcp__filesystem__*`) - Local file system operations
+  - Read/write files
+  - Directory operations
+  - File search and metadata
+
+- **Docker** (`mcp__docker-mcp__*`) - Container management
+  - Create and manage containers
+  - Deploy Docker Compose stacks
+  - View container logs
+
+### Browser Automation
+- **Playwright** (`mcp__playwright__*`) - Browser automation and testing
+  - Navigate and interact with web pages
+  - Take screenshots
+  - Fill forms and click elements
+  - Handle dialogs and file uploads
+
+- **Puppeteer** (`mcp__puppeteer__*`) - Headless browser control
+  - Page navigation
+  - Screenshots
+  - Element interaction
+  - JavaScript execution
+
+### AI & Thinking Tools
+- **Sequential Thinking** (`mcp__sequential-thinking__*`) - Structured problem-solving
+  - Chain of thought reasoning
+  - Hypothesis generation and verification
+
+- **Memory** (`mcp__mcp-memory__*`) - Knowledge graph management
+  - Create and manage entities
+  - Build relationships
+  - Search and query knowledge
+  - Stores project context and decisions
+
+### IDE Integration
+- **IDE** (`mcp__ide__*`) - VS Code integration
+  - Get diagnostics
+  - Execute code in Jupyter notebooks
+
+### MCP Configuration Location
+All MCP tools are configured in: `C:\Users\Tanner\.claude.json`
+These tools provide direct access to production services and should be used with caution.

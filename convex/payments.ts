@@ -21,22 +21,28 @@ export const createStudentCheckoutSession = action({
     }
 
     try {
-      // For now, create the checkout session with dynamic pricing
-      // This will create a one-time payment with the specified amount
-      // TODO: Replace with actual Stripe product/price IDs once created in Stripe dashboard
-      
-      const amountMap: Record<string, number> = {
-        'price_core': 69500, // $695.00 in cents
-        'price_pro': 129500, // $1,295.00 in cents
-        'price_premium': 189500 // $1,895.00 in cents
+      // Map membership plans to actual Stripe price IDs
+      const priceIdMap: Record<string, string> = {
+        'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S1ylsKVzfTBpytSRBfYbhzd',
+        'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1S1yltKVzfTBpytSoqseGrEF',
+        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S1yltKVzfTBpytSOdNgTEFP'
       };
       
-      const amount = amountMap[args.priceId];
-      if (!amount) {
+      const stripePriceId = priceIdMap[args.priceId];
+      if (!stripePriceId) {
         throw new Error(`Invalid price ID: ${args.priceId}`);
       }
 
-      // Create Stripe checkout session for student intake with dynamic pricing
+      // First, create or get the Stripe customer
+      const customerResult = await ctx.runAction(internal.payments.createOrUpdateStripeCustomerInternal, {
+        email: args.customerEmail,
+        name: args.customerName,
+        metadata: {
+          membershipPlan: args.membershipPlan,
+        }
+      });
+
+      // Create Stripe checkout session using actual price IDs and customer
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
         headers: {
@@ -45,12 +51,10 @@ export const createStudentCheckoutSession = action({
         },
         body: new URLSearchParams({
           "mode": "payment",
-          "line_items[0][price_data][currency]": "usd",
-          "line_items[0][price_data][product_data][name]": `MentoLoop ${args.membershipPlan.charAt(0).toUpperCase() + args.membershipPlan.slice(1)} Membership`,
-          "line_items[0][price_data][product_data][description]": `${args.membershipPlan === 'core' ? '60 hours' : args.membershipPlan === 'pro' ? '120 hours' : '180 hours'} of clinical rotation support`,
-          "line_items[0][price_data][unit_amount]": amount.toString(),
+          "line_items[0][price]": stripePriceId,
           "line_items[0][quantity]": "1",
-          "customer_email": args.customerEmail,
+          "customer": customerResult.customerId,
+          "customer_update[address]": "auto",
           "success_url": args.successUrl,
           "cancel_url": args.cancelUrl,
           ...Object.entries(args.metadata).reduce((acc, [key, value]) => {
@@ -233,6 +237,12 @@ export const handleStripeWebhook = action({
         case "payment_intent.payment_failed":
           await handlePaymentFailed(ctx, event.data.object);
           break;
+        case "customer.created":
+          await handleCustomerCreated(ctx, event.data.object);
+          break;
+        case "customer.updated":
+          await handleCustomerUpdated(ctx, event.data.object);
+          break;
         default:
           console.log(`Unhandled event type: ${event.type}`);
       }
@@ -326,6 +336,7 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
 
 async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
   const { customerEmail, membershipPlan, studentName, school, specialty } = session.metadata || {};
+  const stripeCustomerId = session.customer; // Stripe customer ID from the session
   
   if (!customerEmail) {
     console.error("No customer email in session metadata");
@@ -356,7 +367,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
     if (user) {
       console.log(`Found user ${user._id} for email ${customerEmail}`);
       
-      // Update user metadata in the database
+      // Update user metadata in the database with Stripe customer ID
       try {
         await ctx.runMutation(internal.users.updateUserMetadata, {
           userId: user._id,
@@ -365,9 +376,10 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
             paymentCompleted: true,
             intakeCompletedAt: new Date().toISOString(),
             membershipPlan: membershipPlan || 'core',
+            stripeCustomerId: stripeCustomerId,
           }
         });
-        console.log(`Updated user metadata for ${user._id}`);
+        console.log(`Updated user metadata for ${user._id} with Stripe customer ${stripeCustomerId}`);
       } catch (error) {
         console.error("Failed to update user metadata:", error);
         // Continue - payment was successful
@@ -380,6 +392,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
           paymentStatus: 'completed',
           membershipPlan: membershipPlan || 'core',
           stripeSessionId: session.id,
+          stripeCustomerId: stripeCustomerId,
           paidAt: Date.now(),
         });
         console.log(`Updated student payment status for user ${user._id}`);
@@ -389,7 +402,6 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       }
     } else {
       console.warn(`User not found for email ${customerEmail} - payment recorded, user will sync later`);
-    }
 
     // Send welcome email to student (optional - don't fail if email service is down)
     try {
@@ -429,6 +441,45 @@ async function handlePaymentFailed(ctx: any, paymentIntent: any) {
     status: "failed",
     failureReason: paymentIntent.last_payment_error?.message || "Payment failed",
   });
+}
+
+async function handleCustomerCreated(ctx: any, customer: any) {
+  console.log("Customer created in Stripe:", customer.id);
+  
+  // Find user by email and update with Stripe customer ID
+  if (customer.email) {
+    try {
+      const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customer.email });
+      if (user) {
+        await ctx.runMutation(internal.users.updateUserMetadata, {
+          userId: user._id,
+          publicMetadata: {
+            stripeCustomerId: customer.id,
+          }
+        });
+        console.log(`Updated user ${user._id} with Stripe customer ID ${customer.id}`);
+      }
+    } catch (error) {
+      console.error("Failed to update user with Stripe customer ID:", error);
+    }
+  }
+}
+
+async function handleCustomerUpdated(ctx: any, customer: any) {
+  console.log("Customer updated in Stripe:", customer.id);
+  
+  // Sync customer data with user metadata if needed
+  if (customer.email) {
+    try {
+      const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customer.email });
+      if (user) {
+        // Update any relevant metadata
+        console.log(`Customer ${customer.id} updated for user ${user._id}`);
+      }
+    } catch (error) {
+      console.error("Failed to sync customer update:", error);
+    }
+  }
 }
 
 // Internal mutations for payment tracking
@@ -629,6 +680,97 @@ export const createPreceptorConnectAccount = action({
   },
 });
 
+// Create Stripe products and prices for membership tiers
+export const createMembershipProducts = action({
+  handler: async () => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    try {
+      const memberships = [
+        {
+          name: "Core Membership",
+          description: "60 hours of clinical rotation support with basic matching services",
+          price: 69500, // $695.00 in cents
+        },
+        {
+          name: "Pro Membership", 
+          description: "120 hours of clinical rotation support with priority matching",
+          price: 129500, // $1,295.00 in cents
+        },
+        {
+          name: "Premium Membership",
+          description: "180 hours of clinical rotation support with premium matching and dedicated support",
+          price: 189500, // $1,895.00 in cents
+        }
+      ];
+
+      const results = [];
+
+      for (const membership of memberships) {
+        // Create product
+        const productResponse = await fetch("https://api.stripe.com/v1/products", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            "name": membership.name,
+            "description": membership.description,
+            "type": "service",
+          }),
+        });
+
+        if (!productResponse.ok) {
+          const errorText = await productResponse.text();
+          throw new Error(`Stripe Product API error: ${productResponse.status} - ${errorText}`);
+        }
+
+        const product = await productResponse.json();
+
+        // Create price for the product
+        const priceResponse = await fetch("https://api.stripe.com/v1/prices", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            "product": product.id,
+            "unit_amount": membership.price.toString(),
+            "currency": "usd",
+            "billing_scheme": "per_unit",
+          }),
+        });
+
+        if (!priceResponse.ok) {
+          const errorText = await priceResponse.text();
+          throw new Error(`Stripe Price API error: ${priceResponse.status} - ${errorText}`);
+        }
+
+        const price = await priceResponse.json();
+
+        results.push({
+          membershipTier: membership.name,
+          productId: product.id,
+          priceId: price.id,
+          amount: membership.price,
+          description: membership.description,
+        });
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Failed to create membership products:", error);
+      throw new Error(`Membership products creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
 // Create subscription for recurring payments (future feature)
 export const createSubscription = action({
   args: {
@@ -700,6 +842,111 @@ export const getStripePricing = action({
       console.error("Failed to fetch pricing:", error);
       throw new Error(`Pricing fetch failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
+  },
+});
+
+// Internal action to create or update Stripe customer for a user  
+const createOrUpdateStripeCustomerInternal = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    metadata: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (ctx, args) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    try {
+      // First, check if customer already exists
+      const searchResponse = await fetch(
+        `https://api.stripe.com/v1/customers/search?query=email:'${args.email}'`,
+        {
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+          },
+        }
+      );
+
+      if (!searchResponse.ok) {
+        const errorText = await searchResponse.text();
+        throw new Error(`Stripe API error: ${searchResponse.status} - ${errorText}`);
+      }
+
+      const searchData = await searchResponse.json();
+      
+      if (searchData.data && searchData.data.length > 0) {
+        // Customer exists, update them
+        const customerId = searchData.data[0].id;
+        const updateResponse = await fetch(
+          `https://api.stripe.com/v1/customers/${customerId}`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${stripeSecretKey}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              name: args.name,
+              ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
+                acc[`metadata[${key}]`] = value;
+                return acc;
+              }, {} as Record<string, string>) : {}),
+            }),
+          }
+        );
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          throw new Error(`Stripe API error: ${updateResponse.status} - ${errorText}`);
+        }
+
+        const customer = await updateResponse.json();
+        return { customerId: customer.id, created: false };
+      } else {
+        // Create new customer
+        const createResponse = await fetch("https://api.stripe.com/v1/customers", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            email: args.email,
+            name: args.name,
+            ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
+              acc[`metadata[${key}]`] = value;
+              return acc;
+            }, {} as Record<string, string>) : {}),
+          }),
+        });
+
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
+          throw new Error(`Stripe API error: ${createResponse.status} - ${errorText}`);
+        }
+
+        const customer = await createResponse.json();
+        return { customerId: customer.id, created: true };
+      }
+    } catch (error) {
+      console.error("Failed to create/update Stripe customer:", error);
+      throw new Error(`Customer operation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
+// Public action to create or update Stripe customer
+export const createOrUpdateStripeCustomer = action({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    metadata: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.runAction(internal.payments.createOrUpdateStripeCustomerInternal, args);
   },
 });
 

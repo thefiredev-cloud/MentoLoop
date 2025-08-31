@@ -18,7 +18,7 @@
     },
     "stripe": {
       "command": "npx",
-      "args": ["-y", "@stripe/mcp-server"],
+      "args": ["-y", "@stripe/mcp"],
       "env": {
         "STRIPE_SECRET_KEY": "env:STRIPE_SECRET_KEY",
         "STRIPE_WEBHOOK_SECRET": "env:STRIPE_WEBHOOK_SECRET"

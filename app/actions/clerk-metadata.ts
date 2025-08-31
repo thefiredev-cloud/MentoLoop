@@ -11,6 +11,7 @@ export async function updateUserIntakeMetadata(
     intakeCompletedAt?: string
     membershipPlan?: string
     userType?: string
+    stripeCustomerId?: string
   }
 ) {
   try {
@@ -50,12 +51,32 @@ export async function getCurrentUserMetadata() {
   }
 }
 
-export async function markIntakeComplete(userId: string, membershipPlan: string) {
+export async function markIntakeComplete(userId: string, membershipPlan: string, stripeCustomerId?: string) {
   return updateUserIntakeMetadata(userId, {
     intakeCompleted: true,
     paymentCompleted: true,
     intakeCompletedAt: new Date().toISOString(),
     membershipPlan,
     userType: 'student',
+    ...(stripeCustomerId && { stripeCustomerId }),
   })
+}
+
+export async function syncStripeCustomerId(userId: string, stripeCustomerId: string) {
+  try {
+    const client = await clerkClient()
+    
+    // Update user's public metadata with Stripe customer ID
+    await client.users.updateUserMetadata(userId, {
+      publicMetadata: {
+        stripeCustomerId,
+      }
+    })
+    
+    console.log(`Synced Stripe customer ID ${stripeCustomerId} for user ${userId}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to sync Stripe customer ID:', error)
+    throw new Error('Failed to sync Stripe customer ID')
+  }
 }

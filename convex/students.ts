@@ -366,6 +366,7 @@ export const updateStudentPaymentStatus = internalMutation({
     paymentStatus: v.string(),
     membershipPlan: v.string(),
     stripeSessionId: v.string(),
+    stripeCustomerId: v.optional(v.string()),
     paidAt: v.number(),
   },
   handler: async (ctx, args) => {
@@ -380,7 +381,7 @@ export const updateStudentPaymentStatus = internalMutation({
       await ctx.db.patch(student._id, {
         paymentStatus: args.paymentStatus as "pending" | "failed" | "paid",
         membershipPlan: args.membershipPlan as "core" | "pro" | "premium",
-        stripeCustomerId: args.stripeSessionId, // Store session ID as customer ID for tracking
+        stripeCustomerId: args.stripeCustomerId || args.stripeSessionId, // Use customer ID if provided, otherwise session ID
         status: "active" as const,
         updatedAt: Date.now(),
       });
