@@ -53,8 +53,8 @@ export default function PaymentCheckout({
         cancelUrl: `${window.location.origin}/dashboard/matches`
       })
 
-      if (result.sessionUrl) {
-        window.location.href = result.sessionUrl
+      if (result.url) {
+        window.location.href = result.url
       } else {
         throw new Error("No session URL returned")
       }

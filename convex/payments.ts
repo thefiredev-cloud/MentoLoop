@@ -2,6 +2,99 @@ import { v } from "convex/values";
 import { action, internalAction, internalMutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 
+// Internal action to create or update Stripe customer for a user  
+export const createOrUpdateStripeCustomerInternal = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    metadata: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (_ctx, args) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    try {
+      // First, check if customer already exists
+      const searchResponse = await fetch(
+        `https://api.stripe.com/v1/customers/search?query=email:'${args.email}'`,
+        {
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+          },
+        }
+      );
+
+      if (!searchResponse.ok) {
+        const errorText = await searchResponse.text();
+        throw new Error(`Stripe API error: ${searchResponse.status} - ${errorText}`);
+      }
+
+      const searchData = await searchResponse.json();
+      
+      if (searchData.data && searchData.data.length > 0) {
+        // Customer exists, update them
+        const customerId = searchData.data[0].id;
+        const updateResponse = await fetch(
+          `https://api.stripe.com/v1/customers/${customerId}`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${stripeSecretKey}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              name: args.name,
+              ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
+                acc[`metadata[${key}]`] = value;
+                return acc;
+              }, {} as Record<string, string>) : {}),
+            }),
+          }
+        );
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          throw new Error(`Stripe API error: ${updateResponse.status} - ${errorText}`);
+        }
+
+        const customer = await updateResponse.json();
+        return { customerId: customer.id, created: false };
+      } else {
+        // Create new customer
+        const createResponse = await fetch("https://api.stripe.com/v1/customers", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            email: args.email,
+            name: args.name,
+            ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
+              acc[`metadata[${key}]`] = value;
+              return acc;
+            }, {} as Record<string, string>) : {}),
+          }),
+        });
+
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
+          throw new Error(`Stripe API error: ${createResponse.status} - ${errorText}`);
+        }
+
+        const customer = await createResponse.json();
+        return { customerId: customer.id, created: true };
+      }
+    } catch (error) {
+      console.error("Failed to create/update Stripe customer:", error);
+      throw new Error(`Customer operation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
 // Stripe payment processing for student intake
 export const createStudentCheckoutSession = action({
   args: {
@@ -13,7 +106,7 @@ export const createStudentCheckoutSession = action({
     successUrl: v.string(),
     cancelUrl: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ sessionId: string; url: string }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     
     if (!stripeSecretKey) {
@@ -83,7 +176,7 @@ export const createStudentCheckoutSession = action({
 
       return {
         sessionId: session.id,
-        sessionUrl: session.url,
+        url: session.url,
       };
 
     } catch (error) {
@@ -150,7 +243,7 @@ export const createPaymentSession = action({
 
       return {
         sessionId: session.id,
-        sessionUrl: session.url,
+        url: session.url,
       };
 
     } catch (error) {
@@ -402,6 +495,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       }
     } else {
       console.warn(`User not found for email ${customerEmail} - payment recorded, user will sync later`);
+    }
 
     // Send welcome email to student (optional - don't fail if email service is down)
     try {
@@ -845,99 +939,6 @@ export const getStripePricing = action({
   },
 });
 
-// Internal action to create or update Stripe customer for a user  
-const createOrUpdateStripeCustomerInternal = internalAction({
-  args: {
-    email: v.string(),
-    name: v.string(),
-    metadata: v.optional(v.record(v.string(), v.string())),
-  },
-  handler: async (ctx, args) => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    
-    if (!stripeSecretKey) {
-      throw new Error("Stripe not configured");
-    }
-
-    try {
-      // First, check if customer already exists
-      const searchResponse = await fetch(
-        `https://api.stripe.com/v1/customers/search?query=email:'${args.email}'`,
-        {
-          headers: {
-            "Authorization": `Bearer ${stripeSecretKey}`,
-          },
-        }
-      );
-
-      if (!searchResponse.ok) {
-        const errorText = await searchResponse.text();
-        throw new Error(`Stripe API error: ${searchResponse.status} - ${errorText}`);
-      }
-
-      const searchData = await searchResponse.json();
-      
-      if (searchData.data && searchData.data.length > 0) {
-        // Customer exists, update them
-        const customerId = searchData.data[0].id;
-        const updateResponse = await fetch(
-          `https://api.stripe.com/v1/customers/${customerId}`,
-          {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${stripeSecretKey}`,
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              name: args.name,
-              ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
-                acc[`metadata[${key}]`] = value;
-                return acc;
-              }, {} as Record<string, string>) : {}),
-            }),
-          }
-        );
-
-        if (!updateResponse.ok) {
-          const errorText = await updateResponse.text();
-          throw new Error(`Stripe API error: ${updateResponse.status} - ${errorText}`);
-        }
-
-        const customer = await updateResponse.json();
-        return { customerId: customer.id, created: false };
-      } else {
-        // Create new customer
-        const createResponse = await fetch("https://api.stripe.com/v1/customers", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${stripeSecretKey}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            email: args.email,
-            name: args.name,
-            ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
-              acc[`metadata[${key}]`] = value;
-              return acc;
-            }, {} as Record<string, string>) : {}),
-          }),
-        });
-
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          throw new Error(`Stripe API error: ${createResponse.status} - ${errorText}`);
-        }
-
-        const customer = await createResponse.json();
-        return { customerId: customer.id, created: true };
-      }
-    } catch (error) {
-      console.error("Failed to create/update Stripe customer:", error);
-      throw new Error(`Customer operation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
-  },
-});
-
 // Public action to create or update Stripe customer
 export const createOrUpdateStripeCustomer = action({
   args: {
@@ -945,7 +946,7 @@ export const createOrUpdateStripeCustomer = action({
     name: v.string(),
     metadata: v.optional(v.record(v.string(), v.string())),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ customerId: string; created: boolean }> => {
     return await ctx.runAction(internal.payments.createOrUpdateStripeCustomerInternal, args);
   },
 });

@@ -220,7 +220,7 @@ export default function PaymentAgreementStep({
         cancelUrl: `${window.location.origin}/student-intake`
       })
 
-      if (session.sessionUrl) {
+      if (session.url) {
         // Store session info for tracking
         updateFormData('paymentAgreement', {
           ...(data.paymentAgreement as Record<string, unknown> || {}),
@@ -238,7 +238,7 @@ export default function PaymentAgreementStep({
         }))
         
         // Redirect to Stripe checkout
-        window.location.href = session.sessionUrl
+        window.location.href = session.url
       } else {
         throw new Error('No checkout session URL returned')
       }

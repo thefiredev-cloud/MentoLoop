@@ -150,7 +150,7 @@ export default function StripeCheckoutStep({
         cancelUrl: `${window.location.origin}/student-intake`
       })
 
-      if (session.sessionUrl) {
+      if (session.url) {
         // Store session ID and membership plan for tracking
         updateFormData('payment', {
           sessionId: session.sessionId,
@@ -161,7 +161,7 @@ export default function StripeCheckoutStep({
         sessionStorage.setItem('selectedMembershipPlan', membership.plan)
         
         // Redirect to Stripe checkout
-        window.location.href = session.sessionUrl
+        window.location.href = session.url
       } else {
         throw new Error("No checkout session URL returned")
       }
