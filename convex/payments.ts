@@ -114,15 +114,32 @@ export const createStudentCheckoutSession = action({
       throw new Error("Stripe not configured");
     }
 
+    // Validate that Stripe price IDs are configured
+    const requiredEnvVars = {
+      STRIPE_PRICE_ID_CORE: process.env.STRIPE_PRICE_ID_CORE,
+      STRIPE_PRICE_ID_PRO: process.env.STRIPE_PRICE_ID_PRO,
+      STRIPE_PRICE_ID_PREMIUM: process.env.STRIPE_PRICE_ID_PREMIUM
+    };
+
+    const missingVars = Object.entries(requiredEnvVars)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingVars.length > 0) {
+      console.error('Missing required Stripe price environment variables:', missingVars);
+      // Continue with fallbacks but log the issue
+      console.log('Using fallback price IDs - this may cause issues if they are outdated');
+    }
+
     try {
       // Log the incoming price ID for debugging
       console.log('Incoming priceId from client:', args.priceId);
       
       // Map membership plans to actual Stripe price IDs
       const priceIdMap: Record<string, string> = {
-        'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S1ylsKVzfTBpytSRBfYbhzd',
-        'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1S1yltKVzfTBpytSoqseGrEF',
-        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S1yltKVzfTBpytSOdNgTEFP'
+        'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S22LRB1lwwjVYGvHmZ7gtYq',
+        'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1S22LdB1lwwjVYGvqYOegswu',
+        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S22LqB1lwwjVYGvR5hlPOvs'
       };
       
       console.log('Price ID map:', priceIdMap);
