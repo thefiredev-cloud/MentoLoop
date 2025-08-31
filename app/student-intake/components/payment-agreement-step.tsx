@@ -115,6 +115,7 @@ export default function PaymentAgreementStep({
         blockName: block.name,
         blockHours: block.hours,
         blockPrice: block.price,
+        blockPriceId: block.priceId, // Add the priceId here
         addOnHours,
         totalPrice,
         agreedToTerms
@@ -137,6 +138,7 @@ export default function PaymentAgreementStep({
           blockName: block.name,
           blockHours: block.hours,
           blockPrice: block.price,
+          blockPriceId: block.priceId, // Add the priceId here too
           addOnHours: adjustedHours,
           totalPrice,
           agreedToTerms

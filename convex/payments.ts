@@ -114,6 +114,9 @@ export const createStudentCheckoutSession = action({
     }
 
     try {
+      // Log the incoming price ID for debugging
+      console.log('Incoming priceId from client:', args.priceId);
+      
       // Map membership plans to actual Stripe price IDs
       const priceIdMap: Record<string, string> = {
         'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S1ylsKVzfTBpytSRBfYbhzd',
@@ -121,7 +124,16 @@ export const createStudentCheckoutSession = action({
         'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S1yltKVzfTBpytSOdNgTEFP'
       };
       
+      console.log('Price ID map:', priceIdMap);
+      console.log('Environment variables:', {
+        STRIPE_PRICE_ID_CORE: process.env.STRIPE_PRICE_ID_CORE,
+        STRIPE_PRICE_ID_PRO: process.env.STRIPE_PRICE_ID_PRO,
+        STRIPE_PRICE_ID_PREMIUM: process.env.STRIPE_PRICE_ID_PREMIUM
+      });
+      
       const stripePriceId = priceIdMap[args.priceId];
+      console.log('Selected Stripe price ID:', stripePriceId);
+      
       if (!stripePriceId) {
         throw new Error(`Invalid price ID: ${args.priceId}`);
       }
@@ -136,25 +148,30 @@ export const createStudentCheckoutSession = action({
       });
 
       // Create Stripe checkout session using actual price IDs and customer
+      const checkoutParams = {
+        "mode": "payment",
+        "line_items[0][price]": stripePriceId,
+        "line_items[0][quantity]": "1",
+        "customer": customerResult.customerId,
+        "customer_update[address]": "auto",
+        "success_url": args.successUrl,
+        "cancel_url": args.cancelUrl,
+        ...Object.entries(args.metadata).reduce((acc, [key, value]) => {
+          acc[`metadata[${key}]`] = value;
+          return acc;
+        }, {} as Record<string, string>),
+      };
+      
+      console.log('Stripe checkout session params:', checkoutParams);
+      console.log('Specifically, price being sent to Stripe:', checkoutParams["line_items[0][price]"]);
+      
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({
-          "mode": "payment",
-          "line_items[0][price]": stripePriceId,
-          "line_items[0][quantity]": "1",
-          "customer": customerResult.customerId,
-          "customer_update[address]": "auto",
-          "success_url": args.successUrl,
-          "cancel_url": args.cancelUrl,
-          ...Object.entries(args.metadata).reduce((acc, [key, value]) => {
-            acc[`metadata[${key}]`] = value;
-            return acc;
-          }, {} as Record<string, string>),
-        }),
+        body: new URLSearchParams(checkoutParams),
       });
 
       if (!response.ok) {
