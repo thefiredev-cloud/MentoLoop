@@ -231,23 +231,21 @@ export const createStudentCheckoutSession = action({
           if (validation.valid) {
             console.log(`Applying discount: ${validation.percentOff}% off`);
             
-            // Only apply Stripe coupon if it's not 100% off
-            // For 100% off, we'll handle it differently to avoid Stripe issues
+            // Apply discount based on percentage
             if (validation.percentOff === 100) {
-              // For 100% discount, we'll create a free checkout session
-              console.log('Applying 100% discount - creating free checkout session');
+              // For 100% discount, still apply the coupon since it exists in Stripe
+              console.log('Applying 100% discount with Stripe coupon');
+              checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
               discountApplied = true;
               discountAmount = 100;
               
               // Add discount info to metadata
               checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
               checkoutParams["metadata[discountPercent]"] = "100";
-              checkoutParams["metadata[originalPrice]"] = checkoutParams["line_items[0][price]"];
+              checkoutParams["metadata[originalPrice]"] = stripePriceId;
               
-              // Override the price to a free/minimal price if available
-              // Or we'll need to handle this differently in Stripe
+              // Ensure payment methods are set correctly
               checkoutParams["payment_method_types[0]"] = "card";
-              checkoutParams["allow_promotion_codes"] = "false";
             } else {
               // Apply the coupon to the checkout session for partial discounts
               checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
