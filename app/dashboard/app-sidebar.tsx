@@ -395,23 +395,23 @@ export function AppSidebar({ ...props }: Omit<React.ComponentProps<typeof Sideba
   }
 
   return (
-    <Sidebar collapsible="offcanvas" className="border-r" {...props}>
-      <SidebarHeader className="border-b">
+    <Sidebar collapsible="offcanvas" className="border-r z-40" {...props}>
+      <SidebarHeader className="border-b px-3 py-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5 h-auto"
+              className="data-[slot=sidebar-menu-button]:p-0 h-auto hover:bg-transparent"
             >
-              <Link href="/" className="flex flex-col items-start gap-1 py-2">
-                <div className="flex items-center gap-2">
-                  <IconHeart className="size-6 text-primary" />
-                  <span className="text-base font-semibold">MentoLoop</span>
+              <Link href="/" className="flex flex-col items-start gap-2">
+                <div className="flex items-center gap-3">
+                  <IconHeart className="size-7 text-primary" />
+                  <span className="text-lg font-bold">MentoLoop</span>
                 </div>
                 {user?.userType && (
                   <Badge 
                     variant={getRoleBadgeVariant()} 
-                    className="text-xs capitalize flex items-center gap-1"
+                    className="text-xs capitalize flex items-center gap-1 ml-10"
                   >
                     {getRoleIcon()}
                     {user.userType} Portal
@@ -422,12 +422,14 @@ export function AppSidebar({ ...props }: Omit<React.ComponentProps<typeof Sideba
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="px-2">
-        <NavMain items={navigationData.navMain} />
-        {navigationData.documents.length > 0 && (
-          <NavDocuments items={navigationData.documents} />
-        )}
-        <NavSecondary items={navigationData.navSecondary} className="mt-auto" />
+      <SidebarContent className="px-3 py-2">
+        <div className="space-y-4">
+          <NavMain items={navigationData.navMain} />
+          {navigationData.documents.length > 0 && (
+            <NavDocuments items={navigationData.documents} />
+          )}
+        </div>
+        <NavSecondary items={navigationData.navSecondary} className="mt-auto mb-2" />
       </SidebarContent>
       <SidebarFooter className="border-t">
         <NavUser />

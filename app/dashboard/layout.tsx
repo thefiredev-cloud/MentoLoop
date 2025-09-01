@@ -10,12 +10,12 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider className="min-h-screen">
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-screen overflow-hidden relative">
         {/* Sidebar */}
         <AppSidebar />
         
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
           {/* Loading Bar */}
           <LoadingBar />
           

@@ -12,16 +12,31 @@ export const current = query({
 export const upsertFromClerk = internalMutation({
   args: { data: v.any() as Validator<UserJSON> }, // no runtime validation, trust Clerk
   async handler(ctx, { data }) {
+    // Check if this email should be an admin
+    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+    const isAdmin = data.email_addresses?.some((email: any) => 
+      adminEmails.includes(email.email_address?.toLowerCase())
+    );
+    
     const userAttributes = {
       name: `${data.first_name} ${data.last_name}`,
       externalId: data.id,
+      email: data.email_addresses?.[0]?.email_address || "",
+      userType: isAdmin ? ("admin" as const) : undefined,
+      permissions: isAdmin ? ["full_admin_access"] : undefined,
     };
 
     const user = await userByExternalId(ctx, data.id);
     if (user === null) {
       await ctx.db.insert("users", userAttributes);
+      if (isAdmin) {
+        console.log(`[upsertFromClerk] Created admin user: ${userAttributes.email}`);
+      }
     } else {
       await ctx.db.patch(user._id, userAttributes);
+      if (isAdmin && user.userType !== "admin") {
+        console.log(`[upsertFromClerk] Updated user to admin: ${userAttributes.email}`);
+      }
     }
   },
 });
@@ -74,17 +89,35 @@ export const ensureUserExists = mutation({
       .unique();
 
     if (existingUser) {
+      // Check if this should be an admin user
+      const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+      if (adminEmails.includes(identity.email?.toLowerCase() || "") && existingUser.userType !== "admin") {
+        await ctx.db.patch(existingUser._id, {
+          userType: "admin",
+          permissions: ["full_admin_access"]
+        });
+        console.log(`[ensureUserExists] Updated ${identity.email} to admin role`);
+      }
       return { userId: existingUser._id, isNew: false };
     }
+
+    // Check if new user should be admin
+    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+    const isAdmin = adminEmails.includes(identity.email?.toLowerCase() || "");
 
     // Create new user if doesn't exist
     const userId = await ctx.db.insert("users", {
       name: identity.name ?? identity.email ?? "Unknown User",
       externalId: identity.subject,
-      userType: "student", // Default to student
+      userType: isAdmin ? "admin" : "student", // Admin if email matches, otherwise student
       email: identity.email ?? "",
+      permissions: isAdmin ? ["full_admin_access"] : undefined,
       createdAt: Date.now(),
     });
+
+    if (isAdmin) {
+      console.log(`[ensureUserExists] Created admin user: ${identity.email}`);
+    }
 
     return { userId, isNew: true };
   },
@@ -179,14 +212,22 @@ export const ensureUserExistsWithRetry = mutation({
         console.log("[ensureUserExistsWithRetry] Creating new user after failed lookups");
         
         try {
+          // Check if new user should be admin
+          const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+          const isAdmin = adminEmails.includes(identity.email?.toLowerCase() || "");
+          
           const userId = await ctx.db.insert("users", {
             name: identity.name ?? identity.email ?? "Unknown User",
             externalId: identity.subject,
-            userType: "student", // Default to student
+            userType: isAdmin ? "admin" : "student", // Admin if email matches, otherwise student
             email: identity.email ?? "",
+            permissions: isAdmin ? ["full_admin_access"] : undefined,
             createdAt: Date.now(),
           });
 
+          if (isAdmin) {
+            console.log(`[ensureUserExistsWithRetry] Created admin user: ${identity.email}`);
+          }
           console.log("[ensureUserExistsWithRetry] User created successfully:", userId);
           return { 
             userId, 

@@ -88,3 +88,6 @@ PROJECT_INDEX.json
 
 # Local Netlify folder
 .netlify
+
+# clerk configuration (can include secrets)
+/.clerk/
