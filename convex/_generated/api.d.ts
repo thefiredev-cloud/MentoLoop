@@ -14,12 +14,14 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as admin from "../admin.js";
+import type * as adminSetup from "../adminSetup.js";
 import type * as aiMatching from "../aiMatching.js";
 import type * as auth from "../auth.js";
 import type * as clinicalHours from "../clinicalHours.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as init from "../init.js";
+import type * as intakePayments from "../intakePayments.js";
 import type * as matchHelpers from "../matchHelpers.js";
 import type * as matches from "../matches.js";
 import type * as mentorfit from "../mentorfit.js";
@@ -46,12 +48,14 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  adminSetup: typeof adminSetup;
   aiMatching: typeof aiMatching;
   auth: typeof auth;
   clinicalHours: typeof clinicalHours;
   emails: typeof emails;
   http: typeof http;
   init: typeof init;
+  intakePayments: typeof intakePayments;
   matchHelpers: typeof matchHelpers;
   matches: typeof matches;
   mentorfit: typeof mentorfit;
