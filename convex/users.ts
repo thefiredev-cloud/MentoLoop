@@ -366,7 +366,27 @@ export async function getCurrentUser(ctx: QueryCtx) {
   if (identity === null) {
     return null;
   }
-  return await userByExternalId(ctx, identity.subject);
+  
+  const user = await userByExternalId(ctx, identity.subject);
+  
+  // If user exists and has an email, check if they should be an admin
+  if (user && identity.email) {
+    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+    const userEmail = identity.email.toLowerCase();
+    
+    // If this is an admin email but userType isn't set to admin, return with admin type
+    if (adminEmails.includes(userEmail) && user.userType !== "admin") {
+      // Return user with admin properties without modifying the database
+      // (database update will happen in the sync functions)
+      return {
+        ...user,
+        userType: "admin" as const,
+        permissions: ["full_admin_access"]
+      };
+    }
+  }
+  
+  return user;
 }
 
 async function userByExternalId(ctx: QueryCtx, externalId: string) {
