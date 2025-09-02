@@ -62,9 +62,12 @@ function getPageTitle(pathname: string): string {
 export function SiteHeader() {
   const pathname = usePathname()
   const pageTitle = getPageTitle(pathname)
+  
+  // Hide title on admin dashboard main page since navbar already shows it
+  const hideTitle = pathname === "/dashboard/admin"
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background sticky top-0 z-50 w-full">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background sticky top-0 z-30 w-full">
       <div className="flex w-full items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-1 lg:gap-2">
           <SidebarTrigger className="-ml-1" />
@@ -72,7 +75,7 @@ export function SiteHeader() {
             orientation="vertical"
             className="mx-2 data-[orientation=vertical]:h-4"
           />
-          <h1 className="text-base font-medium">{pageTitle}</h1>
+          {!hideTitle && <h1 className="text-base font-medium">{pageTitle}</h1>}
         </div>
         <ThemeToggle />
       </div>

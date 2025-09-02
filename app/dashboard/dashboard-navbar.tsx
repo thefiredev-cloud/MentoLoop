@@ -51,8 +51,8 @@ export const DashboardNavbar = () => {
 
   return (
     <header 
-      className="glass-navbar-enhanced fixed top-0 z-50 w-full border-b border-white/10">
-      <nav className="flex h-14 items-center px-4 lg:px-6">
+      className="glass-navbar-enhanced fixed top-0 z-[60] w-full border-b border-white/10 h-14">
+      <nav className="flex h-full items-center px-4 lg:px-6">
         <div className="flex flex-1 items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center space-x-6">
