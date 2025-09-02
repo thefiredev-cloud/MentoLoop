@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as admin from "../admin.js";
+import type * as adminCleanup from "../adminCleanup.js";
 import type * as adminSetup from "../adminSetup.js";
 import type * as aiMatching from "../aiMatching.js";
 import type * as auth from "../auth.js";
@@ -48,6 +49,7 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  adminCleanup: typeof adminCleanup;
   adminSetup: typeof adminSetup;
   aiMatching: typeof aiMatching;
   auth: typeof auth;
