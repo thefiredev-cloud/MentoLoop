@@ -20,12 +20,10 @@ export default function DashboardLayout({
       <div className="min-h-screen pt-14">
         <SidebarProvider>
           <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
-            {/* Sidebar - starts below navbar */}
-            <div className="relative z-40">
-              <AppSidebar />
-            </div>
+            {/* Sidebar - fixed width, no z-index conflicts */}
+            <AppSidebar />
             
-            {/* Main Content Area */}
+            {/* Main Content Area - with proper margin for sidebar */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Loading Bar */}
               <LoadingBar />
