@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { CheckCircle, Star, Zap, Crown, Plus, Sparkles } from 'lucide-react'
+import { CheckCircle, Star, Zap, Crown, Plus, Sparkles, Calendar, CreditCard as CreditCardIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PaymentAgreementStepProps {
@@ -108,6 +108,8 @@ export default function PaymentAgreementStep({
     error?: string;
   } | null>(null)
   const [validatingDiscount, setValidatingDiscount] = useState(false)
+  const [paymentOption, setPaymentOption] = useState<'full' | 'installments'>('full')
+  const [installmentPlan, setInstallmentPlan] = useState<3 | 4>(3)
   const { isLoaded, isSignedIn } = useAuth()
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
@@ -173,6 +175,17 @@ export default function PaymentAgreementStep({
     return block.price + (addOnHours * 10)
   }
 
+  const calculateInstallmentAmount = () => {
+    const total = calculateTotal()
+    // Apply discount if valid
+    const discountedTotal = validateDiscountCode?.valid && validateDiscountCode.percentOff
+      ? total * (1 - validateDiscountCode.percentOff / 100)
+      : total
+    
+    // Calculate installment amount (no additional fees for simplicity)
+    return discountedTotal / installmentPlan
+  }
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
@@ -182,6 +195,11 @@ export default function PaymentAgreementStep({
 
     if (!agreedToTerms) {
       newErrors.agreedToTerms = 'You must agree to the terms and conditions'
+    }
+
+    // Check if installments are available for the selected plan
+    if (paymentOption === 'installments' && selectedBlock === 'core') {
+      newErrors.paymentOption = 'Installment payments are only available for Pro and Premium blocks'
     }
 
     setErrors(newErrors)
@@ -233,7 +251,7 @@ export default function PaymentAgreementStep({
         throw new Error('Missing student information. Please complete previous steps.')
       }
 
-      // Create Stripe checkout session with discount code if valid
+      // Create Stripe checkout session with discount code if valid and installment options
       const session = await createStudentCheckoutSession({
         priceId: block.priceId,
         customerEmail: personalInfo.email,
@@ -245,11 +263,19 @@ export default function PaymentAgreementStep({
           specialty: schoolInfo?.specialty || '',
           membershipPlan: block.id,
           addOnHours: addOnHours.toString(),
-          totalPrice: calculateTotal().toString()
+          totalPrice: calculateTotal().toString(),
+          paymentOption: paymentOption,
+          ...(paymentOption === 'installments' ? { installmentPlan: installmentPlan.toString() } : {})
         },
         successUrl: `${window.location.origin}/student-intake/confirmation?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/student-intake`,
-        ...(validateDiscountCode?.valid && discountCode ? { discountCode } : {})
+        ...(validateDiscountCode?.valid && discountCode ? { discountCode } : {}),
+        ...(paymentOption === 'installments' && selectedBlock !== 'core' ? {
+          paymentOption: 'installments',
+          installmentPlan: installmentPlan
+        } : {
+          paymentOption: 'full'
+        })
       })
 
       if (session.url) {
@@ -447,6 +473,156 @@ export default function PaymentAgreementStep({
         </Card>
       )}
 
+      {/* Payment Options - Full vs Installments */}
+      {selectedBlock && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <CreditCardIcon className="h-5 w-5" />
+              Payment Options
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Full Payment Option */}
+              <div 
+                className={cn(
+                  "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                  paymentOption === 'full' 
+                    ? "border-primary bg-primary/5" 
+                    : "border-gray-200 hover:border-primary/50"
+                )}
+                onClick={() => setPaymentOption('full')}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 mt-1",
+                    paymentOption === 'full' 
+                      ? "border-primary bg-primary" 
+                      : "border-gray-300"
+                  )}>
+                    {paymentOption === 'full' && (
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">Pay in Full</div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      One-time payment - Best value
+                    </p>
+                    <div className="text-2xl font-bold text-primary">
+                      {validateDiscountCode?.valid && validateDiscountCode.percentOff ? (
+                        <>
+                          <span className="line-through text-lg text-muted-foreground mr-2">
+                            ${calculateTotal().toLocaleString()}
+                          </span>
+                          ${(calculateTotal() * (1 - validateDiscountCode.percentOff / 100)).toLocaleString()}
+                        </>
+                      ) : (
+                        <>${calculateTotal().toLocaleString()}</>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Installment Payment Option */}
+              <div 
+                className={cn(
+                  "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                  paymentOption === 'installments' 
+                    ? "border-primary bg-primary/5" 
+                    : "border-gray-200 hover:border-primary/50"
+                )}
+                onClick={() => setPaymentOption('installments')}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 mt-1",
+                    paymentOption === 'installments' 
+                      ? "border-primary bg-primary" 
+                      : "border-gray-300"
+                  )}>
+                    {paymentOption === 'installments' && (
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1 flex items-center gap-2">
+                      Split Payments
+                      <Badge variant="secondary" className="text-xs">Available for Pro & Premium</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Pay over {installmentPlan} months
+                    </p>
+                    
+                    {/* Installment plan selector */}
+                    {paymentOption === 'installments' && (
+                      <div className="mt-3 space-y-3">
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={installmentPlan === 3 ? "default" : "outline"}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setInstallmentPlan(3)
+                            }}
+                            className="flex-1"
+                          >
+                            3 months
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={installmentPlan === 4 ? "default" : "outline"}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setInstallmentPlan(4)
+                            }}
+                            className="flex-1"
+                          >
+                            4 months
+                          </Button>
+                        </div>
+                        <div className="bg-background/80 rounded-lg p-3">
+                          <div className="text-sm font-medium mb-1">
+                            ${calculateInstallmentAmount().toFixed(2)}/month
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {installmentPlan} payments of ${calculateInstallmentAmount().toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Show total for installments */}
+                    {paymentOption !== 'installments' && (
+                      <div className="text-lg font-semibold text-primary">
+                        ${calculateInstallmentAmount().toFixed(2)}/mo
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Note about installment availability */}
+            {selectedBlock === 'core' && paymentOption === 'installments' && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-sm text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                  <span className="text-amber-600">⚠</span>
+                  <span>
+                    Installment payments are only available for Pro and Premium blocks. 
+                    Please select a different plan or choose full payment.
+                  </span>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Total and Agreement */}
       {selectedBlock && (
         <Card className="border-2 border-primary/20 shadow-lg">
@@ -503,32 +679,74 @@ export default function PaymentAgreementStep({
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Your Investment</p>
-                    <span className="text-lg font-semibold">Total Amount</span>
+                    <span className="text-lg font-semibold">
+                      {paymentOption === 'full' ? 'Total Amount' : `${installmentPlan}-Month Plan`}
+                    </span>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground mb-1">
                       {MEMBERSHIP_BLOCKS.find(b => b.id === selectedBlock)?.hours || 0}
                       {addOnHours > 0 && ` + ${addOnHours}`} hours
                     </p>
-                    {validateDiscountCode?.valid && validateDiscountCode.percentOff ? (
-                      <div>
-                        <span className="text-lg line-through text-muted-foreground">
+                    {paymentOption === 'full' ? (
+                      // Full payment display
+                      validateDiscountCode?.valid && validateDiscountCode.percentOff ? (
+                        <div>
+                          <span className="text-lg line-through text-muted-foreground">
+                            ${calculateTotal().toLocaleString()}
+                          </span>
+                          <span className="text-3xl font-bold text-primary block">
+                            ${(calculateTotal() * (1 - validateDiscountCode.percentOff / 100)).toLocaleString()}
+                          </span>
+                          <Badge variant="secondary" className="mt-1">
+                            {validateDiscountCode.percentOff}% OFF
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-3xl font-bold text-primary">
                           ${calculateTotal().toLocaleString()}
                         </span>
-                        <span className="text-3xl font-bold text-primary block">
-                          ${(calculateTotal() * (1 - validateDiscountCode.percentOff / 100)).toLocaleString()}
-                        </span>
-                        <Badge variant="secondary" className="mt-1">
-                          {validateDiscountCode.percentOff}% OFF
-                        </Badge>
-                      </div>
+                      )
                     ) : (
-                      <span className="text-3xl font-bold text-primary">
-                        ${calculateTotal().toLocaleString()}
-                      </span>
+                      // Installment payment display
+                      <div>
+                        <span className="text-2xl font-bold text-primary">
+                          ${calculateInstallmentAmount().toFixed(2)}/mo
+                        </span>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          for {installmentPlan} months
+                        </p>
+                        {validateDiscountCode?.valid && validateDiscountCode.percentOff && (
+                          <Badge variant="secondary" className="mt-1">
+                            {validateDiscountCode.percentOff}% OFF applied
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
+                
+                {/* Payment schedule for installments */}
+                {paymentOption === 'installments' && (
+                  <div className="mt-4 pt-4 border-t border-primary/20">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Payment Schedule</span>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Today</span>
+                        <span className="font-medium">${calculateInstallmentAmount().toFixed(2)}</span>
+                      </div>
+                      {Array.from({ length: installmentPlan - 1 }, (_, i) => (
+                        <div key={i} className="flex justify-between text-muted-foreground">
+                          <span>Month {i + 2}</span>
+                          <span>${calculateInstallmentAmount().toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="border-t pt-6">

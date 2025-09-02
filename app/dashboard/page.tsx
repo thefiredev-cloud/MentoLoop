@@ -1,12 +1,16 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { PostSignupHandler } from '@/components/post-signup-handler'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Button } from '@/components/ui/button'
+import { useMutation } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { useAuth } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 export default function DashboardPage() {
   const { user, isLoading, error, refetch } = useCurrentUser({
@@ -28,6 +32,11 @@ export default function DashboardPage() {
   })
   const router = useRouter()
   const hasRedirected = useRef(false)
+  const syncAdminUser = useMutation(api.users.syncAdminUser)
+  const updateUserType = useMutation(api.users.updateUserType)
+  const { userId } = useAuth()
+  const hasSyncedAdmin = useRef(false)
+  const [selectedRole, setSelectedRole] = useState<string | null>(null)
   
   // Log dashboard access
   useEffect(() => {
@@ -38,6 +47,32 @@ export default function DashboardPage() {
       timestamp: new Date().toISOString()
     })
   }, [isLoading, user])
+
+  // Sync admin users
+  useEffect(() => {
+    const syncIfAdmin = async () => {
+      if (user && userId && !hasSyncedAdmin.current) {
+        const userEmail = user.email?.toLowerCase()
+        const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"]
+        
+        if (userEmail && adminEmails.includes(userEmail)) {
+          hasSyncedAdmin.current = true
+          try {
+            const result = await syncAdminUser()
+            if (result.updated) {
+              console.log('[Dashboard] Admin user synced:', userEmail)
+              // Refetch user data after sync
+              await refetch()
+            }
+          } catch (error) {
+            console.error('[Dashboard] Failed to sync admin user:', error)
+          }
+        }
+      }
+    }
+    
+    syncIfAdmin()
+  }, [user, userId, syncAdminUser, refetch])
 
   useEffect(() => {
     if (user && !hasRedirected.current) {
@@ -128,14 +163,60 @@ export default function DashboardPage() {
     )
   }
 
-  // If user has no type set, show setup options
+  // Handle role selection and persistence
+  const handleRoleSelection = async (role: 'student' | 'preceptor') => {
+    setSelectedRole(role)
+    try {
+      // Update user role in database
+      await updateUserType({ userId: user._id, userType: role })
+      
+      // Save to localStorage for future visits
+      localStorage.setItem('userRole', role)
+      localStorage.setItem('userRoleConfirmed', 'true')
+      
+      // Redirect to appropriate dashboard
+      if (role === 'student') {
+        router.replace('/dashboard/student')
+      } else if (role === 'preceptor') {
+        router.replace('/dashboard/preceptor')
+      }
+    } catch (error) {
+      console.error('[Dashboard] Failed to update user role:', error)
+      toast.error('Failed to save your role. Please try again.')
+    }
+  }
+
+  // If user has no type set, check localStorage first, then show setup options
   if (!user.userType) {
+    // Check if we have a saved role in localStorage
+    const savedRole = localStorage.getItem('userRole')
+    const roleConfirmed = localStorage.getItem('userRoleConfirmed')
+    
+    // If we have a saved role and it was confirmed, use it
+    if (savedRole && roleConfirmed === 'true' && (savedRole === 'student' || savedRole === 'preceptor')) {
+      // Auto-select the saved role
+      handleRoleSelection(savedRole as 'student' | 'preceptor')
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="flex items-center gap-4 p-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Setting up your {savedRole} dashboard...</span>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
+    
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Welcome to MentoLoop!</h1>
           <p className="text-muted-foreground mt-2">
-            Let&apos;s set up your account. Are you a student looking for clinical placements or a healthcare professional interested in becoming a preceptor?
+            Please select your account type. This will determine which dashboard you see when you log in.
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            You can change this later in your account settings.
           </p>
         </div>
 
@@ -153,10 +234,11 @@ export default function DashboardPage() {
                 Looking for clinical placements and preceptor matches
               </p>
               <button 
-                onClick={() => router.push('/student-intake')}
+                onClick={() => handleRoleSelection('student')}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={selectedRole !== null}
               >
-                Get Started
+                {selectedRole === 'student' ? 'Setting up...' : 'Continue as Student'}
               </button>
             </CardContent>
           </Card>
@@ -173,10 +255,11 @@ export default function DashboardPage() {
                 Healthcare professional ready to mentor students
               </p>
               <button 
-                onClick={() => router.push('/preceptor-intake')}
+                onClick={() => handleRoleSelection('preceptor')}
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                disabled={selectedRole !== null}
               >
-                Join as Preceptor
+                {selectedRole === 'preceptor' ? 'Setting up...' : 'Continue as Preceptor'}
               </button>
             </CardContent>
           </Card>

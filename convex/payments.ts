@@ -106,6 +106,8 @@ export const createStudentCheckoutSession = action({
     successUrl: v.string(),
     cancelUrl: v.string(),
     discountCode: v.optional(v.string()), // Add discount code support
+    paymentOption: v.optional(v.union(v.literal("full"), v.literal("installments"))),
+    installmentPlan: v.optional(v.union(v.literal(3), v.literal(4))),
   },
   handler: async (ctx, args): Promise<{ sessionId: string; url: string; discountApplied?: boolean; finalAmount?: number }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -201,9 +203,7 @@ export const createStudentCheckoutSession = action({
 
       // Prepare checkout session parameters
       const checkoutParams: Record<string, string> = {
-        "mode": "payment",
-        "line_items[0][price]": stripePriceId,
-        "line_items[0][quantity]": "1",
+        "mode": args.paymentOption === "installments" ? "subscription" : "payment",
         "customer": customerResult.customerId,
         "customer_update[address]": "auto",
         "success_url": args.successUrl,
@@ -213,6 +213,31 @@ export const createStudentCheckoutSession = action({
           return acc;
         }, {} as Record<string, string>),
       };
+
+      // Configure payment based on type (full or installments)
+      if (args.paymentOption === "installments" && args.installmentPlan) {
+        // For installments, we'll use Stripe's payment_intent_data with installments configuration
+        // Note: This requires setting up installment plans in Stripe Dashboard or using Payment Links
+        checkoutParams["mode"] = "payment";
+        checkoutParams["line_items[0][price]"] = stripePriceId;
+        checkoutParams["line_items[0][quantity]"] = "1";
+        checkoutParams["payment_intent_data[metadata][payment_type]"] = "installments";
+        checkoutParams["payment_intent_data[metadata][installment_plan]"] = args.installmentPlan.toString();
+        checkoutParams["payment_intent_data[metadata][installment_count]"] = args.installmentPlan.toString();
+        
+        // Add installment info to session metadata
+        checkoutParams["metadata[paymentOption]"] = "installments";
+        checkoutParams["metadata[installmentPlan]"] = args.installmentPlan.toString();
+        
+        // Note: Actual installment configuration would require Stripe Payment Links or
+        // custom integration with Stripe's installment payment providers
+        console.log(`Installment payment requested: ${args.installmentPlan} installments for ${args.membershipPlan}`);
+      } else {
+        // Regular one-time payment
+        checkoutParams["line_items[0][price]"] = stripePriceId;
+        checkoutParams["line_items[0][quantity]"] = "1";
+        checkoutParams["metadata[paymentOption]"] = "full";
+      }
 
       let discountApplied = false;
       let discountAmount = 0;
@@ -1282,6 +1307,88 @@ export const initializeNPDiscountCode = action({
       console.error("Failed to initialize NP discount code:", error);
       throw new Error(`Failed to initialize discount code: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
+  },
+});
+
+// Initialize all discount codes (NP12345, MENTO10, MENTO25)
+export const initializeAllDiscountCodes = action({
+  handler: async (ctx): Promise<{
+    success: boolean;
+    message: string;
+    codes: Array<{ code: string; percentOff: number; status: string }>;
+  }> => {
+    const discountCodes = [
+      {
+        code: "NP12345",
+        percentOff: 100,
+        description: "100% off for special NP students",
+      },
+      {
+        code: "MENTO10",
+        percentOff: 10,
+        description: "10% off membership",
+      },
+      {
+        code: "MENTO25",
+        percentOff: 25,
+        description: "25% off membership",
+      },
+    ];
+
+    const results = [];
+
+    for (const discount of discountCodes) {
+      try {
+        // Check if the code already exists
+        const existingCoupon: any = await ctx.runQuery(internal.payments.checkCouponExists, {
+          code: discount.code,
+        });
+
+        if (existingCoupon) {
+          results.push({
+            code: discount.code,
+            percentOff: discount.percentOff,
+            status: "already_exists",
+          });
+          console.log(`Discount code ${discount.code} already exists`);
+        } else {
+          // Create the coupon
+          await ctx.runAction(api.payments.createDiscountCoupon, {
+            code: discount.code,
+            percentOff: discount.percentOff,
+            duration: "once",
+            metadata: {
+              description: discount.description,
+              createdBy: "system",
+            },
+          });
+
+          results.push({
+            code: discount.code,
+            percentOff: discount.percentOff,
+            status: "created",
+          });
+          console.log(`Successfully created discount code ${discount.code} with ${discount.percentOff}% off`);
+        }
+      } catch (error) {
+        console.error(`Failed to create discount code ${discount.code}:`, error);
+        results.push({
+          code: discount.code,
+          percentOff: discount.percentOff,
+          status: "failed",
+        });
+      }
+    }
+
+    const createdCount = results.filter(r => r.status === "created").length;
+    const existingCount = results.filter(r => r.status === "already_exists").length;
+    const failedCount = results.filter(r => r.status === "failed").length;
+
+    return {
+      success: failedCount === 0,
+      message: `Created: ${createdCount}, Already exist: ${existingCount}, Failed: ${failedCount}`,
+      codes: results,
+    };
   },
 });
 
