@@ -10,7 +10,7 @@ import { CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function DiscountSetupPage() {
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{success: boolean; message?: string} | null>(null)
+  const [result, setResult] = useState<{success: boolean; message?: string; couponId?: string} | null>(null)
   const [error, setError] = useState<string | null>(null)
   
   const initializeNPDiscountCode = useAction(api.payments.initializeNPDiscountCode)
