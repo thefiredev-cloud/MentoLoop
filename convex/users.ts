@@ -125,14 +125,23 @@ export const ensureUserExists = mutation({
     const isAdmin = adminEmails.includes(userEmail);
 
     if (existingUser) {
-      // Check if this should be an admin user and update if needed
-      if (isAdmin && existingUser.userType !== "admin") {
+      // Always check if this should be an admin user and update if needed
+      if (isAdmin) {
+        if (existingUser.userType !== "admin" || !existingUser.permissions?.includes("full_admin_access")) {
+          await ctx.db.patch(existingUser._id, {
+            userType: "admin",
+            permissions: ["full_admin_access"],
+            email: userEmail, // Ensure email is set
+          });
+          console.log(`[ensureUserExists] Updated ${identity.email} to admin role`);
+        }
+      } else if (!existingUser.userType) {
+        // If no userType is set and they're not admin, default to student
         await ctx.db.patch(existingUser._id, {
-          userType: "admin",
-          permissions: ["full_admin_access"],
-          email: userEmail, // Ensure email is set
+          userType: "student",
+          email: userEmail,
         });
-        console.log(`[ensureUserExists] Updated ${identity.email} to admin role`);
+        console.log(`[ensureUserExists] Set default userType to student for ${identity.email}`);
       }
       return { userId: existingUser._id, isNew: false };
     }
@@ -231,6 +240,24 @@ export const ensureUserExistsWithRetry = mutation({
 
       if (existingUser) {
         console.log("[ensureUserExistsWithRetry] Found existing user:", existingUser._id);
+        
+        // Check if this should be an admin user
+        const userEmail = identity.email?.toLowerCase() || "";
+        const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+        const isAdmin = adminEmails.includes(userEmail);
+        
+        // Update to admin if needed
+        if (isAdmin) {
+          if (existingUser.userType !== "admin" || !existingUser.permissions?.includes("full_admin_access")) {
+            await ctx.db.patch(existingUser._id, {
+              userType: "admin",
+              permissions: ["full_admin_access"],
+              email: userEmail,
+            });
+            console.log(`[ensureUserExistsWithRetry] Updated ${identity.email} to admin role`);
+          }
+        }
+        
         return { 
           userId: existingUser._id, 
           isNew: false, 
@@ -280,6 +307,37 @@ export const ensureUserExistsWithRetry = mutation({
     }
 
     throw new Error("Unable to verify user profile. Please refresh and try again.");
+  },
+});
+
+export const fixAdminUsers = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
+    
+    // Get all users
+    const allUsers = await ctx.db.query("users").collect();
+    
+    let updatedCount = 0;
+    for (const user of allUsers) {
+      const userEmail = user.email?.toLowerCase() || "";
+      
+      // Check if this user should be an admin
+      if (adminEmails.includes(userEmail) && user.userType !== "admin") {
+        await ctx.db.patch(user._id, {
+          userType: "admin" as const,
+          permissions: ["full_admin_access"],
+        });
+        updatedCount++;
+        console.log(`[fixAdminUsers] Updated ${userEmail} to admin role`);
+      }
+    }
+    
+    return { 
+      success: true, 
+      message: `Updated ${updatedCount} user(s) to admin role`,
+      updatedCount 
+    };
   },
 });
 
