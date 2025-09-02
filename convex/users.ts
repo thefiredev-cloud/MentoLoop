@@ -74,6 +74,17 @@ export const deleteFromClerk = internalMutation({
 export const getAllUsers = query({
   args: {},
   handler: async (ctx) => {
+    // Check if current user is an admin
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    
+    const currentUser = await userByExternalId(ctx, identity.subject);
+    if (!currentUser || currentUser.userType !== "admin") {
+      throw new Error("Unauthorized: Admin access required");
+    }
+    
     return await ctx.db.query("users").collect();
   },
 });

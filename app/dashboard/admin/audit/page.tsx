@@ -42,7 +42,7 @@ function AuditLogsContent() {
     {
       id: '1',
       timestamp: Date.now() - 1000 * 60 * 5,
-      user: 'admin@mentoloop.com',
+      user: 'john.admin@example.com',
       action: 'USER_LOGIN',
       resource: 'Authentication',
       status: 'success',
@@ -52,7 +52,7 @@ function AuditLogsContent() {
     {
       id: '2', 
       timestamp: Date.now() - 1000 * 60 * 15,
-      user: 'support@mentoloop.com',
+      user: 'sarah.support@example.com',
       action: 'USER_UPDATE',
       resource: 'User Profile',
       status: 'success',
@@ -62,7 +62,7 @@ function AuditLogsContent() {
     {
       id: '3',
       timestamp: Date.now() - 1000 * 60 * 30,
-      user: 'admin@mentoloop.com',
+      user: 'john.admin@example.com',
       action: 'MATCH_CREATE',
       resource: 'Matches',
       status: 'success',
@@ -82,7 +82,7 @@ function AuditLogsContent() {
     {
       id: '5',
       timestamp: Date.now() - 1000 * 60 * 60,
-      user: 'admin@mentoloop.com',
+      user: 'john.admin@example.com',
       action: 'SETTINGS_UPDATE',
       resource: 'System Settings',
       status: 'success',
