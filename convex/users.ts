@@ -345,7 +345,7 @@ export const fixAdminUsers = mutation({
           permissions: ["full_admin_access"],
         });
         updatedCount++;
-        console.log(`[fixAdminUsers] Updated ${userEmail} to admin role`);
+        console.log(`[fixAdminUsers] Updated ${user.email} to admin role`);
       }
     }
     
@@ -479,7 +479,7 @@ export const fixAllAdminUsers = internalMutation({
             userType: "admin",
             permissions: ["full_admin_access"],
           });
-          console.log(`[fixAllAdminUsers] Updated ${userEmail} to admin role`);
+          console.log(`[fixAllAdminUsers] Updated ${user.email} to admin role`);
           updatedCount++;
         }
       }
