@@ -35,6 +35,8 @@ export default function DashboardPage() {
   const updateUserType = useMutation(api.users.updateUserType)
   const { userId } = useAuth()
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
+  const [shouldAutoSelectRole, setShouldAutoSelectRole] = useState(false)
+  const [savedUserRole, setSavedUserRole] = useState<string | null>(null)
   
   // Log dashboard access
   useEffect(() => {
@@ -45,6 +47,19 @@ export default function DashboardPage() {
       timestamp: new Date().toISOString()
     })
   }, [isLoading, user])
+
+  // Check localStorage for saved role on mount (client-side only)
+  useEffect(() => {
+    if (!user || user.userType) return
+    
+    const savedRole = localStorage.getItem('userRole')
+    const roleConfirmed = localStorage.getItem('userRoleConfirmed')
+    
+    if (savedRole && roleConfirmed === 'true' && (savedRole === 'student' || savedRole === 'preceptor')) {
+      setSavedUserRole(savedRole)
+      setShouldAutoSelectRole(true)
+    }
+  }, [user])
 
   // Admin users are handled through the ensureUserExists flow
   // which properly sets admin role based on email
@@ -88,62 +103,12 @@ export default function DashboardPage() {
     }
   }, [user?.userType, router, user])
 
-  if (isLoading) {
-    return (
-      <>
-        <PostSignupHandler />
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Card>
-            <CardContent className="flex items-center gap-4 p-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span>Loading your dashboard...</span>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card>
-          <CardContent className="p-8 text-center space-y-4">
-            <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
-            <h3 className="font-semibold">Failed to load user profile</h3>
-            <p className="text-sm text-muted-foreground">
-              We encountered an error while loading your profile. Please try again.
-            </p>
-            <Button onClick={() => refetch()}>Retry</Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card>
-          <CardContent className="p-8 text-center space-y-4">
-            <AlertCircle className="h-8 w-8 text-warning mx-auto" />
-            <h3 className="font-semibold">Setting up your profile</h3>
-            <p className="text-sm text-muted-foreground">
-              Please wait while we create your user profile...
-            </p>
-            <Button onClick={() => window.location.reload()}>Refresh</Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   // Handle role selection and persistence
   const handleRoleSelection = async (role: 'student' | 'preceptor') => {
     setSelectedRole(role)
     try {
       // Update user role in database
-      await updateUserType({ userId: user._id, userType: role })
+      await updateUserType({ userId: user!._id, userType: role })
       
       // Save to localStorage for future visits
       localStorage.setItem('userRole', role)
@@ -161,29 +126,96 @@ export default function DashboardPage() {
     }
   }
 
-  // If user has no type set, check localStorage first, then show setup options
-  if (!user.userType) {
-    // Check if we have a saved role in localStorage
-    const savedRole = localStorage.getItem('userRole')
-    const roleConfirmed = localStorage.getItem('userRoleConfirmed')
-    
-    // If we have a saved role and it was confirmed, use it
-    if (savedRole && roleConfirmed === 'true' && (savedRole === 'student' || savedRole === 'preceptor')) {
-      // Auto-select the saved role
-      handleRoleSelection(savedRole as 'student' | 'preceptor')
-      return (
+  // Auto-select saved role
+  useEffect(() => {
+    if (shouldAutoSelectRole && savedUserRole && user && !user.userType && !selectedRole) {
+      handleRoleSelection(savedUserRole as 'student' | 'preceptor')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldAutoSelectRole, savedUserRole, user, selectedRole])
+
+  // Always render PostSignupHandler to maintain hook consistency
+  const postSignupHandler = <PostSignupHandler />
+
+  if (isLoading) {
+    return (
+      <>
+        {postSignupHandler}
         <div className="flex items-center justify-center min-h-[400px]">
           <Card>
             <CardContent className="flex items-center gap-4 p-8">
               <Loader2 className="h-6 w-6 animate-spin" />
-              <span>Setting up your {savedRole} dashboard...</span>
+              <span>Loading your dashboard...</span>
             </CardContent>
           </Card>
         </div>
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <>
+        {postSignupHandler}
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="p-8 text-center space-y-4">
+              <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
+              <h3 className="font-semibold">Failed to load user profile</h3>
+              <p className="text-sm text-muted-foreground">
+                We encountered an error while loading your profile. Please try again.
+              </p>
+              <Button onClick={() => refetch()}>Retry</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    )
+  }
+
+  if (!user) {
+    return (
+      <>
+        {postSignupHandler}
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="p-8 text-center space-y-4">
+              <AlertCircle className="h-8 w-8 text-warning mx-auto" />
+              <h3 className="font-semibold">Setting up your profile</h3>
+              <p className="text-sm text-muted-foreground">
+                Please wait while we create your user profile...
+              </p>
+              <Button onClick={() => window.location.reload()}>Refresh</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    )
+  }
+
+
+  // If user has no type set, show setup options or loading state if auto-selecting
+  if (!user.userType) {
+    // If we're auto-selecting a saved role, show loading
+    if (shouldAutoSelectRole && savedUserRole) {
+      return (
+        <>
+          {postSignupHandler}
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Card>
+              <CardContent className="flex items-center gap-4 p-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span>Setting up your {savedUserRole} dashboard...</span>
+              </CardContent>
+            </Card>
+          </div>
+        </>
       )
     }
     
     return (
+      <>
+        {postSignupHandler}
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Welcome to MentoLoop!</h1>
@@ -255,11 +287,14 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      </>
     )
   }
 
   // This should not be reached due to the redirect, but just in case
   return (
+    <>
+      {postSignupHandler}
     <div className="flex items-center justify-center min-h-[400px]">
       <Card>
         <CardContent className="flex items-center gap-4 p-8">
@@ -268,5 +303,6 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
