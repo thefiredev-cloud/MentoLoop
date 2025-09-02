@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalQuery, internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { getUserId } from "./auth";
+import { isAdminEmail } from "./users";
 
 // Create or update student profile
 export const createOrUpdateStudent = mutation({
@@ -144,11 +145,15 @@ export const createOrUpdateStudent = mutation({
         
         if (!existingUser) {
           console.log("[createOrUpdateStudent] Creating new user record");
+          const userEmail = identity.email ?? "";
+          const isAdmin = isAdminEmail(userEmail);
+          
           userId = await ctx.db.insert("users", {
             name: identity.name ?? identity.email ?? "Unknown User",
             externalId: identity.subject,
-            userType: "student",
-            email: identity.email ?? "",
+            userType: isAdmin ? "admin" : "student",
+            email: userEmail,
+            permissions: isAdmin ? ["full_admin_access"] : undefined,
             createdAt: Date.now(),
           });
           console.log("[createOrUpdateStudent] User created with ID:", userId);
@@ -274,8 +279,13 @@ export const createOrUpdateStudent = mutation({
           .first();
         
         if (user) {
-          await ctx.db.patch(user._id, { userType: "student" });
-          console.log("[createOrUpdateStudent] User type updated to 'student'");
+          // Only update userType if the user is not an admin
+          if (!isAdminEmail(user.email)) {
+            await ctx.db.patch(user._id, { userType: "student" });
+            console.log("[createOrUpdateStudent] User type updated to 'student'");
+          } else {
+            console.log("[createOrUpdateStudent] Preserving admin status for", user.email);
+          }
           
           // Send welcome email for new students (completely optional)
           try {

@@ -2,6 +2,15 @@ import { internalMutation, internalQuery, mutation, query, QueryCtx } from "./_g
 import { UserJSON } from "@clerk/backend";
 import { v, Validator } from "convex/values";
 
+// Admin email addresses (case-insensitive)
+const ADMIN_EMAILS = ["admin@mentoloop.com", "support@mentoloop.com"];
+
+// Helper function to check if an email is an admin email
+export function isAdminEmail(email: string | undefined | null): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
 export const current = query({
   args: {},
   handler: async (ctx) => {
@@ -15,8 +24,7 @@ export const upsertFromClerk = internalMutation({
     const userEmail = data.email_addresses?.[0]?.email_address?.toLowerCase() || "";
     
     // Check if this email should be an admin (case-insensitive)
-    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
-    const isAdmin = adminEmails.includes(userEmail);
+    const isAdmin = isAdminEmail(userEmail);
     
     // First try to find user by Clerk external ID
     let user = await userByExternalId(ctx, data.id);
@@ -131,9 +139,8 @@ export const ensureUserExists = mutation({
       }
     }
 
-    // Admin emails (case-insensitive)
-    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
-    const isAdmin = adminEmails.includes(userEmail);
+    // Check if this is an admin email
+    const isAdmin = isAdminEmail(userEmail);
 
     if (existingUser) {
       // Always check if this should be an admin user and update if needed
@@ -204,11 +211,15 @@ export const updateUserMetadata = internalMutation({
       throw new Error("User not found");
     }
 
-    // Update the user record - store metadata as user type
-    // Note: Actual intake completion status is stored in Clerk metadata
-    await ctx.db.patch(userId, {
-      userType: "student" as const,
-    });
+    // Only update userType if the user is not an admin
+    // Preserve admin status for admin emails
+    if (!isAdminEmail(user.email)) {
+      await ctx.db.patch(userId, {
+        userType: "student" as const,
+      });
+    } else {
+      console.log(`[updateUserMetadata] Preserving admin status for ${user.email}`);
+    }
 
     // Note: Actual Clerk metadata update would happen via Clerk SDK
     // This is handled by the webhook or a separate server action
@@ -254,8 +265,7 @@ export const ensureUserExistsWithRetry = mutation({
         
         // Check if this should be an admin user
         const userEmail = identity.email?.toLowerCase() || "";
-        const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
-        const isAdmin = adminEmails.includes(userEmail);
+        const isAdmin = isAdminEmail(userEmail);
         
         // Update to admin if needed
         if (isAdmin) {
@@ -283,8 +293,7 @@ export const ensureUserExistsWithRetry = mutation({
         
         try {
           // Check if new user should be admin
-          const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
-          const isAdmin = adminEmails.includes(identity.email?.toLowerCase() || "");
+          const isAdmin = isAdminEmail(identity.email);
           
           const userId = await ctx.db.insert("users", {
             name: identity.name ?? identity.email ?? "Unknown User",
@@ -324,17 +333,13 @@ export const ensureUserExistsWithRetry = mutation({
 export const fixAdminUsers = mutation({
   args: {},
   handler: async (ctx) => {
-    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
-    
     // Get all users
     const allUsers = await ctx.db.query("users").collect();
     
     let updatedCount = 0;
     for (const user of allUsers) {
-      const userEmail = user.email?.toLowerCase() || "";
-      
       // Check if this user should be an admin
-      if (adminEmails.includes(userEmail) && user.userType !== "admin") {
+      if (isAdminEmail(user.email) && user.userType !== "admin") {
         await ctx.db.patch(user._id, {
           userType: "admin" as const,
           permissions: ["full_admin_access"],
@@ -378,21 +383,36 @@ export async function getCurrentUser(ctx: QueryCtx) {
     return null;
   }
   
-  const user = await userByExternalId(ctx, identity.subject);
+  // First try to find by external ID
+  let user = await userByExternalId(ctx, identity.subject);
   
-  // If user exists and has an email, check if they should be an admin
+  // If not found by external ID and we have an email, try to find by email
+  if (!user && identity.email) {
+    const userEmail = identity.email.toLowerCase();
+    const allUsers = await ctx.db.query("users").collect();
+    user = allUsers.find(u => u.email?.toLowerCase() === userEmail) || null;
+    
+    // If found by email but with different externalId, log it but still return the user
+    if (user && user.externalId !== identity.subject) {
+      console.log(`[getCurrentUser] Found user by email with mismatched externalId.`);
+      console.log(`[getCurrentUser] DB externalId: ${user.externalId}, Clerk externalId: ${identity.subject}`);
+      // Note: ensureUserExists will fix this mismatch in the background
+    }
+  }
+  
+  // If user exists and has an email, ensure admin users have correct properties
   if (user && identity.email) {
-    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
     const userEmail = identity.email.toLowerCase();
     
-    // If this is an admin email but userType isn't set to admin, return with admin type
-    if (adminEmails.includes(userEmail) && user.userType !== "admin") {
-      // Return user with admin properties without modifying the database
-      // (database update will happen in the sync functions)
+    // If this is an admin email, ensure userType and permissions are set correctly
+    if (isAdminEmail(userEmail)) {
+      // Return user with admin properties (without modifying the database)
+      // The database update will happen in ensureUserExists
       return {
         ...user,
         userType: "admin" as const,
-        permissions: ["full_admin_access"]
+        permissions: ["full_admin_access"],
+        email: userEmail // Ensure email is set
       };
     }
   }
@@ -406,3 +426,66 @@ async function userByExternalId(ctx: QueryCtx, externalId: string) {
     .withIndex("byExternalId", (q) => q.eq("externalId", externalId))
     .unique();
 }
+
+// Mutation to sync admin users - ensures admin emails have correct userType
+export const syncAdminUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || !identity.email) {
+      throw new Error("Not authenticated or no email");
+    }
+
+    const userEmail = identity.email.toLowerCase();
+    
+    // Only proceed if this is an admin email
+    if (!isAdminEmail(userEmail)) {
+      return { message: "Not an admin email", updated: false };
+    }
+
+    // Find the user
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Update to admin if not already
+    if (user.userType !== "admin" || !user.permissions?.includes("full_admin_access")) {
+      await ctx.db.patch(user._id, {
+        userType: "admin",
+        permissions: ["full_admin_access"],
+        email: userEmail,
+      });
+      console.log(`[syncAdminUser] Updated ${userEmail} to admin role`);
+      return { message: "User updated to admin", updated: true };
+    }
+
+    return { message: "User already admin", updated: false };
+  },
+});
+
+// Internal mutation to fix all admin users in the database
+export const fixAllAdminUsers = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const allUsers = await ctx.db.query("users").collect();
+    
+    let updatedCount = 0;
+    
+    for (const user of allUsers) {
+      if (isAdminEmail(user.email)) {
+        if (user.userType !== "admin" || !user.permissions?.includes("full_admin_access")) {
+          await ctx.db.patch(user._id, {
+            userType: "admin",
+            permissions: ["full_admin_access"],
+          });
+          console.log(`[fixAllAdminUsers] Updated ${userEmail} to admin role`);
+          updatedCount++;
+        }
+      }
+    }
+    
+    console.log(`[fixAllAdminUsers] Fixed ${updatedCount} admin users`);
+    return { updatedCount };
+  },
+});

@@ -1,5 +1,6 @@
 import { internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { isAdminEmail } from "./users";
 
 // Admin-only mutation to clean up duplicate user records
 export const cleanupDuplicateUsers = mutation({
@@ -44,8 +45,6 @@ export const cleanupDuplicateUsers = mutation({
       adminUsersPreserved: 0,
     };
     
-    // Admin emails that should be preserved with admin role
-    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
     
     // Process each email group
     for (const [email, users] of usersByEmail.entries()) {
@@ -63,10 +62,10 @@ export const cleanupDuplicateUsers = mutation({
         });
         
         const userToKeep = users[0];
-        const isAdminEmail = adminEmails.includes(email);
+        const shouldBeAdmin = isAdminEmail(email);
         
         // Ensure admin emails have admin role
-        if (isAdminEmail && userToKeep.userType !== "admin") {
+        if (shouldBeAdmin && userToKeep.userType !== "admin") {
           await ctx.db.patch(userToKeep._id, {
             userType: "admin",
             permissions: ["full_admin_access"],
@@ -84,9 +83,9 @@ export const cleanupDuplicateUsers = mutation({
       } else if (users.length === 1) {
         // Single user - ensure admin emails have admin role
         const user = users[0];
-        const isAdminEmail = adminEmails.includes(email);
+        const shouldBeAdmin = isAdminEmail(email);
         
-        if (isAdminEmail && user.userType !== "admin") {
+        if (shouldBeAdmin && user.userType !== "admin") {
           await ctx.db.patch(user._id, {
             userType: "admin",
             permissions: ["full_admin_access"],
@@ -124,8 +123,6 @@ export const autoCleanupDuplicates = internalMutation({
       }
     }
     
-    // Admin emails that should be preserved with admin role
-    const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"];
     
     let duplicatesFixed = 0;
     
@@ -143,10 +140,10 @@ export const autoCleanupDuplicates = internalMutation({
         });
         
         const userToKeep = users[0];
-        const isAdminEmail = adminEmails.includes(email);
+        const shouldBeAdmin = isAdminEmail(email);
         
         // Ensure admin emails have admin role
-        if (isAdminEmail && userToKeep.userType !== "admin") {
+        if (shouldBeAdmin && userToKeep.userType !== "admin") {
           await ctx.db.patch(userToKeep._id, {
             userType: "admin",
             permissions: ["full_admin_access"],
