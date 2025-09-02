@@ -21,6 +21,7 @@ import type * as aiMatching from "../aiMatching.js";
 import type * as auth from "../auth.js";
 import type * as clinicalHours from "../clinicalHours.js";
 import type * as emails from "../emails.js";
+import type * as fixSupportUser from "../fixSupportUser.js";
 import type * as http from "../http.js";
 import type * as init from "../init.js";
 import type * as intakePayments from "../intakePayments.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   clinicalHours: typeof clinicalHours;
   emails: typeof emails;
+  fixSupportUser: typeof fixSupportUser;
   http: typeof http;
   init: typeof init;
   intakePayments: typeof intakePayments;
