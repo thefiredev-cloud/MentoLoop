@@ -1,3 +1,5 @@
+"use client"
+
 import { AppSidebar } from "@/app/dashboard/app-sidebar"
 import { SiteHeader } from "@/app/dashboard/site-header"
 import { LoadingBar } from "@/app/dashboard/loading-bar"

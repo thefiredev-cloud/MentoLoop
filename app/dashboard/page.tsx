@@ -20,7 +20,7 @@ export default function DashboardPage() {
       })
       
       // Log to monitoring service in production
-      if (process.env.NODE_ENV === 'production') {
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
         // This would send to your monitoring service (e.g., Sentry)
         console.error('[Dashboard] Production error - User sync failed')
       }

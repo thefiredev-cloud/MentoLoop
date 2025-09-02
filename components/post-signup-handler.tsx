@@ -29,8 +29,8 @@ export function PostSignupHandler() {
         return
       }
 
-      // Check if we have a stored role from signup
-      const storedRole = sessionStorage.getItem('selectedUserRole')
+      // Check if we have a stored role from signup (client-side only)
+      const storedRole = typeof window !== 'undefined' ? sessionStorage.getItem('selectedUserRole') : null
       
       if (storedRole && !isProcessing) {
         setIsProcessing(true)
@@ -42,8 +42,10 @@ export function PostSignupHandler() {
             userType: storedRole as 'student' | 'preceptor' | 'enterprise'
           })
           
-          // Clear the stored role
-          sessionStorage.removeItem('selectedUserRole')
+          // Clear the stored role (client-side only)
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('selectedUserRole')
+          }
           
           // Redirect based on role
           redirectBasedOnRole(storedRole)
