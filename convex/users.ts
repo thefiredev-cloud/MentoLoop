@@ -2,8 +2,8 @@ import { internalMutation, internalQuery, mutation, query, QueryCtx } from "./_g
 import { UserJSON } from "@clerk/backend";
 import { v, Validator } from "convex/values";
 
-// Admin email addresses (case-insensitive)
-const ADMIN_EMAILS = ["admin@mentoloop.com", "support@mentoloop.com"];
+// Admin email address (case-insensitive) - Single admin account for simplicity
+const ADMIN_EMAILS = ["admin@mentoloop.com"];
 
 // Helper function to check if an email is an admin email
 export function isAdminEmail(email: string | undefined | null): boolean {
@@ -117,25 +117,34 @@ export const ensureUserExists = mutation({
     }
 
     const userEmail = identity.email?.toLowerCase() || "";
+    const clerkId = identity.subject;
+    
+    console.log(`[ensureUserExists] Starting sync for email: ${userEmail}, Clerk ID: ${clerkId}`);
     
     // First, try to find user by Clerk external ID
     let existingUser = await ctx.db
       .query("users")
-      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .withIndex("byExternalId", (q) => q.eq("externalId", clerkId))
       .unique();
 
     // If not found by external ID, try to find by email (case-insensitive)
     if (!existingUser && userEmail) {
+      console.log(`[ensureUserExists] User not found by Clerk ID, searching by email: ${userEmail}`);
       const allUsers = await ctx.db.query("users").collect();
       existingUser = allUsers.find(u => u.email?.toLowerCase() === userEmail) || null;
       
       // If found by email but with different externalId, update the externalId
       if (existingUser) {
-        console.log(`[ensureUserExists] Found user by email, updating externalId from ${existingUser.externalId} to ${identity.subject}`);
+        console.log(`[ensureUserExists] Found user by email with mismatched Clerk ID`);
+        console.log(`[ensureUserExists] Old Clerk ID: ${existingUser.externalId}`);
+        console.log(`[ensureUserExists] New Clerk ID: ${clerkId}`);
+        
         await ctx.db.patch(existingUser._id, {
-          externalId: identity.subject,
+          externalId: clerkId,
           name: identity.name ?? existingUser.name,
+          email: userEmail, // Ensure email is always set
         });
+        console.log(`[ensureUserExists] Updated user's Clerk ID successfully`);
       }
     }
 
@@ -143,42 +152,50 @@ export const ensureUserExists = mutation({
     const isAdmin = isAdminEmail(userEmail);
 
     if (existingUser) {
-      // Always check if this should be an admin user and update if needed
+      console.log(`[ensureUserExists] Found existing user: ${existingUser._id}`);
+      
+      // Always ensure admin users have correct role
       if (isAdmin) {
         if (existingUser.userType !== "admin" || !existingUser.permissions?.includes("full_admin_access")) {
+          console.log(`[ensureUserExists] Updating ${userEmail} to admin role`);
           await ctx.db.patch(existingUser._id, {
             userType: "admin",
             permissions: ["full_admin_access"],
-            email: userEmail, // Ensure email is set
+            email: userEmail,
           });
-          console.log(`[ensureUserExists] Updated ${identity.email} to admin role`);
+        } else {
+          console.log(`[ensureUserExists] ${userEmail} already has admin role`);
         }
       } else if (!existingUser.userType) {
         // If no userType is set and they're not admin, default to student
+        console.log(`[ensureUserExists] Setting default userType to student for ${userEmail}`);
         await ctx.db.patch(existingUser._id, {
           userType: "student",
           email: userEmail,
         });
-        console.log(`[ensureUserExists] Set default userType to student for ${identity.email}`);
       }
-      return { userId: existingUser._id, isNew: false };
+      
+      // Always ensure email is set
+      if (!existingUser.email || existingUser.email !== userEmail) {
+        await ctx.db.patch(existingUser._id, { email: userEmail });
+      }
+      
+      return { userId: existingUser._id, isNew: false, clerkId };
     }
 
     // Create new user if doesn't exist
+    console.log(`[ensureUserExists] Creating new user for ${userEmail}`);
     const userId = await ctx.db.insert("users", {
       name: identity.name ?? identity.email ?? "Unknown User",
-      externalId: identity.subject,
-      userType: isAdmin ? "admin" : "student", // Admin if email matches, otherwise student
+      externalId: clerkId,
+      userType: isAdmin ? "admin" : "student",
       email: userEmail,
       permissions: isAdmin ? ["full_admin_access"] : undefined,
       createdAt: Date.now(),
     });
 
-    if (isAdmin) {
-      console.log(`[ensureUserExists] Created admin user: ${identity.email}`);
-    }
-
-    return { userId, isNew: true };
+    console.log(`[ensureUserExists] Created user successfully: ${userId}, isAdmin: ${isAdmin}`);
+    return { userId, isNew: true, clerkId };
   },
 });
 
@@ -400,23 +417,9 @@ export async function getCurrentUser(ctx: QueryCtx) {
     }
   }
   
-  // If user exists and has an email, ensure admin users have correct properties
-  if (user && identity.email) {
-    const userEmail = identity.email.toLowerCase();
-    
-    // If this is an admin email, ensure userType and permissions are set correctly
-    if (isAdminEmail(userEmail)) {
-      // Return user with admin properties (without modifying the database)
-      // The database update will happen in ensureUserExists
-      return {
-        ...user,
-        userType: "admin" as const,
-        permissions: ["full_admin_access"],
-        email: userEmail // Ensure email is set
-      };
-    }
-  }
-  
+  // Return the user as-is from the database
+  // Admin role should be set in the database during user creation/sync
+  // This prevents React hydration errors by ensuring consistent data
   return user;
 }
 

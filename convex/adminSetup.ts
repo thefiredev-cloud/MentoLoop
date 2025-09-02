@@ -1,10 +1,9 @@
 import { internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Admin email addresses that should have admin privileges
+// Admin email address that should have admin privileges - Single admin account for simplicity
 const ADMIN_EMAILS = [
-  "admin@mentoloop.com",
-  "support@mentoloop.com"
+  "admin@mentoloop.com"
 ];
 
 // Internal mutation to ensure admin users have correct roles

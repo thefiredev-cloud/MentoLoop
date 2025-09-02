@@ -13,20 +13,37 @@ import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
 
 export default function DashboardPage() {
+  const [retryCount, setRetryCount] = useState(0)
+  const maxRetries = 3
+  
   const { user, isLoading, error, refetch } = useCurrentUser({
     autoSync: true,
     onError: (err) => {
       console.error('[Dashboard] User sync error:', {
-        error: err,
+        error: err.message,
+        retryCount,
         timestamp: new Date().toISOString(),
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
         url: typeof window !== 'undefined' ? window.location.href : 'SSR'
       })
       
-      // Log to monitoring service in production
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-        // This would send to your monitoring service (e.g., Sentry)
-        console.error('[Dashboard] Production error - User sync failed')
+      // Auto-retry with exponential backoff
+      if (retryCount < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000)
+        console.log(`[Dashboard] Retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`)
+        
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1)
+          refetch()
+        }, delay)
+      } else {
+        console.error('[Dashboard] Max retries reached, user sync failed')
+        // Clear any stale cache
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('userRole')
+          localStorage.removeItem('userRoleConfirmed')
+          sessionStorage.clear()
+        }
       }
     }
   })

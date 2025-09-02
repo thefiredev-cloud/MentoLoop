@@ -71,6 +71,9 @@ export function PostSignupHandler() {
       case 'enterprise':
         router.push('/dashboard/enterprise')
         break
+      case 'admin':
+        router.push('/dashboard/admin')
+        break
       default:
         router.push('/dashboard')
     }

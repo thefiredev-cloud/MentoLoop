@@ -18,13 +18,24 @@ interface UseCurrentUserOptions {
 
 export function useCurrentUser(options: UseCurrentUserOptions = {}) {
   const { autoSync = true, onError } = options
-  const { isLoaded, isSignedIn } = useAuth()
+  const { isLoaded, isSignedIn, userId: clerkUserId } = useAuth()
   const currentUser = useQuery(api.users.current)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
   
   const [issyncing, setIsSyncing] = useState(false)
   const [syncError, setSyncError] = useState<Error | null>(null)
   const [hasSyncAttempted, setHasSyncAttempted] = useState(false)
+  const [lastClerkId, setLastClerkId] = useState<string | null>(null)
+
+  // Detect Clerk ID changes (user switch)
+  useEffect(() => {
+    if (clerkUserId && clerkUserId !== lastClerkId) {
+      console.log(`[useCurrentUser] Clerk ID changed from ${lastClerkId} to ${clerkUserId}`)
+      setLastClerkId(clerkUserId)
+      setHasSyncAttempted(false) // Reset sync attempt for new user
+      setSyncError(null)
+    }
+  }, [clerkUserId, lastClerkId])
 
   useEffect(() => {
     const syncUser = async () => {
@@ -32,26 +43,34 @@ export function useCurrentUser(options: UseCurrentUserOptions = {}) {
       // 1. User is authenticated
       // 2. User data is not found
       // 3. Auto-sync is enabled
-      // 4. We haven't already attempted sync
+      // 4. We haven't already attempted sync for this Clerk ID
       if (
         isLoaded && 
         isSignedIn && 
         currentUser === null && 
         autoSync && 
         !hasSyncAttempted && 
-        !issyncing
+        !issyncing &&
+        clerkUserId
       ) {
         setIsSyncing(true)
         setHasSyncAttempted(true)
         
+        console.log(`[useCurrentUser] Starting user sync for Clerk ID: ${clerkUserId}`)
+        
         try {
-          await ensureUserExists()
+          const result = await ensureUserExists()
+          console.log(`[useCurrentUser] User sync successful:`, result)
           setSyncError(null)
         } catch (error) {
           const err = error as Error
           setSyncError(err)
           onError?.(err)
-          console.error('Failed to sync user:', error)
+          console.error('[useCurrentUser] Failed to sync user:', {
+            error: err.message,
+            clerkId: clerkUserId,
+            timestamp: new Date().toISOString()
+          })
         } finally {
           setIsSyncing(false)
         }
@@ -59,7 +78,7 @@ export function useCurrentUser(options: UseCurrentUserOptions = {}) {
     }
 
     syncUser()
-  }, [isLoaded, isSignedIn, currentUser, autoSync, hasSyncAttempted, issyncing, ensureUserExists, onError])
+  }, [isLoaded, isSignedIn, currentUser, autoSync, hasSyncAttempted, issyncing, ensureUserExists, onError, clerkUserId])
 
   // Reset sync attempt when user signs out
   useEffect(() => {

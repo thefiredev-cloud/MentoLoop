@@ -165,3 +165,118 @@ export const autoCleanupDuplicates = internalMutation({
     return { duplicatesFixed };
   },
 });
+
+// Comprehensive admin user fix mutation
+export const fixAdminUserIssues = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    
+    // Allow if authenticated
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    
+    console.log("[fixAdminUserIssues] Starting comprehensive admin user fix...");
+    console.log(`[fixAdminUserIssues] Current user Clerk ID: ${identity.subject}`);
+    console.log(`[fixAdminUserIssues] Current user email: ${identity.email}`);
+    
+    const results = {
+      adminUserFixed: false,
+      supportUsersConverted: 0,
+      duplicatesRemoved: 0,
+      clerkIdUpdated: false,
+    };
+    
+    // Get all users
+    const allUsers = await ctx.db.query("users").collect();
+    
+    // Handle admin@mentoloop.com
+    const adminUsers = allUsers.filter(u => u.email?.toLowerCase() === "admin@mentoloop.com");
+    console.log(`[fixAdminUserIssues] Found ${adminUsers.length} admin@mentoloop.com users`);
+    
+    if (adminUsers.length > 1) {
+      // Multiple admin users - keep the one with matching Clerk ID or most recent
+      adminUsers.sort((a, b) => {
+        // Prefer the one with matching Clerk ID
+        if (identity.email?.toLowerCase() === "admin@mentoloop.com") {
+          if (a.externalId === identity.subject) return -1;
+          if (b.externalId === identity.subject) return 1;
+        }
+        // Otherwise keep most recent
+        return (b._creationTime || 0) - (a._creationTime || 0);
+      });
+      
+      const keepUser = adminUsers[0];
+      
+      // Update the kept user
+      const updates: Record<string, any> = {
+        userType: "admin" as const,
+        permissions: ["full_admin_access"],
+        email: "admin@mentoloop.com"
+      };
+      
+      // If current user is admin@mentoloop.com, update Clerk ID
+      if (identity.email?.toLowerCase() === "admin@mentoloop.com" && keepUser.externalId !== identity.subject) {
+        updates.externalId = identity.subject;
+        results.clerkIdUpdated = true;
+        console.log(`[fixAdminUserIssues] Updating admin Clerk ID from ${keepUser.externalId} to ${identity.subject}`);
+      }
+      
+      await ctx.db.patch(keepUser._id, updates);
+      results.adminUserFixed = true;
+      
+      // Delete duplicates
+      for (let i = 1; i < adminUsers.length; i++) {
+        console.log(`[fixAdminUserIssues] Deleting duplicate admin user: ${adminUsers[i]._id}`);
+        await ctx.db.delete(adminUsers[i]._id);
+        results.duplicatesRemoved++;
+      }
+    } else if (adminUsers.length === 1) {
+      const adminUser = adminUsers[0];
+      
+      const updates: Record<string, any> = {
+        userType: "admin" as const,
+        permissions: ["full_admin_access"],
+        email: "admin@mentoloop.com"
+      };
+      
+      // If current user is admin@mentoloop.com, ensure Clerk ID matches
+      if (identity.email?.toLowerCase() === "admin@mentoloop.com" && adminUser.externalId !== identity.subject) {
+        updates.externalId = identity.subject;
+        results.clerkIdUpdated = true;
+        console.log(`[fixAdminUserIssues] Updating admin Clerk ID from ${adminUser.externalId} to ${identity.subject}`);
+      }
+      
+      await ctx.db.patch(adminUser._id, updates);
+      results.adminUserFixed = true;
+      console.log("[fixAdminUserIssues] Admin user updated successfully");
+    } else if (identity.email?.toLowerCase() === "admin@mentoloop.com") {
+      // No admin user exists but current user is admin@mentoloop.com - create one
+      console.log("[fixAdminUserIssues] Creating admin user for admin@mentoloop.com");
+      await ctx.db.insert("users", {
+        name: identity.name ?? "Admin",
+        externalId: identity.subject,
+        userType: "admin",
+        email: "admin@mentoloop.com",
+        permissions: ["full_admin_access"],
+        createdAt: Date.now(),
+      });
+      results.adminUserFixed = true;
+    }
+    
+    // Convert support@mentoloop.com to student
+    const supportUsers = allUsers.filter(u => u.email?.toLowerCase() === "support@mentoloop.com");
+    for (const supportUser of supportUsers) {
+      console.log(`[fixAdminUserIssues] Converting support user ${supportUser._id} to student`);
+      await ctx.db.patch(supportUser._id, {
+        userType: "student",
+        permissions: []
+      });
+      results.supportUsersConverted++;
+    }
+    
+    console.log("[fixAdminUserIssues] Fix completed:", results);
+    return results;
+  }
+});
