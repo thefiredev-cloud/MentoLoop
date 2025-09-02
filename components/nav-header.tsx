@@ -5,6 +5,7 @@ import { Menu, X, Home, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { motion, useMotionValue } from 'framer-motion'
+import { usePathname } from 'next/navigation'
 
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
@@ -27,6 +28,12 @@ export const NavHeader = () => {
     const [showSignupModal, setShowSignupModal] = React.useState(false)
     const { theme } = useTheme()
     const { isSignedIn, isLoaded } = useUser()
+    const pathname = usePathname()
+
+    // Don't render the header on dashboard pages
+    if (pathname?.startsWith('/dashboard')) {
+        return null
+    }
 
     const appearance = {
         baseTheme: theme === "dark" ? dark : undefined,
