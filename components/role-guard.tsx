@@ -30,8 +30,8 @@ export function RoleGuard({
   const pathname = usePathname()
 
   useEffect(() => {
-    if (user && requiredRole && user.userType !== requiredRole && user.userType !== 'admin') {
-      // Redirect to appropriate dashboard
+    if (user && requiredRole && user.userType !== requiredRole) {
+      // Redirect to appropriate dashboard based on user's actual role
       const defaultRoute = getDefaultDashboardRoute(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise')
       router.replace(defaultRoute)
     }
@@ -83,8 +83,8 @@ export function RoleGuard({
     }
   }
 
-  // Check role access
-  if (requiredRole && user.userType !== requiredRole && user.userType !== 'admin') {
+  // Check role access - admin users should not bypass role checks
+  if (requiredRole && user.userType !== requiredRole) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen p-8">
         <Card className="w-full max-w-md">
