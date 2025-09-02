@@ -14,7 +14,13 @@ import { toast } from 'sonner'
 
 export default function DashboardPage() {
   const [retryCount, setRetryCount] = useState(0)
+  const [isMounted, setIsMounted] = useState(false)
   const maxRetries = 3
+  
+  // Ensure component is mounted before client-side operations
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
   
   const { user, isLoading, error, refetch } = useCurrentUser({
     autoSync: true,
@@ -67,7 +73,7 @@ export default function DashboardPage() {
 
   // Check localStorage for saved role on mount (client-side only)
   useEffect(() => {
-    if (!user || user.userType) return
+    if (!isMounted || !user || user.userType) return
     
     const savedRole = localStorage.getItem('userRole')
     const roleConfirmed = localStorage.getItem('userRoleConfirmed')
@@ -76,7 +82,7 @@ export default function DashboardPage() {
       setSavedUserRole(savedRole)
       setShouldAutoSelectRole(true)
     }
-  }, [user])
+  }, [user, isMounted])
 
   // Admin users are handled through the ensureUserExists flow
   // which properly sets admin role based on email
@@ -152,7 +158,7 @@ export default function DashboardPage() {
   }, [shouldAutoSelectRole, savedUserRole, user, selectedRole])
 
   // Always render PostSignupHandler to maintain hook consistency
-  const postSignupHandler = <PostSignupHandler />
+  const postSignupHandler = isMounted ? <PostSignupHandler /> : null
 
   if (isLoading) {
     return (

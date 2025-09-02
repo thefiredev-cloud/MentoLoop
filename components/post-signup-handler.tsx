@@ -14,6 +14,12 @@ export function PostSignupHandler() {
   const currentUser = useQuery(api.users.current)
   const updateUserType = useMutation(api.users.updateUserType)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  
+  // Ensure component is mounted before rendering conditional content
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     const handlePostSignup = async () => {
@@ -79,6 +85,11 @@ export function PostSignupHandler() {
     }
   }
 
+  // Prevent hydration errors by ensuring consistent rendering between server and client
+  if (!isMounted) {
+    return null
+  }
+  
   if (isProcessing) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
