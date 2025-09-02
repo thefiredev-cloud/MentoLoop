@@ -32,10 +32,8 @@ export default function DashboardPage() {
   })
   const router = useRouter()
   const hasRedirected = useRef(false)
-  const syncAdminUser = useMutation(api.users.syncAdminUser)
   const updateUserType = useMutation(api.users.updateUserType)
   const { userId } = useAuth()
-  const hasSyncedAdmin = useRef(false)
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   
   // Log dashboard access
@@ -48,31 +46,8 @@ export default function DashboardPage() {
     })
   }, [isLoading, user])
 
-  // Sync admin users
-  useEffect(() => {
-    const syncIfAdmin = async () => {
-      if (user && userId && !hasSyncedAdmin.current) {
-        const userEmail = user.email?.toLowerCase()
-        const adminEmails = ["admin@mentoloop.com", "support@mentoloop.com"]
-        
-        if (userEmail && adminEmails.includes(userEmail)) {
-          hasSyncedAdmin.current = true
-          try {
-            const result = await syncAdminUser()
-            if (result.updated) {
-              console.log('[Dashboard] Admin user synced:', userEmail)
-              // Refetch user data after sync
-              await refetch()
-            }
-          } catch (error) {
-            console.error('[Dashboard] Failed to sync admin user:', error)
-          }
-        }
-      }
-    }
-    
-    syncIfAdmin()
-  }, [user, userId, syncAdminUser, refetch])
+  // Admin users are handled through the ensureUserExists flow
+  // which properly sets admin role based on email
 
   useEffect(() => {
     if (user && !hasRedirected.current) {
