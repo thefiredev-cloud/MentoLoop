@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Select, 
@@ -14,13 +13,13 @@ import {
   SelectValue 
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { User, Mail, MapPin, Award, Calendar, Clock, Briefcase } from 'lucide-react'
+import { User, Mail, Briefcase, Calendar } from 'lucide-react'
 
 interface SimplifiedPreceptorIntakeStepProps {
   data: Record<string, unknown>
   updateFormData: (section: string, data: Record<string, unknown>) => void
   onNext: () => void
-  isFirstStep: boolean
+  isFirstStep?: boolean
 }
 
 const US_STATES = [
@@ -59,21 +58,17 @@ const AVAILABILITY_OPTIONS = [
 export default function SimplifiedPreceptorIntakeStep({ 
   data, 
   updateFormData, 
-  onNext,
-  isFirstStep 
+  onNext
 }: SimplifiedPreceptorIntakeStepProps) {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
-    licenseNumber: '',
-    licenseState: '',
     specialty: '',
     otherSpecialty: '',
     practiceName: '',
     practiceCity: '',
     practiceState: '',
-    yearsExperience: '',
     availability: [] as string[],
     maxStudents: '1',
     acceptNewGrads: false,
@@ -118,14 +113,6 @@ export default function SimplifiedPreceptorIntakeStep({
       newErrors.phone = 'Phone number is required'
     }
 
-    if (!formData.licenseNumber.trim()) {
-      newErrors.licenseNumber = 'License number is required'
-    }
-
-    if (!formData.licenseState) {
-      newErrors.licenseState = 'License state is required'
-    }
-
     if (!formData.specialty) {
       newErrors.specialty = 'Specialty is required'
     }
@@ -140,10 +127,6 @@ export default function SimplifiedPreceptorIntakeStep({
 
     if (!formData.practiceState) {
       newErrors.practiceState = 'Practice state is required'
-    }
-
-    if (!formData.yearsExperience.trim()) {
-      newErrors.yearsExperience = 'Years of experience is required'
     }
 
     if (formData.availability.length === 0) {
@@ -222,67 +205,6 @@ export default function SimplifiedPreceptorIntakeStep({
         </CardContent>
       </Card>
 
-      {/* License Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5" />
-            License Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="licenseNumber">License Number *</Label>
-              <Input
-                id="licenseNumber"
-                value={formData.licenseNumber}
-                onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                placeholder="NP123456"
-                className={errors.licenseNumber ? 'border-destructive' : ''}
-              />
-              {errors.licenseNumber && (
-                <p className="text-sm text-destructive">{errors.licenseNumber}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="licenseState">License State *</Label>
-              <Select value={formData.licenseState} onValueChange={(value) => handleInputChange('licenseState', value)}>
-                <SelectTrigger className={errors.licenseState ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.licenseState && (
-                <p className="text-sm text-destructive">{errors.licenseState}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="yearsExperience">Years of Clinical Experience *</Label>
-            <Input
-              id="yearsExperience"
-              type="number"
-              min="0"
-              value={formData.yearsExperience}
-              onChange={(e) => handleInputChange('yearsExperience', e.target.value)}
-              placeholder="5"
-              className={errors.yearsExperience ? 'border-destructive' : ''}
-            />
-            {errors.yearsExperience && (
-              <p className="text-sm text-destructive">{errors.yearsExperience}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Practice Information */}
       <Card>

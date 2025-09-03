@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
-import ProtectedPreceptorIntakeStep from './components/protected-preceptor-intake-step'
+import SimplifiedPreceptorIntakeStep from './components/simplified-preceptor-intake-step'
 import VerificationStep from './components/verification-step'
 
 const steps = [
-  { id: 1, name: 'Preceptor Information', component: ProtectedPreceptorIntakeStep },
+  { id: 1, name: 'Preceptor Information', component: SimplifiedPreceptorIntakeStep },
   { id: 2, name: 'Verification & Submission', component: VerificationStep },
 ]
 
