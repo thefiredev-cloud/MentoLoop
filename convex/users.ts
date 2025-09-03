@@ -119,7 +119,10 @@ export const ensureUserExists = mutation({
     const userEmail = identity.email?.toLowerCase() || "";
     const clerkId = identity.subject;
     
-    console.log(`[ensureUserExists] Starting sync for email: ${userEmail}, Clerk ID: ${clerkId}`);
+    // Check for userType in Clerk metadata
+    const clerkUserType = (identity as any).unsafeMetadata?.userType;
+    
+    console.log(`[ensureUserExists] Starting sync for email: ${userEmail}, Clerk ID: ${clerkId}, Clerk userType: ${clerkUserType}`);
     
     // First, try to find user by Clerk external ID
     let existingUser = await ctx.db
@@ -167,10 +170,11 @@ export const ensureUserExists = mutation({
           console.log(`[ensureUserExists] ${userEmail} already has admin role`);
         }
       } else if (!existingUser.userType) {
-        // If no userType is set and they're not admin, default to student
-        console.log(`[ensureUserExists] Setting default userType to student for ${userEmail}`);
+        // If no userType is set and they're not admin, check Clerk metadata first
+        const userTypeToSet = clerkUserType || "student";
+        console.log(`[ensureUserExists] Setting userType to ${userTypeToSet} for ${userEmail}`);
         await ctx.db.patch(existingUser._id, {
-          userType: "student",
+          userType: userTypeToSet as any,
           email: userEmail,
         });
       }
@@ -184,17 +188,25 @@ export const ensureUserExists = mutation({
     }
 
     // Create new user if doesn't exist
-    console.log(`[ensureUserExists] Creating new user for ${userEmail}`);
+    // Determine the userType: admin > Clerk metadata > default to student
+    let userType: "admin" | "student" | "preceptor" | "enterprise" = "student";
+    if (isAdmin) {
+      userType = "admin";
+    } else if (clerkUserType && ["student", "preceptor", "enterprise"].includes(clerkUserType)) {
+      userType = clerkUserType as any;
+    }
+    
+    console.log(`[ensureUserExists] Creating new user for ${userEmail} with userType: ${userType}`);
     const userId = await ctx.db.insert("users", {
       name: identity.name ?? identity.email ?? "Unknown User",
       externalId: clerkId,
-      userType: isAdmin ? "admin" : "student",
+      userType,
       email: userEmail,
       permissions: isAdmin ? ["full_admin_access"] : undefined,
       createdAt: Date.now(),
     });
 
-    console.log(`[ensureUserExists] Created user successfully: ${userId}, isAdmin: ${isAdmin}`);
+    console.log(`[ensureUserExists] Created user successfully: ${userId}, userType: ${userType}`);
     return { userId, isNew: true, clerkId };
   },
 });

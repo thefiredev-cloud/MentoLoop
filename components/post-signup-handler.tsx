@@ -35,26 +35,33 @@ export function PostSignupHandler() {
         return
       }
 
-      // Check if we have a stored role from signup (client-side only)
+      // First check if Clerk has a userType in metadata
+      const clerkUserType = user.unsafeMetadata?.userType as string | undefined
+      
+      // Then check if we have a stored role from signup (client-side only)
       const storedRole = typeof window !== 'undefined' ? sessionStorage.getItem('selectedUserRole') : null
       
-      if (storedRole && !isProcessing) {
+      // Use Clerk metadata first, then sessionStorage as fallback
+      const roleToSet = clerkUserType || storedRole
+      
+      if (roleToSet && !isProcessing) {
         setIsProcessing(true)
         
         try {
           // Update the user type in Convex
           await updateUserType({
             userId: currentUser._id,
-            userType: storedRole as 'student' | 'preceptor' | 'enterprise'
+            userType: roleToSet as 'student' | 'preceptor' | 'enterprise'
           })
           
           // Clear the stored role (client-side only)
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem('selectedUserRole')
+            sessionStorage.removeItem('signupRole')
           }
           
           // Redirect based on role
-          redirectBasedOnRole(storedRole)
+          redirectBasedOnRole(roleToSet)
         } catch (error) {
           console.error('Error setting user role:', error)
           setIsProcessing(false)
