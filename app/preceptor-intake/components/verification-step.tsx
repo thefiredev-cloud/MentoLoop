@@ -13,9 +13,14 @@ import {
   CheckCircle, 
   AlertCircle, 
   Clock,
-  Award
+  Award,
+  Send
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useMutation } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { toast } from 'sonner'
 
 interface VerificationStepProps {
   data: Record<string, unknown>
@@ -31,7 +36,8 @@ export default function VerificationStep({
   updateFormData, 
   onNext,
   onPrev,
-  isFirstStep 
+  isFirstStep,
+  isLastStep 
 }: VerificationStepProps) {
   const [verificationData, setVerificationData] = useState({
     agreedToTerms: false,
@@ -105,8 +111,103 @@ export default function VerificationStep({
     return Object.keys(newErrors).length === 0
   }
 
-  const handleNext = () => {
-    if (validateForm()) {
+  const router = useRouter()
+  const createOrUpdatePreceptor = useMutation(api.preceptors.createOrUpdatePreceptor)
+  const ensureUserExists = useMutation(api.users.ensureUserExists)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleNext = async () => {
+    if (!validateForm()) {
+      return
+    }
+
+    // If this is the last step, submit the data
+    if (isLastStep) {
+      setIsSubmitting(true)
+      
+      try {
+        // Ensure user exists in database
+        await ensureUserExists()
+        
+        // Prepare preceptor data from form
+        const preceptorFormData = data.preceptorInfo as any
+        
+        // Save preceptor data
+        await createOrUpdatePreceptor({
+          personalInfo: {
+            fullName: preceptorFormData.fullName,
+            email: preceptorFormData.email,
+            mobilePhone: preceptorFormData.phone,
+            licenseType: 'NP' as const,
+            specialty: (preceptorFormData.specialty === 'family-practice' ? 'FNP' :
+                       preceptorFormData.specialty === 'pediatrics' ? 'PNP' :
+                       preceptorFormData.specialty === 'mental-health' ? 'PMHNP' :
+                       preceptorFormData.specialty === 'womens-health' ? 'WHNP' :
+                       preceptorFormData.specialty === 'acute-care' ? 'ACNP' :
+                       'other') as any,
+            statesLicensed: [preceptorFormData.licenseState],
+            npiNumber: preceptorFormData.npiNumber || ''
+          },
+          practiceInfo: {
+            practiceName: preceptorFormData.practiceName,
+            practiceSettings: [preceptorFormData.specialty.includes('telehealth') ? 'telehealth' : 
+                             preceptorFormData.specialty.includes('hospital') ? 'hospital' : 'clinic'] as any[],
+            address: preceptorFormData.address || '',
+            city: preceptorFormData.practiceCity || '',
+            state: preceptorFormData.practiceState,
+            zipCode: preceptorFormData.zipCode || '',
+            emrUsed: preceptorFormData.emrUsed || ''
+          },
+          availability: {
+            daysAvailable: preceptorFormData.daysAvailable || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as any[],
+            currentlyAccepting: true,
+            availableRotations: [preceptorFormData.specialty === 'family-practice' ? 'family-practice' :
+                                preceptorFormData.specialty === 'pediatrics' ? 'pediatrics' :
+                                preceptorFormData.specialty === 'mental-health' ? 'psych-mental-health' :
+                                preceptorFormData.specialty === 'womens-health' ? 'womens-health' :
+                                'other'] as any[],
+            maxStudentsPerRotation: preceptorFormData.maxStudents || '1' as any,
+            rotationDurationPreferred: preceptorFormData.rotationDuration || '4-weeks' as any,
+            preferredStartDates: preceptorFormData.preferredStartDates || []
+          },
+          matchingPreferences: {
+            studentDegreeLevelPreferred: preceptorFormData.acceptNewGrads 
+              ? 'no-preference' as const
+              : 'MSN' as const,
+            comfortableWithFirstRotation: preceptorFormData.acceptNewGrads || false,
+            schoolsWorkedWith: [],
+            languagesSpoken: preceptorFormData.languagesSpoken || []
+          },
+          mentoringStyle: preceptorFormData.mentoringStyle || {
+            mentoringApproach: 'coach-guide' as any,
+            rotationStart: 'orient-goals' as any,
+            feedbackApproach: 'daily-checkins' as any,
+            learningMaterials: 'sometimes' as any,
+            patientInteractions: 'shadow-then-lead' as any,
+            questionPreference: 'anytime-during' as any,
+            autonomyLevel: 'shared-decisions' as any,
+            evaluationFrequency: 'weekly' as any,
+            newStudentPreference: 'flexible' as any,
+            idealDynamic: 'learner-teacher' as any
+          },
+          agreements: {
+            agreedToTermsAndPrivacy: verificationData.agreedToTerms && verificationData.agreedToPrivacy,
+            digitalSignature: preceptorFormData.fullName,
+            submissionDate: new Date().toISOString().split('T')[0],
+            openToScreening: verificationData.agreedToBackgroundCheck
+          }
+        })
+        
+        toast.success('Profile submitted successfully!')
+        
+        // Redirect to success page or dashboard
+        router.push('/dashboard/preceptor?onboarding=complete')
+      } catch (error) {
+        console.error('Failed to submit preceptor profile:', error)
+        toast.error('Failed to submit profile. Please try again.')
+        setIsSubmitting(false)
+      }
+    } else {
       onNext()
     }
   }
@@ -350,8 +451,21 @@ export default function VerificationStep({
           onClick={handleNext}
           size="lg"
           className="px-8"
+          disabled={isSubmitting}
         >
-          Continue to Payment Setup
+          {isSubmitting ? (
+            <>
+              <Clock className="h-4 w-4 mr-2 animate-spin" />
+              Submitting...
+            </>
+          ) : isLastStep ? (
+            <>
+              <Send className="h-4 w-4 mr-2" />
+              Submit Application
+            </>
+          ) : (
+            'Continue'
+          )}
         </Button>
       </div>
     </div>

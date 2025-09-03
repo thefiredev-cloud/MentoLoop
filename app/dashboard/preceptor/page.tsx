@@ -33,7 +33,10 @@ import {
   Target,
   User,
   // BookOpen,
-  ChartBar
+  ChartBar,
+  DollarSign,
+  TrendingUp,
+  Wallet
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -53,6 +56,8 @@ function PreceptorDashboardContent() {
   const activeStudents = useQuery(api.matches.getActiveStudentsForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
+  const earnings = useQuery(api.preceptors.getPreceptorEarnings)
+  const paymentInfo = useQuery(api.preceptors.getPreceptorPaymentInfo)
 
   if (!user) {
     return <div>Loading...</div>
@@ -154,7 +159,7 @@ function PreceptorDashboardContent() {
       </div>
 
       {/* Status Overview Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         {/* Profile Status */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -267,6 +272,32 @@ function PreceptorDashboardContent() {
               <p className="text-xs text-muted-foreground">
                 From {dashboardStats.totalStudentsMentored} students
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Earnings Overview */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <span className="text-2xl font-bold">
+                ${earnings ? (earnings.totalEarnings / 100).toFixed(2) : '0.00'}
+              </span>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                ${earnings ? (earnings.pendingEarnings / 100).toFixed(2) : '0.00'} pending
+              </div>
+              {!paymentInfo && (
+                <Button variant="outline" size="sm" asChild className="w-full">
+                  <Link href="/dashboard/preceptor/payment-settings">
+                    Setup Payment
+                  </Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -445,6 +476,44 @@ function PreceptorDashboardContent() {
             </CardContent>
           </Card>
 
+          {/* Earnings Summary */}
+          {earnings && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Earnings Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Total Earned</span>
+                    <Badge variant="outline" className="text-xs font-mono text-green-600">
+                      ${(earnings.totalEarnings / 100).toFixed(2)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Paid Out</span>
+                    <Badge variant="outline" className="text-xs font-mono">
+                      ${(earnings.paidEarnings / 100).toFixed(2)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Pending Payment</span>
+                    <Badge variant="outline" className="text-xs font-mono text-orange-600">
+                      ${(earnings.pendingEarnings / 100).toFixed(2)}
+                    </Badge>
+                  </div>
+                  <Separator />
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <Link href="/dashboard/preceptor/earnings">
+                      <Wallet className="h-4 w-4 mr-2" />
+                      View Details
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Help & Support */}
           <Card>
             <CardHeader>
@@ -464,9 +533,9 @@ function PreceptorDashboardContent() {
                 </Link>
               </Button>
               <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <Link href="/dashboard/billing">
+                <Link href="/dashboard/preceptor/payment-settings">
                   <CreditCard className="h-4 w-4 mr-2" />
-                  Billing
+                  Payment Settings
                 </Link>
               </Button>
             </CardContent>

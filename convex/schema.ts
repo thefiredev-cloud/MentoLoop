@@ -90,6 +90,54 @@ export default defineSchema({
       .index("byStripePaymentIntentId", ["stripePaymentIntentId"])
       .index("byStatus", ["status"]),
 
+    // Preceptor earnings - payments FROM MentoLoop TO preceptors
+    preceptorEarnings: defineTable({
+      preceptorId: v.id("users"),
+      matchId: v.id("matches"),
+      studentId: v.id("users"),
+      amount: v.number(), // Amount in cents
+      currency: v.string(),
+      status: v.union(v.literal("pending"), v.literal("paid"), v.literal("cancelled")),
+      description: v.string(),
+      rotationStartDate: v.optional(v.string()),
+      rotationEndDate: v.optional(v.string()),
+      paymentMethod: v.optional(v.union(v.literal("direct_deposit"), v.literal("check"), v.literal("paypal"))),
+      paymentReference: v.optional(v.string()), // Transaction ID or check number
+      paidAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+    }).index("byPreceptorId", ["preceptorId"])
+      .index("byMatchId", ["matchId"])
+      .index("byStatus", ["status"])
+      .index("byPaidAt", ["paidAt"])
+      .index("byCreatedAt", ["createdAt"]),
+
+    // Preceptor payment information
+    preceptorPaymentInfo: defineTable({
+      preceptorId: v.id("users"),
+      paymentMethod: v.union(v.literal("direct_deposit"), v.literal("check"), v.literal("paypal")),
+      // Direct deposit info (encrypted in production)
+      bankAccountNumber: v.optional(v.string()),
+      routingNumber: v.optional(v.string()),
+      accountType: v.optional(v.union(v.literal("checking"), v.literal("savings"))),
+      // Mailing address for checks
+      mailingAddress: v.optional(v.object({
+        street: v.string(),
+        city: v.string(),
+        state: v.string(),
+        zipCode: v.string(),
+      })),
+      // PayPal info
+      paypalEmail: v.optional(v.string()),
+      // Tax information
+      taxId: v.optional(v.string()), // SSN or EIN (encrypted)
+      taxFormType: v.optional(v.union(v.literal("W9"), v.literal("W8BEN"))),
+      taxFormSubmitted: v.optional(v.boolean()),
+      taxFormSubmittedAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+    }).index("byPreceptorId", ["preceptorId"]),
+
     // Student profiles and intake data
     students: defineTable({
       userId: v.id("users"),

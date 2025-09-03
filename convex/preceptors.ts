@@ -863,3 +863,186 @@ export const getPublicPreceptorDetails = query({
     };
   },
 });
+// Get preceptor earnings summary
+export const getPreceptorEarnings = query({
+  handler: async (ctx) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return null;
+
+    // Get all earnings for this preceptor
+    const earnings = await ctx.db
+      .query("preceptorEarnings")
+      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", userId))
+      .collect();
+
+    // Calculate totals
+    const totalEarnings = earnings.reduce((sum, e) => sum + e.amount, 0);
+    const paidEarnings = earnings
+      .filter(e => e.status === "paid")
+      .reduce((sum, e) => sum + e.amount, 0);
+    const pendingEarnings = earnings
+      .filter(e => e.status === "pending")
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    // Get recent earnings (last 5)
+    const recentEarnings = earnings
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 5)
+      .map(e => ({
+        id: e._id,
+        matchId: e.matchId,
+        amount: e.amount,
+        status: e.status,
+        description: e.description,
+        createdAt: e.createdAt,
+        paidAt: e.paidAt,
+      }));
+
+    return {
+      totalEarnings,
+      paidEarnings,
+      pendingEarnings,
+      recentEarnings,
+      earningsCount: earnings.length,
+    };
+  },
+});
+
+// Get detailed earnings history
+export const getPreceptorEarningsHistory = query({
+  args: {
+    limit: v.optional(v.number()),
+    status: v.optional(v.union(v.literal("pending"), v.literal("paid"), v.literal("cancelled"))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return [];
+
+    const limit = args.limit || 50;
+
+    let query = ctx.db
+      .query("preceptorEarnings")
+      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", userId));
+
+    const earnings = await query.collect();
+
+    // Filter by status if provided
+    let filtered = args.status 
+      ? earnings.filter(e => e.status === args.status)
+      : earnings;
+
+    // Sort by created date (newest first) and limit
+    const earningsWithDetails = await Promise.all(
+      filtered
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit)
+        .map(async e => {
+          // Get student info
+          const student = await ctx.db.get(e.studentId);
+          const match = await ctx.db.get(e.matchId);
+          
+          return {
+            id: e._id,
+            studentName: student?.name || "Unknown Student",
+            amount: e.amount,
+            currency: e.currency,
+            status: e.status,
+            description: e.description,
+            rotationStartDate: e.rotationStartDate,
+            rotationEndDate: e.rotationEndDate,
+            paymentMethod: e.paymentMethod,
+            paymentReference: e.paymentReference,
+            paidAt: e.paidAt,
+            createdAt: e.createdAt,
+            matchStatus: match?.status,
+          };
+        })
+    );
+
+    return earningsWithDetails;
+  },
+});
+
+// Get or create preceptor payment info
+export const getPreceptorPaymentInfo = query({
+  handler: async (ctx) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return null;
+
+    const paymentInfo = await ctx.db
+      .query("preceptorPaymentInfo")
+      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", userId))
+      .first();
+
+    return paymentInfo;
+  },
+});
+
+// Update preceptor payment info
+export const updatePreceptorPaymentInfo = mutation({
+  args: {
+    paymentMethod: v.union(v.literal("direct_deposit"), v.literal("check"), v.literal("paypal")),
+    // Direct deposit info
+    bankAccountNumber: v.optional(v.string()),
+    routingNumber: v.optional(v.string()),
+    accountType: v.optional(v.union(v.literal("checking"), v.literal("savings"))),
+    // Mailing address for checks
+    mailingAddress: v.optional(v.object({
+      street: v.string(),
+      city: v.string(),
+      state: v.string(),
+      zipCode: v.string(),
+    })),
+    // PayPal info
+    paypalEmail: v.optional(v.string()),
+    // Tax information
+    taxId: v.optional(v.string()),
+    taxFormType: v.optional(v.union(v.literal("W9"), v.literal("W8BEN"))),
+    taxFormSubmitted: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserId(ctx);
+    if (!userId) {
+      throw new Error("Must be authenticated to update payment info");
+    }
+
+    const existingInfo = await ctx.db
+      .query("preceptorPaymentInfo")
+      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", userId))
+      .first();
+
+    const paymentInfoData = {
+      preceptorId: userId,
+      paymentMethod: args.paymentMethod,
+      ...(args.paymentMethod === "direct_deposit" && {
+        bankAccountNumber: args.bankAccountNumber,
+        routingNumber: args.routingNumber,
+        accountType: args.accountType,
+      }),
+      ...(args.paymentMethod === "check" && {
+        mailingAddress: args.mailingAddress,
+      }),
+      ...(args.paymentMethod === "paypal" && {
+        paypalEmail: args.paypalEmail,
+      }),
+      taxId: args.taxId,
+      taxFormType: args.taxFormType,
+      taxFormSubmitted: args.taxFormSubmitted,
+      ...(args.taxFormSubmitted && {
+        taxFormSubmittedAt: Date.now(),
+      }),
+      updatedAt: Date.now(),
+    };
+
+    if (existingInfo) {
+      await ctx.db.patch(existingInfo._id, paymentInfoData);
+      return existingInfo._id;
+    } else {
+      const id = await ctx.db.insert("preceptorPaymentInfo", {
+        ...paymentInfoData,
+        createdAt: Date.now(),
+      });
+      return id;
+    }
+  },
+});

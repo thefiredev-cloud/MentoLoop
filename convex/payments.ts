@@ -881,77 +881,7 @@ export const getPaymentAnalytics = query({
   },
 });
 
-// Create Stripe Connect account for preceptors
-export const createPreceptorConnectAccount = action({
-  args: {
-    email: v.string(),
-    returnUrl: v.string(),
-    refreshUrl: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    
-    if (!stripeSecretKey) {
-      throw new Error("Stripe not configured");
-    }
-
-    try {
-      // Create a Stripe Connect account
-      const accountResponse = await fetch("https://api.stripe.com/v1/accounts", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${stripeSecretKey}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          "type": "express",
-          "country": "US",
-          "email": args.email,
-          "capabilities[card_payments][requested]": "true",
-          "capabilities[transfers][requested]": "true",
-        }),
-      });
-
-      if (!accountResponse.ok) {
-        const errorText = await accountResponse.text();
-        throw new Error(`Stripe API error: ${accountResponse.status} - ${errorText}`);
-      }
-
-      const account = await accountResponse.json();
-
-      // Create an account link for onboarding
-      const accountLinkResponse = await fetch("https://api.stripe.com/v1/account_links", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${stripeSecretKey}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          "account": account.id,
-          "return_url": args.returnUrl,
-          "refresh_url": args.refreshUrl,
-          "type": "account_onboarding",
-        }),
-      });
-
-      if (!accountLinkResponse.ok) {
-        const errorText = await accountLinkResponse.text();
-        throw new Error(`Stripe API error: ${accountLinkResponse.status} - ${errorText}`);
-      }
-
-      const accountLink = await accountLinkResponse.json();
-
-      return {
-        accountId: account.id,
-        accountLink: accountLink.url,
-      };
-
-    } catch (error) {
-      console.error("Failed to create Stripe Connect account:", error);
-      throw new Error(`Stripe Connect setup failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
-  },
-});
+// Removed Stripe Connect for preceptors - they are paid BY MentoLoop, not payment processors
 
 // Create Stripe products and prices for membership tiers
 export const createMembershipProducts = action({

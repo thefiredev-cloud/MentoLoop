@@ -9,12 +9,10 @@ import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
 import ProtectedPreceptorIntakeStep from './components/protected-preceptor-intake-step'
 import VerificationStep from './components/verification-step'
-import StripeConnectStep from './components/stripe-connect-step'
 
 const steps = [
   { id: 1, name: 'Preceptor Information', component: ProtectedPreceptorIntakeStep },
-  { id: 2, name: 'Verification', component: VerificationStep },
-  { id: 3, name: 'Payment Setup', component: StripeConnectStep },
+  { id: 2, name: 'Verification & Submission', component: VerificationStep },
 ]
 
 export default function PreceptorIntakePage() {
@@ -22,7 +20,6 @@ export default function PreceptorIntakePage() {
   const [formData, setFormData] = useState({
     preceptorInfo: {},
     verification: {},
-    stripeConnect: {},
   })
 
   const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
@@ -72,7 +69,7 @@ export default function PreceptorIntakePage() {
             Join our network of healthcare professionals
           </p>
           <p className="text-muted-foreground mt-4 max-w-3xl mx-auto">
-            Complete your profile, verify your credentials, and set up payments to start 
+            Complete your profile and verify your credentials to start 
             receiving student match requests. The entire process takes less than 10 minutes.
           </p>
         </div>
