@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Menu, X, Home, Sparkles } from 'lucide-react'
+import { Menu, X, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { motion, useMotionValue } from 'framer-motion'
@@ -29,6 +29,8 @@ export const NavHeader = () => {
     const { theme } = useTheme()
     const { isSignedIn, isLoaded } = useUser()
     const pathname = usePathname()
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
 
     // Don't render the header on dashboard pages
     if (pathname?.startsWith('/dashboard')) {
@@ -46,9 +48,6 @@ export const NavHeader = () => {
           termsPageUrl: "/terms"
         }
     }
-
-    const mouseX = useMotionValue(0)
-    const mouseY = useMotionValue(0)
     
     const handleMouseMove = (e: React.MouseEvent) => {
         const rect = e.currentTarget.getBoundingClientRect()
@@ -74,7 +73,6 @@ export const NavHeader = () => {
                         <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent group-hover:from-secondary group-hover:to-accent transition-all duration-500">
                             MentoLoop
                         </span>
-                        <Sparkles className="w-3 h-3 text-yellow-400 absolute -top-1 -right-2 animate-pulse" />
                     </Link>
 
                     {/* Desktop Navigation with Magnetic Effect */}

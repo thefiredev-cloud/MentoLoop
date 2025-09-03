@@ -1,14 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { ChatMaxingIconColoured } from '@/components/logo'
-import { Home, Users, DollarSign, Brain, Settings, ChevronDown } from 'lucide-react'
+import { Home, BookOpen, HelpCircle, Bell, Settings, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
 
-import { UserButton, useUser } from "@clerk/nextjs"
+import { UserButton } from "@clerk/nextjs"
 import { ThemeToggle } from '@/components/theme-toggle'
 import {
   DropdownMenu,
@@ -24,15 +23,14 @@ import { useTheme } from "next-themes"
 
 const quickLinks = [
   { name: 'Home', href: '/', icon: Home },
-  { name: 'Users', href: '/dashboard/admin/users', icon: Users },
-  { name: 'Finance', href: '/dashboard/admin/finance', icon: DollarSign },
-  { name: 'AI Matches', href: '/dashboard/admin/matches', icon: Brain },
+  { name: 'Resources', href: '/resources', icon: BookOpen },
+  { name: 'Support', href: '/support', icon: HelpCircle },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
 ]
 
 export const DashboardNavbar = () => {
   const { theme } = useTheme()
   const pathname = usePathname()
-  const { user } = useUser()
 
   const appearance = {
     baseTheme: theme === "dark" ? dark : undefined,
@@ -46,7 +44,7 @@ export const DashboardNavbar = () => {
     }
   }
 
-  // Check if user is admin
+  // Check if user is admin for settings button only
   const isAdmin = pathname?.includes('/admin')
 
   return (
@@ -54,21 +52,16 @@ export const DashboardNavbar = () => {
       className="glass-navbar-enhanced fixed top-0 z-[60] w-full border-b border-white/10 h-14">
       <nav className="flex h-full items-center px-4 lg:px-6">
         <div className="flex flex-1 items-center justify-between">
-          {/* Logo and Brand */}
+          {/* Navigation Links */}
           <div className="flex items-center space-x-6">
-            <Link
-              href="/"
-              aria-label="home"
-              className="flex items-center space-x-2">
-              <ChatMaxingIconColoured />
+            {/* Brand Logo */}
+            <Link href="/" className="mr-2">
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 MentoLoop
               </span>
             </Link>
-
-            {/* Quick Navigation for Admin */}
-            {isAdmin && (
-              <>
+            
+            {/* Quick Navigation for All Users */}
                 <div className="hidden md:flex items-center space-x-1">
                   {quickLinks.map((item, index) => (
                     <Link
@@ -85,31 +78,29 @@ export const DashboardNavbar = () => {
                   ))}
                 </div>
 
-                {/* Mobile Quick Links Dropdown */}
-                <div className="md:hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="hover:bg-white/10">
-                        Quick Links
-                        <ChevronDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Navigation</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {quickLinks.map((item, index) => (
-                        <DropdownMenuItem key={index} asChild>
-                          <Link href={item.href} className="flex items-center space-x-2">
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.name}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </>
-            )}
+            {/* Mobile Quick Links Dropdown */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="hover:bg-white/10">
+                    Quick Links
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {quickLinks.map((item, index) => (
+                    <DropdownMenuItem key={index} asChild>
+                      <Link href={item.href} className="flex items-center space-x-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Right Side Actions */}

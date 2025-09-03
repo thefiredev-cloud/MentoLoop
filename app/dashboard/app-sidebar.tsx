@@ -18,7 +18,6 @@ import {
   IconUser,
   IconSchool,
   IconStethoscope,
-  IconHeart,
   IconCreditCard,
   IconMail,
 } from "@tabler/icons-react"
@@ -404,14 +403,13 @@ export function AppSidebar({ ...props }: Omit<React.ComponentProps<typeof Sideba
               className="data-[slot=sidebar-menu-button]:p-0 h-auto hover:bg-transparent"
             >
               <Link href="/" className="flex flex-col items-start gap-2">
-                <div className="flex items-center gap-3">
-                  <IconHeart className="size-7 text-primary" />
+                <div className="flex items-center">
                   <span className="text-lg font-bold">MentoLoop</span>
                 </div>
                 {user?.userType && (
                   <Badge 
                     variant={getRoleBadgeVariant()} 
-                    className="text-xs capitalize flex items-center gap-1 ml-10"
+                    className="text-xs capitalize flex items-center gap-1"
                   >
                     {getRoleIcon()}
                     {user.userType} Portal
