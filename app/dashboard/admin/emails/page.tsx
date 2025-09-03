@@ -9,13 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { 
   Mail, 
-  Send,
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle,
   TrendingUp,
-  Users,
   Filter,
   Search,
   RefreshCw,

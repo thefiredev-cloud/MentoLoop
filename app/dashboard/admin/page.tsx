@@ -51,8 +51,7 @@ function AdminDashboardContent() {
     totalRevenue: paymentAttempts?.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + (p.amount / 100), 0) || 0, // Convert from cents to dollars
     aiSuccessRate: allMatches?.filter(m => m.aiAnalysis).length ? 
       ((allMatches.filter(m => m.aiAnalysis?.confidence === 'high').length / allMatches.filter(m => m.aiAnalysis).length) * 100).toFixed(1) : 0,
-    avgResponseTime: allMatches?.length ? 
-      `${Math.round(allMatches.reduce((sum, m) => sum + (m.responseTimeHours || 0), 0) / allMatches.length)}h` : 'N/A'
+    avgResponseTime: 'N/A' // Response time tracking not yet implemented
   }
 
   // Get recent matches from real data
