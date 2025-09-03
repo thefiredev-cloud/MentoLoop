@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { SignUpButton, SignInButton, useUser } from '@clerk/nextjs'
+import { useEffect } from 'react'
+import { SignInButton, useUser } from '@clerk/nextjs'
 import { 
   Dialog, 
   DialogContent, 
@@ -15,8 +15,7 @@ import {
   GraduationCap, 
   Stethoscope, 
   Building2, 
-  ArrowRight,
-  ChevronLeft
+  ArrowRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -28,12 +27,9 @@ interface CustomSignupModalProps {
 
 export function CustomSignupModal({ 
   isOpen, 
-  onClose, 
-  defaultRole 
+  onClose
 }: CustomSignupModalProps) {
   const { isSignedIn, isLoaded } = useUser()
-  const [selectedRole, setSelectedRole] = useState<string | null>(defaultRole || null)
-  const [showSignUp, setShowSignUp] = useState(false)
 
   // Prevent modal from opening if user is already signed in
   useEffect(() => {
@@ -78,29 +74,14 @@ export function CustomSignupModal({
     }
   ]
 
-  const selectedRoleData = roles.find(r => r.id === selectedRole)
-
   const handleRoleSelect = (roleId: string) => {
-    setSelectedRole(roleId)
-    setShowSignUp(true)
+    // Redirect to role-specific sign-up page
+    const signupUrl = roleId === 'student' ? '/sign-up/student' : 
+                     roleId === 'preceptor' ? '/sign-up/preceptor' : 
+                     roleId === 'institution' ? '/sign-up/institution' : '/sign-up'
+    window.location.href = signupUrl
   }
 
-  const handleBack = () => {
-    setShowSignUp(false)
-  }
-
-  const getRedirectUrl = () => {
-    if (!selectedRole) return '/dashboard'
-    const role = roles.find(r => r.id === selectedRole)
-    return role?.redirectUrl || '/dashboard'
-  }
-
-  // Store role in sessionStorage for post-signup handling
-  const storeSelectedRole = () => {
-    if (selectedRole) {
-      sessionStorage.setItem('selectedUserRole', selectedRole)
-    }
-  }
 
   // Don't render the modal if user is already signed in
   if (isLoaded && isSignedIn) {
@@ -110,118 +91,50 @@ export function CustomSignupModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
-        {!showSignUp ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Join MentoLoop</DialogTitle>
-              <DialogDescription>
-                Choose your role to get started with the right experience
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              {roles.map((role) => (
-                <Card 
-                  key={role.id}
-                  className={cn(
-                    "cursor-pointer transition-all hover:shadow-md",
-                    "border-2 hover:border-primary"
-                  )}
-                  onClick={() => handleRoleSelect(role.id)}
-                >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className={cn(
-                      "w-12 h-12 rounded-lg flex items-center justify-center",
-                      role.lightColor
-                    )}>
-                      <role.icon className={cn("w-6 h-6", role.textColor)} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{role.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {role.description}
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <span>Already have an account?</span>
-              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                <Button variant="link" className="p-0 h-auto">
-                  Sign in
-                </Button>
-              </SignInButton>
-            </div>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBack}
-                  className="h-8 w-8"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                  <DialogTitle>Create Your Account</DialogTitle>
-                  <DialogDescription>
-                    Signing up as: {selectedRoleData?.title}
-                  </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-
-            <div className="py-6">
-              <div className="flex justify-center mb-6">
+        <DialogHeader>
+          <DialogTitle>Join MentoLoop</DialogTitle>
+          <DialogDescription>
+            Choose your role to get started with the right experience
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          {roles.map((role) => (
+            <Card 
+              key={role.id}
+              className={cn(
+                "cursor-pointer transition-all hover:shadow-md",
+                "border-2 hover:border-primary"
+              )}
+              onClick={() => handleRoleSelect(role.id)}
+            >
+              <CardContent className="flex items-center gap-4 p-4">
                 <div className={cn(
-                  "w-20 h-20 rounded-full flex items-center justify-center",
-                  selectedRoleData?.lightColor
+                  "w-12 h-12 rounded-lg flex items-center justify-center",
+                  role.lightColor
                 )}>
-                  {selectedRoleData && (
-                    <selectedRoleData.icon 
-                      className={cn("w-10 h-10", selectedRoleData.textColor)} 
-                    />
-                  )}
+                  <role.icon className={cn("w-6 h-6", role.textColor)} />
                 </div>
-              </div>
-
-              <SignUpButton 
-                mode="modal"
-                forceRedirectUrl={getRedirectUrl()}
-              >
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={storeSelectedRole}
-                >
-                  Continue as {selectedRoleData?.title}
-                </Button>
-              </SignUpButton>
-
-              <div className="mt-4 text-center text-sm text-muted-foreground">
-                <p>You&apos;ll be redirected to complete your profile after signing up</p>
-              </div>
-
-              <div className="mt-6 pt-6 border-t">
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <span>Already have an account?</span>
-                  <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                    <Button variant="link" className="p-0 h-auto">
-                      Sign in instead
-                    </Button>
-                  </SignInButton>
+                <div className="flex-1">
+                  <h3 className="font-semibold">{role.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {role.description}
+                  </p>
                 </div>
-              </div>
-            </div>
-          </>
-        )}
+                <ArrowRight className="w-5 h-5 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <span>Already have an account?</span>
+          <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+            <Button variant="link" className="p-0 h-auto">
+              Sign in
+            </Button>
+          </SignInButton>
+        </div>
       </DialogContent>
     </Dialog>
   )

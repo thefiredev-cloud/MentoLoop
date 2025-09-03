@@ -108,7 +108,7 @@ export default function HeroSection() {
                                         asChild
                                         size="lg"
                                         className="group relative bg-white text-blue-700 hover:bg-white/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden">
-                                        <Link href="/student-intake">
+                                        <Link href="/sign-up/student">
                                             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                             <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform text-blue-700" />
                                             <span className="relative text-nowrap font-semibold">Find My Preceptor</span>
@@ -119,7 +119,7 @@ export default function HeroSection() {
                                         size="lg"
                                         variant="outline"
                                         className="group border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-white/50">
-                                        <Link href="/preceptor-intake">
+                                        <Link href="/sign-up/preceptor">
                                             <Shield className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                                             <span className="text-nowrap font-semibold">Become a Preceptor</span>
                                         </Link>
