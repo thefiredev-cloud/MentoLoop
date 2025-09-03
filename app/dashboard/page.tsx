@@ -28,29 +28,8 @@ export default function DashboardPage() {
       console.error('[Dashboard] User sync error:', {
         error: err.message,
         retryCount,
-        timestamp: new Date().toISOString(),
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
-        url: typeof window !== 'undefined' ? window.location.href : 'SSR'
+        timestamp: new Date().toISOString()
       })
-      
-      // Auto-retry with exponential backoff
-      if (retryCount < maxRetries) {
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000)
-        console.log(`[Dashboard] Retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`)
-        
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1)
-          refetch()
-        }, delay)
-      } else {
-        console.error('[Dashboard] Max retries reached, user sync failed')
-        // Clear any stale cache
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('userRole')
-          localStorage.removeItem('userRoleConfirmed')
-          sessionStorage.clear()
-        }
-      }
     }
   })
   const router = useRouter()
@@ -71,6 +50,35 @@ export default function DashboardPage() {
     })
   }, [isLoading, user])
 
+  // Handle error and browser-specific operations after mount
+  useEffect(() => {
+    if (!isMounted || !error) return
+    
+    // Log browser-specific error details
+    console.error('[Dashboard] Error details:', {
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      error: error.message
+    })
+    
+    // Auto-retry with exponential backoff
+    if (retryCount < maxRetries) {
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 5000)
+      console.log(`[Dashboard] Retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`)
+      
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1)
+        refetch()
+      }, delay)
+    } else {
+      console.error('[Dashboard] Max retries reached, user sync failed')
+      // Clear any stale cache
+      localStorage.removeItem('userRole')
+      localStorage.removeItem('userRoleConfirmed')
+      sessionStorage.clear()
+    }
+  }, [error, isMounted, retryCount, maxRetries, refetch])
+  
   // Check localStorage for saved role on mount (client-side only)
   useEffect(() => {
     if (!isMounted || !user || user.userType) return
@@ -101,22 +109,46 @@ export default function DashboardPage() {
         case 'student':
           hasRedirected.current = true
           console.log('[Dashboard] Redirecting to student dashboard')
-          router.replace('/dashboard/student')
+          router.push('/dashboard/student')
+          // Fallback for redirect failure
+          setTimeout(() => {
+            if (window.location.pathname === '/dashboard') {
+              window.location.href = '/dashboard/student'
+            }
+          }, 1000)
           break
         case 'preceptor':
           hasRedirected.current = true
           console.log('[Dashboard] Redirecting to preceptor dashboard')
-          router.replace('/dashboard/preceptor')
+          router.push('/dashboard/preceptor')
+          // Fallback for redirect failure
+          setTimeout(() => {
+            if (window.location.pathname === '/dashboard') {
+              window.location.href = '/dashboard/preceptor'
+            }
+          }, 1000)
           break
         case 'admin':
           hasRedirected.current = true
           console.log('[Dashboard] Redirecting to admin dashboard')
-          router.replace('/dashboard/admin')
+          router.push('/dashboard/admin')
+          // Fallback for redirect failure
+          setTimeout(() => {
+            if (window.location.pathname === '/dashboard') {
+              window.location.href = '/dashboard/admin'
+            }
+          }, 1000)
           break
         case 'enterprise':
           hasRedirected.current = true
           console.log('[Dashboard] Redirecting to enterprise dashboard')
-          router.replace('/dashboard/enterprise')
+          router.push('/dashboard/enterprise')
+          // Fallback for redirect failure
+          setTimeout(() => {
+            if (window.location.pathname === '/dashboard') {
+              window.location.href = '/dashboard/enterprise'
+            }
+          }, 1000)
           break
         default:
           // If no userType, stay on this page to show setup options
