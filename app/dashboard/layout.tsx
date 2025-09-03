@@ -5,6 +5,7 @@ import { SiteHeader } from "@/app/dashboard/site-header"
 import { LoadingBar } from "@/app/dashboard/loading-bar"
 import { DashboardNavbar } from "@/app/dashboard/dashboard-navbar"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { Suspense } from 'react'
 
 export default function DashboardLayout({
   children,
@@ -14,14 +15,18 @@ export default function DashboardLayout({
   return (
     <>
       {/* Top Navbar - Fixed at top */}
-      <DashboardNavbar />
+      <Suspense fallback={<div className="h-14 bg-background border-b" />}>
+        <DashboardNavbar />
+      </Suspense>
       
       {/* Main Dashboard Container - Below Navbar */}
       <div className="min-h-screen pt-14">
         <SidebarProvider>
           <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
             {/* Sidebar - fixed width, no z-index conflicts */}
-            <AppSidebar />
+            <Suspense fallback={<div className="w-64 bg-background border-r" />}>
+              <AppSidebar />
+            </Suspense>
             
             {/* Main Content Area - with proper margin for sidebar */}
             <div className="flex-1 flex flex-col overflow-hidden">

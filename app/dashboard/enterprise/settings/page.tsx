@@ -29,7 +29,7 @@ function EnterpriseSettingsContent() {
   return (
     <DashboardContainer
       title="Organization Settings"
-      subtitle="Manage your organization's preferences and configuration"
+      subtitle="Manage your organization&apos;s preferences and configuration"
     >
       {/* Organization Information */}
       <Card>
@@ -39,7 +39,7 @@ function EnterpriseSettingsContent() {
             Organization Information
           </CardTitle>
           <CardDescription>
-            Update your organization's basic information
+            Update your organization&apos;s basic information
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

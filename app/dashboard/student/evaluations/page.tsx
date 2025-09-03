@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react'
+import { useMemo } from 'react'
 
 export default function StudentEvaluationsPage() {
   return (
@@ -29,6 +30,14 @@ export default function StudentEvaluationsPage() {
 }
 
 function StudentEvaluationsContent() {
+  // Use stable values instead of Math.random() to avoid hydration mismatches
+  const skillRatings = useMemo(() => ({
+    'Clinical Skills': { rating: 4.2, progress: 84 },
+    'Patient Communication': { rating: 4.5, progress: 90 },
+    'Professionalism': { rating: 4.8, progress: 96 },
+    'Medical Knowledge': { rating: 4.0, progress: 80 }
+  }), [])
+
   const evaluations = [
     {
       id: 1,
@@ -277,13 +286,13 @@ function StudentEvaluationsContent() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {['Clinical Skills', 'Patient Communication', 'Professionalism', 'Medical Knowledge'].map((skill) => (
+            {Object.entries(skillRatings).map(([skill, data]) => (
               <div key={skill} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span>{skill}</span>
-                  <span className="font-medium">{(Math.random() * 2 + 3).toFixed(1)}/5.0</span>
+                  <span className="font-medium">{data.rating}/5.0</span>
                 </div>
-                <Progress value={Math.random() * 30 + 70} className="h-2" />
+                <Progress value={data.progress} className="h-2" />
               </div>
             ))}
           </div>

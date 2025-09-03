@@ -10,6 +10,8 @@
   NODE_VERSION = "20.19.4"
   NPM_VERSION = "10"
   NETLIFY = "true"
+  # Ensure devDependencies are installed
+  NODE_ENV = "development"
   # Increase memory for build process
   NODE_OPTIONS = "--max_old_space_size=4096"
   # Build timeout (10 minutes)

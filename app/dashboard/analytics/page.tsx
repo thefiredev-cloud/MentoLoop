@@ -21,8 +21,8 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30d')
   
   // Fetch analytics data from Convex
-  const users = useQuery(api.users.list)
-  const matches = useQuery(api.matches.list)
+  const users = useQuery(api.users.getAllUsers)
+  const matches = useQuery(api.matches.getAllMatches, {})
   
   // Calculate metrics
   const totalUsers = users?.length || 0

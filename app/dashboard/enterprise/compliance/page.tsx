@@ -117,7 +117,7 @@ function EnterpriseComplianceContent() {
         <CardHeader>
           <CardTitle>Compliance Status</CardTitle>
           <CardDescription>
-            Review your organization's compliance with regulatory requirements
+            Review your organization&apos;s compliance with regulatory requirements
           </CardDescription>
         </CardHeader>
         <CardContent>
