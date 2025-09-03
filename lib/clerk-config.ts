@@ -71,13 +71,23 @@ export function isUsingDevKeys(): boolean {
 
 // Helper to get the correct Clerk domain
 export function getClerkDomain(): string {
-  // Use the frontend API URL if available
-  if (process.env.NEXT_PUBLIC_CLERK_FRONTEND_API_URL) {
-    return process.env.NEXT_PUBLIC_CLERK_FRONTEND_API_URL
+  // Parse domain from publishable key (Clerk's recommended approach)
+  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+  
+  // For live keys, extract the encoded domain
+  if (key.startsWith('pk_live_')) {
+    try {
+      // Live keys have the domain base64 encoded after pk_live_
+      const encodedDomain = key.substring(8).split('$')[0]
+      const domain = Buffer.from(encodedDomain, 'base64').toString('utf-8')
+      return `https://${domain}`
+    } catch (e) {
+      // Fallback to default if parsing fails
+      return 'https://loved-lamprey-34.clerk.accounts.dev'
+    }
   }
   
-  // Fallback to parsing from publishable key
-  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+  // For test keys, extract the subdomain
   const match = key.match(/pk_test_(.+?)\./)
   if (match) {
     return `https://${match[1]}.clerk.accounts.dev`

@@ -48,10 +48,11 @@ function AdminDashboardContent() {
     totalUsers: allUsers?.length || 0,
     activeMatches: allMatches?.filter(m => m.status === 'active' || m.status === 'confirmed').length || 0,
     pendingMatches: allMatches?.filter(m => m.status === 'pending').length || 0,
-    totalRevenue: paymentAttempts?.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + p.amount, 0) || 0,
+    totalRevenue: paymentAttempts?.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + (p.amount / 100), 0) || 0, // Convert from cents to dollars
     aiSuccessRate: allMatches?.filter(m => m.aiAnalysis).length ? 
       ((allMatches.filter(m => m.aiAnalysis?.confidence === 'high').length / allMatches.filter(m => m.aiAnalysis).length) * 100).toFixed(1) : 0,
-    avgResponseTime: '2.3h' // This would need to be calculated from actual response times
+    avgResponseTime: allMatches?.length ? 
+      `${Math.round(allMatches.reduce((sum, m) => sum + (m.responseTimeHours || 0), 0) / allMatches.length)}h` : 'N/A'
   }
 
   // Get recent matches from real data
@@ -176,7 +177,7 @@ function AdminDashboardContent() {
                 <CardContent>
                   <div className="text-2xl font-bold">{overviewStats.totalUsers.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
-                    +12% from last month
+                    {overviewStats.totalUsers} total registered
                   </p>
                 </CardContent>
               </Card>
@@ -202,7 +203,7 @@ function AdminDashboardContent() {
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(overviewStats.totalRevenue)}</div>
                   <p className="text-xs text-muted-foreground">
-                    +8% from last month
+                    Total processed revenue
                   </p>
                 </CardContent>
               </Card>

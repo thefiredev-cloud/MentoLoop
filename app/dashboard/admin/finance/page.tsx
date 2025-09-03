@@ -107,8 +107,7 @@ function FinancialManagementContent() {
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalRevenue + totalIntakeRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
-              +12% from last {selectedPeriod}
+              Total platform revenue
             </p>
           </CardContent>
         </Card>
