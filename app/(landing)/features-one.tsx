@@ -13,7 +13,7 @@ export default function FeaturesOne() {
                     <Shield className="h-8 w-8 text-blue-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-blue-500/20 via-blue-400/10 to-transparent dark:from-blue-400/20 dark:via-blue-500/10 dark:to-transparent"
+            gradient: "from-blue-500/20 via-blue-400/10 to-transparent"
         },
         {
             title: "AI-Powered Matching",
@@ -24,7 +24,7 @@ export default function FeaturesOne() {
                     <Brain className="h-8 w-8 text-purple-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-purple-500/20 via-pink-400/10 to-transparent dark:from-purple-400/20 dark:via-pink-500/10 dark:to-transparent"
+            gradient: "from-purple-500/20 via-pink-400/10 to-transparent"
         },
         {
             title: "Fast Placements",
@@ -35,7 +35,7 @@ export default function FeaturesOne() {
                     <Clock className="h-8 w-8 text-orange-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-orange-500/20 via-amber-400/10 to-transparent dark:from-orange-400/20 dark:via-amber-500/10 dark:to-transparent"
+            gradient: "from-orange-500/20 via-amber-400/10 to-transparent"
         },
         {
             title: "Excellence Guaranteed",
@@ -46,7 +46,7 @@ export default function FeaturesOne() {
                     <Award className="h-8 w-8 text-yellow-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-yellow-500/20 via-yellow-400/10 to-transparent dark:from-yellow-400/20 dark:via-yellow-500/10 dark:to-transparent"
+            gradient: "from-yellow-500/20 via-yellow-400/10 to-transparent"
         },
         {
             title: "Mission Driven",
@@ -57,7 +57,7 @@ export default function FeaturesOne() {
                     <Target className="h-8 w-8 text-red-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-red-500/20 via-rose-400/10 to-transparent dark:from-red-400/20 dark:via-rose-500/10 dark:to-transparent"
+            gradient: "from-red-500/20 via-rose-400/10 to-transparent"
         },
         {
             title: "Quality Focused",
@@ -68,7 +68,7 @@ export default function FeaturesOne() {
                     <Star className="h-8 w-8 text-indigo-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-indigo-500/20 via-indigo-400/10 to-transparent dark:from-indigo-400/20 dark:via-indigo-500/10 dark:to-transparent"
+            gradient: "from-indigo-500/20 via-indigo-400/10 to-transparent"
         }
     ];
 
@@ -83,7 +83,7 @@ export default function FeaturesOne() {
                     <Users className="h-8 w-8 text-teal-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-teal-500/20 via-cyan-400/10 to-transparent dark:from-teal-400/20 dark:via-cyan-500/10 dark:to-transparent"
+            gradient: "from-teal-500/20 via-cyan-400/10 to-transparent"
         },
         {
             title: "Seamless Support",
@@ -94,7 +94,7 @@ export default function FeaturesOne() {
                     <FileCheck className="h-8 w-8 text-green-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-green-500/20 via-emerald-400/10 to-transparent dark:from-green-400/20 dark:via-emerald-500/10 dark:to-transparent"
+            gradient: "from-green-500/20 via-emerald-400/10 to-transparent"
         },
         {
             title: "Community First",
@@ -105,7 +105,7 @@ export default function FeaturesOne() {
                     <Heart className="h-8 w-8 text-pink-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-pink-500/20 via-rose-400/10 to-transparent dark:from-pink-400/20 dark:via-rose-500/10 dark:to-transparent"
+            gradient: "from-pink-500/20 via-rose-400/10 to-transparent"
         },
         {
             title: "Evidence Based",
@@ -116,7 +116,7 @@ export default function FeaturesOne() {
                     <BookOpen className="h-8 w-8 text-sky-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-sky-500/20 via-blue-400/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent"
+            gradient: "from-sky-500/20 via-blue-400/10 to-transparent"
         },
         {
             title: "Instant Access",
@@ -127,7 +127,7 @@ export default function FeaturesOne() {
                     <Zap className="h-8 w-8 text-violet-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-violet-500/20 via-purple-400/10 to-transparent dark:from-violet-400/20 dark:via-purple-500/10 dark:to-transparent"
+            gradient: "from-violet-500/20 via-purple-400/10 to-transparent"
         },
         {
             title: "Success Stories",
@@ -138,14 +138,14 @@ export default function FeaturesOne() {
                     <CheckCircle className="h-8 w-8 text-lime-600 relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-lime-500/20 via-green-400/10 to-transparent dark:from-lime-400/20 dark:via-green-500/10 dark:to-transparent"
+            gradient: "from-lime-500/20 via-green-400/10 to-transparent"
         }
     ];
 
     return (
         <section id="how-it-works" className="relative py-20 md:py-32 overflow-hidden">
             {/* Aurora gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 dark:from-primary/10 dark:to-secondary/10" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
             
             <div className="relative">

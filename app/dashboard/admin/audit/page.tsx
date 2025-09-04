@@ -291,7 +291,7 @@ function AuditLogsContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <div className="flex items-center justify-between p-3 border border-yellow-200 bg-yellow-50 rounded-lg">
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="h-4 w-4 text-yellow-600 mt-1" />
                     <div className="space-y-1">

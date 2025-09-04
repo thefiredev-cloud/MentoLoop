@@ -200,7 +200,7 @@ export default function StudentIntakePage() {
                         className={`absolute top-5 left-1/2 w-full h-0.5 ${
                           completedSteps.includes(step.id) 
                             ? 'bg-green-500' 
-                            : 'bg-gray-200 dark:bg-gray-700'
+                            : 'bg-gray-200'
                         }`}
                         style={{ width: 'calc(100% - 2rem)', left: '60%' }}
                       />

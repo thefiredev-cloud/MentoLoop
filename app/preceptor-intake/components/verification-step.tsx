@@ -302,13 +302,13 @@ export default function VerificationStep({
       </Card>
 
       {/* Security Notice */}
-      <Card className="border-primary/20 bg-primary/5 dark:bg-primary/10">
+      <Card className="border-primary/20 bg-primary/5">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Shield className="h-5 w-5 text-primary mt-1 shrink-0" />
             <div>
-              <p className="text-sm font-medium mb-1 text-primary dark:text-primary-foreground">Your Information is Secure</p>
-              <p className="text-xs text-primary/80 dark:text-primary-foreground/80">
+              <p className="text-sm font-medium mb-1 text-primary">Your Information is Secure</p>
+              <p className="text-xs text-primary/80">
                 All personal and professional information is encrypted and stored securely. 
                 We never share your data with third parties without your explicit consent.
               </p>

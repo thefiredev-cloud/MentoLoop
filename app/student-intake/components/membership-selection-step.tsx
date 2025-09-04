@@ -115,11 +115,11 @@ export default function MembershipSelectionStep({
   const getPlanColor = (color: string) => {
     switch (color) {
       case 'blue':
-        return 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+        return 'border-blue-500 bg-blue-50'
       case 'purple':
-        return 'border-purple-500 bg-purple-50 dark:bg-purple-950/20'
+        return 'border-purple-500 bg-purple-50'
       case 'gold':
-        return 'border-amber-500 bg-amber-50 dark:bg-amber-950/20'
+        return 'border-amber-500 bg-amber-50'
       default:
         return ''
     }

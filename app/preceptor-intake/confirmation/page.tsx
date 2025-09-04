@@ -58,7 +58,7 @@ export default function PreceptorIntakeConfirmationPage() {
       <div className="container mx-auto px-4 max-w-3xl">
         {/* Success Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-10 w-10 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Welcome to the MentoLoop Network!</h1>

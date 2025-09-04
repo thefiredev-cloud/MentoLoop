@@ -436,13 +436,13 @@ export default function AgreementsStep({
       </Card>
 
       {/* Privacy Notice */}
-      <Card className="bg-primary/5 border-primary/20 dark:bg-primary/10 dark:border-primary/20">
+      <Card className="bg-primary/5 border-primary/20">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Shield className="h-5 w-5 text-primary mt-1 shrink-0" />
             <div>
-              <p className="text-sm font-medium mb-1 text-primary dark:text-primary-foreground">Your Data Security</p>
-              <p className="text-xs text-primary/80 dark:text-primary-foreground/80">
+              <p className="text-sm font-medium mb-1 text-primary">Your Data Security</p>
+              <p className="text-xs text-primary/80">
                 We prioritize student safety and data privacy with every interaction. Your information is encrypted, 
                 HIPAA-compliant, and only shared with verified preceptors after you&apos;ve confirmed a match. 
                 We never sell your data to third parties.

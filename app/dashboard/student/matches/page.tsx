@@ -129,7 +129,7 @@ export default function StudentMatches() {
                   
                 return (
                   <Card key={match._id} className="overflow-hidden">
-                      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
                         <div className="flex items-start justify-between">
                           <div className="space-y-2">
                             <div className="flex items-center gap-3">
@@ -326,7 +326,7 @@ export default function StudentMatches() {
                 
                 return (
                   <Card key={match._id} className="overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
@@ -422,7 +422,7 @@ export default function StudentMatches() {
                 
                 return (
                   <Card key={match._id} className="overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950 dark:to-slate-950">
+                    <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">

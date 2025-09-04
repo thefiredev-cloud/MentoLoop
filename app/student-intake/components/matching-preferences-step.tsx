@@ -157,7 +157,7 @@ export default function MatchingPreferencesStep({
   if (!canAccessSection) {
     return (
       <div className="space-y-6">
-        <Card className="border-2 border-amber-500/20 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20">
+        <Card className="border-2 border-amber-500/20 bg-gradient-to-br from-amber-50/50 to-orange-50/50">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-3 text-2xl">

@@ -73,7 +73,7 @@ export const BentoGridItem = ({
         "hover:scale-[1.02] hover:border-white/20",
         "backdrop-blur-md",
         carousel ? "h-[14rem] w-[14rem] md:h-[16rem] md:w-[16rem] flex-shrink-0" : "row-span-1",
-        gradient || "from-white/10 to-white/5 dark:from-black/20 dark:to-black/10",
+        gradient || "from-white/10 to-white/5",
         className
       )}
     >

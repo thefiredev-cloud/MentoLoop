@@ -60,7 +60,7 @@ export const Table = ({ className }: { className?: string }) => {
             <table
                 className="w-max table-auto border-collapse lg:w-full"
                 data-rounded="medium">
-                <thead className="dark:bg-background bg-gray-950/5">
+                <thead className="bg-gray-950/5">
                     <tr className="*:border *:p-3 *:text-left *:text-sm *:font-medium">
                         <th className="rounded-l-[--card-radius]">#</th>
                         <th>Date</th>

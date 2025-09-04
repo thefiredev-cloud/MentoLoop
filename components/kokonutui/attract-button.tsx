@@ -77,10 +77,10 @@ export default function AttractButton({
         <Button
             className={cn(
                 "min-w-40 relative touch-none",
-                "bg-violet-100 dark:bg-violet-900",
-                "hover:bg-violet-200 dark:hover:bg-violet-800",
-                "text-violet-600 dark:text-violet-300",
-                "border border-violet-300 dark:border-violet-700",
+                "bg-violet-100",
+                "hover:bg-violet-200",
+                "text-violet-600",
+                "border border-violet-300",
                 "transition-all duration-300",
                 className
             )}
@@ -98,7 +98,7 @@ export default function AttractButton({
                     animate={particlesControl}
                     className={cn(
                         "absolute w-1.5 h-1.5 rounded-full",
-                        "bg-violet-400 dark:bg-violet-300",
+                        "bg-violet-400",
                         "transition-opacity duration-300",
                         isAttracting ? "opacity-100" : "opacity-40"
                     )}

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
 
 import { UserButton } from "@clerk/nextjs"
-import { ThemeToggle } from '@/components/theme-toggle'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,8 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { dark } from '@clerk/themes'
-import { useTheme } from "next-themes"
+
 
 const quickLinks = [
   { name: 'Home', href: '/', icon: Home },
@@ -29,11 +28,10 @@ const quickLinks = [
 ]
 
 export const DashboardNavbar = () => {
-  const { theme } = useTheme()
+
   const pathname = usePathname()
 
   const appearance = {
-    baseTheme: theme === "dark" ? dark : undefined,
     elements: {
       footerAction: "hidden",
     },
@@ -128,9 +126,6 @@ export const DashboardNavbar = () => {
                 </Link>
               </Button>
             )}
-
-            {/* Theme Toggle */}
-            <ThemeToggle />
 
             {/* User Menu */}
             <UserButton 

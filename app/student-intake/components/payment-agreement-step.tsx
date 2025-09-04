@@ -312,11 +312,11 @@ export default function PaymentAgreementStep({
   const getPlanColor = (color: string) => {
     switch (color) {
       case 'blue':
-        return 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+        return 'border-blue-500 bg-blue-50'
       case 'purple':
-        return 'border-purple-500 bg-purple-50 dark:bg-purple-950/20'
+        return 'border-purple-500 bg-purple-50'
       case 'gold':
-        return 'border-amber-500 bg-amber-50 dark:bg-amber-950/20'
+        return 'border-amber-500 bg-amber-50'
       default:
         return ''
     }
@@ -372,9 +372,9 @@ export default function PaymentAgreementStep({
               <div className={cn(
                 "w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center",
                 "bg-gradient-to-br",
-                block.color === 'blue' ? "from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800" :
-                block.color === 'purple' ? "from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800" :
-                "from-amber-100 to-amber-200 dark:from-amber-900 dark:to-amber-800"
+                block.color === 'blue' ? "from-blue-100 to-blue-200" :
+                block.color === 'purple' ? "from-purple-100 to-purple-200" :
+                "from-amber-100 to-amber-200"
               )}>
                 <block.icon className={cn("w-10 h-10", getIconColor(block.color))} />
               </div>
@@ -609,8 +609,8 @@ export default function PaymentAgreementStep({
 
             {/* Note about installment availability */}
             {selectedBlock === 'core' && paymentOption === 'installments' && (
-              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                <p className="text-sm text-amber-800 dark:text-amber-200 flex items-start gap-2">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-800 flex items-start gap-2">
                   <span className="text-amber-600">⚠</span>
                   <span>
                     Installment payments are only available for Pro and Premium blocks. 

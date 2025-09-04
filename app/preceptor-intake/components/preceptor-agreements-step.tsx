@@ -383,13 +383,13 @@ export default function PreceptorAgreementsStep({
       </Card>
 
       {/* Security Notice */}
-      <Card className="bg-primary/5 border-primary/20 dark:bg-primary/10 dark:border-primary/20">
+      <Card className="bg-primary/5 border-primary/20">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Shield className="h-5 w-5 text-primary mt-1 shrink-0" />
             <div>
-              <p className="text-sm font-medium mb-1 text-primary dark:text-primary-foreground">Your Information Security</p>
-              <p className="text-xs text-primary/80 dark:text-primary-foreground/80">
+              <p className="text-sm font-medium mb-1 text-primary">Your Information Security</p>
+              <p className="text-xs text-primary/80">
                 We follow strict verification procedures and maintain HIPAA-compliant data security. 
                 Your information is encrypted and only shared with verified students after mutual match approval. 
                 We never sell preceptor data to third parties.

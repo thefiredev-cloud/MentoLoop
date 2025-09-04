@@ -9,11 +9,10 @@ import { usePathname } from 'next/navigation'
 
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
-import { ThemeToggle } from '@/components/theme-toggle'
+
 import { CustomSignupModal } from '@/components/custom-signup-modal'
 
-import { dark } from '@clerk/themes'
-import { useTheme } from "next-themes"
+
 
 const menuItems = [
     { name: 'Home', href: '/' },
@@ -26,7 +25,7 @@ const menuItems = [
 export const NavHeader = () => {
     const [menuState, setMenuState] = React.useState(false)
     const [showSignupModal, setShowSignupModal] = React.useState(false)
-    const { theme } = useTheme()
+
     const { isSignedIn, isLoaded } = useUser()
     const pathname = usePathname()
     const mouseX = useMotionValue(0)
@@ -38,7 +37,6 @@ export const NavHeader = () => {
     }
 
     const appearance = {
-        baseTheme: theme === "dark" ? dark : undefined,
         elements: {
             footerAction: "hidden", // Hide "What is Clerk?" link
         },
@@ -99,8 +97,6 @@ export const NavHeader = () => {
 
                     {/* Auth Section */}
                     <div className="flex items-center space-x-2">
-                        <ThemeToggle />
-                        
                         <AuthLoading>
                             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                         </AuthLoading>

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ThemeToggle } from "@/components/theme-toggle"
+
 
 function getPageTitle(pathname: string): string {
   // Handle exact matches and patterns
@@ -77,7 +77,7 @@ export function SiteHeader() {
           />
           {!hideTitle && <h1 className="text-base font-medium">{pageTitle}</h1>}
         </div>
-        <ThemeToggle />
+
       </div>
     </header>
   )
