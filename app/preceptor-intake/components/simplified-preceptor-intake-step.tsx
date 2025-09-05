@@ -31,16 +31,13 @@ const US_STATES = [
 ]
 
 const SPECIALTIES = [
-  { value: 'family-practice', label: 'Family Practice' },
-  { value: 'internal-medicine', label: 'Internal Medicine' },
-  { value: 'pediatrics', label: 'Pediatrics' },
-  { value: 'womens-health', label: 'Women\'s Health' },
-  { value: 'mental-health', label: 'Mental Health/Psychiatry' },
-  { value: 'emergency', label: 'Emergency Medicine' },
-  { value: 'acute-care', label: 'Acute Care' },
-  { value: 'primary-care', label: 'Primary Care' },
-  { value: 'specialty-care', label: 'Specialty Care' },
-  { value: 'telehealth', label: 'Telehealth' },
+  { value: 'FNP', label: 'Family Nurse Practitioner (FNP)' },
+  { value: 'PNP', label: 'Pediatric Nurse Practitioner (PNP)' },
+  { value: 'PMHNP', label: 'Psychiatric Mental Health NP (PMHNP)' },
+  { value: 'AGNP', label: 'Adult-Gerontology NP (AGNP)' },
+  { value: 'ACNP', label: 'Acute Care NP (ACNP)' },
+  { value: 'WHNP', label: 'Women\'s Health NP (WHNP)' },
+  { value: 'NNP', label: 'Neonatal NP (NNP)' },
   { value: 'other', label: 'Other' }
 ]
 
