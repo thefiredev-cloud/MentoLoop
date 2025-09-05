@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   IconChartBar,
-  IconDashboard,
   IconMessageCircle,
   IconFileAi,
   IconFileDescription,
@@ -43,11 +42,6 @@ import Link from "next/link"
 
 const studentNavData = {
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard/student",
-      icon: IconDashboard,
-    },
     {
       title: "My Matches",
       url: "/dashboard/student/matches",
@@ -103,11 +97,6 @@ const studentNavData = {
 const preceptorNavData = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard/preceptor",
-      icon: IconDashboard,
-    },
-    {
       title: "Student Matches",
       url: "/dashboard/preceptor/matches",
       icon: IconUsers,
@@ -161,11 +150,6 @@ const preceptorNavData = {
 
 const adminNavData = {
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: IconDashboard,
-    },
     {
       title: "Admin Dashboard",
       url: "/dashboard/admin",
@@ -234,11 +218,6 @@ const adminNavData = {
 
 const enterpriseNavData = {
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard/enterprise",
-      icon: IconDashboard,
-    },
     {
       title: "Students",
       url: "/dashboard/enterprise/students",
@@ -342,11 +321,7 @@ export function AppSidebar({ ...props }: Omit<React.ComponentProps<typeof Sideba
       default:
         // Return minimal navigation for users without a role
         navData = {
-          navMain: [{
-            title: "Dashboard",
-            url: "/dashboard",
-            icon: IconDashboard,
-          }],
+          navMain: [],
           navSecondary: [{
             title: "Help Center",
             url: "/help",

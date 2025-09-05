@@ -5,6 +5,7 @@ import { SiteHeader } from "@/app/dashboard/site-header"
 import { LoadingBar } from "@/app/dashboard/loading-bar"
 import { DashboardNavbar } from "@/app/dashboard/dashboard-navbar"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import Footer from "@/app/(landing)/footer"
 import { Suspense } from 'react'
 
 export default function DashboardLayout({
@@ -45,6 +46,8 @@ export default function DashboardLayout({
             </div>
           </div>
         </SidebarProvider>
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   )
