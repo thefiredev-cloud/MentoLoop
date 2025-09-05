@@ -124,11 +124,6 @@ const preceptorNavData = {
       icon: IconStethoscope,
     },
     {
-      title: "Billing",
-      url: "/dashboard/billing",
-      icon: IconCreditCard,
-    },
-    {
       title: "Help Center",
       url: "/help",
       icon: IconHelp,

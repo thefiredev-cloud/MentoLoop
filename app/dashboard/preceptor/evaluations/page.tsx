@@ -1,12 +1,14 @@
 'use client'
 
-import React from 'react'
-import { useQuery } from 'convex/react'
+import React, { useState } from 'react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { toast } from 'sonner'
 import { 
   FileText,
   Plus,
@@ -18,75 +20,63 @@ import {
   AlertCircle,
   Eye,
   Edit,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function PreceptorEvaluations() {
   const user = useQuery(api.users.current)
+  const evaluations = useQuery(api.evaluations.getPreceptorEvaluations) || []
+  const evaluationStats = useQuery(api.evaluations.getEvaluationStats)
+  const deleteEvaluation = useMutation(api.evaluations.deleteEvaluation)
+  
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   if (!user) {
     return <div>Loading...</div>
   }
 
-  // Mock evaluations data - in real app would come from Convex
-  const mockEvaluations = [
-    {
-      _id: "eval_1",
-      student: {
-        name: "Emily Rodriguez",
-        program: "FNP"
-      },
-      type: "Mid-Rotation",
-      dateCreated: "2025-01-17",
-      dateDue: "2025-01-30",
-      status: "completed",
-      overallScore: 4.5,
-      rotation: {
-        specialty: "Family Practice",
-        week: 4,
-        totalWeeks: 8
-      }
-    },
-    {
-      _id: "eval_2", 
-      student: {
-        name: "Marcus Chen",
-        program: "AGACNP"
-      },
-      type: "Initial Assessment",
-      dateCreated: "2025-01-14",
-      dateDue: "2025-01-21",
-      status: "completed", 
-      overallScore: 4.2,
-      rotation: {
-        specialty: "Acute Care",
-        week: 1,
-        totalWeeks: 10
-      }
-    },
-    {
-      _id: "eval_3",
-      student: {
-        name: "Emily Rodriguez", 
-        program: "FNP"
-      },
-      type: "Final Evaluation",
-      dateCreated: null,
-      dateDue: "2025-03-12",
-      status: "pending",
-      overallScore: null,
-      rotation: {
-        specialty: "Family Practice",
-        week: 8,
-        totalWeeks: 8
-      }
+  const handleDeleteEvaluation = async (evaluationId: Id<"evaluations">) => {
+    try {
+      setDeletingId(evaluationId)
+      await deleteEvaluation({ evaluationId })
+      toast.success('Evaluation deleted successfully')
+    } catch (error) {
+      toast.error('Failed to delete evaluation')
+      console.error('Error deleting evaluation:', error)
+    } finally {
+      setDeletingId(null)
     }
-  ]
+  }
 
-  const completedCount = mockEvaluations.filter(e => e.status === 'completed').length
-  const pendingCount = mockEvaluations.filter(e => e.status === 'pending').length
-  const overdueCount = 0 // Would calculate based on due dates
+  const getStatusBadge = (status: string, dateDue?: string) => {
+    // Check if overdue
+    if (status === 'pending' && dateDue && new Date(dateDue) < new Date()) {
+      return (
+        <Badge variant="destructive" className="bg-red-500">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          Overdue
+        </Badge>
+      )
+    }
+    
+    if (status === 'completed') {
+      return (
+        <Badge variant="default" className="bg-green-500">
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          Completed
+        </Badge>
+      )
+    }
+    
+    return (
+      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+        <Clock className="h-3 w-3 mr-1" />
+        Pending
+      </Badge>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -114,7 +104,9 @@ export default function PreceptorEvaluations() {
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{completedCount}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {evaluationStats?.completed || 0}
+            </div>
             <p className="text-xs text-muted-foreground">This semester</p>
           </CardContent>
         </Card>
@@ -125,7 +117,9 @@ export default function PreceptorEvaluations() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{pendingCount}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {evaluationStats?.pending || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Awaiting completion</p>
           </CardContent>
         </Card>
@@ -136,7 +130,9 @@ export default function PreceptorEvaluations() {
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{overdueCount}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {evaluationStats?.overdue || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Past due date</p>
           </CardContent>
         </Card>
@@ -147,7 +143,7 @@ export default function PreceptorEvaluations() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.4</div>
+            <div className="text-2xl font-bold">{evaluationStats?.avgScore || 0}</div>
             <p className="text-xs text-muted-foreground">Out of 5.0</p>
           </CardContent>
         </Card>
@@ -158,7 +154,7 @@ export default function PreceptorEvaluations() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">All Evaluations</h2>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled={evaluations.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -169,7 +165,7 @@ export default function PreceptorEvaluations() {
         </div>
 
         <div className="space-y-4">
-          {mockEvaluations.map(evaluation => (
+          {evaluations.map(evaluation => (
             <Card key={evaluation._id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -179,39 +175,33 @@ export default function PreceptorEvaluations() {
                         <User className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg">{evaluation.student.name}</CardTitle>
+                        <CardTitle className="text-lg">{evaluation.studentName || 'Student'}</CardTitle>
                         <CardDescription>
-                          {evaluation.student.program} • {evaluation.rotation.specialty}
+                          {evaluation.studentProgram} • {evaluation.rotationSpecialty}
                         </CardDescription>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <Badge variant="outline">
-                        {evaluation.type}
+                        {evaluation.evaluationType}
                       </Badge>
                       <Badge variant="outline">
-                        Week {evaluation.rotation.week} of {evaluation.rotation.totalWeeks}
+                        Week {evaluation.rotationWeek} of {evaluation.rotationTotalWeeks}
                       </Badge>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    {evaluation.status === 'completed' ? (
+                    {evaluation.status === 'completed' && evaluation.overallScore ? (
                       <div className="text-right">
                         <div className="flex items-center gap-2 mb-1">
                           <Star className="h-4 w-4 text-yellow-400 fill-current" />
                           <span className="font-semibold">{evaluation.overallScore}/5.0</span>
                         </div>
-                        <Badge variant="default" className="bg-green-500">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Completed
-                        </Badge>
+                        {getStatusBadge(evaluation.status, evaluation.dateDue)}
                       </div>
                     ) : (
-                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Pending
-                      </Badge>
+                      getStatusBadge(evaluation.status, evaluation.dateDue)
                     )}
                   </div>
                 </div>
@@ -225,7 +215,7 @@ export default function PreceptorEvaluations() {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">Created</span>
                       </div>
-                      <p className="ml-6">{evaluation.dateCreated}</p>
+                      <p className="ml-6">{new Date(evaluation.dateCreated).toLocaleDateString()}</p>
                     </div>
                   )}
                   
@@ -234,7 +224,7 @@ export default function PreceptorEvaluations() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Due Date</span>
                     </div>
-                    <p className="ml-6">{evaluation.dateDue}</p>
+                    <p className="ml-6">{new Date(evaluation.dateDue).toLocaleDateString()}</p>
                   </div>
                   
                   <div className="space-y-1">
@@ -242,9 +232,19 @@ export default function PreceptorEvaluations() {
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Type</span>
                     </div>
-                    <p className="ml-6">{evaluation.type}</p>
+                    <p className="ml-6">{evaluation.evaluationType}</p>
                   </div>
                 </div>
+
+                {evaluation.feedback && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Feedback</h4>
+                      <p className="text-sm text-muted-foreground">{evaluation.feedback}</p>
+                    </div>
+                  </>
+                )}
 
                 <Separator />
 
@@ -263,6 +263,15 @@ export default function PreceptorEvaluations() {
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDeleteEvaluation(evaluation._id)}
+                        disabled={deletingId === evaluation._id}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
                     </>
                   ) : (
                     <>
@@ -270,11 +279,18 @@ export default function PreceptorEvaluations() {
                         <Plus className="h-4 w-4 mr-2" />
                         Complete Evaluation
                       </Button>
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/dashboard/preceptor/students/${evaluation.student.name}`}>
-                          <User className="h-4 w-4 mr-2" />
-                          View Student
-                        </Link>
+                      <Button size="sm" variant="outline">
+                        <User className="h-4 w-4 mr-2" />
+                        View Student
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDeleteEvaluation(evaluation._id)}
+                        disabled={deletingId === evaluation._id}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
                       </Button>
                     </>
                   )}
@@ -284,7 +300,7 @@ export default function PreceptorEvaluations() {
           ))}
         </div>
 
-        {mockEvaluations.length === 0 && (
+        {evaluations.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />

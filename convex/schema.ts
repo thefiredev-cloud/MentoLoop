@@ -797,4 +797,57 @@ export default defineSchema({
     .index("byCustomerEmail", ["customerEmail"])
     .index("byCouponAndEmail", ["couponId", "customerEmail"])
     .index("byStripeSessionId", ["stripeSessionId"]),
+
+  // Documents table for storing student/preceptor documents
+  documents: defineTable({
+    name: v.string(),
+    documentType: v.union(
+      v.literal("Agreement"),
+      v.literal("Template"),
+      v.literal("Hours Log"),
+      v.literal("Credential"),
+      v.literal("Evaluation"),
+      v.literal("Other")
+    ),
+    fileUrl: v.string(),
+    fileSize: v.number(), // Size in bytes
+    fileType: v.string(), // pdf, docx, xlsx, etc
+    ownerId: v.id("users"), // User who uploaded
+    preceptorId: v.optional(v.id("users")), // Associated preceptor
+    studentId: v.optional(v.id("users")), // Associated student
+    studentName: v.optional(v.string()),
+    uploadDate: v.number(),
+    createdAt: v.number(),
+  }).index("byOwnerId", ["ownerId"])
+    .index("byStudentId", ["studentId"])
+    .index("byPreceptorId", ["preceptorId"])
+    .index("byDocumentType", ["documentType"]),
+
+  // Evaluations table for student performance evaluations
+  evaluations: defineTable({
+    preceptorId: v.id("users"),
+    studentId: v.id("users"),
+    studentProgram: v.string(), // FNP, AGACNP, etc
+    evaluationType: v.union(
+      v.literal("Initial Assessment"),
+      v.literal("Mid-Rotation"),
+      v.literal("Final Evaluation"),
+      v.literal("Weekly Check-in")
+    ),
+    dateCreated: v.optional(v.string()),
+    dateDue: v.string(),
+    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("overdue")),
+    overallScore: v.optional(v.number()), // Score out of 5
+    feedback: v.optional(v.string()),
+    strengths: v.optional(v.array(v.string())),
+    areasForImprovement: v.optional(v.array(v.string())),
+    rotationSpecialty: v.string(),
+    rotationWeek: v.number(),
+    rotationTotalWeeks: v.number(),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  }).index("byPreceptorId", ["preceptorId"])
+    .index("byStudentId", ["studentId"])
+    .index("byStatus", ["status"])
+    .index("byEvaluationType", ["evaluationType"]),
   });

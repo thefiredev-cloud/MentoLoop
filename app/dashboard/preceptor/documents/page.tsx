@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import { 
   FileText,
   Plus,
@@ -21,72 +23,33 @@ import {
   FileSpreadsheet
 } from 'lucide-react'
 
+type DocumentType = "Agreement" | "Template" | "Hours Log" | "Credential" | "Evaluation" | "Other" | "All"
+
 export default function PreceptorDocuments() {
   const user = useQuery(api.users.current)
-  const [selectedType, setSelectedType] = useState('All')
+  const documents = useQuery(api.documents.getAllDocuments) || []
+  const documentStats = useQuery(api.documents.getDocumentStats)
+  const deleteDocument = useMutation(api.documents.deleteDocument)
+  
+  const [selectedType, setSelectedType] = useState<DocumentType>('All')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   if (!user) {
     return <div>Loading...</div>
   }
-
-  // Mock documents data - in real app would come from Convex
-  const mockDocuments = [
-    {
-      _id: "doc_1",
-      name: "Preceptor Agreement - Emily Rodriguez.pdf",
-      type: "Agreement",
-      size: "245 KB",
-      uploadDate: "2025-01-15",
-      studentName: "Emily Rodriguez",
-      fileType: "pdf"
-    },
-    {
-      _id: "doc_2",
-      name: "Clinical Evaluation Template.docx", 
-      type: "Template",
-      size: "89 KB", 
-      uploadDate: "2025-01-10",
-      studentName: null,
-      fileType: "docx"
-    },
-    {
-      _id: "doc_3",
-      name: "Student Hours Log - Marcus Chen.xlsx",
-      type: "Hours Log", 
-      size: "156 KB",
-      uploadDate: "2025-01-08",
-      studentName: "Marcus Chen",
-      fileType: "xlsx"
-    },
-    {
-      _id: "doc_4",
-      name: "Practice License.pdf",
-      type: "Credential",
-      size: "1.2 MB",
-      uploadDate: "2024-12-20",
-      studentName: null,
-      fileType: "pdf" 
-    },
-    {
-      _id: "doc_5",
-      name: "Orientation Checklist.pdf",
-      type: "Template",
-      size: "312 KB",
-      uploadDate: "2024-12-15", 
-      studentName: null,
-      fileType: "pdf"
-    }
-  ]
 
   const getFileIcon = (fileType: string) => {
     switch (fileType) {
       case 'pdf':
         return <FileText className="h-5 w-5 text-red-500" />
       case 'docx':
+      case 'doc':
         return <File className="h-5 w-5 text-blue-500" />
       case 'xlsx':
+      case 'xls':
         return <FileSpreadsheet className="h-5 w-5 text-green-500" />
       case 'jpg':
+      case 'jpeg':
       case 'png':
         return <Image className="h-5 w-5 text-purple-500" aria-label="Image file" />
       default:
@@ -104,16 +67,39 @@ export default function PreceptorDocuments() {
         return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case 'Credential':
         return 'bg-purple-50 text-purple-700 border-purple-200'
+      case 'Evaluation':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
-  const documentTypes = ['All', 'Agreement', 'Template', 'Hours Log', 'Credential']
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+  }
+
+  const handleDeleteDocument = async (documentId: Id<"documents">) => {
+    try {
+      setDeletingId(documentId)
+      await deleteDocument({ documentId })
+      toast.success('Document deleted successfully')
+    } catch (error) {
+      toast.error('Failed to delete document')
+      console.error('Error deleting document:', error)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const documentTypes: DocumentType[] = ['All', 'Agreement', 'Template', 'Hours Log', 'Credential', 'Evaluation']
 
   const filteredDocuments = selectedType === 'All' 
-    ? mockDocuments 
-    : mockDocuments.filter(doc => doc.type === selectedType)
+    ? documents 
+    : documents.filter(doc => doc.documentType === selectedType)
 
   return (
     <div className="space-y-8">
@@ -141,7 +127,7 @@ export default function PreceptorDocuments() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockDocuments.length}</div>
+            <div className="text-2xl font-bold">{documentStats?.totalDocuments || 0}</div>
             <p className="text-xs text-muted-foreground">All files</p>
           </CardContent>
         </Card>
@@ -153,7 +139,7 @@ export default function PreceptorDocuments() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockDocuments.filter(doc => doc.studentName).length}
+              {documentStats?.studentDocuments || 0}
             </div>
             <p className="text-xs text-muted-foreground">Per student</p>
           </CardContent>
@@ -166,7 +152,7 @@ export default function PreceptorDocuments() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockDocuments.filter(doc => doc.type === 'Template').length}
+              {documentStats?.templates || 0}
             </div>
             <p className="text-xs text-muted-foreground">Reusable forms</p>
           </CardContent>
@@ -178,8 +164,12 @@ export default function PreceptorDocuments() {
             <Upload className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.1 MB</div>
-            <p className="text-xs text-muted-foreground">Of 1 GB limit</p>
+            <div className="text-2xl font-bold">
+              {formatFileSize(documentStats?.totalSize || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Of {formatFileSize(documentStats?.storageLimit || 1073741824)} limit
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -206,7 +196,7 @@ export default function PreceptorDocuments() {
             ({filteredDocuments.length})
           </h2>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled={documents.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Download All
             </Button>
@@ -226,10 +216,10 @@ export default function PreceptorDocuments() {
                     <div className="space-y-1">
                       <h3 className="font-semibold">{document.name}</h3>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{document.size}</span>
+                        <span>{formatFileSize(document.fileSize)}</span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {document.uploadDate}
+                          {new Date(document.uploadDate).toLocaleDateString()}
                         </span>
                         {document.studentName && (
                           <span className="flex items-center gap-1">
@@ -242,8 +232,8 @@ export default function PreceptorDocuments() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className={getTypeColor(document.type)}>
-                      {document.type}
+                    <Badge variant="outline" className={getTypeColor(document.documentType)}>
+                      {document.documentType}
                     </Badge>
                     
                     <div className="flex gap-1">
@@ -253,7 +243,12 @@ export default function PreceptorDocuments() {
                       <Button size="sm" variant="ghost">
                         <Download className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleDeleteDocument(document._id)}
+                        disabled={deletingId === document._id}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -271,7 +266,7 @@ export default function PreceptorDocuments() {
               <h3 className="text-lg font-semibold mb-2">No Documents</h3>
               <p className="text-muted-foreground text-center max-w-md mb-4">
                 {selectedType === 'All' 
-                  ? "You haven&apos;t uploaded any documents yet. Upload agreements, templates, and other files."
+                  ? "You haven't uploaded any documents yet. Upload agreements, templates, and other files."
                   : `No ${selectedType.toLowerCase()} documents found.`
                 }
               </p>

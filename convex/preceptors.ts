@@ -885,18 +885,24 @@ export const getPreceptorEarnings = query({
       .reduce((sum, e) => sum + e.amount, 0);
 
     // Get recent earnings (last 5)
-    const recentEarnings = earnings
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, 5)
-      .map(e => ({
-        id: e._id,
-        matchId: e.matchId,
-        amount: e.amount,
-        status: e.status,
-        description: e.description,
-        createdAt: e.createdAt,
-        paidAt: e.paidAt,
-      }));
+    const recentEarnings = await Promise.all(
+      earnings
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 5)
+        .map(async (e) => {
+          const student = await ctx.db.get(e.studentId);
+          return {
+            id: e._id,
+            matchId: e.matchId,
+            studentName: student?.name || "Unknown Student",
+            amount: e.amount,
+            status: e.status,
+            description: e.description,
+            createdAt: e.createdAt,
+            paidAt: e.paidAt,
+          };
+        })
+    );
 
     return {
       totalEarnings,

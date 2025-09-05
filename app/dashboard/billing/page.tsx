@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { 
   CreditCard, 
   Download, 
@@ -22,7 +24,16 @@ import {
 
 export default function BillingPage() {
   const user = useQuery(api.users.current)
+  const router = useRouter()
   const isStudent = user?.userType === 'student'
+  const isPreceptor = user?.userType === 'preceptor'
+  
+  // Redirect preceptors as they don't need billing
+  useEffect(() => {
+    if (isPreceptor) {
+      router.push('/dashboard/preceptor')
+    }
+  }, [isPreceptor, router])
   
   // For students, require intake completion before accessing billing
   if (isStudent) {
@@ -33,7 +44,7 @@ export default function BillingPage() {
     )
   }
   
-  // For other user types, show billing directly
+  // For other user types, show billing directly (except preceptors who are redirected)
   return <BillingContent userType={user?.userType} />
 }
 
