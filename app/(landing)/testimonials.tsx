@@ -7,6 +7,8 @@ import { useRef, useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 type Testimonial = {
     name: string
@@ -16,50 +18,15 @@ type Testimonial = {
     rating?: number
 }
 
-const testimonials: Testimonial[] = [
-    {
-        name: 'Sarah Chen',
-        role: 'FNP Student, University of California',
-        image: 'https://randomuser.me/api/portraits/women/1.jpg',
-        quote: 'MentoLoop found me the perfect preceptor match in just 10 days. The MentorFit algorithm really understood my learning style and paired me with someone who challenged me in all the right ways.',
-        rating: 5
-    },
-    {
-        name: 'Dr. Maria Rodriguez',
-        role: 'Family Nurse Practitioner, Primary Care',
-        image: 'https://randomuser.me/api/portraits/women/6.jpg',
-        quote: 'As a preceptor, MentoLoop makes it so easy to find students who are truly ready to learn. The screening process ensures I get motivated, prepared students every time.',
-        rating: 5
-    },
-    {
-        name: 'Jessica Thompson',
-        role: 'PMHNP Student, Johns Hopkins',
-        image: 'https://randomuser.me/api/portraits/women/7.jpg',
-        quote: 'After struggling to find a psych preceptor for months, MentoLoop matched me within 2 weeks. The paperwork support was incredible - they handled everything!',
-        rating: 5
-    },
-    {
-        name: 'Dr. Michael Park',
-        role: 'Psychiatric Nurse Practitioner',
-        image: 'https://randomuser.me/api/portraits/men/4.jpg',
-        quote: 'MentoLoop has completely transformed how I approach student mentorship. The platform helps me find students whose goals and style align with mine, making the teaching experience so much more rewarding.',
-        rating: 5
-    },
-    {
-        name: 'Emily Davis',
-        role: 'AGNP Student, Duke University',
-        image: 'https://randomuser.me/api/portraits/women/2.jpg',
-        quote: 'The stress of finding clinical placements was overwhelming until I found MentoLoop. Their team supported me through every step and I felt confident going into my rotations.',
-        rating: 5
-    },
-    {
-        name: 'Dr. Jennifer Adams',
-        role: 'Women\'s Health NP, Private Practice',
-        image: 'https://randomuser.me/api/portraits/women/8.jpg',
-        quote: 'MentoLoop understands the unique challenges of NP education. They connected me with passionate students and provided the support structure that made mentoring feel natural and fulfilling.',
-        rating: 5
-    },
-]
+// Avatar mapping for testimonials (using consistent random user images)
+const avatarMap: Record<string, string> = {
+    'Sarah Chen': 'https://randomuser.me/api/portraits/women/1.jpg',
+    'Dr. Maria Rodriguez': 'https://randomuser.me/api/portraits/women/6.jpg', 
+    'Jessica Thompson': 'https://randomuser.me/api/portraits/women/7.jpg',
+    'Dr. Michael Park': 'https://randomuser.me/api/portraits/men/4.jpg',
+    'Emily Davis': 'https://randomuser.me/api/portraits/women/2.jpg',
+    'Dr. Jennifer Adams': 'https://randomuser.me/api/portraits/women/8.jpg',
+}
 
 function TestimonialCard({ testimonial, index }: { testimonial: Testimonial; index: number }) {
     const ref = useRef(null)
@@ -125,6 +92,39 @@ export default function WallOfLoveSection() {
     const [currentIndex, setCurrentIndex] = useState(0)
     const containerRef = useRef(null)
     const isInView = useInView(containerRef, { once: true })
+    
+    // Get featured testimonials from Convex
+    const testimonialsFromDB = useQuery(api.testimonials.getPublicTestimonials, {
+        featured: true,
+        limit: 6
+    })
+    
+    // Transform database testimonials to match expected format
+    const testimonials: Testimonial[] = testimonialsFromDB?.map(t => ({
+        name: t.name,
+        role: t.title,
+        image: avatarMap[t.name] || `https://randomuser.me/api/portraits/${t.userType === 'preceptor' ? 'men' : 'women'}/${Math.floor(Math.random() * 10)}.jpg`,
+        quote: t.content,
+        rating: t.rating
+    })) || []
+    
+    // Don't render if no testimonials are loaded yet
+    if (!testimonialsFromDB || testimonials.length === 0) {
+        return (
+            <section className="relative py-16 md:py-32 overflow-hidden">
+                <div className="relative mx-auto max-w-7xl px-6">
+                    <div className="text-center mb-12">
+                        <h2 className="text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                            Trusted by Students & Preceptors
+                        </h2>
+                        <p className="text-muted-foreground text-xl max-w-3xl mx-auto">
+                            Loading testimonials...
+                        </p>
+                    </div>
+                </div>
+            </section>
+        )
+    }
     
     const nextTestimonial = () => {
         setCurrentIndex((prev) => (prev + 1) % testimonials.length)

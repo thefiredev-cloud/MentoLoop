@@ -23,6 +23,13 @@ export default function AnalyticsPage() {
   // Fetch analytics data from Convex
   const users = useQuery(api.users.getAllUsers)
   const matches = useQuery(api.matches.getAllMatches, {})
+  const platformStats = useQuery(api.platformStats.getActiveStats)
+  
+  // Helper function to get stat value
+  const getStatValue = (metric: string, fallback: any) => {
+    const stat = platformStats?.find(s => s.metric === metric)
+    return stat ? stat.value : fallback
+  }
   
   // Calculate metrics
   const totalUsers = users?.length || 0
@@ -31,6 +38,10 @@ export default function AnalyticsPage() {
   const activeMatches = matches?.filter(m => m.status === 'active').length || 0
   const pendingMatches = matches?.filter(m => m.status === 'pending').length || 0
   const completedMatches = matches?.filter(m => m.status === 'completed').length || 0
+  
+  // Get dynamic values from platform stats
+  const avgResponseTime = getStatValue('avg_response_time', '2.3h')
+  const totalInstitutions = getStatValue('total_institutions', 0)
 
   return (
     <div className="space-y-6">
@@ -104,7 +115,7 @@ export default function AnalyticsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.3h</div>
+            <div className="text-2xl font-bold">{avgResponseTime}</div>
             <p className="text-xs text-muted-foreground">
               Match confirmation time
             </p>
@@ -153,7 +164,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Institutions</span>
-                    <span className="text-sm font-medium">0</span>
+                    <span className="text-sm font-medium">{totalInstitutions}</span>
                   </div>
                 </div>
               </CardContent>

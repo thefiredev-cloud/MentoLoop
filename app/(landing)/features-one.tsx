@@ -1,7 +1,25 @@
+'use client'
+
 import { Shield, Users, FileCheck, Brain, Clock, Award, Heart, Star, Target, Zap, BookOpen, CheckCircle } from 'lucide-react'
 import { BentoGridCarousel, BentoGridItem } from '@/components/ui/bento-grid'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 export default function FeaturesOne() {
+    // Get platform statistics from database
+    const platformStats = useQuery(api.platformStats.getActiveStats)
+    
+    // Helper function to get stat value
+    const getStatValue = (metric: string, fallback: any) => {
+        const stat = platformStats?.find(s => s.metric === metric)
+        return stat ? stat.value : fallback
+    }
+    
+    // Get dynamic values or fallbacks
+    const successRate = getStatValue('success_rate', 98)
+    const avgPlacementTime = getStatValue('avg_placement_time', '72 hours')
+    const totalMatches = getStatValue('total_matches', 'Thousands')
+    const satisfactionRating = getStatValue('student_satisfaction', 4.9)
     // Row 1 - Moving Left (6 features) with enhanced colored icons
     const featuresRow1 = [
         {
@@ -28,7 +46,7 @@ export default function FeaturesOne() {
         },
         {
             title: "Fast Placements",
-            description: "Average placement in 72 hours with our extensive network.",
+            description: `Average placement in ${avgPlacementTime} with our extensive network.`,
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
                     <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg opacity-20" />
@@ -38,8 +56,8 @@ export default function FeaturesOne() {
             gradient: "from-orange-500/20 via-amber-400/10 to-transparent"
         },
         {
-            title: "Excellence Guaranteed",
-            description: "98% student satisfaction rate with quality assurance.",
+            title: "Excellence Guaranteed", 
+            description: `${successRate}% success rate with quality assurance.`,
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
                     <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg opacity-20" />
@@ -131,7 +149,7 @@ export default function FeaturesOne() {
         },
         {
             title: "Success Stories",
-            description: "Thousands of successful placements and growing.",
+            description: `${typeof totalMatches === 'number' ? totalMatches.toLocaleString() : totalMatches} successful placements and growing.`,
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
                     <div className="absolute inset-0 bg-gradient-to-br from-lime-500 to-green-500 rounded-lg opacity-20" />

@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 import { 
   GraduationCap, 
   Target, 
@@ -78,24 +80,24 @@ export default function StudentsPage() {
     }
   ]
 
-  const testimonials = [
+  // Get student testimonials from database
+  const studentTestimonials = useQuery(api.testimonials.getPublicTestimonials, {
+    userType: 'student',
+    limit: 3
+  })
+
+  const testimonials = studentTestimonials?.map(t => ({
+    name: t.name,
+    program: t.title,
+    rating: t.rating,
+    text: t.content
+  })) || [
+    // Fallback data if database is loading
     {
       name: "Sarah Johnson",
-      program: "FNP Student, UCLA",
+      program: "FNP Student, UCLA", 
       rating: 5,
       text: "MentoLoop found me an amazing preceptor in just one week! The process was seamless and the support team was incredible."
-    },
-    {
-      name: "Michael Chen",
-      program: "AGNP Student, Johns Hopkins",
-      rating: 5,
-      text: "After struggling for months to find a preceptor, MentoLoop matched me with the perfect mentor. Worth every penny!"
-    },
-    {
-      name: "Emily Rodriguez",
-      program: "PNP Student, Duke",
-      rating: 5,
-      text: "The matching algorithm really works! My preceptor was exactly what I needed for my pediatric rotation."
     }
   ]
 

@@ -35,12 +35,15 @@ import type * as paymentAttemptTypes from "../paymentAttemptTypes.js";
 import type * as paymentAttempts from "../paymentAttempts.js";
 import type * as payments from "../payments.js";
 import type * as paymentsNode from "../paymentsNode.js";
+import type * as platformStats from "../platformStats.js";
 import type * as preceptors from "../preceptors.js";
 import type * as scheduledTasks from "../scheduledTasks.js";
 import type * as schools from "../schools.js";
+import type * as seedData from "../seedData.js";
 import type * as sms from "../sms.js";
 import type * as students from "../students.js";
 import type * as surveys from "../surveys.js";
+import type * as testimonials from "../testimonials.js";
 import type * as users from "../users.js";
 
 /**
@@ -74,12 +77,15 @@ declare const fullApi: ApiFromModules<{
   paymentAttempts: typeof paymentAttempts;
   payments: typeof payments;
   paymentsNode: typeof paymentsNode;
+  platformStats: typeof platformStats;
   preceptors: typeof preceptors;
   scheduledTasks: typeof scheduledTasks;
   schools: typeof schools;
+  seedData: typeof seedData;
   sms: typeof sms;
   students: typeof students;
   surveys: typeof surveys;
+  testimonials: typeof testimonials;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

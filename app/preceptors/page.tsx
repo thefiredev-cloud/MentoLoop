@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 import { 
   Stethoscope, 
   DollarSign, 
@@ -21,6 +23,12 @@ import {
 
 export default function PreceptorsPage() {
   const [showVideo, setShowVideo] = useState(false)
+
+  // Get preceptor testimonials from database
+  const preceptorTestimonials = useQuery(api.testimonials.getPublicTestimonials, {
+    userType: 'preceptor',
+    limit: 3
+  })
 
   const benefits = [
     {
@@ -78,24 +86,18 @@ export default function PreceptorsPage() {
     }
   ]
 
-  const testimonials = [
+  const testimonials = preceptorTestimonials?.map(t => ({
+    name: t.name,
+    role: t.title,
+    rating: t.rating,
+    text: t.content
+  })) || [
+    // Fallback data if database is loading
     {
       name: "Dr. Patricia Williams",
       role: "Family Nurse Practitioner",
       rating: 5,
       text: "MentoLoop makes precepting so easy! They handle everything so I can focus on teaching. The students are well-prepared and eager to learn."
-    },
-    {
-      name: "Dr. James Martinez",
-      role: "Adult-Gerontology NP",
-      rating: 5,
-      text: "I love giving back to the profession. The honorarium is a nice bonus, but the real reward is seeing students grow into confident practitioners."
-    },
-    {
-      name: "Dr. Amanda Foster",
-      role: "Psychiatric NP",
-      rating: 5,
-      text: "The platform matches me with students who truly align with my practice. It&apos;s been a wonderful experience mentoring through MentoLoop."
     }
   ]
 

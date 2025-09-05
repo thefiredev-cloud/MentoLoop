@@ -8,7 +8,6 @@ import { CLERK_CONFIG } from '@/lib/clerk-config'
 import ConvexClientProvider from '@/components/ConvexClientProvider'
 import { AuthProvider } from '@/components/auth-provider'
 import { NavHeader } from '@/components/nav-header'
-import { DemoRoleSwitcher } from '@/components/demo-role-switcher'
 
 
 const geistSans = Geist({
@@ -82,7 +81,6 @@ export default function RootLayout({
               <AuthProvider>
                 <NavHeader />
                 {children}
-                <DemoRoleSwitcher />
               </AuthProvider>
             </ConvexClientProvider>
           </ClerkProvider>

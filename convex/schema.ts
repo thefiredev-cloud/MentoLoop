@@ -850,4 +850,44 @@ export default defineSchema({
     .index("byStudentId", ["studentId"])
     .index("byStatus", ["status"])
     .index("byEvaluationType", ["evaluationType"]),
+
+  // Testimonials for marketing pages
+  testimonials: defineTable({
+    name: v.string(),
+    title: v.string(), // Role/program
+    institution: v.optional(v.string()), // School or organization
+    userType: v.union(v.literal("student"), v.literal("preceptor")),
+    rating: v.number(), // 1-5 star rating
+    content: v.string(), // Testimonial text
+    featured: v.boolean(), // Whether to show on featured sections
+    approved: v.boolean(), // Admin approval status
+    isPublic: v.boolean(), // Whether to display publicly
+    location: v.optional(v.object({
+      city: v.optional(v.string()),
+      state: v.optional(v.string()),
+    })),
+    rotationType: v.optional(v.string()), // Related rotation if applicable
+    userId: v.optional(v.id("users")), // Optional link to actual user
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("byUserType", ["userType"])
+    .index("byFeatured", ["featured"])
+    .index("byApproved", ["approved"])
+    .index("byRating", ["rating"])
+    .index("byPublic", ["isPublic"]),
+
+  // Platform statistics for real-time metrics
+  platformStats: defineTable({
+    metric: v.string(), // e.g., "success_rate", "average_placement_time", "total_matches"
+    value: v.union(v.number(), v.string()),
+    description: v.string(),
+    displayFormat: v.union(v.literal("percentage"), v.literal("number"), v.literal("duration"), v.literal("text")),
+    category: v.union(v.literal("performance"), v.literal("growth"), v.literal("quality")),
+    isActive: v.boolean(), // Whether to show on public pages
+    updatedAt: v.number(),
+    calculatedAt: v.optional(v.number()), // When the metric was last calculated
+    metadata: v.optional(v.record(v.string(), v.any())),
+  }).index("byMetric", ["metric"])
+    .index("byCategory", ["category"])
+    .index("byActive", ["isActive"]),
   });

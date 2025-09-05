@@ -10,9 +10,13 @@ import {
   ChevronRight, GraduationCap, CheckCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import { useMutation } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 export default function InstitutionsPage() {
   const [showForm, setShowForm] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
   const [formData, setFormData] = useState({
     institutionName: '',
     contactName: '',
@@ -23,10 +27,43 @@ export default function InstitutionsPage() {
     message: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createEnterpriseInquiry = useMutation(api.enterprises.createEnterpriseInquiry)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Institution inquiry:', formData)
-    setShowForm(false)
+    setIsSubmitting(true)
+    
+    try {
+      await createEnterpriseInquiry({
+        name: formData.institutionName,
+        contactName: formData.contactName,
+        title: formData.title,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        numberOfStudents: formData.numberOfStudents,
+        message: formData.message || undefined,
+      })
+      
+      setSubmitSuccess(true)
+      setTimeout(() => {
+        setShowForm(false)
+        setSubmitSuccess(false)
+        setFormData({
+          institutionName: '',
+          contactName: '',
+          title: '',
+          email: '',
+          phone: '',
+          numberOfStudents: '',
+          message: ''
+        })
+      }, 2000)
+    } catch (error) {
+      console.error('Error submitting inquiry:', error)
+      alert('There was an error submitting your inquiry. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const benefits = [
@@ -315,15 +352,17 @@ export default function InstitutionsPage() {
                 <Button 
                   type="submit" 
                   size="lg"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
-                  Request Consultation
+                  {isSubmitting ? 'Submitting...' : submitSuccess ? 'Success!' : 'Request Consultation'}
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline" 
                   size="lg"
                   onClick={() => setShowForm(false)}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
