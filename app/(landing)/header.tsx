@@ -16,8 +16,9 @@ import { CustomSignupModal } from '@/components/custom-signup-modal'
 
 const menuItems = [
     { name: 'How It Works', href: '#how-it-works' },
-    { name: 'For Students', href: '/student-intake' },
-    { name: 'For Preceptors', href: '/preceptor-intake' },
+    { name: 'For Students', href: '/students' },
+    { name: 'For Preceptors', href: '/preceptors' },
+    { name: 'Institutions', href: '/institutions' },
     { name: 'Help Center', href: '/help' },
 ]
 
