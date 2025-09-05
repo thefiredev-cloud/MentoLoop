@@ -22,6 +22,7 @@ import type * as auth from "../auth.js";
 import type * as clinicalHours from "../clinicalHours.js";
 import type * as documents from "../documents.js";
 import type * as emails from "../emails.js";
+import type * as enterprises from "../enterprises.js";
 import type * as evaluations from "../evaluations.js";
 import type * as fixSupportUser from "../fixSupportUser.js";
 import type * as http from "../http.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   clinicalHours: typeof clinicalHours;
   documents: typeof documents;
   emails: typeof emails;
+  enterprises: typeof enterprises;
   evaluations: typeof evaluations;
   fixSupportUser: typeof fixSupportUser;
   http: typeof http;

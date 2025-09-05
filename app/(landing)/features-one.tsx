@@ -7,10 +7,10 @@ import { api } from '@/convex/_generated/api'
 
 export default function FeaturesOne() {
     // Get platform statistics from database
-    const platformStats = useQuery(api.platformStats.getActiveStats)
+    const platformStats = useQuery(api.platformStats.getActiveStats, {})
     
     // Helper function to get stat value
-    const getStatValue = (metric: string, fallback: any) => {
+    const getStatValue = (metric: string, fallback: string | number) => {
         const stat = platformStats?.find(s => s.metric === metric)
         return stat ? stat.value : fallback
     }

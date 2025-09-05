@@ -108,6 +108,22 @@ export default function WallOfLoveSection() {
         rating: t.rating
     })) || []
     
+    const nextTestimonial = () => {
+        if (testimonials.length === 0) return
+        setCurrentIndex((prev) => (prev + 1) % testimonials.length)
+    }
+    
+    const prevTestimonial = () => {
+        if (testimonials.length === 0) return
+        setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+    }
+    
+    useEffect(() => {
+        if (testimonials.length === 0) return
+        const interval = setInterval(nextTestimonial, 5000)
+        return () => clearInterval(interval)
+    }, [testimonials.length])
+    
     // Don't render if no testimonials are loaded yet
     if (!testimonialsFromDB || testimonials.length === 0) {
         return (
@@ -125,19 +141,6 @@ export default function WallOfLoveSection() {
             </section>
         )
     }
-    
-    const nextTestimonial = () => {
-        setCurrentIndex((prev) => (prev + 1) % testimonials.length)
-    }
-    
-    const prevTestimonial = () => {
-        setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
-    }
-    
-    useEffect(() => {
-        const interval = setInterval(nextTestimonial, 5000)
-        return () => clearInterval(interval)
-    }, [])
     
     return (
         <section className="relative py-16 md:py-32 overflow-hidden" ref={containerRef}>
