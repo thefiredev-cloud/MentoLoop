@@ -1,13 +1,10 @@
 'use client'
 
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useAuth } from '@clerk/nextjs'
-import { useEffect, useState } from 'react'
 
 interface UseCurrentUserOptions {
-  // Whether to automatically sync user if not found
-  autoSync?: boolean
   // Custom error handler
   onError?: (error: Error) => void
   // Custom loading component
@@ -17,85 +14,20 @@ interface UseCurrentUserOptions {
 }
 
 export function useCurrentUser(options: UseCurrentUserOptions = {}) {
-  const { autoSync = true, onError } = options
-  const { isLoaded, isSignedIn, userId: clerkUserId } = useAuth()
+  const { isLoaded, isSignedIn } = useAuth()
   const currentUser = useQuery(api.users.current)
-  const ensureUserExists = useMutation(api.users.ensureUserExists)
   
-  const [issyncing, setIsSyncing] = useState(false)
-  const [syncError, setSyncError] = useState<Error | null>(null)
-  const [hasSyncAttempted, setHasSyncAttempted] = useState(false)
-  const [lastClerkId, setLastClerkId] = useState<string | null>(null)
-
-  // Detect Clerk ID changes (user switch)
-  useEffect(() => {
-    if (clerkUserId && clerkUserId !== lastClerkId) {
-      console.log(`[useCurrentUser] Clerk ID changed from ${lastClerkId} to ${clerkUserId}`)
-      setLastClerkId(clerkUserId)
-      setHasSyncAttempted(false) // Reset sync attempt for new user
-      setSyncError(null)
-    }
-  }, [clerkUserId, lastClerkId])
-
-  useEffect(() => {
-    const syncUser = async () => {
-      // Only sync if:
-      // 1. User is authenticated
-      // 2. User data is not found
-      // 3. Auto-sync is enabled
-      // 4. We haven't already attempted sync for this Clerk ID
-      if (
-        isLoaded && 
-        isSignedIn && 
-        currentUser === null && 
-        autoSync && 
-        !hasSyncAttempted && 
-        !issyncing &&
-        clerkUserId
-      ) {
-        setIsSyncing(true)
-        setHasSyncAttempted(true)
-        
-        console.log(`[useCurrentUser] Starting user sync for Clerk ID: ${clerkUserId}`)
-        
-        try {
-          const result = await ensureUserExists()
-          console.log(`[useCurrentUser] User sync successful:`, result)
-          setSyncError(null)
-        } catch (error) {
-          const err = error as Error
-          setSyncError(err)
-          onError?.(err)
-          console.error('[useCurrentUser] Failed to sync user:', {
-            error: err.message,
-            clerkId: clerkUserId,
-            timestamp: new Date().toISOString()
-          })
-        } finally {
-          setIsSyncing(false)
-        }
-      }
-    }
-
-    syncUser()
-  }, [isLoaded, isSignedIn, currentUser, autoSync, hasSyncAttempted, issyncing, ensureUserExists, onError, clerkUserId])
-
-  // Reset sync attempt when user signs out
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      setHasSyncAttempted(false)
-      setSyncError(null)
-    }
-  }, [isLoaded, isSignedIn])
-
+  // The UserSyncWrapper handles all user syncing
+  // This hook only queries the current user
+  
   return {
     user: currentUser,
-    isLoading: !isLoaded || currentUser === undefined || issyncing,
+    isLoading: !isLoaded || currentUser === undefined,
     isAuthenticated: isSignedIn,
-    error: syncError,
+    error: null, // Errors are handled by UserSyncWrapper
     refetch: async () => {
-      setHasSyncAttempted(false)
-      setSyncError(null)
+      // No-op since we don't handle syncing here
+      console.log('[useCurrentUser] Refetch requested - sync handled by UserSyncWrapper')
     }
   }
 }

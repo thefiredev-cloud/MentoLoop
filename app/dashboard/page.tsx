@@ -1,45 +1,21 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
-import { Loader2, AlertCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { PostSignupHandler } from '@/components/post-signup-handler'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { Button } from '@/components/ui/button'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
 
 export default function DashboardPage() {
-  const [retryCount, setRetryCount] = useState(0)
-  const [isMounted, setIsMounted] = useState(false)
-  const maxRetries = 3
-  
-  // Ensure component is mounted before client-side operations
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-  
-  const { user, isLoading, error, refetch } = useCurrentUser({
-    autoSync: true,
-    onError: (err) => {
-      console.error('[Dashboard] User sync error:', {
-        error: err.message,
-        retryCount,
-        timestamp: new Date().toISOString()
-      })
-    }
-  })
+  const { user, isLoading } = useCurrentUser()
   const router = useRouter()
   const hasRedirected = useRef(false)
   const updateUserType = useMutation(api.users.updateUserType)
-  const { userId } = useAuth()
-  const [selectedRole, setSelectedRole] = useState<string | null>(null)
-  const [shouldAutoSelectRole, setShouldAutoSelectRole] = useState(false)
-  const [savedUserRole, setSavedUserRole] = useState<string | null>(null)
-  
+
   // Log dashboard access
   useEffect(() => {
     console.log('[Dashboard] Page loaded:', {
@@ -50,152 +26,40 @@ export default function DashboardPage() {
     })
   }, [isLoading, user])
 
-  // Handle error and browser-specific operations after mount
+  // Handle user routing based on their type
   useEffect(() => {
-    if (!isMounted || !error) return
+    if (!user || hasRedirected.current) return
     
-    // Log browser-specific error details
-    console.error('[Dashboard] Error details:', {
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      error: error.message
-    })
-    
-    // Auto-retry with exponential backoff
-    if (retryCount < maxRetries) {
-      const delay = Math.min(1000 * Math.pow(2, retryCount), 5000)
-      console.log(`[Dashboard] Retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`)
+    if (user.userType) {
+      hasRedirected.current = true
+      console.log('[Dashboard] Redirecting user to:', `/dashboard/${user.userType}`)
       
-      setTimeout(() => {
-        setRetryCount(prev => prev + 1)
-        refetch()
-      }, delay)
-    } else {
-      console.error('[Dashboard] Max retries reached, user sync failed')
-      // Clear any stale cache
-      localStorage.removeItem('userRole')
-      localStorage.removeItem('userRoleConfirmed')
-      sessionStorage.clear()
+      const redirectPath = `/dashboard/${user.userType}`
+      router.push(redirectPath)
     }
-  }, [error, isMounted, retryCount, maxRetries, refetch])
-  
-  // Check localStorage for saved role on mount (client-side only)
-  useEffect(() => {
-    if (!isMounted || !user || user.userType) return
-    
-    const savedRole = localStorage.getItem('userRole')
-    const roleConfirmed = localStorage.getItem('userRoleConfirmed')
-    
-    if (savedRole && roleConfirmed === 'true' && (savedRole === 'student' || savedRole === 'preceptor')) {
-      setSavedUserRole(savedRole)
-      setShouldAutoSelectRole(true)
-    }
-  }, [user, isMounted])
+  }, [user, router])
 
-  // Admin users are handled through the ensureUserExists flow
-  // which properly sets admin role based on email
-
-  useEffect(() => {
-    if (user && !hasRedirected.current) {
-      console.log('[Dashboard] Routing user:', {
-        userId: user._id,
-        userType: user.userType,
-        email: user.email,
-        timestamp: new Date().toISOString()
-      })
-      
-      // Redirect to appropriate dashboard based on user type
-      switch (user.userType) {
-        case 'student':
-          hasRedirected.current = true
-          console.log('[Dashboard] Redirecting to student dashboard')
-          router.push('/dashboard/student')
-          // Fallback for redirect failure
-          setTimeout(() => {
-            if (window.location.pathname === '/dashboard') {
-              window.location.href = '/dashboard/student'
-            }
-          }, 1000)
-          break
-        case 'preceptor':
-          hasRedirected.current = true
-          console.log('[Dashboard] Redirecting to preceptor dashboard')
-          router.push('/dashboard/preceptor')
-          // Fallback for redirect failure
-          setTimeout(() => {
-            if (window.location.pathname === '/dashboard') {
-              window.location.href = '/dashboard/preceptor'
-            }
-          }, 1000)
-          break
-        case 'admin':
-          hasRedirected.current = true
-          console.log('[Dashboard] Redirecting to admin dashboard')
-          router.push('/dashboard/admin')
-          // Fallback for redirect failure
-          setTimeout(() => {
-            if (window.location.pathname === '/dashboard') {
-              window.location.href = '/dashboard/admin'
-            }
-          }, 1000)
-          break
-        case 'enterprise':
-          hasRedirected.current = true
-          console.log('[Dashboard] Redirecting to enterprise dashboard')
-          router.push('/dashboard/enterprise')
-          // Fallback for redirect failure
-          setTimeout(() => {
-            if (window.location.pathname === '/dashboard') {
-              window.location.href = '/dashboard/enterprise'
-            }
-          }, 1000)
-          break
-        default:
-          // If no userType, stay on this page to show setup options
-          console.log('[Dashboard] No userType set, showing setup options')
-          break
-      }
-    }
-  }, [user?.userType, router, user])
-
-  // Handle role selection and persistence
+  // Handle role selection
   const handleRoleSelection = async (role: 'student' | 'preceptor') => {
-    setSelectedRole(role)
+    if (!user) return
+    
     try {
       // Update user role in database
-      await updateUserType({ userId: user!._id, userType: role })
-      
-      // Save to localStorage for future visits
-      localStorage.setItem('userRole', role)
-      localStorage.setItem('userRoleConfirmed', 'true')
+      await updateUserType({ userId: user._id, userType: role })
       
       // Redirect to appropriate dashboard
-      if (role === 'student') {
-        router.replace('/dashboard/student')
-      } else if (role === 'preceptor') {
-        router.replace('/dashboard/preceptor')
-      }
+      router.push(`/dashboard/${role}`)
     } catch (error) {
       console.error('[Dashboard] Failed to update user role:', error)
       toast.error('Failed to save your role. Please try again.')
     }
   }
 
-  // Auto-select saved role
-  useEffect(() => {
-    if (shouldAutoSelectRole && savedUserRole && user && !user.userType && !selectedRole) {
-      handleRoleSelection(savedUserRole as 'student' | 'preceptor')
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldAutoSelectRole, savedUserRole, user, selectedRole])
-
-  // Always render PostSignupHandler to maintain hook consistency
-  const postSignupHandler = isMounted ? <PostSignupHandler /> : null
-
-  if (isLoading) {
+  // Show loading state
+  if (isLoading || !user) {
     return (
       <>
-        {postSignupHandler}
+        <PostSignupHandler />
         <div className="flex items-center justify-center min-h-[400px]">
           <Card>
             <CardContent className="flex items-center gap-4 p-8">
@@ -208,69 +72,11 @@ export default function DashboardPage() {
     )
   }
 
-  if (error) {
-    return (
-      <>
-        {postSignupHandler}
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Card>
-            <CardContent className="p-8 text-center space-y-4">
-              <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
-              <h3 className="font-semibold">Failed to load user profile</h3>
-              <p className="text-sm text-muted-foreground">
-                We encountered an error while loading your profile. Please try again.
-              </p>
-              <Button onClick={() => refetch()}>Retry</Button>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    )
-  }
-
-  if (!user) {
-    return (
-      <>
-        {postSignupHandler}
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Card>
-            <CardContent className="p-8 text-center space-y-4">
-              <AlertCircle className="h-8 w-8 text-warning mx-auto" />
-              <h3 className="font-semibold">Setting up your profile</h3>
-              <p className="text-sm text-muted-foreground">
-                Please wait while we create your user profile...
-              </p>
-              <Button onClick={() => window.location.reload()}>Refresh</Button>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    )
-  }
-
-
-  // If user has no type set, show setup options or loading state if auto-selecting
+  // If user has no type set, show setup options
   if (!user.userType) {
-    // If we're auto-selecting a saved role, show loading
-    if (shouldAutoSelectRole && savedUserRole) {
-      return (
-        <>
-          {postSignupHandler}
-          <div className="flex items-center justify-center min-h-[400px]">
-            <Card>
-              <CardContent className="flex items-center gap-4 p-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span>Setting up your {savedUserRole} dashboard...</span>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )
-    }
-    
     return (
       <>
-        {postSignupHandler}
+        <PostSignupHandler />
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Welcome to MentoLoop!</h1>
@@ -298,9 +104,8 @@ export default function DashboardPage() {
               <button 
                 onClick={() => handleRoleSelection('student')}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                disabled={selectedRole !== null}
               >
-                {selectedRole === 'student' ? 'Setting up...' : 'Continue as Student'}
+                Continue as Student
               </button>
             </CardContent>
           </Card>
@@ -319,9 +124,8 @@ export default function DashboardPage() {
               <button 
                 onClick={() => handleRoleSelection('preceptor')}
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
-                disabled={selectedRole !== null}
               >
-                {selectedRole === 'preceptor' ? 'Setting up...' : 'Continue as Preceptor'}
+                Continue as Preceptor
               </button>
             </CardContent>
           </Card>
@@ -346,18 +150,18 @@ export default function DashboardPage() {
     )
   }
 
-  // This should not be reached due to the redirect, but just in case
+  // Show redirecting state (should not normally be reached)
   return (
     <>
-      {postSignupHandler}
-    <div className="flex items-center justify-center min-h-[400px]">
-      <Card>
-        <CardContent className="flex items-center gap-4 p-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Redirecting to your dashboard...</span>
-        </CardContent>
-      </Card>
-    </div>
+      <PostSignupHandler />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card>
+          <CardContent className="flex items-center gap-4 p-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Redirecting to your dashboard...</span>
+          </CardContent>
+        </Card>
+      </div>
     </>
   )
 }
