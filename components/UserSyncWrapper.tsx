@@ -20,7 +20,7 @@ export function UserSyncWrapper({ children }: { children: ReactNode }) {
       
       try {
         const result = await ensureUserExists()
-        console.log('User sync successful:', result)
+        console.debug('[UserSyncWrapper] Sync status: syncing', result)
         setHasSynced(true)
         setSyncError(null)
         setRetryCount(0) // Reset retry count on success
