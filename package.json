@@ -80,7 +80,9 @@
     "typescript": "5.9.2",
     "vaul": "^1.1.2",
     "web-vitals": "^4.2.4",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "autoprefixer": "^10.4.21",
+    "cssnano": "^7.1.1"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.13.0",
@@ -91,8 +93,6 @@
     "@typescript-eslint/parser": "^8.40.0",
     "@vitejs/plugin-react": "^5.0.1",
     "@vitest/coverage-v8": "^3.2.4",
-    "autoprefixer": "^10.4.21",
-    "cssnano": "^7.1.1",
     "dotenv": "^17.2.1",
     "eslint": "^9.34.0",
     "eslint-config-next": "^15.5.0",
