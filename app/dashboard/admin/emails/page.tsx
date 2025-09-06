@@ -31,7 +31,6 @@ export default function EmailAnalytics() {
 
 function EmailAnalyticsContent() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTemplate, setSelectedTemplate] = useState('all')
   
   // Get email logs from database
   const emailLogs = useQuery(api.emails.getAllEmailLogs)

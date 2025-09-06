@@ -12,8 +12,7 @@ import {
   MessageSquare,
   Target,
   Database,
-  BarChart3,
-  Settings
+  BarChart3
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -32,8 +31,6 @@ function AdminDashboardContent() {
   const allUsers = useQuery(api.users.getAllUsers)
   const allMatches = useQuery(api.matches.getAllMatches, {})
   const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
-  const emailLogs = useQuery(api.emails.getAllEmailLogs)
-  const smsLogs = useQuery(api.sms.getAllSMSLogs)
 
   if (!allUsers || !allMatches || !paymentAttempts) {
     return (

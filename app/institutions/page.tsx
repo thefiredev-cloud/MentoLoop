@@ -343,7 +343,7 @@ export default function InstitutionsPage() {
                   id="message"
                   value={formData.message}
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  placeholder="Tell us about your institution's needs..."
+                  placeholder="Tell us about your institution&apos;s needs..."
                   className="mt-1 min-h-[100px]"
                 />
               </div>

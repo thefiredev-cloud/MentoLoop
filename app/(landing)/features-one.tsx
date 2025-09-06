@@ -19,7 +19,6 @@ export default function FeaturesOne() {
     const successRate = getStatValue('success_rate', 98)
     const avgPlacementTime = getStatValue('avg_placement_time', '72 hours')
     const totalMatches = getStatValue('total_matches', 'Thousands')
-    const satisfactionRating = getStatValue('student_satisfaction', 4.9)
     // Row 1 - Moving Left (6 features) with enhanced colored icons
     const featuresRow1 = [
         {

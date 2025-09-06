@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { 
   DollarSign, 
-  TrendingUp, 
-  TrendingDown,
+  TrendingUp,
   CreditCard,
   Users,
   Calendar,
@@ -36,7 +35,6 @@ export default function FinancialManagement() {
 
 function FinancialManagementContent() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedPeriod, setSelectedPeriod] = useState('month')
 
   // Get real financial data
   const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)

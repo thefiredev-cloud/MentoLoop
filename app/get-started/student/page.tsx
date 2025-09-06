@@ -74,7 +74,7 @@ export default function GetStartedStudentPage() {
     },
     {
       question: "When do I need to pay?",
-      answer: "Payment is required after completing your intake form, but you're only charged once we confirm a match."
+      answer: "Payment is required after completing your intake form, but you&apos;re only charged once we confirm a match."
     },
     {
       question: "Can I save and return later?",
@@ -100,7 +100,7 @@ export default function GetStartedStudentPage() {
             Get Started as a Student
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            You're just a few steps away from finding your perfect preceptor match. 
+            You&apos;re just a few steps away from finding your perfect preceptor match. 
             Here's everything you need to know before signing up.
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function GetStartedStudentPage() {
         {/* Requirements */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">What You'll Need</CardTitle>
+            <CardTitle className="text-2xl">What You&apos;ll Need</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 mb-4">
@@ -238,7 +238,7 @@ export default function GetStartedStudentPage() {
             Ready to Begin?
           </h2>
           <p className="text-gray-600 mb-6">
-            Join thousands of NP students who've successfully found their clinical placements
+            Join thousands of NP students who&apos;ve successfully found their clinical placements
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

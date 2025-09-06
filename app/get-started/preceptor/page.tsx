@@ -62,7 +62,7 @@ export default function GetStartedPreceptorPage() {
   ]
 
   const requirements = [
-    "Active, unrestricted NP license (we'll verify this)",
+    "Active, unrestricted NP license (we&apos;ll verify this)",
     "Minimum 2 years of clinical practice experience",
     "Professional liability insurance (or willingness to obtain)",
     "CV or resume with your clinical experience",
@@ -99,7 +99,7 @@ export default function GetStartedPreceptorPage() {
       answer: "After verification (24-48 hours), you can start receiving student matches immediately based on your availability."
     },
     {
-      question: "What's the time commitment?",
+      question: "What&apos;s the time commitment?",
       answer: "You set your own schedule. Most preceptors work with 1-2 students per rotation period (8-12 weeks)."
     },
     {
@@ -127,7 +127,7 @@ export default function GetStartedPreceptorPage() {
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Join our network of healthcare professionals making a difference. 
-            Here's everything you need to know about becoming a MentoLoop preceptor.
+            Here&apos;s everything you need to know about becoming a MentoLoop preceptor.
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export default function GetStartedPreceptorPage() {
         {/* Requirements */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">What You'll Need to Apply</CardTitle>
+            <CardTitle className="text-2xl">What You&apos;ll Need to Apply</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 mb-4">
@@ -232,7 +232,7 @@ export default function GetStartedPreceptorPage() {
             <Alert className="mt-4 border-amber-200 bg-amber-50">
               <Info className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800">
-                <strong>Note:</strong> Don't have liability insurance? No problem! 
+                <strong>Note:</strong> Don&apos;t have liability insurance? No problem! 
                 We can connect you with our insurance partners for discounted rates.
               </AlertDescription>
             </Alert>

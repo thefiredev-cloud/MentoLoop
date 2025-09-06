@@ -91,7 +91,7 @@ function StudentDashboardContent() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              We're having trouble loading your dashboard. Please try refreshing the page.
+              We&apos;re having trouble loading your dashboard. Please try refreshing the page.
             </p>
             <Button onClick={() => window.location.reload()} className="w-full">
               Refresh Page

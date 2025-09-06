@@ -34,7 +34,6 @@ export default function AuditLogs() {
 
 function AuditLogsContent() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedFilter, setSelectedFilter] = useState('all')
 
   // Mock audit log data - in production this would come from database
   const auditLogs = [

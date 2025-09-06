@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { motion, useInView } from 'framer-motion'
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -108,10 +108,10 @@ export default function WallOfLoveSection() {
         rating: t.rating
     })) || []
     
-    const nextTestimonial = () => {
+    const nextTestimonial = useCallback(() => {
         if (testimonials.length === 0) return
         setCurrentIndex((prev) => (prev + 1) % testimonials.length)
-    }
+    }, [testimonials.length])
     
     const prevTestimonial = () => {
         if (testimonials.length === 0) return
@@ -122,7 +122,7 @@ export default function WallOfLoveSection() {
         if (testimonials.length === 0) return
         const interval = setInterval(nextTestimonial, 5000)
         return () => clearInterval(interval)
-    }, [testimonials.length])
+    }, [testimonials.length, nextTestimonial])
     
     // Don't render if no testimonials are loaded yet
     if (!testimonialsFromDB || testimonials.length === 0) {
