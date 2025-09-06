@@ -112,3 +112,101 @@ export const countEnterprises = query({
     };
   },
 });
+
+// Get enterprise dashboard stats
+export const getEnterpriseDashboardStats = query({
+  args: { enterpriseId: v.id("enterprises") },
+  handler: async (ctx, args) => {
+    const enterprise = await ctx.db.get(args.enterpriseId);
+    if (!enterprise) {
+      throw new Error("Enterprise not found");
+    }
+
+    // Get students associated with this enterprise (from the enterprise's student array)
+    const studentIds = enterprise.students || [];
+    const students = [];
+    for (const studentId of studentIds) {
+      const student = await ctx.db.get(studentId);
+      if (student) students.push(student);
+    }
+
+    // Get preceptors associated with this enterprise (from the enterprise's preceptor array)
+    const preceptorIds = enterprise.preceptors || [];
+    const preceptors = [];
+    for (const preceptorId of preceptorIds) {
+      const preceptor = await ctx.db.get(preceptorId);
+      if (preceptor) preceptors.push(preceptor);
+    }
+
+    // Get matches for enterprise students
+    const matches = [];
+    for (const studentId of studentIds) {
+      const studentMatches = await ctx.db.query("matches")
+        .filter((q) => q.eq(q.field("studentId"), studentId))
+        .collect();
+      matches.push(...studentMatches);
+    }
+
+    const activeRotations = matches.filter(m => m.status === "active" || m.status === "confirmed").length;
+    const completedMatches = matches.filter(m => m.status === "completed").length;
+    const totalMatches = matches.length;
+    const completionRate = totalMatches > 0 ? Math.round((completedMatches / totalMatches) * 100) : 0;
+
+    return {
+      enterprise,
+      totalStudents: students.length,
+      totalPreceptors: preceptors.length,
+      activeRotations,
+      completionRate,
+      pendingApprovals: students.filter(s => s.status === "submitted").length, // Fix: use 'submitted' instead of 'pending'
+      upcomingRotations: matches.filter(m => 
+        m.status === "confirmed" && 
+        new Date(m.rotationDetails.startDate) > new Date()
+      ).length,
+    };
+  },
+});
+
+// Get enterprise recent activity
+export const getEnterpriseRecentActivity = query({
+  args: { 
+    enterpriseId: v.id("enterprises"),
+    limit: v.optional(v.number())
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 10;
+    
+    const enterprise = await ctx.db.get(args.enterpriseId);
+    if (!enterprise) {
+      throw new Error("Enterprise not found");
+    }
+    
+    // Get students for this enterprise (from the enterprise's student array)
+    const studentIds = enterprise.students || [];
+    
+    // Get recent matches for enterprise students
+    const matches = [];
+    for (const studentId of studentIds) {
+      const studentMatches = await ctx.db.query("matches")
+        .filter((q) => q.eq(q.field("studentId"), studentId))
+        .order("desc")
+        .take(limit);
+      matches.push(...studentMatches);
+    }
+
+    // Sort by creation time and limit results
+    const sortedMatches = matches
+      .sort((a, b) => b._creationTime - a._creationTime)
+      .slice(0, limit);
+
+    // Convert to activity format
+    return sortedMatches.map(match => ({
+      id: match._id,
+      type: 'match' as const,
+      title: match.status === 'confirmed' ? 'New Match Confirmed' : 'Match Status Updated',
+      description: `${match.status === 'confirmed' ? 'Student matched with preceptor for' : 'Match updated for'} ${match.rotationDetails.rotationType} rotation`,
+      timestamp: match._creationTime,
+      status: match.status === 'confirmed' ? 'success' as const : 'info' as const,
+    }));
+  },
+});

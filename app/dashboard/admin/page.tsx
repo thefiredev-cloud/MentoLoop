@@ -1,12 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
 import { 
   Users, 
   TrendingUp, 
@@ -14,15 +10,14 @@ import {
   Brain,
   Mail,
   MessageSquare,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Search,
-  Filter,
-  MoreHorizontal
+  Target,
+  Database,
+  BarChart3,
+  Settings
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import Link from 'next/link'
 
 export default function AdminDashboard() {
   return (
@@ -33,9 +28,6 @@ export default function AdminDashboard() {
 }
 
 function AdminDashboardContent() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTab, setSelectedTab] = useState('overview')
-
   // Get real admin analytics data
   const allUsers = useQuery(api.users.getAllUsers)
   const allMatches = useQuery(api.matches.getAllMatches, {})
@@ -43,91 +35,24 @@ function AdminDashboardContent() {
   const emailLogs = useQuery(api.emails.getAllEmailLogs)
   const smsLogs = useQuery(api.sms.getAllSMSLogs)
 
+  if (!allUsers || !allMatches || !paymentAttempts) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading admin dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Calculate overview stats from real data
   const overviewStats = {
-    totalUsers: allUsers?.length || 0,
-    activeMatches: allMatches?.filter(m => m.status === 'active' || m.status === 'confirmed').length || 0,
-    pendingMatches: allMatches?.filter(m => m.status === 'pending').length || 0,
-    totalRevenue: paymentAttempts?.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + (p.amount / 100), 0) || 0, // Convert from cents to dollars
-    aiSuccessRate: allMatches?.filter(m => m.aiAnalysis).length ? 
-      ((allMatches.filter(m => m.aiAnalysis?.confidence === 'high').length / allMatches.filter(m => m.aiAnalysis).length) * 100).toFixed(1) : 0,
-    avgResponseTime: 'N/A' // Response time tracking not yet implemented
-  }
-
-  // Get recent matches from real data
-  const recentMatches = allMatches?.slice(0, 10).map(match => ({
-    id: match._id,
-    studentName: 'Student', // Would need to join with students table
-    preceptorName: 'Preceptor', // Would need to join with preceptors table
-    specialty: match.rotationDetails?.rotationType || 'Unknown',
-    status: match.status,
-    aiScore: match.aiAnalysis?.enhancedScore || match.mentorFitScore,
-    baseScore: match.mentorFitScore,
-    createdAt: new Date(match.createdAt).toISOString(),
-    paymentStatus: match.paymentStatus
-  })) || []
-
-  // Get recent communications from real data
-  const recentCommunications = [
-    ...(emailLogs?.slice(0, 5).map(log => ({
-      id: log._id,
-      type: 'email' as const,
-      template: log.templateKey,
-      recipient: log.recipientEmail,
-      status: log.status,
-      sentAt: new Date(log.sentAt).toISOString(),
-      failureReason: log.failureReason
-    })) || []),
-    ...(smsLogs?.slice(0, 5).map(log => ({
-      id: log._id,
-      type: 'sms' as const,
-      template: log.templateKey,
-      recipient: log.recipientPhone,
-      status: log.status,
-      sentAt: new Date(log.sentAt).toISOString(),
-      failureReason: log.failureReason
-    })) || [])
-  ].sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()).slice(0, 10)
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <Badge className="bg-green-500">Confirmed</Badge>
-      case 'pending':
-        return <Badge variant="secondary">Pending</Badge>
-      case 'suggested':
-        return <Badge variant="outline">Suggested</Badge>
-      case 'cancelled':
-        return <Badge variant="destructive">Cancelled</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const getPaymentBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <Badge className="bg-green-500">Paid</Badge>
-      case 'unpaid':
-        return <Badge variant="destructive">Unpaid</Badge>
-      case 'refunded':
-        return <Badge variant="secondary">Refunded</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const getCommunicationBadge = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return <Badge className="bg-green-500">Sent</Badge>
-      case 'failed':
-        return <Badge variant="destructive">Failed</Badge>
-      case 'pending':
-        return <Badge variant="secondary">Pending</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+    totalUsers: allUsers.length,
+    activeMatches: allMatches.filter(m => m.status === 'active' || m.status === 'confirmed').length,
+    totalRevenue: paymentAttempts.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + (p.amount / 100), 0),
+    aiSuccessRate: allMatches.filter(m => m.aiAnalysis).length ? 
+      Math.round((allMatches.filter(m => m.aiAnalysis?.confidence === 'high').length / allMatches.filter(m => m.aiAnalysis).length) * 100) : 0,
   }
 
   const formatCurrency = (amount: number) => {
@@ -137,409 +62,174 @@ function AdminDashboardContent() {
     }).format(amount)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Monitor platform performance, matches, and communications
-          </p>
-        </div>
-
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="matches">Matches</TabsTrigger>
-            <TabsTrigger value="communications">Communications</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-            <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{overviewStats.totalUsers.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {overviewStats.totalUsers} total registered
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Matches</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{overviewStats.activeMatches}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {overviewStats.pendingMatches} pending review
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(overviewStats.totalRevenue)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total processed revenue
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">AI Success Rate</CardTitle>
-                  <Brain className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{overviewStats.aiSuccessRate}%</div>
-                  <p className="text-xs text-muted-foreground">
-                    Avg response: {overviewStats.avgResponseTime}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Matches</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentMatches.slice(0, 3).map((match) => (
-                      <div key={match.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="space-y-1">
-                          <div className="font-medium text-sm">
-                            {match.studentName} → {match.preceptorName}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {match.specialty} • AI: {match.aiScore}/10 • {formatDate(match.createdAt)}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(match.status)}
-                          {getPaymentBadge(match.paymentStatus)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Communication Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentCommunications.slice(0, 3).map((comm) => (
-                      <div key={comm.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="space-y-1">
-                          <div className="font-medium text-sm flex items-center gap-2">
-                            {comm.type === 'email' ? <Mail className="h-3 w-3" /> : <MessageSquare className="h-3 w-3" />}
-                            {comm.template}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {comm.recipient} • {formatDate(comm.sentAt)}
-                          </div>
-                          {comm.failureReason && (
-                            <div className="text-xs text-destructive">{comm.failureReason}</div>
-                          )}
-                        </div>
-                        <div>
-                          {getCommunicationBadge(comm.status)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="matches" className="space-y-6">
-            {/* Matches Management */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Match Management</span>
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Search matches..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8 w-64"
-                      />
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filter
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentMatches.map((match) => (
-                    <div key={match.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <div className="font-semibold">
-                            {match.studentName} ↔ {match.preceptorName}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {match.specialty} rotation • Created {formatDate(match.createdAt)}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(match.status)}
-                          {getPaymentBadge(match.paymentStatus)}
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="grid md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <div className="text-muted-foreground">Base Score</div>
-                          <div className="font-medium">{match.baseScore}/10</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">AI Enhanced</div>
-                          <div className="font-medium text-primary">
-                            {match.aiScore}/10 
-                            <span className="text-green-600 ml-1">
-                              (+{(match.aiScore - match.baseScore).toFixed(1)})
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Actions</div>
-                          <div className="flex gap-1">
-                            <Button variant="outline" size="sm">View</Button>
-                            <Button variant="outline" size="sm">Edit</Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="communications" className="space-y-6">
-            {/* Communication Analytics */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Emails Sent</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">1,234</div>
-                  <div className="flex items-center gap-1 text-xs text-green-600">
-                    <CheckCircle className="h-3 w-3" />
-                    98.5% success rate
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">SMS Sent</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">567</div>
-                  <div className="flex items-center gap-1 text-xs text-green-600">
-                    <CheckCircle className="h-3 w-3" />
-                    99.2% success rate
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Failed Deliveries</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">12</div>
-                  <div className="flex items-center gap-1 text-xs text-yellow-600">
-                    <AlertCircle className="h-3 w-3" />
-                    Requires attention
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Avg Response Time</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">1.2s</div>
-                  <div className="flex items-center gap-1 text-xs text-green-600">
-                    <Clock className="h-3 w-3" />
-                    Within SLA
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Communication Log */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Communication Log</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentCommunications.map((comm) => (
-                    <div key={comm.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {comm.type === 'email' ? 
-                          <Mail className="h-4 w-4 text-blue-500" /> : 
-                          <MessageSquare className="h-4 w-4 text-green-500" />
-                        }
-                        <div>
-                          <div className="font-medium text-sm">{comm.template}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {comm.recipient} • {formatDate(comm.sentAt)}
-                          </div>
-                          {comm.failureReason && (
-                            <div className="text-xs text-destructive">{comm.failureReason}</div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getCommunicationBadge(comm.status)}
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="payments" className="space-y-6">
-            {/* Payment Analytics */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Total Revenue</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(45670)}</div>
-                  <div className="text-xs text-green-600">+15% from last month</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Success Rate</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">96.8%</div>
-                  <div className="text-xs text-muted-foreground">89 successful / 92 total</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Avg Transaction</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(799)}</div>
-                  <div className="text-xs text-muted-foreground">Pro plan most popular</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  Payment transaction data will be loaded from the database here.
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="ai-insights" className="space-y-6">
-            {/* AI Performance */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">AI Analysis Success</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">94.5%</div>
-                  <div className="text-xs text-green-600">156/165 successful</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Avg Score Improvement</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+1.2</div>
-                  <div className="text-xs text-muted-foreground">points over base score</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">High Confidence</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">78%</div>
-                  <div className="text-xs text-muted-foreground">of AI analyses</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Performance Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  AI analytics and insights will be displayed here.
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground">
+          Monitor platform performance, users, and system health
+        </p>
       </div>
+
+      {/* Key Metrics */}
+      <div className="grid gap-6 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overviewStats.totalUsers.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Registered users</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Matches</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overviewStats.activeMatches}</div>
+            <p className="text-xs text-muted-foreground">Currently active</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(overviewStats.totalRevenue)}</div>
+            <p className="text-xs text-muted-foreground">Total processed</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">AI Success Rate</CardTitle>
+            <Brain className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overviewStats.aiSuccessRate}%</div>
+            <p className="text-xs text-muted-foreground">High confidence matches</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Navigation Cards */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">System Management</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Link href="/dashboard/admin/users">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-blue-100 p-3 mr-4">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">User Management</h3>
+                  <p className="text-sm text-muted-foreground">Manage all users</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/matches">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-green-100 p-3 mr-4">
+                  <Target className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Match Management</h3>
+                  <p className="text-sm text-muted-foreground">Review all matches</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/emails">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-purple-100 p-3 mr-4">
+                  <Mail className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Communications</h3>
+                  <p className="text-sm text-muted-foreground">Email & SMS logs</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/finance">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-orange-100 p-3 mr-4">
+                  <DollarSign className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Financial</h3>
+                  <p className="text-sm text-muted-foreground">Payments & revenue</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/audit">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-yellow-100 p-3 mr-4">
+                  <BarChart3 className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Analytics</h3>
+                  <p className="text-sm text-muted-foreground">Platform insights</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/sms">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-pink-100 p-3 mr-4">
+                  <MessageSquare className="h-6 w-6 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">SMS Management</h3>
+                  <p className="text-sm text-muted-foreground">SMS communications</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </div>
+
+      {/* System Health */}
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="p-6 text-center">
+          <Database className="h-12 w-12 mx-auto text-green-600 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">System Status: Healthy</h3>
+          <p className="text-muted-foreground mb-4">
+            All systems operational • {overviewStats.totalUsers} users • {overviewStats.activeMatches} active matches
+          </p>
+          <div className="flex justify-center gap-4">
+            <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-2">
+              Database: Online
+            </Badge>
+            <Badge className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">
+              API: Healthy
+            </Badge>
+            <Badge className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
+              AI: Operational
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

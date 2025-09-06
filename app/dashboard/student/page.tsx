@@ -3,13 +3,7 @@
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
-import { DashboardContainer, DashboardGrid, DashboardSection } from '@/components/dashboard/dashboard-container'
-import { StatsCard } from '@/components/dashboard/stats-card'
-import { ActivityFeed } from '@/components/dashboard/activity-feed'
-import { QuickActions } from '@/components/dashboard/quick-actions'
-import { NotificationPanel } from '@/components/dashboard/notification-panel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   GraduationCap, 
@@ -18,11 +12,9 @@ import {
   Clock, 
   MessageCircle, 
   User,
-  TrendingUp,
-  // FileText,
-  // BookOpen,
-  // AlertCircle,
-  Search
+  Search,
+  FileText,
+  BookOpen
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -36,8 +28,6 @@ export default function StudentDashboardPage() {
 
 function StudentDashboardContent() {
   const dashboardStats = useQuery(api.students.getStudentDashboardStats)
-  const recentActivity = useQuery(api.students.getStudentRecentActivity, { limit: 5 })
-  const notifications = useQuery(api.students.getStudentNotifications)
   
   if (!dashboardStats) {
     return (
@@ -52,285 +42,170 @@ function StudentDashboardContent() {
 
   const { student, currentMatch } = dashboardStats
 
-  // Quick actions configuration
-  const quickActions = [
-    {
-      id: 'matches',
-      title: 'View My Matches',
-      description: 'Review and respond to preceptor matches',
-      icon: Target,
-      href: '/dashboard/student/matches',
-      badge: dashboardStats.pendingMatchesCount > 0 ? {
-        text: dashboardStats.pendingMatchesCount.toString(),
-        variant: 'default' as const
-      } : undefined
-    },
-    {
-      id: 'search',
-      title: 'Find Preceptors',
-      description: 'Search and request matches with preceptors',
-      icon: Search,
-      href: '/dashboard/student/search',
-      variant: 'outline' as const
-    },
-    {
-      id: 'hours',
-      title: 'Log Clinical Hours',
-      description: 'Track your rotation hours and activities',
-      icon: Clock,
-      href: '/dashboard/student/hours',
-      variant: 'outline' as const
-    },
-    {
-      id: 'messages',
-      title: 'Message Preceptor',
-      description: 'Communicate with your assigned preceptor',
-      icon: MessageCircle,
-      href: '/dashboard/messages',
-      variant: 'outline' as const,
-      disabled: !currentMatch
-    },
-    {
-      id: 'rotations',
-      title: 'View Rotations',
-      description: 'Manage your current and upcoming rotations',
-      icon: Calendar,
-      href: '/dashboard/student/rotations',
-      variant: 'outline' as const
-    }
-  ]
-
   return (
-    <DashboardContainer
-      title={`Welcome back, ${student.personalInfo.fullName.split(' ')[0]}!`}
-      subtitle={`${student.schoolInfo.degreeTrack} Student • ${student.schoolInfo.programName} • Expected graduation ${student.schoolInfo.expectedGraduation}`}
-      headerAction={
-        <div className="flex items-center gap-2">
-          <Badge variant={student.status === 'submitted' ? 'default' : 'secondary'}>
-            {student.status === 'submitted' ? 'Active' : student.status}
-          </Badge>
-          {dashboardStats.mentorFitScore > 0 && (
-            <Badge variant="outline">
-              MentorFit: {dashboardStats.mentorFitScore}/10
-            </Badge>
-          )}
-        </div>
-      }
-    >
-      {/* Quick Stats */}
-      <DashboardGrid columns={4}>
-        <StatsCard
-          title="Profile Completion"
-          value={`${dashboardStats.profileCompletionPercentage}%`}
-          icon={User}
-          progress={{
-            value: dashboardStats.profileCompletionPercentage,
-            max: 100
-          }}
-          badge={dashboardStats.profileCompletionPercentage === 100 ? {
-            text: 'Complete',
-            variant: 'default'
-          } : {
-            text: 'In Progress',
-            variant: 'secondary'
-          }}
-        />
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome back, {student.personalInfo.fullName.split(' ')[0]}!
+        </h1>
+        <p className="text-muted-foreground">
+          {student.schoolInfo.degreeTrack} Student • {student.schoolInfo.programName}
+        </p>
+      </div>
 
-        <StatsCard
-          title="Pending Matches"
-          value={dashboardStats.pendingMatchesCount}
-          icon={Target}
-          description={dashboardStats.pendingMatchesCount > 0 ? 'Awaiting your review' : 'No pending matches'}
-          badge={dashboardStats.pendingMatchesCount > 0 ? {
-            text: 'Action Required',
-            variant: 'destructive'
-          } : undefined}
-        />
-
-        <StatsCard
-          title="Clinical Hours"
-          value={dashboardStats.hoursCompleted}
-          icon={Clock}
-          progress={{
-            value: dashboardStats.hoursCompleted,
-            max: dashboardStats.hoursRequired
-          }}
-          description={`${dashboardStats.hoursCompleted} / ${dashboardStats.hoursRequired} completed`}
-        />
-
-        <StatsCard
-          title="Next Rotation"
-          value={dashboardStats.nextRotationDate ? new Date(dashboardStats.nextRotationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
-          icon={Calendar}
-          description={currentMatch ? currentMatch.rotationDetails.rotationType : 'No rotation scheduled'}
-          badge={currentMatch ? {
-            text: currentMatch.status === 'confirmed' ? 'Confirmed' : 'Active',
-            variant: 'default'
-          } : undefined}
-        />
-      </DashboardGrid>
-
-      {/* Main Content Grid */}
-      <DashboardSection>
-        <div className="grid gap-6 lg:grid-cols-2">
-        {/* Quick Actions */}
-        <QuickActions
-          title="Quick Actions"
-          actions={quickActions}
-          columns={1}
-        />
-
-        {/* Current Rotation */}
+      {/* Key Metrics */}
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              Current Rotation
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Profile Completion</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {currentMatch ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{currentMatch.rotationDetails.rotationType}</p>
-                    <p className="text-sm text-muted-foreground">
-                      MentorFit Score: {currentMatch.mentorFitScore}/10
-                    </p>
-                  </div>
-                  <Badge variant={currentMatch.status === 'confirmed' ? 'default' : 'secondary'}>
-                    {currentMatch.status}
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Start Date</p>
-                    <p className="font-medium">
-                      {new Date(currentMatch.rotationDetails.startDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Weekly Hours</p>
-                    <p className="font-medium">{currentMatch.rotationDetails.weeklyHours}h</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button size="sm" className="flex-1" asChild>
-                    <Link href="/dashboard/student/rotations">
-                      View Details
-                    </Link>
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1" asChild>
-                    <Link href="/dashboard/messages">
-                      Contact Preceptor
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No active rotation</p>
-                <Button asChild size="sm">
-                  <Link href="/dashboard/student/matches">
-                    Find Matches
-                  </Link>
-                </Button>
-              </div>
-            )}
+            <div className="text-2xl font-bold">{dashboardStats.profileCompletionPercentage}%</div>
+            <div className="mt-2 w-full bg-secondary rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all" 
+                style={{ width: `${dashboardStats.profileCompletionPercentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {dashboardStats.profileCompletionPercentage === 100 ? 'Complete' : 'In Progress'}
+            </p>
           </CardContent>
         </Card>
-        </div>
-      </DashboardSection>
 
-      {/* Progress & Activity Row */}
-      <DashboardSection>
-        <div className="grid gap-6 lg:grid-cols-2">
-        {/* Progress Overview */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Progress Overview
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Rotation</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span>Profile Completion</span>
-                <span>{dashboardStats.profileCompletionPercentage}%</span>
-              </div>
-              <div className="w-full bg-secondary rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all" 
-                  style={{ width: `${dashboardStats.profileCompletionPercentage}%` }}
-                ></div>
-              </div>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {currentMatch ? currentMatch.rotationDetails.rotationType : 'None'}
             </div>
-            
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span>Clinical Hours</span>
-                <span>{Math.round((dashboardStats.hoursCompleted / dashboardStats.hoursRequired) * 100)}%</span>
-              </div>
-              <div className="w-full bg-secondary rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all" 
-                  style={{ width: `${(dashboardStats.hoursCompleted / dashboardStats.hoursRequired) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span>Completed Rotations</span>
-                <span>{dashboardStats.completedRotations}</span>
-              </div>
-            </div>
-            
-            <div className="pt-2 border-t">
-              <p className="text-sm text-muted-foreground">
-                {dashboardStats.profileCompletionPercentage === 100 && dashboardStats.hoursCompleted > 0
-                  ? "You're making great progress!"
-                  : dashboardStats.profileCompletionPercentage < 100
-                  ? "Complete your profile to improve matching"
-                  : "Ready to start your clinical journey!"
-                }
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              {currentMatch ? `${currentMatch.rotationDetails.weeklyHours}h/week` : 'No active rotation'}
+            </p>
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <ActivityFeed
-          activities={recentActivity as Array<{
-            id: string
-            type: 'match' | 'rotation' | 'evaluation' | 'payment' | 'message' | 'system'
-            title: string
-            description: string
-            timestamp: number
-            status?: 'success' | 'warning' | 'error' | 'info'
-            actor?: {
-              name: string
-              type: 'student' | 'preceptor' | 'admin' | 'system'
-            }
-          }> || []}
-          title="Recent Activity"
-          maxItems={5}
-        />
-        </div>
-      </DashboardSection>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clinical Hours</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {dashboardStats.hoursCompleted}/{dashboardStats.hoursRequired}
+            </div>
+            <div className="mt-2 w-full bg-secondary rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all" 
+                style={{ width: `${(dashboardStats.hoursCompleted / dashboardStats.hoursRequired) * 100}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {Math.round((dashboardStats.hoursCompleted / dashboardStats.hoursRequired) * 100)}% Complete
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Notifications */}
-      {notifications && notifications.length > 0 && (
-        <DashboardSection>
-          <NotificationPanel
-            notifications={notifications}
-          />
-        </DashboardSection>
-      )}
-    </DashboardContainer>
+      {/* Navigation Cards */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Link href="/dashboard/student/search">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-blue-100 p-3 mr-4">
+                  <Search className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Find Preceptors</h3>
+                  <p className="text-sm text-muted-foreground">Search and request matches</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/student/matches">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-green-100 p-3 mr-4">
+                  <Target className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">My Matches</h3>
+                  <p className="text-sm text-muted-foreground">Review match requests</p>
+                  {dashboardStats.pendingMatchesCount > 0 && (
+                    <Badge className="mt-1" variant="destructive">
+                      {dashboardStats.pendingMatchesCount} pending
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/student/hours">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-purple-100 p-3 mr-4">
+                  <Clock className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Clinical Hours</h3>
+                  <p className="text-sm text-muted-foreground">Log your hours</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/student/rotations">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-orange-100 p-3 mr-4">
+                  <Calendar className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Rotations</h3>
+                  <p className="text-sm text-muted-foreground">View your schedule</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/student/documents">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-yellow-100 p-3 mr-4">
+                  <FileText className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Documents</h3>
+                  <p className="text-sm text-muted-foreground">Manage your files</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/messages">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center p-6">
+                <div className="rounded-full bg-pink-100 p-3 mr-4">
+                  <MessageCircle className="h-6 w-6 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Messages</h3>
+                  <p className="text-sm text-muted-foreground">Chat with preceptors</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </div>
+    </div>
   )
 }
