@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Shield, Sparkles, ArrowRight } from 'lucide-react'
 import MentoLoopBackground from '@/components/mentoloop-background'
 import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 
 export default function HeroSection() {
     return (

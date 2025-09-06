@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { Menu, X, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import React from 'react'
-import { motion, useMotionValue } from 'framer-motion'
+import React, { memo, useMemo, useCallback, useState } from 'react'
+import { motion, useMotionValue } from 'motion/react'
 import { usePathname } from 'next/navigation'
 
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
@@ -12,31 +12,26 @@ import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 
 import { CustomSignupModal } from '@/components/custom-signup-modal'
 
-
-
+// Move static data outside component to prevent recreation
 const menuItems = [
     { name: 'Home', href: '/' },
     { name: 'For Students', href: '/student-intake' },
     { name: 'For Preceptors', href: '/preceptor-intake' },
     { name: 'For Institutions', href: '/institutions' },
     { name: 'Help Center', href: '/help' },
-]
+] as const;
 
-export const NavHeader = () => {
-    const [menuState, setMenuState] = React.useState(false)
-    const [showSignupModal, setShowSignupModal] = React.useState(false)
+export const NavHeader = memo(function NavHeader() {
+    const [menuState, setMenuState] = useState(false)
+    const [showSignupModal, setShowSignupModal] = useState(false)
 
     const { isSignedIn, isLoaded } = useUser()
     const pathname = usePathname()
     const mouseX = useMotionValue(0)
     const mouseY = useMotionValue(0)
 
-    // Don't render the header on dashboard pages
-    if (pathname?.startsWith('/dashboard')) {
-        return null
-    }
-
-    const appearance = {
+    // Memoize appearance config to prevent recreation
+    const appearance = useMemo(() => ({
         elements: {
             footerAction: "hidden", // Hide "What is Clerk?" link
         },
@@ -45,12 +40,36 @@ export const NavHeader = () => {
           privacyPageUrl: "/privacy",
           termsPageUrl: "/terms"
         }
-    }
+    }), []);
     
-    const handleMouseMove = (e: React.MouseEvent) => {
+    // Memoize mouse move handler with useCallback
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
         const rect = e.currentTarget.getBoundingClientRect()
         mouseX.set(e.clientX - rect.left)
         mouseY.set(e.clientY - rect.top)
+    }, [mouseX, mouseY]);
+
+    // Memoize menu toggle handler
+    const toggleMenu = useCallback(() => {
+        setMenuState(prev => !prev)
+    }, []);
+
+    // Memoize modal handlers
+    const openSignupModal = useCallback(() => {
+        setShowSignupModal(true)
+    }, []);
+
+    const closeSignupModal = useCallback(() => {
+        setShowSignupModal(false)
+    }, []);
+
+    const closeMobileMenu = useCallback(() => {
+        setMenuState(false)
+    }, []);
+
+    // Don't render the header on dashboard pages (moved after hooks)
+    if (pathname?.startsWith('/dashboard')) {
+        return null
     }
 
     return (
@@ -126,7 +145,7 @@ export const NavHeader = () => {
                             <Button 
                                 size="sm"
                                 className="relative overflow-hidden group"
-                                onClick={() => setShowSignupModal(true)}>
+                                onClick={openSignupModal}>
                                 <span className="relative z-10">Get Started</span>
                                 <motion.div
                                     className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary"
@@ -139,7 +158,7 @@ export const NavHeader = () => {
 
                         {/* Mobile Menu Button */}
                         <button
-                            onClick={() => setMenuState(!menuState)}
+                            onClick={toggleMenu}
                             aria-label={menuState ? 'Close Menu' : 'Open Menu'}
                             className="md:hidden">
                             {menuState ? (
@@ -161,7 +180,7 @@ export const NavHeader = () => {
                                 key={index}
                                 href={item.href}
                                 className="block text-sm font-medium transition-colors hover:text-primary"
-                                onClick={() => setMenuState(false)}>
+                                onClick={closeMobileMenu}>
                                 {item.name}
                             </Link>
                         ))}
@@ -174,9 +193,9 @@ export const NavHeader = () => {
         {isLoaded && !isSignedIn && (
             <CustomSignupModal 
                 isOpen={showSignupModal}
-                onClose={() => setShowSignupModal(false)}
+                onClose={closeSignupModal}
             />
         )}
         </>
     )
-}
+});

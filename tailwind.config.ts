@@ -7,6 +7,24 @@ const config: Config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    screens: {
+      'xs': '475px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      // Mobile-first utilities
+      'mobile': { 'max': '767px' },
+      'tablet': { 'min': '768px', 'max': '1023px' },
+      'desktop': { 'min': '1024px' },
+      // Touch-specific breakpoints
+      'touch': { 'raw': '(hover: none) and (pointer: coarse)' },
+      'no-touch': { 'raw': '(hover: hover) and (pointer: fine)' },
+      // Reduced motion
+      'reduce-motion': { 'raw': '(prefers-reduced-motion: reduce)' },
+      'allow-motion': { 'raw': '(prefers-reduced-motion: no-preference)' },
+    },
     extend: {
       colors: {
         background: 'hsl(var(--background))',

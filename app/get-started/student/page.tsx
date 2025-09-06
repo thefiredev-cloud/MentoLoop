@@ -101,7 +101,7 @@ export default function GetStartedStudentPage() {
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             You&apos;re just a few steps away from finding your perfect preceptor match. 
-            Here's everything you need to know before signing up.
+            Here&apos;s everything you need to know before signing up.
           </p>
         </div>
 

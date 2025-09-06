@@ -69,27 +69,53 @@ const MentoLoopBackground: React.FC<MentoLoopBackgroundProps> = ({
       }
       
       let animationId: number;
+      let lastTime = 0;
+      const targetFPS = 60;
+      const frameInterval = 1000 / targetFPS;
+      let isVisible = true;
       
-      const animate = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Handle visibility changes to pause animation when tab is inactive
+      const handleVisibilityChange = () => {
+        isVisible = !document.hidden;
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      const animate = (currentTime: number = 0) => {
+        if (!isVisible) {
+          animationId = requestAnimationFrame(animate);
+          return;
+        }
         
-        particles.forEach(particle => {
-          // Update position
-          particle.x += particle.speedX;
-          particle.y += particle.speedY;
+        // Throttle to target FPS
+        if (currentTime - lastTime >= frameInterval) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          // Wrap around edges
-          if (particle.x < 0) particle.x = canvas.width;
-          if (particle.x > canvas.width) particle.x = 0;
-          if (particle.y < 0) particle.y = canvas.height;
-          if (particle.y > canvas.height) particle.y = 0;
+          // Batch drawing operations for better performance
+          ctx.globalCompositeOperation = 'source-over';
           
-          // Draw particle
-          ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
-          ctx.fill();
-        });
+          particles.forEach(particle => {
+            // Update position
+            particle.x += particle.speedX;
+            particle.y += particle.speedY;
+            
+            // Wrap around edges with better performance
+            if (particle.x < -particle.size) particle.x = canvas.width + particle.size;
+            else if (particle.x > canvas.width + particle.size) particle.x = -particle.size;
+            if (particle.y < -particle.size) particle.y = canvas.height + particle.size;
+            else if (particle.y > canvas.height + particle.size) particle.y = -particle.size;
+            
+            // Draw particle with optimized rendering
+            ctx.globalAlpha = particle.opacity;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2, false);
+            ctx.fill();
+          });
+          
+          // Reset global alpha
+          ctx.globalAlpha = 1;
+          lastTime = currentTime;
+        }
         
         animationId = requestAnimationFrame(animate);
       };
@@ -98,6 +124,7 @@ const MentoLoopBackground: React.FC<MentoLoopBackgroundProps> = ({
       
       return () => {
         window.removeEventListener('resize', resizeCanvas);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
         if (animationId) {
           cancelAnimationFrame(animationId);
         }
@@ -121,24 +148,42 @@ const MentoLoopBackground: React.FC<MentoLoopBackgroundProps> = ({
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
+    let particleCount = 0;
+    const maxParticles = 20; // Limit number of DOM particles
+    
     const createFloatingParticle = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || particleCount >= maxParticles) return;
       
       const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.left = Math.random() * window.innerWidth + 'px';
-      particle.style.bottom = '0px';
-      particle.style.animationDelay = Math.random() * 6 + 's';
+      particle.className = 'particle gpu-accelerated';
+      particle.style.cssText = `
+        left: ${Math.random() * window.innerWidth}px;
+        bottom: 0px;
+        animation-delay: ${Math.random() * 6}s;
+        will-change: transform;
+      `;
       containerRef.current.appendChild(particle);
+      particleCount++;
       
-      setTimeout(() => {
+      // Use requestIdleCallback for non-critical cleanup
+      const cleanup = () => {
         if (particle.parentNode) {
           particle.remove();
+          particleCount--;
         }
-      }, 6000);
+      };
+      
+      if (window.requestIdleCallback) {
+        setTimeout(() => {
+          window.requestIdleCallback(cleanup);
+        }, 5500);
+      } else {
+        setTimeout(cleanup, 6000);
+      }
     };
 
-    const interval = setInterval(createFloatingParticle, 2000);
+    // Reduce interval frequency for better performance
+    const interval = setInterval(createFloatingParticle, 3000);
     
     return () => clearInterval(interval);
   }, [variant]);

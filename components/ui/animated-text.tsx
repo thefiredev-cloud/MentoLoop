@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion, useInView, Variants } from "framer-motion";
-import { useRef } from "react";
+import { motion, useInView, Variants } from "motion/react";
+import { useRef, useMemo, memo } from "react";
 
 interface AnimatedTextProps {
   text: string;
@@ -12,7 +12,7 @@ interface AnimatedTextProps {
   type?: "word" | "character" | "line";
 }
 
-export function AnimatedText({
+export const AnimatedText = memo(function AnimatedText({
   text,
   className,
   delay = 0,
@@ -22,42 +22,50 @@ export function AnimatedText({
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
   
-  const words = text.split(" ");
-  const characters = text.split("");
+  // Memoize expensive split operations
+  const words = useMemo(() => text.split(" "), [text]);
+  const characters = useMemo(() => text.split(""), [text]);
   
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    visible: (_i = 1) => ({
-      opacity: 1,
-      transition: { 
-        staggerChildren: type === "character" ? 0.03 : 0.12, 
-        delayChildren: delay 
+  // Memoize animation variants to prevent recreation on every render
+  const container: Variants = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      visible: (_i = 1) => ({
+        opacity: 1,
+        transition: { 
+          staggerChildren: type === "character" ? 0.03 : 0.12, 
+          delayChildren: delay 
+        },
+      }),
+    }),
+    [type, delay]
+  );
+
+  const child: Variants = useMemo(
+    () => ({
+      visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+          type: "spring",
+          damping: 12,
+          stiffness: 100,
+          duration,
+        },
+      },
+      hidden: {
+        opacity: 0,
+        y: 20,
+        transition: {
+          type: "spring",
+          damping: 12,
+          stiffness: 100,
+          duration,
+        },
       },
     }),
-  };
-
-  const child: Variants = {
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 100,
-        duration,
-      },
-    },
-    hidden: {
-      opacity: 0,
-      y: 20,
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 100,
-        duration,
-      },
-    },
-  };
+    [duration]
+  );
 
   return (
     <motion.div
@@ -90,9 +98,9 @@ export function AnimatedText({
       )}
     </motion.div>
   );
-}
+});
 
-export function GradientText({
+export const GradientText = memo(function GradientText({
   children,
   className,
   gradient = "from-primary via-secondary to-accent",
@@ -101,40 +109,44 @@ export function GradientText({
   className?: string;
   gradient?: string;
 }) {
-  return (
-    <span
-      className={cn(
+  const combinedClassName = useMemo(
+    () =>
+      cn(
         "bg-gradient-to-r bg-clip-text text-transparent",
         gradient,
         className
-      )}
-    >
+      ),
+    [gradient, className]
+  );
+
+  return (
+    <span className={combinedClassName}>
       {children}
     </span>
   );
-}
+});
 
-export function GlowingText({
+export const GlowingText = memo(function GlowingText({
   children,
   className,
 }: {
   children: React.ReactNode;
   className?: string;
 }) {
+  const combinedClassName = useMemo(
+    () => cn("relative inline-block", className),
+    [className]
+  );
+
   return (
-    <span
-      className={cn(
-        "relative inline-block",
-        className
-      )}
-    >
+    <span className={combinedClassName}>
       <span className="relative z-10">{children}</span>
       <span
-        className="absolute inset-0 blur-xl opacity-70 animate-pulse"
+        className="absolute inset-0 blur-xl opacity-70 animate-pulse-optimized"
         aria-hidden="true"
       >
         {children}
       </span>
     </span>
   );
-}
+});
