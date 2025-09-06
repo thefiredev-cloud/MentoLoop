@@ -5,6 +5,7 @@ import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { 
   GraduationCap, 
   Target, 
@@ -14,9 +15,11 @@ import {
   User,
   Search,
   FileText,
-  BookOpen
+  BookOpen,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import { useUser } from '@clerk/nextjs'
 
 export default function StudentDashboardPage() {
   return (
@@ -27,15 +30,74 @@ export default function StudentDashboardPage() {
 }
 
 function StudentDashboardContent() {
+  const { user: clerkUser } = useUser()
+  const currentUser = useQuery(api.users.current)
   const dashboardStats = useQuery(api.students.getStudentDashboardStats)
   
-  if (!dashboardStats) {
+  // Check if we're still loading
+  if (currentUser === undefined || dashboardStats === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
         </div>
+      </div>
+    )
+  }
+
+  // If user exists but dashboardStats is null, they haven't completed intake
+  if (currentUser && dashboardStats === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-8">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-600" />
+              Complete Your Profile
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Welcome to MentoLoop! Complete your student intake form to start finding preceptors.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Our intake process takes just a few minutes and will help us match you with the perfect preceptor for your clinical rotations.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <Link href="/student-intake" className="flex-1">
+                <Button className="w-full">Complete Intake Form</Button>
+              </Link>
+              <Link href="/help" className="flex-1">
+                <Button variant="outline" className="w-full">Get Help</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // If no user or dashboard stats, something went wrong
+  if (!currentUser || !dashboardStats) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-8">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Unable to Load Dashboard
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              We're having trouble loading your dashboard. Please try refreshing the page.
+            </p>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
