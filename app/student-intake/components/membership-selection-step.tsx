@@ -25,9 +25,9 @@ const MEMBERSHIP_PLANS = [
     priceId: 'price_starter', // Will be replaced with actual Stripe price ID
     description: 'Essential placement support for your clinical rotation',
     features: [
-      'Single rotation placement',
-      'Preceptor matching',
-      'Basic school paperwork',
+      'Guaranteed preceptor match',
+      'Standard support + hour tracking',
+      'Bank unused hours within semester',
       'Email support',
       'Standard processing (5-7 days)'
     ],
@@ -41,15 +41,14 @@ const MEMBERSHIP_PLANS = [
     price: 795,
     hours: 90,
     priceId: 'price_core', // Will be replaced with actual Stripe price ID
-    description: 'Enhanced support with priority matching and faster processing',
+    description: 'Best value with priority matching and enhanced support',
     features: [
-      'Single rotation placement',
-      'Priority preceptor matching',
-      'Complete paperwork coordination',
+      'Everything in Starter',
+      'Priority matching (within 14 days)',
+      'Dedicated student support rep',
+      'Midpoint check-in with student + preceptor',
       'Phone & email support',
-      'Express processing (2-3 days)',
-      'Backup placement guarantee',
-      'Progress tracking dashboard'
+      'Backup placement guarantee'
     ],
     icon: Zap,
     color: 'purple',
@@ -61,17 +60,15 @@ const MEMBERSHIP_PLANS = [
     price: 1495,
     hours: 180,
     priceId: 'price_pro', // Will be replaced with actual Stripe price ID
-    description: 'Complete concierge service with extended hours',
+    description: 'Complete concierge service for full-semester placements',
     features: [
-      'Multiple rotation options',
-      'VIP preceptor matching',
-      'Full paperwork management',
-      '24/7 priority support',
-      'Immediate processing (24 hours)',
-      'Guaranteed placement or refund',
-      'Dedicated success coordinator',
-      'CEU tracking included',
-      'Evaluation assistance'
+      'Everything in Core',
+      'Top-priority placement (within 7–10 days)',
+      'Dedicated Success Coordinator',
+      'Flexible rollover (into next semester)',
+      'Free access to mentorship resources',
+      'Preceptor evaluation coaching included',
+      '24/7 priority support'
     ],
     icon: Crown,
     color: 'gold',
@@ -85,16 +82,14 @@ const MEMBERSHIP_PLANS = [
     priceId: 'price_elite', // Will be replaced with actual Stripe price ID
     description: 'Premium concierge service with maximum hours',
     features: [
+      'Everything in Pro',
       'Maximum rotation hours',
       'VIP preceptor matching',
-      'Full paperwork management',
       '24/7 priority support',
       'Immediate processing (24 hours)',
       'Guaranteed placement or refund',
-      'Dedicated success coordinator',
-      'CEU tracking included',
-      'Evaluation assistance',
-      'Bank unused hours within semester'
+      'Bank unused hours within semester',
+      'Evaluation assistance'
     ],
     icon: Crown,
     color: 'gold',

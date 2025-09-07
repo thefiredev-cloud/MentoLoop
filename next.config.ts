@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
       '@': path.join(__dirname, './')
     }
     
-    // Optimize for production
+    // Optimize for production (temporarily disable vendor splitting to fix SSR issues)
     if (!dev) {
       config.optimization = {
         ...config.optimization,
@@ -43,24 +43,25 @@ const nextConfig: NextConfig = {
               priority: 40,
               enforce: true,
             },
-            animations: {
-              name: 'animations',
-              test: /[\\/]node_modules[\\/](framer-motion|motion)[\\/]/,
-              priority: 30,
-              enforce: true,
-            },
             ui: {
               name: 'ui',
               test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|@tabler)[\\/]/,
               priority: 30,
               enforce: true,
             },
-            vendor: {
-              name: 'vendor',
-              test: /[\\/]node_modules[\\/]/,
-              priority: 10,
-              enforce: true,
-            },
+            // Temporarily comment out animations and vendor chunks to avoid SSR issues
+            // animations: {
+            //   name: 'animations',
+            //   test: /[\\/]node_modules[\\/](framer-motion|motion)[\\/]/,
+            //   priority: 30,
+            //   enforce: true,
+            // },
+            // vendor: {
+            //   name: 'vendor',
+            //   test: /[\\/]node_modules[\\/]/,
+            //   priority: 10,
+            //   enforce: true,
+            // },
           },
         },
       }
