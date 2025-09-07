@@ -18,10 +18,11 @@ interface MembershipSelectionStepProps {
 
 const MEMBERSHIP_PLANS = [
   {
-    id: 'core',
-    name: 'Core Block',
-    price: 499,
-    priceId: 'price_core', // Will be replaced with actual Stripe price ID
+    id: 'starter',
+    name: 'Starter Block',
+    price: 495,
+    hours: 60,
+    priceId: 'price_starter', // Will be replaced with actual Stripe price ID
     description: 'Essential placement support for your clinical rotation',
     features: [
       'Single rotation placement',
@@ -35,10 +36,11 @@ const MEMBERSHIP_PLANS = [
     recommended: false
   },
   {
-    id: 'pro',
-    name: 'Pro Block',
-    price: 799,
-    priceId: 'price_pro', // Will be replaced with actual Stripe price ID
+    id: 'core',
+    name: 'Core Block',
+    price: 795,
+    hours: 90,
+    priceId: 'price_core', // Will be replaced with actual Stripe price ID
     description: 'Enhanced support with priority matching and faster processing',
     features: [
       'Single rotation placement',
@@ -54,11 +56,12 @@ const MEMBERSHIP_PLANS = [
     recommended: true
   },
   {
-    id: 'premium',
-    name: 'Premium Block',
-    price: 999,
-    priceId: 'price_premium', // Will be replaced with actual Stripe price ID
-    description: 'Complete concierge service with guaranteed placement',
+    id: 'pro',
+    name: 'Pro Block',
+    price: 1495,
+    hours: 180,
+    priceId: 'price_pro', // Will be replaced with actual Stripe price ID
+    description: 'Complete concierge service with extended hours',
     features: [
       'Multiple rotation options',
       'VIP preceptor matching',
@@ -69,6 +72,29 @@ const MEMBERSHIP_PLANS = [
       'Dedicated success coordinator',
       'CEU tracking included',
       'Evaluation assistance'
+    ],
+    icon: Crown,
+    color: 'gold',
+    recommended: false
+  },
+  {
+    id: 'elite',
+    name: 'Elite Block',
+    price: 1895,
+    hours: 240,
+    priceId: 'price_elite', // Will be replaced with actual Stripe price ID
+    description: 'Premium concierge service with maximum hours',
+    features: [
+      'Maximum rotation hours',
+      'VIP preceptor matching',
+      'Full paperwork management',
+      '24/7 priority support',
+      'Immediate processing (24 hours)',
+      'Guaranteed placement or refund',
+      'Dedicated success coordinator',
+      'CEU tracking included',
+      'Evaluation assistance',
+      'Bank unused hours within semester'
     ],
     icon: Crown,
     color: 'gold',
@@ -147,7 +173,7 @@ export default function MembershipSelectionStep({
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {MEMBERSHIP_PLANS.map((plan) => (
           <Card
             key={plan.id}
@@ -175,7 +201,7 @@ export default function MembershipSelectionStep({
               <CardTitle className="text-xl mb-2">{plan.name}</CardTitle>
               <div className="flex items-baseline justify-center gap-1">
                 <span className="text-3xl font-bold">${plan.price}</span>
-                <span className="text-muted-foreground">/rotation</span>
+                <span className="text-muted-foreground">/{plan.hours} hrs</span>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 {plan.description}
@@ -219,6 +245,11 @@ export default function MembershipSelectionStep({
       )}
 
       <div className="bg-muted/50 p-6 rounded-lg">
+        <h3 className="font-semibold mb-3">A La Carte Add-On Available</h3>
+        <div className="text-center mb-4">
+          <p className="text-2xl font-bold text-blue-600">$10/hr</p>
+          <p className="text-sm text-muted-foreground">Flexible extras (30hr blocks) - aligns with institutional intervals</p>
+        </div>
         <h3 className="font-semibold mb-3">What happens next?</h3>
         <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
           <li>You&apos;ll be redirected to secure Stripe checkout</li>
@@ -227,6 +258,9 @@ export default function MembershipSelectionStep({
           <li>Access your student dashboard immediately</li>
           <li>We&apos;ll begin matching you with preceptors right away</li>
         </ol>
+        <p className="text-sm text-muted-foreground mt-4 text-center">
+          Installment plans and student discounts available.
+        </p>
       </div>
 
       <div className="flex justify-between pt-6">

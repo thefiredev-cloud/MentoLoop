@@ -15,10 +15,7 @@ import {
   ChevronRight,
   CheckCircle,
   Star,
-  Award,
-  Heart,
-  TrendingUp,
-  Calendar
+  Award
 } from 'lucide-react'
 
 export default function PreceptorsPage() {
@@ -33,56 +30,46 @@ export default function PreceptorsPage() {
   const benefits = [
     {
       icon: <DollarSign className="w-8 h-8 text-green-600" />,
-      title: "Earn Extra Income",
-      description: "Receive competitive honorariums for sharing your expertise and mentoring the next generation"
-    },
-    {
-      icon: <Heart className="w-8 h-8 text-green-600" />,
-      title: "Give Back",
-      description: "Make a meaningful impact on future NPs while staying connected to education"
+      title: "Earn Honorariums",
+      description: "Earn honorariums per rotation (simple 1099 reporting)."
     },
     {
       icon: <Clock className="w-8 h-8 text-green-600" />,
-      title: "Flexible Schedule",
-      description: "Set your own availability and choose students that fit your practice schedule"
+      title: "Set Your Own Availability",
+      description: "Set your own availability — take students only when you want."
     },
     {
       icon: <Shield className="w-8 h-8 text-green-600" />,
-      title: "Full Support",
-      description: "We handle all paperwork, liability coverage, and administrative tasks for you"
+      title: "Vetted Students",
+      description: "Students are vetted before being matched."
     },
     {
       icon: <Award className="w-8 h-8 text-green-600" />,
-      title: "CEU Credits",
-      description: "Earn continuing education credits while precepting through our accredited programs"
+      title: "No Admin Burden",
+      description: "No admin burden — we handle contracts, scheduling, and tracking."
     },
     {
-      icon: <TrendingUp className="w-8 h-8 text-green-600" />,
-      title: "Professional Growth",
-      description: "Enhance your teaching skills and stay current with the latest in NP education"
+      icon: <Star className="w-8 h-8 text-green-600" />,
+      title: "Recognition Badges",
+      description: "Recognition through MentorFit™ badges (Bronze, Silver, Gold)."
     }
   ]
 
   const process = [
     {
       step: 1,
-      title: "Apply Online",
-      description: "Complete our simple application with your credentials and availability preferences"
+      title: "Create Your Profile",
+      description: "Set your availability, location, and specialty areas."
     },
     {
       step: 2,
-      title: "Get Verified",
-      description: "We verify your credentials and ensure you meet all requirements (usually 24-48 hours)"
+      title: "Get Matched",
+      description: "Our MentorFit™ algorithm matches you with students who fit your scope."
     },
     {
       step: 3,
-      title: "Match with Students",
-      description: "Receive matched student profiles based on your specialty and preferences"
-    },
-    {
-      step: 4,
-      title: "Start Mentoring",
-      description: "Begin precepting with full support, resources, and compensation"
+      title: "Teach & Get Recognized",
+      description: "You mentor, we handle the admin. Earn honorariums and gain recognition badges."
     }
   ]
 
@@ -109,23 +96,6 @@ export default function PreceptorsPage() {
     "Willingness to complete student evaluations"
   ]
 
-  const compensationTiers = [
-    {
-      specialty: "Primary Care (FNP, AGNP)",
-      range: "$500-800/month",
-      description: "For full-time student rotations"
-    },
-    {
-      specialty: "Specialized Care (PMHNP, PNP)",
-      range: "$600-1000/month",
-      description: "Higher demand specialties"
-    },
-    {
-      specialty: "Acute Care & Emergency",
-      range: "$700-1200/month",
-      description: "Critical care settings"
-    }
-  ]
 
   return (
     <div className="min-h-screen bg-white">
@@ -138,12 +108,12 @@ export default function PreceptorsPage() {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              For Preceptors
+              Mentor the Next Generation of NPs. On Your Terms.
             </h1>
             
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Share your expertise, earn extra income, and shape the future of nursing 
-              by mentoring NP students through MentoLoop.
+              Mentoloop makes precepting easy, rewarding, and flexible. Earn honorariums, 
+              gain recognition, and help shape the future of healthcare — without the paperwork hassle.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -152,8 +122,8 @@ export default function PreceptorsPage() {
                 asChild
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg"
               >
-                <Link href="/get-started/preceptor">
-                  Get Started - Preceptor
+                <Link href="/sign-up/preceptor">
+                  Become a Preceptor
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
@@ -189,7 +159,7 @@ export default function PreceptorsPage() {
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-            Why Become a MentoLoop Preceptor?
+            Why Preceptors Join Mentoloop
           </h2>
           <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-16">
             Join our network of 1,000+ healthcare professionals making a difference
@@ -215,38 +185,46 @@ export default function PreceptorsPage() {
         </div>
       </section>
 
-      {/* Compensation Section */}
+      {/* Recognition & Community Section */}
       <section className="py-20 px-6 bg-gray-50">
         <div className="container mx-auto max-w-5xl">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-            Competitive Compensation
+            Recognition & Community
           </h2>
           <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-12">
-            Earn meaningful income while mentoring the next generation of NPs
+            Get recognized for your contributions and connect with peers
           </p>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {compensationTiers.map((tier, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                    {tier.specialty}
-                  </h3>
-                  <p className="text-3xl font-bold text-green-600 mb-2">
-                    {tier.range}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {tier.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <Award className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">MentorFit™ Badges</h3>
+                <p className="text-sm text-gray-600">Service milestone recognition</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <Users className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">LoopExchange™</h3>
+                <p className="text-sm text-gray-600">Peer community & discussion forum</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <Star className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">CEU Workshops</h3>
+                <p className="text-sm text-gray-600">Exclusive events for preceptors</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <DollarSign className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">Referral Rewards</h3>
+                <p className="text-sm text-gray-600">For helping grow the network</p>
+              </CardContent>
+            </Card>
           </div>
-
-          <p className="text-center mt-8 text-gray-600">
-            * Compensation varies by location, specialty, and student needs. 
-            Additional bonuses available for high-demand areas.
-          </p>
         </div>
       </section>
 
@@ -277,7 +255,7 @@ export default function PreceptorsPage() {
               asChild
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg"
             >
-              <Link href="/get-started/preceptor">
+              <Link href="/sign-up/preceptor">
                 Apply Now
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Link>
@@ -386,8 +364,8 @@ export default function PreceptorsPage() {
               asChild
               className="bg-green-600 hover:bg-green-700 px-8 py-6 text-lg"
             >
-              <Link href="/get-started/preceptor">
-                Apply to Precept
+              <Link href="/sign-up/preceptor">
+                Sign Up as a Preceptor
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>

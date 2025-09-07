@@ -8,7 +8,6 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { 
   GraduationCap, 
-  Target, 
   Clock, 
   DollarSign,
   Shield,
@@ -16,8 +15,6 @@ import {
   ChevronRight,
   CheckCircle,
   Star,
-  Calendar,
-  MapPin,
   Award
 } from 'lucide-react'
 
@@ -26,57 +23,47 @@ export default function StudentsPage() {
 
   const benefits = [
     {
-      icon: <Target className="w-8 h-8 text-blue-600" />,
-      title: "Smart Matching",
-      description: "AI-powered system matches you with the perfect preceptor based on your specialty, location, and learning style"
-    },
-    {
       icon: <Shield className="w-8 h-8 text-blue-600" />,
-      title: "Vetted Preceptors",
-      description: "All preceptors are thoroughly verified for credentials, experience, and mentoring excellence"
-    },
-    {
-      icon: <Clock className="w-8 h-8 text-blue-600" />,
-      title: "Fast Placement",
-      description: "Most students are matched within 1-3 weeks, with expedited options available"
+      title: "Guaranteed Match",
+      description: "Guaranteed Match or your money back."
     },
     {
       icon: <DollarSign className="w-8 h-8 text-blue-600" />,
-      title: "Transparent Pricing",
-      description: "Clear, upfront pricing with no hidden fees. Payment only after successful match"
+      title: "Lower Cost",
+      description: "Lower cost per hour than traditional hourly marketplaces."
     },
     {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
-      title: "Ongoing Support",
-      description: "Dedicated support throughout your clinical rotation from start to finish"
+      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      title: "Priority Matching",
+      description: "Priority matching options for faster placement."
     },
     {
       icon: <Award className="w-8 h-8 text-blue-600" />,
-      title: "Success Guarantee",
-      description: "95% success rate with full refund if we can't find you a match"
+      title: "Bank Unused Hours",
+      description: "Bank unused hours within the semester."
+    },
+    {
+      icon: <Users className="w-8 h-8 text-blue-600" />,
+      title: "Dedicated Support",
+      description: "Dedicated support throughout your rotation."
     }
   ]
 
   const process = [
     {
       step: 1,
-      title: "Create Your Profile",
-      description: "Complete a brief intake form with your program details, specialty needs, and preferences"
+      title: "Tell Us Your Needs",
+      description: "Choose your specialty, hours, and location preferences."
     },
     {
       step: 2,
-      title: "Get Matched",
-      description: "Our AI analyzes your needs and connects you with compatible preceptors in our network"
+      title: "We Match You",
+      description: "Our MentorFit™ algorithm and placement team connect you to vetted preceptors."
     },
     {
       step: 3,
-      title: "Review & Accept",
-      description: "Review preceptor profiles, confirm your match, and complete the onboarding process"
-    },
-    {
-      step: 4,
-      title: "Start Your Rotation",
-      description: "Begin your clinical experience with full support and resources throughout"
+      title: "Complete Your Rotation",
+      description: "Track hours, manage paperwork, and focus on learning."
     }
   ]
 
@@ -103,20 +90,16 @@ export default function StudentsPage() {
 
   const faqs = [
     {
-      question: "How quickly can I get matched?",
-      answer: "Most students are matched within 1-3 weeks. We offer expedited matching for urgent needs."
+      question: "What if my preceptor cancels?",
+      answer: "We'll rematch you at no additional cost."
     },
     {
-      question: "What specialties are available?",
-      answer: "We cover all major NP specialties including FNP, AGNP, PNP, PMHNP, and specialty rotations."
+      question: "Can I pay in installments?",
+      answer: "Yes — split payments are available."
     },
     {
-      question: "Is financial aid available?",
-      answer: "Yes! We offer payment plans, early bird discounts, and accept some institutional funding."
-    },
-    {
-      question: "What if I&apos;m not satisfied with my match?",
-      answer: "We work with you to find an alternative match at no additional cost, or provide a full refund."
+      question: "Do I choose my preceptor?",
+      answer: "You'll be matched based on specialty, location, and preferences. Profiles are shared for approval before placement."
     }
   ]
 
@@ -131,12 +114,12 @@ export default function StudentsPage() {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              For NP Students
+              Find Your NP Preceptor. Fast. Fair. Guaranteed.
             </h1>
             
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Stop spending months searching for preceptors. Get matched with verified, 
-              high-quality clinical placements in as little as one week.
+              Clinical placements shouldn't be stressful. With Mentoloop, you get matched to 
+              vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -145,8 +128,8 @@ export default function StudentsPage() {
                 asChild
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
               >
-                <Link href="/get-started/student">
-                  Get Started - Student
+                <Link href="/sign-up/student">
+                  Get Matched Today
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
@@ -235,12 +218,67 @@ export default function StudentsPage() {
               asChild
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
             >
-              <Link href="/get-started/student">
+              <Link href="/sign-up/student">
                 Start Your Journey
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Pricing Snapshot Section */}
+      <section className="py-20 px-6 bg-gray-50">
+        <div className="container mx-auto max-w-6xl">
+          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+            Membership & Pricing Snapshot
+          </h2>
+          <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-12">
+            Transparent pricing with flexible options
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-bold text-xl mb-2 text-gray-900">Starter Block</h3>
+                <p className="text-3xl font-bold text-blue-600 mb-1">$495</p>
+                <p className="text-sm text-gray-600">60 hours</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-bold text-xl mb-2 text-gray-900">Core Block</h3>
+                <p className="text-3xl font-bold text-blue-600 mb-1">$795</p>
+                <p className="text-sm text-gray-600">90 hours</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-bold text-xl mb-2 text-gray-900">Pro Block</h3>
+                <p className="text-3xl font-bold text-blue-600 mb-1">$1,495</p>
+                <p className="text-sm text-gray-600">180 hours</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-bold text-xl mb-2 text-gray-900">Elite Block</h3>
+                <p className="text-3xl font-bold text-blue-600 mb-1">$1,895</p>
+                <p className="text-sm text-gray-600">240 hours</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card className="border-0 shadow-lg max-w-md mx-auto mb-8">
+            <CardContent className="p-6 text-center">
+              <h3 className="font-bold text-xl mb-2 text-gray-900">A La Carte Add-On</h3>
+              <p className="text-3xl font-bold text-blue-600 mb-1">$10/hr</p>
+              <p className="text-sm text-gray-600">Flexible extras (30hr blocks)</p>
+            </CardContent>
+          </Card>
+          
+          <p className="text-center text-gray-600">
+            Installment plans and student discounts available.
+          </p>
         </div>
       </section>
 
@@ -333,7 +371,7 @@ export default function StudentsPage() {
             Ready to Find Your Perfect Preceptor?
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of NP students who&apos;ve successfully found their clinical placements through MentoLoop
+            Join thousands of NP students who have successfully found their clinical placements through MentoLoop
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -342,8 +380,8 @@ export default function StudentsPage() {
               asChild
               className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg"
             >
-              <Link href="/get-started/student">
-                Get Started Now
+              <Link href="/sign-up/student">
+                Sign up as a Student
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
