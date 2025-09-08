@@ -80,10 +80,35 @@ npx -y netlify-cli deploy --prod
 - Maintain consistent UI/UX with existing pages
 - Test across different screen sizes (responsive design)
 
-### Deployment
-- Production deploys to Netlify
-- Ensure all validation checks pass before deployment
-- Update environment variables in production
+### Deployment Workflow
+**IMPORTANT: Never run local dev server. All changes must be deployed through GitHub → Netlify continuous deployment.**
+
+#### Development Process
+1. Make all code changes locally
+2. Test with `npm run lint` and `npm run type-check`
+3. Commit changes to GitHub
+4. Push to GitHub repository
+5. Netlify automatically deploys from GitHub push
+
+#### GitHub Commands
+```bash
+# Stage all changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: your change description"
+
+# Push to main branch (triggers Netlify deployment)
+git push origin main
+```
+
+#### Deployment Notes
+- **NEVER run `npm run dev` for local development**
+- All changes go through GitHub → Netlify pipeline
+- Production site: https://sandboxmentoloop.online
+- Netlify auto-deploys on every push to main branch
+- Ensure all validation checks pass before pushing
+- Update environment variables in Netlify Dashboard if needed
 - Test payment flows in Stripe test mode first
 
 ## MCP Tools Available
