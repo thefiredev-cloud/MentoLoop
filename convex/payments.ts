@@ -244,7 +244,9 @@ export const createStudentCheckoutSession = action({
 
       // Handle discount code if provided
       if (args.discountCode) {
+        console.log('=== DISCOUNT CODE DEBUG ===');
         console.log('Validating discount code:', args.discountCode);
+        console.log('Customer email:', args.customerEmail);
         
         try {
           // Validate the discount code
@@ -254,33 +256,44 @@ export const createStudentCheckoutSession = action({
           });
 
           if (validation.valid) {
-            console.log(`Applying discount: ${validation.percentOff}% off`);
+            console.log(`Discount validation successful: ${validation.percentOff}% off`);
+            console.log('Applying discount code to Stripe checkout session');
             
-            // Apply discount based on percentage
+            // IMPORTANT: Use the exact coupon ID format that Stripe expects
+            // The coupon ID in Stripe is case-sensitive and must match exactly
+            const stripeCouponId = args.discountCode.toUpperCase();
+            
+            console.log(`Applying Stripe coupon ID: ${stripeCouponId}`);
+            
+            // Apply the coupon/discount to the checkout session
+            // Using 'discounts' parameter which is the correct way for checkout sessions
+            checkoutParams["discounts[0][coupon]"] = stripeCouponId;
+            
+            // Alternative: Try using promotion_code if coupon doesn't work
+            // Some Stripe accounts use promotion codes instead of coupons
+            // checkoutParams["discounts[0][promotion_code]"] = stripeCouponId;
+            
+            discountApplied = true;
+            discountAmount = validation.percentOff || 0;
+            
+            // Add discount info to metadata for tracking
+            checkoutParams["metadata[discountCode]"] = stripeCouponId;
+            checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
+            checkoutParams["metadata[originalPrice]"] = stripePriceId;
+            
+            // For 100% discounts, we still need payment method for Stripe to process
             if (validation.percentOff === 100) {
-              // For 100% discount, still apply the coupon since it exists in Stripe
-              console.log('Applying 100% discount with Stripe coupon');
-              checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
-              discountApplied = true;
-              discountAmount = 100;
-              
-              // Add discount info to metadata
-              checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
-              checkoutParams["metadata[discountPercent]"] = "100";
-              checkoutParams["metadata[originalPrice]"] = stripePriceId;
-              
-              // Ensure payment methods are set correctly
+              console.log('100% discount detected - checkout will show $0.00');
               checkoutParams["payment_method_types[0]"] = "card";
-            } else {
-              // Apply the coupon to the checkout session for partial discounts
-              checkoutParams["discounts[0][coupon]"] = args.discountCode.toUpperCase();
-              discountApplied = true;
-              discountAmount = validation.percentOff || 0;
-              
-              // Add discount info to metadata
-              checkoutParams["metadata[discountCode]"] = args.discountCode.toUpperCase();
-              checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
+              // Allow promotion codes in checkout for fallback
+              checkoutParams["allow_promotion_codes"] = "false"; // Disable manual entry since we're applying programmatically
             }
+            
+            console.log('Discount parameters added to checkout session:', {
+              coupon: stripeCouponId,
+              percentOff: discountAmount,
+              applied: discountApplied
+            });
           } else {
             console.warn(`Invalid discount code: ${args.discountCode} - ${validation.error}`);
             // Don't throw error, just proceed without discount
@@ -293,6 +306,12 @@ export const createStudentCheckoutSession = action({
       }
       
       // Checkout session prepared with appropriate pricing and discounts
+      
+      // Log the final checkout parameters being sent to Stripe
+      console.log('=== FINAL CHECKOUT PARAMS ===');
+      console.log('Sending to Stripe checkout session:', JSON.stringify(checkoutParams, null, 2));
+      console.log('Discount applied:', discountApplied);
+      console.log('Discount amount:', discountAmount);
       
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
@@ -310,6 +329,15 @@ export const createStudentCheckoutSession = action({
 
       const session = await response.json();
 
+      // Log the session response to verify discount application
+      console.log('=== STRIPE SESSION RESPONSE ===');
+      console.log('Session ID:', session.id);
+      console.log('Session URL:', session.url);
+      console.log('Amount Total:', session.amount_total);
+      console.log('Amount Subtotal:', session.amount_subtotal);
+      console.log('Total Details:', JSON.stringify(session.total_details, null, 2));
+      console.log('Discounts in session:', JSON.stringify(session.discounts, null, 2));
+      
       // Calculate final amount based on discount
       const basePrice = args.membershipPlan === 'core' ? 695 : 
                        args.membershipPlan === 'pro' ? 1295 : 1895;
