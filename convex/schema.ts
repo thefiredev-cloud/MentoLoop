@@ -38,7 +38,7 @@ export default defineSchema({
     
     // Payment attempts and Stripe transactions
     paymentAttempts: defineTable({
-      matchId: v.id("matches"),
+      matchId: v.optional(v.id("matches")),
       stripeSessionId: v.string(),
       amount: v.number(), // Amount in cents
       currency: v.optional(v.string()),

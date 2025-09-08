@@ -118,7 +118,7 @@ export default function StudentLandingPage() {
             </h1>
             
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Clinical placements shouldn't be stressful. With Mentoloop, you get matched to 
+              Clinical placements shouldn&apos;t be stressful. With Mentoloop, you get matched to 
               vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
             </p>
             

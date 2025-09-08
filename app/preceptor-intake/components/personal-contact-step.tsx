@@ -145,9 +145,7 @@ export default function PersonalContactStep({
     }
 
     if (formData.statesLicensed.length === 0) {
-      newErrors.statesLicensed = 'Texas licensing is required'
-    } else if (!formData.statesLicensed.includes('Texas')) {
-      newErrors.statesLicensed = 'Must be licensed in Texas to participate'
+      newErrors.statesLicensed = 'At least one state license is required'
     }
 
     if (!formData.npiNumber.trim()) {
@@ -271,15 +269,9 @@ export default function PersonalContactStep({
         </div>
       </div>
 
-      {/* States Licensed - Texas Only */}
+      {/* States Licensed */}
       <div className="space-y-3">
         <Label>State(s) Licensed In *</Label>
-        <div className="bg-blue-50 p-3 rounded-lg mb-3">
-          <div className="text-sm text-blue-900 font-medium">Texas Operations Only</div>
-          <div className="text-xs text-blue-700">
-            MentoLoop currently operates exclusively in Texas. You must be licensed in Texas to participate as a preceptor.
-          </div>
-        </div>
         <div className="flex flex-wrap gap-2 mb-2">
           {formData.statesLicensed.map((state) => (
             <Badge key={state} variant="secondary" className="gap-1">

@@ -31,11 +31,25 @@ export default function EnterpriseDashboardPage() {
 function EnterpriseDashboardContent() {
   const user = useQuery(api.users.current)
   
-  // For now, we'll use a hardcoded enterprise ID - in production this would come from user context
-  // This is a placeholder until enterprise user authentication is fully implemented
-  const enterpriseId = "jh7111cgmynw3qwk5p0gnffhzh6zv7k6" as Id<"enterprises"> // placeholder ID
+  // Get enterprise ID from user context
+  const enterpriseId = user?.enterpriseId as Id<"enterprises"> | undefined
   
-  const dashboardStats = useQuery(api.enterprises.getEnterpriseDashboardStats, { enterpriseId })
+  const dashboardStats = useQuery(api.enterprises.getEnterpriseDashboardStats, 
+    enterpriseId ? { enterpriseId } : "skip"
+  )
+
+  if (user && !enterpriseId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">No Enterprise Account</h2>
+          <p className="text-muted-foreground">Your account is not associated with an enterprise.</p>
+          <p className="text-sm text-muted-foreground mt-2">Please contact support if you believe this is an error.</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!dashboardStats) {
     return (

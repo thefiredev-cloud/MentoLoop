@@ -311,16 +311,11 @@ export const findPotentialMatches = query({
       throw new Error("Student not found");
     }
 
-    // Get all verified, available preceptors in Texas only
-    const allPreceptors = await ctx.db
+    // Get all verified, available preceptors
+    const availablePreceptors = await ctx.db
       .query("preceptors")
       .withIndex("byVerificationStatus", (q) => q.eq("verificationStatus", "verified"))
       .collect();
-
-    // Filter for Texas-only preceptors
-    const availablePreceptors = allPreceptors.filter(preceptor => 
-      preceptor.practiceInfo.state === "TX" || preceptor.practiceInfo.state === "Texas"
-    );
 
     // Filter and score potential matches
     const potentialMatches = [];
@@ -328,10 +323,6 @@ export const findPotentialMatches = query({
     for (const preceptor of availablePreceptors) {
       if (!preceptor.availability.currentlyAccepting) continue;
 
-      // Enforce Texas-only operations
-      if (preceptor.practiceInfo.state !== "TX" && preceptor.practiceInfo.state !== "Texas") {
-        continue;
-      }
 
       // Check specialty alignment
       const hasMatchingRotation = preceptor.availability.availableRotations.some(rotation =>
@@ -346,15 +337,21 @@ export const findPotentialMatches = query({
         preceptor.mentoringStyle
       );
 
-      // Check geographic compatibility within Texas
-      let locationScore = 2; // Base score since all are in Texas
+      // Check geographic compatibility
+      let locationScore = 2; // Base score for available preceptor
+      
+      // Bonus for same state
+      if (student.rotationNeeds.preferredLocation && 
+          student.rotationNeeds.preferredLocation.state === preceptor.practiceInfo.state) {
+        locationScore = 2.5; // Same state preference
+      }
       
       // Bonus for same city/metro area
       if (student.rotationNeeds.preferredLocation && 
           student.rotationNeeds.preferredLocation.city === preceptor.practiceInfo.city) {
         locationScore = 3; // Same city preference
       } else if (student.rotationNeeds.willingToTravel) {
-        locationScore = 2; // Willing to travel within Texas
+        locationScore = 2; // Willing to travel
       }
 
       // Calculate overall compatibility score
@@ -1447,16 +1444,11 @@ export const findPotentialMatchesInternal = internalQuery({
       throw new Error("Student not found");
     }
 
-    // Get all verified, available preceptors in Texas only
-    const allPreceptors = await ctx.db
+    // Get all verified, available preceptors
+    const availablePreceptors = await ctx.db
       .query("preceptors")
       .withIndex("byVerificationStatus", (q) => q.eq("verificationStatus", "verified"))
       .collect();
-
-    // Filter for Texas-only preceptors
-    const availablePreceptors = allPreceptors.filter(preceptor => 
-      preceptor.practiceInfo.state === "TX" || preceptor.practiceInfo.state === "Texas"
-    );
 
     // Filter and score potential matches
     const potentialMatches = [];
@@ -1464,10 +1456,6 @@ export const findPotentialMatchesInternal = internalQuery({
     for (const preceptor of availablePreceptors) {
       if (!preceptor.availability.currentlyAccepting) continue;
 
-      // Enforce Texas-only operations
-      if (preceptor.practiceInfo.state !== "TX" && preceptor.practiceInfo.state !== "Texas") {
-        continue;
-      }
 
       // Check specialty alignment
       const hasMatchingRotation = preceptor.availability.availableRotations.some(rotation =>
@@ -1482,15 +1470,21 @@ export const findPotentialMatchesInternal = internalQuery({
         preceptor.mentoringStyle
       );
 
-      // Check geographic compatibility within Texas
-      let locationScore = 2; // Base score since all are in Texas
+      // Check geographic compatibility
+      let locationScore = 2; // Base score for available preceptor
+      
+      // Bonus for same state
+      if (student.rotationNeeds.preferredLocation && 
+          student.rotationNeeds.preferredLocation.state === preceptor.practiceInfo.state) {
+        locationScore = 2.5; // Same state preference
+      }
       
       // Bonus for same city/metro area
       if (student.rotationNeeds.preferredLocation && 
           student.rotationNeeds.preferredLocation.city === preceptor.practiceInfo.city) {
         locationScore = 3; // Same city preference
       } else if (student.rotationNeeds.willingToTravel) {
-        locationScore = 2; // Willing to travel within Texas
+        locationScore = 2; // Willing to travel
       }
 
       // Calculate overall compatibility score

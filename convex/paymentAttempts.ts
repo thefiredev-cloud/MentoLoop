@@ -33,7 +33,7 @@ export const savePaymentAttempt = internalMutation({
     
     // Map webhook data to our schema fields
     const paymentAttemptRecord = {
-      matchId: "temp_placeholder" as any, // TODO: Get matchId from somewhere in the webhook data
+      matchId: undefined, // Optional - will be set if payment is for a specific match
       stripeSessionId: paymentAttemptData.payment_id,
       amount: paymentAttemptData.subscription_items[0]?.amount?.amount || 0,
       currency: paymentAttemptData.subscription_items[0]?.amount?.currency,

@@ -292,11 +292,7 @@ export const createStudentCheckoutSession = action({
         }
       }
       
-      console.log('Stripe checkout session params:', checkoutParams);
-      console.log('Specifically, price being sent to Stripe:', checkoutParams["line_items[0][price]"]);
-      if (discountApplied) {
-        console.log('Discount coupon applied:', checkoutParams["discounts[0][coupon]"]);
-      }
+      // Checkout session prepared with appropriate pricing and discounts
       
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
@@ -512,7 +508,7 @@ export const handleStripeWebhook = action({
           await handleCustomerUpdated(ctx, event.data.object);
           break;
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          // Unhandled event type - no action needed
       }
 
       return { received: true };
@@ -527,7 +523,6 @@ export const handleStripeWebhook = action({
 async function handleCheckoutCompleted(ctx: any, session: any) {
   // Check if this is a student intake payment
   if (session.metadata?.membershipPlan && session.metadata?.studentName) {
-    console.log("Processing student intake payment completion");
     await handleStudentIntakePaymentCompleted(ctx, session);
     return;
   }
@@ -595,7 +590,7 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
           }
         }
       } catch (smsError) {
-        console.log("SMS notification skipped:", smsError);
+        // SMS notification failed silently
         // Continue without SMS - it's optional
       }
     }
@@ -622,7 +617,6 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       status: "succeeded",
     });
     
-    console.log(`Payment logged for ${customerEmail} - amount: ${session.amount_total}`);
 
     // Try to find the user by email with error handling
     let user = null;
@@ -633,7 +627,6 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
     }
     
     if (user) {
-      console.log(`Found user ${user._id} for email ${customerEmail}`);
       
       // Update user metadata in the database with Stripe customer ID
       try {
@@ -647,7 +640,6 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
             stripeCustomerId: stripeCustomerId,
           }
         });
-        console.log(`Updated user metadata for ${user._id} with Stripe customer ${stripeCustomerId}`);
       } catch (error) {
         console.error("Failed to update user metadata:", error);
         // Continue - payment was successful
@@ -663,7 +655,6 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
           stripeCustomerId: stripeCustomerId,
           paidAt: Date.now(),
         });
-        console.log(`Updated student payment status for user ${user._id}`);
       } catch (error) {
         console.warn("Student record may not exist yet - will be created when intake form is completed:", error);
         // This is expected if payment happens before full intake completion
@@ -681,13 +672,11 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
         school: school || '',
         specialty: specialty || '',
       });
-      console.log(`Welcome email sent to ${customerEmail}`);
     } catch (emailError) {
       console.error("Failed to send welcome email (non-critical):", emailError);
       // Don't fail payment processing if email fails
     }
 
-    console.log(`Student intake payment completed successfully for ${customerEmail}`);
   } catch (error) {
     console.error("Error processing student intake payment:", error);
     // Don't throw - payment was successful in Stripe, just log the error
@@ -697,12 +686,12 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
 
 async function handlePaymentSucceeded(ctx: any, paymentIntent: any) {
   // Additional handling for payment success if needed
-  console.log("Payment succeeded:", paymentIntent.id);
+  // Payment succeeded
 }
 
 async function handlePaymentFailed(ctx: any, paymentIntent: any) {
   // Handle payment failure
-  console.log("Payment failed:", paymentIntent.id);
+  // Payment failed
   
   // Update payment attempt record
   await ctx.runMutation(internal.payments.updatePaymentAttempt, {
@@ -713,7 +702,6 @@ async function handlePaymentFailed(ctx: any, paymentIntent: any) {
 }
 
 async function handleCustomerCreated(ctx: any, customer: any) {
-  console.log("Customer created in Stripe:", customer.id);
   
   // Find user by email and update with Stripe customer ID
   if (customer.email) {
@@ -726,7 +714,6 @@ async function handleCustomerCreated(ctx: any, customer: any) {
             stripeCustomerId: customer.id,
           }
         });
-        console.log(`Updated user ${user._id} with Stripe customer ID ${customer.id}`);
       }
     } catch (error) {
       console.error("Failed to update user with Stripe customer ID:", error);
@@ -735,7 +722,6 @@ async function handleCustomerCreated(ctx: any, customer: any) {
 }
 
 async function handleCustomerUpdated(ctx: any, customer: any) {
-  console.log("Customer updated in Stripe:", customer.id);
   
   // Sync customer data with user metadata if needed
   if (customer.email) {
@@ -743,7 +729,6 @@ async function handleCustomerUpdated(ctx: any, customer: any) {
       const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customer.email });
       if (user) {
         // Update any relevant metadata
-        console.log(`Customer ${customer.id} updated for user ${user._id}`);
       }
     } catch (error) {
       console.error("Failed to sync customer update:", error);
@@ -1280,7 +1265,7 @@ export const initializeAllDiscountCodes = action({
             percentOff: discount.percentOff,
             status: "already_exists",
           });
-          console.log(`Discount code ${discount.code} already exists`);
+          // Discount code already exists
         } else {
           // Create the coupon
           await ctx.runAction(api.payments.createDiscountCoupon, {
@@ -1298,7 +1283,7 @@ export const initializeAllDiscountCodes = action({
             percentOff: discount.percentOff,
             status: "created",
           });
-          console.log(`Successfully created discount code ${discount.code} with ${discount.percentOff}% off`);
+          // Discount code created successfully
         }
       } catch (error) {
         console.error(`Failed to create discount code ${discount.code}:`, error);

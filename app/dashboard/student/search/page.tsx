@@ -55,7 +55,7 @@ export default function PreceptorSearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSpecialty, setSelectedSpecialty] = useState('')
   const [selectedRotationType, setSelectedRotationType] = useState('')
-  const [selectedState] = useState('TX') // Default to Texas
+  const [selectedState, setSelectedState] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
   const [selectedPracticeSettings, setSelectedPracticeSettings] = useState<string[]>([])
   const [currentlyAcceptingOnly, setCurrentlyAcceptingOnly] = useState(true)
