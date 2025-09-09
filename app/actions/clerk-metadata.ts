@@ -25,10 +25,10 @@ export async function updateUserIntakeMetadata(
       }
     })
     
-    console.log(`Updated Clerk metadata for user ${userId}:`, metadata)
+    // Updated Clerk metadata
     return { success: true }
   } catch (error) {
-    console.error('Failed to update Clerk metadata:', error)
+    // Failed to update Clerk metadata
     throw new Error('Failed to update user metadata')
   }
 }
@@ -46,7 +46,7 @@ export async function getCurrentUserMetadata() {
     
     return user.publicMetadata
   } catch (error) {
-    console.error('Failed to get user metadata:', error)
+    // Failed to get user metadata
     return null
   }
 }
@@ -73,10 +73,10 @@ export async function syncStripeCustomerId(userId: string, stripeCustomerId: str
       }
     })
     
-    console.log(`Synced Stripe customer ID ${stripeCustomerId} for user ${userId}`)
+    // Synced Stripe customer ID
     return { success: true }
   } catch (error) {
-    console.error('Failed to sync Stripe customer ID:', error)
+    // Failed to sync Stripe customer ID
     throw new Error('Failed to sync Stripe customer ID')
   }
 }

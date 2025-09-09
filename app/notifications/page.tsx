@@ -158,13 +158,13 @@ export default function NotificationsPage() {
 
   const handleMarkAsRead = () => {
     // In a real app, this would update the database
-    console.log('Marking as read:', selectedNotifications)
+    // Marking as read
     setSelectedNotifications([])
   }
 
   const handleDelete = () => {
     // In a real app, this would update the database
-    console.log('Deleting:', selectedNotifications)
+    // Deleting notifications
     setSelectedNotifications([])
   }
 

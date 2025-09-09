@@ -16,14 +16,9 @@ export default function DashboardPage() {
   const hasRedirected = useRef(false)
   const updateUserType = useMutation(api.users.updateUserType)
 
-  // Log dashboard access
+  // Track dashboard access
   useEffect(() => {
-    console.log('[Dashboard] Page loaded:', {
-      isLoading,
-      hasUser: !!user,
-      userType: user?.userType,
-      timestamp: new Date().toISOString()
-    })
+    // Dashboard page loaded
   }, [isLoading, user])
 
   // Handle user routing based on their type
@@ -32,7 +27,7 @@ export default function DashboardPage() {
     
     if (user.userType) {
       hasRedirected.current = true
-      console.log('[Dashboard] Redirecting user to:', `/dashboard/${user.userType}`)
+      // Redirecting user to role-specific dashboard
       
       const redirectPath = `/dashboard/${user.userType}`
       router.push(redirectPath)
@@ -50,7 +45,7 @@ export default function DashboardPage() {
       // Redirect to appropriate dashboard
       router.push(`/dashboard/${role}`)
     } catch (error) {
-      console.error('[Dashboard] Failed to update user role:', error)
+      // Failed to update user role
       toast.error('Failed to save your role. Please try again.')
     }
   }

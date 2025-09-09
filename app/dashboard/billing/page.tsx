@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 import { 
   CreditCard, 
   Download, 
@@ -51,39 +52,44 @@ export default function BillingPage() {
 function BillingContent({ userType }: { userType?: string }) {
   const isStudent = userType === 'student'
   
-  // Mock data - replace with actual queries
-  const currentPlan = {
-    name: isStudent ? 'Student Premium' : 'Preceptor Pro',
-    price: isStudent ? 149 : 0,
-    billing: isStudent ? 'monthly' : 'free',
+  // TODO: Fetch real data from Convex when functions are deployed
+  // const currentSubscription = useQuery(api.billing.getCurrentSubscription)
+  // const paymentHistory = useQuery(api.billing.getPaymentHistory, { limit: 10 })
+  // const billingStats = useQuery(api.billing.getBillingStats)
+  // const paymentMethods = useQuery(api.billing.getPaymentMethods)
+  // const downloadInvoice = useMutation(api.billing.downloadInvoice)
+
+  // Mock data for now
+  const currentSubscription = isStudent ? {
+    name: 'Pro Block',
+    price: 1295,
+    hours: 120,
+    billing: 'one-time',
+    status: 'active',
+    features: [
+      '120 clinical hours',
+      'Priority matching (within 14 days)',
+      'Extended banking — hours roll across academic year',
+      'Access to LoopExchange™ community support',
+    ]
+  } : null
+  
+  const paymentHistory = null
+  const billingStats = null
+  const paymentMethods: any[] = []
+
+  // Use real data or defaults
+  const currentPlan = currentSubscription || {
+    name: isStudent ? 'No Active Plan' : 'Free Account',
+    price: 0,
+    billing: 'none',
+    status: 'inactive',
     features: isStudent 
-      ? ['Unlimited preceptor matches', 'Priority support', 'Document storage', 'Clinical tracking']
-      : ['Unlimited student connections', 'Automated scheduling', 'Evaluation tools', 'CE credits tracking']
+      ? ['Sign up for a membership to get started']
+      : ['Unlimited student connections', 'Automated scheduling', 'Evaluation tools']
   }
 
-  const paymentHistory = [
-    {
-      id: 1,
-      date: '2024-01-15',
-      amount: 149,
-      status: 'paid',
-      invoice: 'INV-2024-001'
-    },
-    {
-      id: 2,
-      date: '2023-12-15',
-      amount: 149,
-      status: 'paid',
-      invoice: 'INV-2023-012'
-    },
-    {
-      id: 3,
-      date: '2023-11-15',
-      amount: 149,
-      status: 'paid',
-      invoice: 'INV-2023-011'
-    }
-  ]
+  const payments = paymentHistory || []
 
   return (
     <div className="space-y-6">
@@ -124,7 +130,7 @@ function BillingContent({ userType }: { userType?: string }) {
             <div className="space-y-2">
               <p className="text-sm font-medium">Plan Features:</p>
               <ul className="space-y-2">
-                {currentPlan.features.map((feature, idx) => (
+                {currentPlan.features.map((feature: string, idx: number) => (
                   <li key={idx} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     {feature}
@@ -138,8 +144,10 @@ function BillingContent({ userType }: { userType?: string }) {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Next billing date</p>
-                    <p className="text-sm text-muted-foreground">February 15, 2024</p>
+                    <p className="font-medium">Membership Status</p>
+                    <p className="text-sm text-muted-foreground">
+                      {currentPlan.status === 'active' ? 'Active' : 'Pending'}
+                    </p>
                   </div>
                   <Button variant="outline">Change Plan</Button>
                 </div>
@@ -166,8 +174,18 @@ function BillingContent({ userType }: { userType?: string }) {
                     <CreditCard className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium">•••• •••• •••• 4242</p>
-                    <p className="text-sm text-muted-foreground">Expires 12/2025</p>
+                    <p className="font-medium">
+                      {paymentMethods?.length > 0 
+                        ? `•••• •••• •••• ${paymentMethods[0].last4}`
+                        : '•••• •••• •••• ••••'
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {paymentMethods?.length > 0 
+                        ? `Expires ${paymentMethods[0].expiryMonth}/${paymentMethods[0].expiryYear}`
+                        : 'No payment method'
+                      }
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -204,7 +222,7 @@ function BillingContent({ userType }: { userType?: string }) {
         <CardContent>
           <div className="space-y-2">
             {isStudent ? (
-              paymentHistory.map((payment) => (
+              payments.map((payment: any) => (
                 <div key={payment.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50">
                   <div className="flex items-center gap-4">
                     <div className="rounded-full p-2 bg-green-100">
@@ -226,7 +244,17 @@ function BillingContent({ userType }: { userType?: string }) {
                       <CheckCircle2 className="mr-1 h-3 w-3" />
                       Paid
                     </Badge>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={async () => {
+                        if (payment.receiptUrl) {
+                          window.open(payment.receiptUrl, '_blank')
+                        } else {
+                          toast.info('Invoice download not available')
+                        }
+                      }}
+                    >
                       <FileText className="mr-2 h-4 w-4" />
                       Invoice
                     </Button>
