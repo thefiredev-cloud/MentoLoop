@@ -93,7 +93,14 @@ function BillingContent({ userType }: { userType?: string }) {
       : ['Unlimited student connections', 'Automated scheduling', 'Evaluation tools']
   }
 
-  const payments = paymentHistory || []
+  interface Payment {
+    id: string
+    amount: number
+    date: string
+    status: string
+    receiptUrl?: string
+  }
+  const payments: Payment[] = paymentHistory || []
 
   return (
     <div className="space-y-6">
