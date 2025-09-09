@@ -11,8 +11,7 @@ import {
   DollarSign, 
   Clock, 
   Target,
-  Activity,
-  Calendar
+  Activity
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'

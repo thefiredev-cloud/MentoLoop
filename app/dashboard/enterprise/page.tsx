@@ -6,8 +6,7 @@ import { Id } from '@/convex/_generated/dataModel'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Users,
+import {
   GraduationCap,
   Stethoscope,
   TrendingUp,

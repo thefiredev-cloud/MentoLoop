@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -13,14 +13,12 @@ import { toast } from 'sonner'
 import { 
   CreditCard, 
   Download, 
-  Calendar, 
   DollarSign,
   CheckCircle2,
   AlertCircle,
   FileText,
   Plus,
-  ChevronRight,
-  Clock
+  ChevronRight
 } from 'lucide-react'
 
 export default function BillingPage() {
@@ -75,8 +73,14 @@ function BillingContent({ userType }: { userType?: string }) {
   } : null
   
   const paymentHistory = null
-  const billingStats = null
-  const paymentMethods: any[] = []
+  // const billingStats = null
+  interface PaymentMethod {
+    id: string
+    last4: string
+    expiryMonth: number
+    expiryYear: number
+  }
+  const paymentMethods: PaymentMethod[] = []
 
   // Use real data or defaults
   const currentPlan = currentSubscription || {
@@ -222,7 +226,7 @@ function BillingContent({ userType }: { userType?: string }) {
         <CardContent>
           <div className="space-y-2">
             {isStudent ? (
-              payments.map((payment: any) => (
+              payments.map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50">
                   <div className="flex items-center gap-4">
                     <div className="rounded-full p-2 bg-green-100">

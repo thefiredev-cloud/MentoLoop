@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -17,13 +15,11 @@ import {
   BookOpen,
   Download,
   Search,
-  Filter,
   Calendar,
   CheckCircle,
   Play,
   FileText,
   Star,
-  TrendingUp,
   Users,
   Trophy,
   ChevronRight
@@ -116,7 +112,7 @@ export default function CEUDashboard() {
     },
   ]
 
-  const enrollments = [] // userEnrollments || []
+  // const enrollments = [] // userEnrollments || []
   const certificates = [ // userCertificates || [
     {
       id: 'cert-1',
@@ -148,7 +144,7 @@ export default function CEUDashboard() {
   const creditsNeeded = ceuStats?.requiredCredits || 30
   const progressPercentage = (totalCreditsEarned / creditsNeeded) * 100
 
-  const handleEnroll = async (courseId: string) => {
+  const _handleEnroll = async (_courseId: string) => {
     // TODO: Implement when Convex functions are deployed
     // await enrollInCourse({ courseId })
     toast.success('Successfully enrolled in course!')
@@ -280,7 +276,7 @@ export default function CEUDashboard() {
 
           {/* Course Grid */}
           <div className="grid gap-6 md:grid-cols-2">
-            {filteredCourses.map((course: any) => (
+            {filteredCourses.map((course) => (
               <Card key={course.id} className="overflow-hidden">
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 relative">
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -408,7 +404,7 @@ export default function CEUDashboard() {
         {/* Certificates Tab */}
         <TabsContent value="certificates" className="space-y-6">
           <div className="grid gap-4">
-            {certificates.map((cert: any) => (
+            {certificates.map((cert) => (
               <Card key={cert.id}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

@@ -27,7 +27,7 @@ export async function updateUserIntakeMetadata(
     
     // Updated Clerk metadata
     return { success: true }
-  } catch (error) {
+  } catch {
     // Failed to update Clerk metadata
     throw new Error('Failed to update user metadata')
   }
@@ -45,7 +45,7 @@ export async function getCurrentUserMetadata() {
     const user = await client.users.getUser(userId)
     
     return user.publicMetadata
-  } catch (error) {
+  } catch {
     // Failed to get user metadata
     return null
   }
@@ -75,7 +75,7 @@ export async function syncStripeCustomerId(userId: string, stripeCustomerId: str
     
     // Synced Stripe customer ID
     return { success: true }
-  } catch (error) {
+  } catch {
     // Failed to sync Stripe customer ID
     throw new Error('Failed to sync Stripe customer ID')
   }

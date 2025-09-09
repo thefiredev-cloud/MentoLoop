@@ -11,8 +11,7 @@ import {
   Target,
   BarChart3,
   PieChart,
-  Activity,
-  Award
+  Activity
 } from 'lucide-react'
 
 export default function EnterpriseAnalyticsPage() {

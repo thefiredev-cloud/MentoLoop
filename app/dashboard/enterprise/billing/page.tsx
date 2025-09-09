@@ -2,16 +2,14 @@
 
 import { RoleGuard } from '@/components/role-guard'
 import { DashboardContainer } from '@/components/dashboard/dashboard-container'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   CreditCard,
   Download,
-  DollarSign,
   FileText,
-  Calendar,
-  TrendingUp
+  Calendar
 } from 'lucide-react'
 
 export default function EnterpriseBillingPage() {

@@ -9,13 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { 
   MessageSquare, 
-  Send,
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle,
   TrendingUp,
-  Phone,
   Filter,
   Search,
   RefreshCw,
@@ -43,7 +40,7 @@ function SMSAnalyticsContent() {
   const totalSMS = smsLogs?.length || 0
   const successfulSMS = smsLogs?.filter(s => s.status === 'sent').length || 0
   const failedSMS = smsLogs?.filter(s => s.status === 'failed').length || 0
-  const pendingSMS = smsLogs?.filter(s => s.status === 'pending').length || 0
+  // const pendingSMS = smsLogs?.filter(s => s.status === 'pending').length || 0
   
   const successRate = totalSMS > 0 ? ((successfulSMS / totalSMS) * 100).toFixed(1) : 0
   const estimatedCost = totalSMS * 0.0075 // Assuming $0.0075 per SMS

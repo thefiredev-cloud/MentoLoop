@@ -9,6 +9,7 @@ import ConvexClientProvider from '@/components/ConvexClientProvider'
 import { AuthProvider } from '@/components/auth-provider'
 import { NavHeader } from '@/components/nav-header'
 import { WebVitalsDisplay } from '@/components/ui/web-vitals-display'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 
 const geistSans = Geist({
@@ -80,9 +81,11 @@ export default function RootLayout({
           >
             <ConvexClientProvider>
               <AuthProvider>
-                <NavHeader />
-                {children}
-                <WebVitalsDisplay />
+                <ErrorBoundary>
+                  <NavHeader />
+                  {children}
+                  <WebVitalsDisplay />
+                </ErrorBoundary>
               </AuthProvider>
             </ConvexClientProvider>
           </ClerkProvider>
