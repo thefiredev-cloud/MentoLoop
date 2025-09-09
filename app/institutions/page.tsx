@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'sonner'
 import { 
   Users, Shield, BarChart3, Building2, 
   ChevronRight, GraduationCap, CheckCircle
@@ -59,8 +60,8 @@ export default function InstitutionsPage() {
         })
       }, 2000)
     } catch (error) {
-      console.error('Error submitting inquiry:', error)
-      alert('There was an error submitting your inquiry. Please try again.')
+      // Error submitting inquiry
+      toast.error('There was an error submitting your inquiry. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

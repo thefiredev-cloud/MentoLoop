@@ -128,15 +128,6 @@ const resources = [
         duration: 'Immediate',
         icon: Users,
         link: '/contact'
-      },
-      {
-        title: 'Community Forum',
-        description: 'Connect with other students and preceptors',
-        type: 'external',
-        duration: 'Join',
-        icon: Users,
-        link: '#',
-        badge: 'Coming Soon'
       }
     ]
   }

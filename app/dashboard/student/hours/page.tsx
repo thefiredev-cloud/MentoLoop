@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -49,7 +50,7 @@ export default function StudentHoursPage() {
   // Handle form submission
   const handleSaveEntry = async () => {
     if (!date || !hoursWorked || !selectedRotation || !activities) {
-      alert('Please fill in all required fields')
+      toast.error('Please fill in all required fields')
       return
     }
 
@@ -74,10 +75,10 @@ export default function StudentHoursPage() {
       setActivities('')
       setShowLogForm(false)
       
-      alert('Hours logged successfully!')
+      toast.success('Hours logged successfully!')
     } catch (error) {
-      console.error('Failed to log hours:', error)
-      alert('Failed to log hours. Please try again.')
+      // Failed to log hours
+      toast.error('Failed to log hours. Please try again.')
     }
   }
 

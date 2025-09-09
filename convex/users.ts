@@ -36,7 +36,7 @@ export const upsertFromClerk = internalMutation({
       
       // If found by email but with different externalId, update it
       if (user) {
-        console.log(`[upsertFromClerk] Found user by email, updating externalId from ${user.externalId} to ${data.id}`);
+        // Found user by email, updating externalId
       }
     }
     
@@ -52,13 +52,13 @@ export const upsertFromClerk = internalMutation({
       // Create new user
       await ctx.db.insert("users", userAttributes);
       if (isAdmin) {
-        console.log(`[upsertFromClerk] Created admin user: ${userAttributes.email}`);
+        // Created admin user
       }
     } else {
       // Update existing user
       await ctx.db.patch(user._id, userAttributes);
       if (isAdmin && user.userType !== "admin") {
-        console.log(`[upsertFromClerk] Updated user to admin: ${userAttributes.email}`);
+        // Updated user to admin
       }
     }
   },
@@ -72,9 +72,7 @@ export const deleteFromClerk = internalMutation({
     if (user !== null) {
       await ctx.db.delete(user._id);
     } else {
-      console.warn(
-        `Can't delete user, there is none for Clerk user ID: ${clerkUserId}`,
-      );
+      // Can't delete user, there is none for this Clerk user ID
     }
   },
 });

@@ -89,7 +89,7 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
         return { customerId: customer.id, created: true };
       }
     } catch (error) {
-      console.error("Failed to create/update Stripe customer:", error);
+      // Failed to create/update Stripe customer
       throw new Error(`Customer operation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -128,18 +128,13 @@ export const createStudentCheckoutSession = action({
       .map(([key]) => key);
 
     if (missingVars.length > 0) {
-      console.error('Missing required Stripe price environment variables:', missingVars);
+      // Missing required Stripe price environment variables
       // Continue with fallbacks but log the issue
-      console.log('Using fallback price IDs - this may cause issues if they are outdated');
+      // Using fallback price IDs
     }
 
     try {
-      // Log the incoming price ID for debugging
-      console.log('=== PAYMENT DEBUG ===');
-      console.log('Timestamp:', new Date().toISOString());
-      console.log('Incoming priceId from client:', args.priceId);
-      console.log('Customer email:', args.customerEmail);
-      console.log('Membership plan:', args.membershipPlan);
+      // Payment processing started
       
       // Define old/legacy price IDs for detection and mapping
       const oldPriceIds = [
@@ -149,13 +144,7 @@ export const createStudentCheckoutSession = action({
       ];
       
       if (oldPriceIds.includes(args.priceId)) {
-        console.error('!!! OLD PRICE ID DETECTED - WILL CONVERT !!!');
-        console.error('Received obsolete price ID:', args.priceId);
-        console.error('User info:', {
-          email: args.customerEmail,
-          name: args.customerName,
-          userAgent: args.metadata?.userAgent || 'unknown'
-        });
+        // Old price ID detected, will convert
         // Don't throw error - we'll map it to the new ID below
       }
       
@@ -170,23 +159,16 @@ export const createStudentCheckoutSession = action({
         'price_1S1yltKVzfTBpytSOdNgTEFP': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S22LqB1lwwjVYGvR5hlPOvs' // Old Premium -> New Premium
       };
       
-      console.log('Price ID map:', priceIdMap);
-      console.log('Environment variables:', {
-        STRIPE_PRICE_ID_CORE: process.env.STRIPE_PRICE_ID_CORE,
-        STRIPE_PRICE_ID_PRO: process.env.STRIPE_PRICE_ID_PRO,
-        STRIPE_PRICE_ID_PREMIUM: process.env.STRIPE_PRICE_ID_PREMIUM
-      });
+      // Price ID mapping configured
       
       const stripePriceId = priceIdMap[args.priceId];
       
       // Check if we're doing a legacy conversion
       if (oldPriceIds.includes(args.priceId)) {
-        console.warn('!!! LEGACY PRICE ID CONVERTED !!!');
-        console.warn(`Converting ${args.priceId} to ${stripePriceId}`);
-        console.warn('This should not happen - client needs update');
+        // Legacy price ID converted to current ID
       }
       
-      console.log('Selected Stripe price ID:', stripePriceId);
+      // Stripe price ID selected
       
       if (!stripePriceId) {
         throw new Error(`Invalid price ID: ${args.priceId}`);
@@ -231,7 +213,7 @@ export const createStudentCheckoutSession = action({
         
         // Note: Actual installment configuration would require Stripe Payment Links or
         // custom integration with Stripe's installment payment providers
-        console.log(`Installment payment requested: ${args.installmentPlan} installments for ${args.membershipPlan}`);
+        // Installment payment requested
       } else {
         // Regular one-time payment
         checkoutParams["line_items[0][price]"] = stripePriceId;
@@ -244,9 +226,7 @@ export const createStudentCheckoutSession = action({
 
       // Handle discount code if provided
       if (args.discountCode) {
-        console.log('=== DISCOUNT CODE DEBUG ===');
-        console.log('Validating discount code:', args.discountCode);
-        console.log('Customer email:', args.customerEmail);
+        // Validating discount code
         
         try {
           // Validate the discount code
@@ -256,14 +236,13 @@ export const createStudentCheckoutSession = action({
           });
 
           if (validation.valid) {
-            console.log(`Discount validation successful: ${validation.percentOff}% off`);
-            console.log('Applying discount code to Stripe checkout session');
+            // Discount validation successful
             
             // IMPORTANT: Use the exact coupon ID format that Stripe expects
             // The coupon ID in Stripe is case-sensitive and must match exactly
             const stripeCouponId = args.discountCode.toUpperCase();
             
-            console.log(`Applying Stripe coupon ID: ${stripeCouponId}`);
+            // Applying Stripe coupon
             
             // Apply the coupon/discount to the checkout session
             // Using 'discounts' parameter which is the correct way for checkout sessions
@@ -283,35 +262,32 @@ export const createStudentCheckoutSession = action({
             
             // For 100% discounts, we still need payment method for Stripe to process
             if (validation.percentOff === 100) {
-              console.log('100% discount detected - checkout will show $0.00');
+              // 100% discount detected
               checkoutParams["payment_method_types[0]"] = "card";
               // Allow promotion codes in checkout for fallback
               checkoutParams["allow_promotion_codes"] = "false"; // Disable manual entry since we're applying programmatically
             }
             
-            console.log('Discount parameters added to checkout session:', {
+            const discountParams = {
               coupon: stripeCouponId,
               percentOff: discountAmount,
               applied: discountApplied
-            });
+            };
           } else {
-            console.warn(`Invalid discount code: ${args.discountCode} - ${validation.error}`);
+            // Invalid discount code
             // Don't throw error, just proceed without discount
           }
         } catch (error) {
-          console.error('Error validating discount code:', error);
+          // Error validating discount code
           // Don't throw error, just proceed without discount
-          console.warn('Proceeding without discount due to validation error');
+          // Proceeding without discount
         }
       }
       
       // Checkout session prepared with appropriate pricing and discounts
       
       // Log the final checkout parameters being sent to Stripe
-      console.log('=== FINAL CHECKOUT PARAMS ===');
-      console.log('Sending to Stripe checkout session:', JSON.stringify(checkoutParams, null, 2));
-      console.log('Discount applied:', discountApplied);
-      console.log('Discount amount:', discountAmount);
+      // Final checkout params prepared
       
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
@@ -330,13 +306,7 @@ export const createStudentCheckoutSession = action({
       const session = await response.json();
 
       // Log the session response to verify discount application
-      console.log('=== STRIPE SESSION RESPONSE ===');
-      console.log('Session ID:', session.id);
-      console.log('Session URL:', session.url);
-      console.log('Amount Total:', session.amount_total);
-      console.log('Amount Subtotal:', session.amount_subtotal);
-      console.log('Total Details:', JSON.stringify(session.total_details, null, 2));
-      console.log('Discounts in session:', JSON.stringify(session.discounts, null, 2));
+      // Stripe session created successfully
       
       // Calculate final amount based on discount
       const basePrice = args.membershipPlan === 'core' ? 695 : 
@@ -379,7 +349,7 @@ export const createStudentCheckoutSession = action({
       };
 
     } catch (error) {
-      console.error("Failed to create student checkout session:", error);
+      // Failed to create student checkout session
       throw new Error(`Checkout session creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -446,7 +416,7 @@ export const createPaymentSession = action({
       };
 
     } catch (error) {
-      console.error("Failed to create payment session:", error);
+      // Failed to create payment session
       throw new Error(`Payment session creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -541,7 +511,7 @@ export const handleStripeWebhook = action({
 
       return { received: true };
     } catch (error) {
-      console.error("Webhook processing failed:", error);
+      // Webhook processing failed
       throw new Error(`Webhook processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -557,7 +527,7 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
 
   const matchId = session.metadata?.matchId;
   if (!matchId) {
-    console.error("No matchId in session metadata");
+    // No matchId in session metadata
     return;
   }
 
@@ -630,7 +600,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
   const stripeCustomerId = session.customer; // Stripe customer ID from the session
   
   if (!customerEmail) {
-    console.error("No customer email in session metadata");
+    // No customer email in session metadata
     return;
   }
 
@@ -651,7 +621,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
     try {
       user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
     } catch (error) {
-      console.warn(`Failed to find user by email ${customerEmail}:`, error);
+      // Failed to find user by email
     }
     
     if (user) {
@@ -669,7 +639,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
           }
         });
       } catch (error) {
-        console.error("Failed to update user metadata:", error);
+        // Failed to update user metadata
         // Continue - payment was successful
       }
 
@@ -684,11 +654,11 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
           paidAt: Date.now(),
         });
       } catch (error) {
-        console.warn("Student record may not exist yet - will be created when intake form is completed:", error);
+        // Student record may not exist yet - will be created when intake form is completed
         // This is expected if payment happens before full intake completion
       }
     } else {
-      console.warn(`User not found for email ${customerEmail} - payment recorded, user will sync later`);
+      // User not found - payment recorded, user will sync later
     }
 
     // Send welcome email to student (optional - don't fail if email service is down)
@@ -701,12 +671,12 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
         specialty: specialty || '',
       });
     } catch (emailError) {
-      console.error("Failed to send welcome email (non-critical):", emailError);
+      // Failed to send welcome email (non-critical)
       // Don't fail payment processing if email fails
     }
 
   } catch (error) {
-    console.error("Error processing student intake payment:", error);
+    // Error processing student intake payment
     // Don't throw - payment was successful in Stripe, just log the error
     // The payment has been recorded and will be synced when the user completes intake
   }
@@ -744,7 +714,7 @@ async function handleCustomerCreated(ctx: any, customer: any) {
         });
       }
     } catch (error) {
-      console.error("Failed to update user with Stripe customer ID:", error);
+      // Failed to update user with Stripe customer ID
     }
   }
 }
@@ -759,7 +729,7 @@ async function handleCustomerUpdated(ctx: any, customer: any) {
         // Update any relevant metadata
       }
     } catch (error) {
-      console.error("Failed to sync customer update:", error);
+      // Failed to sync customer update
     }
   }
 }
@@ -981,7 +951,7 @@ export const createMembershipProducts = action({
 
       return results;
     } catch (error) {
-      console.error("Failed to create membership products:", error);
+      // Failed to create membership products
       throw new Error(`Membership products creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -1025,7 +995,7 @@ export const createSubscription = action({
 
       return await response.json();
     } catch (error) {
-      console.error("Failed to create subscription:", error);
+      // Failed to create subscription
       throw new Error(`Subscription creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -1055,7 +1025,7 @@ export const getStripePricing = action({
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error("Failed to fetch pricing:", error);
+      // Failed to fetch pricing
       throw new Error(`Pricing fetch failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -1124,7 +1094,7 @@ export const createDiscountCoupon = action({
         percentOff: args.percentOff,
       };
     } catch (error) {
-      console.error("Failed to create discount coupon:", error);
+      // Failed to create discount coupon
       throw new Error(`Coupon creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -1198,7 +1168,7 @@ export const validateDiscountCode = query({
         description: `${coupon.percentOff}% off`,
       };
     } catch (error) {
-      console.error("Error validating discount code:", error);
+      // Error validating discount code
       return {
         valid: false,
         error: "Unable to validate discount code. Please try again.",
@@ -1247,7 +1217,7 @@ export const initializeNPDiscountCode = action({
         ...result,
       };
     } catch (error) {
-      console.error("Failed to initialize NP discount code:", error);
+      // Failed to initialize NP discount code
       throw new Error(`Failed to initialize discount code: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -1314,7 +1284,7 @@ export const initializeAllDiscountCodes = action({
           // Discount code created successfully
         }
       } catch (error) {
-        console.error(`Failed to create discount code ${discount.code}:`, error);
+        // Failed to create discount code
         results.push({
           code: discount.code,
           percentOff: discount.percentOff,
