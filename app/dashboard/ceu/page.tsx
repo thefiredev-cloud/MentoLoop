@@ -322,7 +322,7 @@ export default function CEUDashboard() {
                       </div>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Users className="h-4 w-4" />
-                        <span>{course.enrolled.toLocaleString()}</span>
+                        <span>{((course as any).enrolled || (course as any).enrollmentCount || 0).toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -413,7 +413,7 @@ export default function CEUDashboard() {
                         <Award className="h-6 w-6 text-purple-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold">{cert.courseName}</h3>
+                        <h3 className="font-semibold">{cert.courseTitle}</h3>
                         <p className="text-sm text-muted-foreground">
                           Completed on {new Date(cert.completedDate).toLocaleDateString()} • 
                           {' '}{cert.credits} CEUs earned
