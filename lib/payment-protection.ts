@@ -96,9 +96,9 @@ export function getRequiredMembershipForSection(section: string): string[] {
     case 'matching-preferences':
       return ['core', 'pro', 'premium']; // Only this step is gated
     case 'mentorfit':
-      return ['core', 'pro', 'premium'];
+      return ['premium']; // MentorFit is premium-only feature
     case 'learning-style':
-      return ['premium'];
+      return ['premium']; // Same as mentorfit (they're the same feature)
     case 'agreements':
       return ['core', 'pro', 'premium'];
     default:

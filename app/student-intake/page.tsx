@@ -12,6 +12,7 @@ import SchoolInformationStep from './components/school-information-step'
 import RotationNeedsStep from './components/rotation-needs-step'
 import PaymentAgreementStep from './components/payment-agreement-step'
 import MatchingPreferencesStep from './components/matching-preferences-step'
+import MentorFitAssessmentStep from './components/mentorfit-assessment-step'
 
 const steps = [
   { id: 1, name: 'Personal Information', component: PersonalInformationStep },
@@ -19,6 +20,7 @@ const steps = [
   { id: 3, name: 'Rotation Needs', component: RotationNeedsStep },
   { id: 4, name: 'Payment & Agreement', component: PaymentAgreementStep },
   { id: 5, name: 'Matching Preferences', component: MatchingPreferencesStep },
+  { id: 6, name: 'MentorFit Assessment', component: MentorFitAssessmentStep },
 ]
 
 export default function StudentIntakePage() {
@@ -30,6 +32,7 @@ export default function StudentIntakePage() {
     rotationNeeds: {},
     paymentAgreement: {},
     matchingPreferences: {},
+    mentorFitAssessment: {},
   })
 
   const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
@@ -96,6 +99,14 @@ export default function StudentIntakePage() {
         }
         return !!(matchingPreferences.practiceStyle && matchingPreferences.teachingPreferences &&
                  matchingPreferences.communicationStyle && matchingPreferences.schedulingFlexibility)
+      
+      case 6: // MentorFit Assessment
+        const mentorFitAssessment = formData.mentorFitAssessment as {
+          assessmentAnswers?: Record<string, string>
+        }
+        // Check if all 15 questions are answered
+        const answeredQuestions = Object.keys(mentorFitAssessment.assessmentAnswers || {}).length
+        return answeredQuestions >= 15
       
       default:
         return false

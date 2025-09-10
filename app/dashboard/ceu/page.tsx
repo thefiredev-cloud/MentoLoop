@@ -25,6 +25,22 @@ import {
   ChevronRight
 } from 'lucide-react'
 
+interface Course {
+  id: string | number
+  title: string
+  category: string
+  credits: number
+  duration: string
+  difficulty: string
+  enrollmentCount?: number
+  enrolled?: number
+  rating?: number
+  progress?: number
+  status: string
+  instructor: string
+  thumbnail?: string
+}
+
 export default function CEUDashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -40,7 +56,7 @@ export default function CEUDashboard() {
   // const enrollInCourse = useMutation(api.ceuCourses.enrollInCourse)
 
   // Mock data for now
-  const availableCourses = [
+  const availableCourses: Course[] = [
     {
       id: "1",
       title: "Advanced Clinical Assessment Techniques",
@@ -81,7 +97,7 @@ export default function CEUDashboard() {
   }
 
   // Use real data or defaults
-  const courses = availableCourses || [
+  const courses: Course[] = availableCourses || [
     {
       id: 1,
       title: 'Advanced Clinical Assessment Techniques',
@@ -322,7 +338,7 @@ export default function CEUDashboard() {
                       </div>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Users className="h-4 w-4" />
-                        <span>{((course as any).enrolled || (course as any).enrollmentCount || 0).toLocaleString()}</span>
+                        <span>{(course.enrolled || course.enrollmentCount || 0).toLocaleString()}</span>
                       </div>
                     </div>
 

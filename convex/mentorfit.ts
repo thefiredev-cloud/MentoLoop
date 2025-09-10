@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, query } from "./_generated/server";
-import { api, internal } from "./_generated/api";
+import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // MentorFit™ Compatibility Scoring Algorithm
 // Calculates compatibility scores (0-10) between students and preceptors
@@ -323,8 +323,8 @@ function generateExplanation(score: number, breakdown: any): string {
   }
 }
 
-// Main compatibility calculation function
-export const calculateCompatibility = internalQuery({
+// Main compatibility calculation function (exposed as public query)
+export const calculateCompatibility = query({
   args: {
     studentId: v.id("students"),
     preceptorId: v.id("preceptors")
@@ -403,7 +403,7 @@ export const findCompatiblePreceptors = query({
 
     // Calculate compatibility for each preceptor
     const compatibilityPromises = preceptors.map(async (preceptor): Promise<any> => {
-      const compatibility = await ctx.runQuery(internal.mentorfit.calculateCompatibility, {
+      const compatibility = await ctx.runQuery(api.mentorfit.calculateCompatibility, {
         studentId,
         preceptorId: preceptor._id
       });
@@ -424,7 +424,7 @@ export const findCompatiblePreceptors = query({
 });
 
 // Create a match with calculated compatibility
-export const createMatchWithCompatibility = internalMutation({
+export const createMatchWithCompatibility = mutation({
   args: {
     studentId: v.id("students"),
     preceptorId: v.id("preceptors"),
@@ -438,7 +438,7 @@ export const createMatchWithCompatibility = internalMutation({
   },
   handler: async (ctx, { studentId, preceptorId, rotationDetails }): Promise<any> => {
     // Calculate compatibility
-    const compatibility: any = await ctx.runQuery(internal.mentorfit.calculateCompatibility, { studentId, preceptorId });
+    const compatibility: any = await ctx.runQuery(api.mentorfit.calculateCompatibility, { studentId, preceptorId });
     
     // Create match record
     const matchId: any = await ctx.db.insert("matches", {
@@ -456,5 +456,74 @@ export const createMatchWithCompatibility = internalMutation({
       matchId,
       compatibility
     };
+  }
+});
+
+// Save MentorFit assessment answers for a student
+export const saveMentorFitAssessment = mutation({
+  args: {
+    studentId: v.id("students"),
+    assessmentAnswers: v.record(v.string(), v.string())
+  },
+  handler: async (ctx, { studentId, assessmentAnswers }) => {
+    // Get the student record
+    const student = await ctx.db.get(studentId);
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+    // Map assessment answers to correct schema values
+    const mapLearningStyle = (value: string): "hands-on" | "step-by-step" | "independent" => {
+      if (value === 'hands-on' || value === 'observation') return 'hands-on';
+      if (value === 'explanation' || value === 'slow-thorough') return 'step-by-step';
+      return 'independent';
+    };
+
+    const mapClinicalComfort = (value: string): "not-comfortable" | "somewhat-comfortable" | "very-comfortable" => {
+      if (value === 'close-supervision' || value === 'collaborative-support') return 'not-comfortable';
+      if (value === 'guided-independence') return 'somewhat-comfortable';
+      return 'very-comfortable';
+    };
+
+    const mapFeedbackPref = (value: string): "real-time" | "end-of-day" | "minimal" => {
+      if (value === 'immediate' || value === 'real-time') return 'real-time';
+      if (value === 'end-shift' || value === 'daily') return 'end-of-day';
+      return 'minimal';
+    };
+
+    // Process the assessment answers into learning style data
+    const learningStyle = {
+      learningMethod: mapLearningStyle(assessmentAnswers.learning_style || 'hands-on'),
+      feedbackPreference: mapFeedbackPref(assessmentAnswers.feedback_timing || 'real-time'),
+      clinicalComfort: mapClinicalComfort(assessmentAnswers.independence_level || 'guided-independence'),
+      structurePreference: assessmentAnswers.learning_pace === 'fast-intensive' ? 'open-ended' as const : 
+                          assessmentAnswers.learning_pace === 'slow-thorough' ? 'clear-schedules' as const : 
+                          'general-guidance' as const,
+      additionalResources: assessmentAnswers.motivation_source === 'knowledge-growth' ? 'yes-love' as const : 
+                           assessmentAnswers.motivation_source === 'skill-mastery' ? 'occasionally' as const : 
+                           'not-necessary' as const,
+      observationPreference: assessmentAnswers.case_complexity === 'simple-building' ? 'observe-first' as const :
+                            assessmentAnswers.case_complexity === 'complex-challenging' ? 'jump-in' as const :
+                            'mix-both' as const,
+      correctionStyle: assessmentAnswers.mistake_handling === 'immediate-correction' ? 'direct-immediate' as const :
+                      assessmentAnswers.mistake_handling === 'private-discussion' ? 'supportive-private' as const :
+                      'written-summaries' as const,
+      retentionStyle: assessmentAnswers.problem_solving === 'intuitive' ? 'watching-doing' as const :
+                      assessmentAnswers.problem_solving === 'systematic' ? 'note-taking' as const :
+                      'questions-discussion' as const,
+      mentorRelationship: assessmentAnswers.preceptor_relationship === 'mentor-mentee' ? 'teacher-coach' as const :
+                         assessmentAnswers.preceptor_relationship === 'collaborative-partnership' ? 'collaborator' as const :
+                         'supervisor' as const,
+      proactiveQuestions: 3, // Default middle value
+      professionalValues: [] // Will be set based on assessment answers
+    };
+
+    // Update the student record with their learning style
+    await ctx.db.patch(studentId, {
+      learningStyle,
+      updatedAt: Date.now()
+    });
+
+    return { success: true, studentId };
   }
 });

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { action, internalAction, query } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 // Calculate MentorFit compatibility score first, then enhance with AI analysis
 export const generateMatchWithAI = internalAction({
@@ -21,7 +21,7 @@ export const generateMatchWithAI = internalAction({
     compatibility: any;
   }> => {
     // First, calculate the MentorFit compatibility score
-    const compatibility = await ctx.runQuery(internal.mentorfit.calculateCompatibility, {
+    const compatibility = await ctx.runQuery(api.mentorfit.calculateCompatibility, {
       studentId: args.studentId,
       preceptorId: args.preceptorId
     });
