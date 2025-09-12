@@ -5,10 +5,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import MentoLoopBackground from '@/components/mentoloop-background'
+import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
+import { motion } from 'motion/react'
 import { 
   Users, Shield, BarChart3, Building2, 
-  ChevronRight, GraduationCap, CheckCircle
+  ChevronRight, GraduationCap, CheckCircle,
+  TrendingUp, Award, Briefcase, ArrowRight,
+  Globe, Zap, Target
 } from 'lucide-react'
 import Link from 'next/link'
 import { useMutation } from 'convex/react'
@@ -69,24 +75,34 @@ export default function InstitutionsPage() {
 
   const benefits = [
     {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
-      title: "Student Management",
-      description: "Seamlessly manage your entire student cohort through our platform",
+      icon: <Users className="w-10 h-10 text-purple-600" />,
+      title: "Enterprise Dashboard",
+      description: "Comprehensive analytics and management tools for your entire program",
     },
     {
-      icon: <Shield className="w-8 h-8 text-blue-600" />,
-      title: "Vetted Preceptors",
-      description: "Access to our network of thoroughly vetted clinical preceptors",
+      icon: <Shield className="w-10 h-10 text-purple-600" />,
+      title: "Compliance Management",
+      description: "Automated compliance tracking and documentation for accreditation",
     },
     {
-      icon: <GraduationCap className="w-8 h-8 text-blue-600" />,
-      title: "Clinical Placements",
-      description: "Efficient matching system for student clinical rotations",
+      icon: <TrendingUp className="w-10 h-10 text-purple-600" />,
+      title: "Performance Analytics",
+      description: "Real-time insights into student progress and program outcomes",
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-blue-600" />,
-      title: "Progress Tracking",
-      description: "Monitor student progress and clinical hours in real-time",
+      icon: <Globe className="w-10 h-10 text-purple-600" />,
+      title: "Nationwide Network",
+      description: "Access to 1,000+ verified preceptors across all specialties",
+    },
+    {
+      icon: <Zap className="w-10 h-10 text-purple-600" />,
+      title: "AI-Powered Matching",
+      description: "Advanced algorithms ensure optimal student-preceptor pairings",
+    },
+    {
+      icon: <Target className="w-10 h-10 text-purple-600" />,
+      title: "Custom Solutions",
+      description: "Tailored implementation to meet your institution's unique needs",
     }
   ]
 
@@ -101,90 +117,209 @@ export default function InstitutionsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20">
-        <div className="container mx-auto max-w-6xl px-6">
-          <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <Building2 className="w-16 h-16 text-blue-600" />
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Institution Partnership
-            </h1>
-            
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Simplify your clinical education program with MentoLoop&apos;s comprehensive platform. 
-              Connect your students with qualified preceptors and manage the entire process in one place.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                onClick={() => setShowForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
+      {/* Hero Section with Animated Background */}
+      <section className="relative overflow-hidden">
+        <MentoLoopBackground className="min-h-fit" showIcons={false}>
+          {/* Floating 3D Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              animate={{
+                y: [0, -20, 0],
+                rotate: [0, 10, 0],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={{
+                y: [0, 20, 0],
+                rotate: [0, -10, 0],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={{
+                x: [0, 30, 0],
+                y: [0, -15, 0],
+              }}
+              transition={{
+                duration: 12,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-indigo-500/15 to-purple-600/15 rounded-full blur-3xl"
+            />
+          </div>
+
+          <div className="py-20 md:py-32">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="glass-strong rounded-3xl p-8 md:p-12 shadow-2xl hover-lift transform-3d"
               >
-                Schedule Consultation
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="border-gray-300 hover:bg-gray-50 px-8 py-6 text-lg"
-              >
-                <Link href="/contact">
-                  Learn More
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <Link
+                    href="#"
+                    className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
+                    <div className="relative flex items-center justify-center">
+                      <Award className="w-4 h-4 text-yellow-400 animate-pulse" />
+                    </div>
+                    <span className="font-medium text-white">Enterprise Solutions</span>
+                    <ArrowRight className="w-4 h-4 text-white/70 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </motion.div>
+                
+                <div className="mt-8">
+                  <AnimatedText
+                    text="Transform Your"
+                    className="mx-auto max-w-4xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white text-shadow-strong"
+                    type="word"
+                    delay={0.3}
+                  />
+                  <h1 className="mx-auto mt-2 max-w-4xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-shadow-strong">
+                    <GradientText gradient="from-white via-purple-200 to-indigo-200">
+                      Clinical Education Program
+                    </GradientText>
+                  </h1>
+                </div>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                  className="text-white/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
+                >
+                  <GlowingText className="text-white">
+                    Enterprise-Grade Platform for Healthcare Education
+                  </GlowingText>
+                </motion.p>
+                <p className="text-white/80 mx-auto my-4 max-w-3xl text-balance text-lg">
+                  Partner with MentoLoop to revolutionize your nursing education program. 
+                  Our comprehensive platform streamlines clinical placements, ensures compliance, 
+                  and provides actionable insights to improve student outcomes.
+                </p>
+                <p className="text-white/80 mx-auto my-6 mb-8 max-w-3xl text-balance text-lg">
+                  Trusted by leading healthcare institutions nationwide to deliver exceptional clinical education experiences.
+                </p>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, duration: 0.6 }}
+                  className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+                >
+                  <Button
+                    size="lg"
+                    onClick={() => setShowForm(true)}
+                    className="group relative bg-white text-purple-700 hover:bg-white/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <Briefcase className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-purple-700" />
+                    <span className="relative text-nowrap font-semibold">Schedule Enterprise Demo</span>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    asChild
+                    className="group border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-white/50 px-8 py-6 text-lg">
+                    <Link href="/contact">
+                      <span className="text-nowrap font-semibold">Download Whitepaper</span>
+                    </Link>
+                  </Button>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.4, duration: 0.6 }}
+                  className="flex items-center justify-center gap-8 text-sm text-white/90"
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>FERPA Compliant</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>SOC 2 Certified</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>24/7 Support</span>
+                  </div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </MentoLoopBackground>
       </section>
 
       {/* What You Get Section */}
       <section className="py-20 px-6">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-7xl">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-            What Your Institution Gets
+            Enterprise-Grade Features
           </h2>
           <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-16">
-            Everything you need to manage your nursing education program efficiently
+            Comprehensive solutions designed for healthcare institutions at scale
           </p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-4">
-                  {benefit.icon}
-                </div>
-                <h3 className="font-semibold text-xl mb-2 text-gray-900">
-                  {benefit.title}
-                </h3>
-                <p className="text-gray-600">
-                  {benefit.description}
-                </p>
-              </div>
+              <Card key={index} className="border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <CardContent className="p-8">
+                  <div className="flex justify-center mb-6">
+                    <div className="p-3 bg-purple-100 rounded-2xl">
+                      {benefit.icon}
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-xl mb-3 text-gray-900 text-center">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-gray-600 text-center leading-relaxed">
+                    {benefit.description}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Simple Features List */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="container mx-auto max-w-4xl">
+      {/* Platform Capabilities */}
+      <section className="py-20 px-6 bg-gradient-to-b from-purple-50 to-white">
+        <div className="container mx-auto max-w-5xl">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Platform Features
+            Platform Capabilities
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-6">
-            {features.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-lg text-gray-700">{feature}</span>
+          <Card className="border-0 shadow-xl">
+            <CardContent className="p-10">
+              <div className="grid md:grid-cols-2 gap-8">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-4">
+                    <div className="p-1 bg-purple-100 rounded-full flex-shrink-0">
+                      <CheckCircle className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <span className="text-lg text-gray-700 font-medium">{feature}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -373,34 +508,61 @@ export default function InstitutionsPage() {
         </div>
       )}
 
+      {/* Stats Section */}
+      <section className="py-20 px-6 bg-gradient-to-r from-purple-600 to-indigo-600">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+              <p className="text-5xl font-bold text-white mb-2">50+</p>
+              <p className="text-purple-100">Partner Institutions</p>
+            </div>
+            <div>
+              <p className="text-5xl font-bold text-white mb-2">10,000+</p>
+              <p className="text-purple-100">Students Managed</p>
+            </div>
+            <div>
+              <p className="text-5xl font-bold text-white mb-2">99.8%</p>
+              <p className="text-purple-100">Platform Uptime</p>
+            </div>
+            <div>
+              <p className="text-5xl font-bold text-white mb-2">4.9/5</p>
+              <p className="text-purple-100">Institution Satisfaction</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-blue-50">
+      <section className="py-20 px-6 bg-gradient-to-b from-white to-purple-50">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            Ready to Get Started?
+            Ready to Transform Your Program?
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join institutions across the country using MentoLoop to streamline their clinical education programs
+            Join leading healthcare institutions using MentoLoop to deliver exceptional clinical education
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
               onClick={() => setShowForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg"
+              className="bg-purple-600 hover:bg-purple-700 px-8 py-6 text-lg"
             >
-              Schedule Consultation
+              Request Enterprise Demo
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               asChild
-              className="border-gray-300 hover:bg-white px-8 py-6 text-lg"
+              className="border-purple-300 hover:bg-purple-50 px-8 py-6 text-lg"
             >
               <Link href="/contact">
-                Contact Sales
+                Contact Sales Team
               </Link>
             </Button>
           </div>
+          <p className="mt-6 text-sm text-gray-500">
+            Custom pricing • Dedicated support • Implementation assistance
+          </p>
         </div>
       </section>
     </div>

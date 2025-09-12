@@ -6,6 +6,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import MentoLoopBackground from '@/components/mentoloop-background'
+import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
+import { motion } from 'motion/react'
 import { 
   GraduationCap, 
   Clock, 
@@ -15,7 +18,9 @@ import {
   ChevronRight,
   CheckCircle,
   Star,
-  Award
+  Award,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react'
 
 export default function StudentsPage() {
@@ -105,60 +110,141 @@ export default function StudentsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20">
-        <div className="container mx-auto max-w-6xl px-6">
-          <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <GraduationCap className="w-16 h-16 text-blue-600" />
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Find Your NP Preceptor. Fast. Fair. Guaranteed.
-            </h1>
-            
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Clinical placements shouldn&apos;t be stressful. With Mentoloop, you get matched to 
-              vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button
-                size="lg"
-                asChild
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
-              >
-                <Link href="/sign-up/student">
-                  Get Matched Today
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => setShowVideo(true)}
-                className="border-gray-300 hover:bg-gray-50 px-8 py-6 text-lg"
-              >
-                Watch How It Works
-              </Button>
-            </div>
+      {/* Hero Section with Animated Background */}
+      <section className="relative overflow-hidden">
+        <MentoLoopBackground className="min-h-fit" showIcons={false}>
+          {/* Floating 3D Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              animate={{
+                y: [0, -20, 0],
+                rotate: [0, 10, 0],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={{
+                y: [0, 20, 0],
+                rotate: [0, -10, 0],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-full blur-3xl"
+            />
+          </div>
 
-            <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>No upfront fees</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>95% success rate</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>1,000+ preceptors</span>
-              </div>
+          <div className="py-20 md:py-32">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="glass-strong rounded-3xl p-8 md:p-12 shadow-2xl hover-lift transform-3d"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <Link
+                    href="#"
+                    className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
+                    <div className="relative flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4 text-blue-400 animate-pulse" />
+                    </div>
+                    <span className="font-medium text-white">For Future NPs</span>
+                    <ArrowRight className="w-4 h-4 text-white/70 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </motion.div>
+                
+                <div className="mt-8">
+                  <AnimatedText
+                    text="Find Your Perfect"
+                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white text-shadow-strong"
+                    type="word"
+                    delay={0.3}
+                  />
+                  <h1 className="mx-auto mt-2 max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-shadow-strong">
+                    <GradientText gradient="from-white via-blue-200 to-cyan-200">
+                      NP Preceptor
+                    </GradientText>
+                  </h1>
+                </div>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                  className="text-white/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
+                >
+                  <GlowingText className="text-white">
+                    Fast. Fair. Guaranteed.
+                  </GlowingText>
+                </motion.p>
+                <p className="text-white/80 mx-auto my-4 max-w-2xl text-balance text-lg">
+                  Clinical placements shouldn&apos;t be stressful. With MentoLoop, you get matched to 
+                  vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
+                </p>
+                <p className="text-white/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
+                  Join thousands of NP students who found their perfect clinical placement through our platform.
+                </p>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, duration: 0.6 }}
+                  className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+                >
+                  <Button
+                    asChild
+                    size="lg"
+                    className="group relative bg-white text-blue-700 hover:bg-white/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
+                    <Link href="/sign-up/student">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-blue-700" />
+                      <span className="relative text-nowrap font-semibold">Get Matched Today</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setShowVideo(true)}
+                    className="group border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-white/50 px-8 py-6 text-lg">
+                    <span className="text-nowrap font-semibold">Watch How It Works</span>
+                  </Button>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.4, duration: 0.6 }}
+                  className="flex items-center justify-center gap-8 text-sm text-white/90"
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>No upfront fees</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>95% success rate</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>1,000+ preceptors</span>
+                  </div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </MentoLoopBackground>
       </section>
 
       {/* Benefits Section */}
