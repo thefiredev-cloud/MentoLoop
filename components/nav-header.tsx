@@ -15,8 +15,8 @@ import { CustomSignupModal } from '@/components/custom-signup-modal'
 // Move static data outside component to prevent recreation
 const menuItems = [
     { name: 'Home', href: '/' },
-    { name: 'For Students', href: '/student-intake' },
-    { name: 'For Preceptors', href: '/preceptor-intake' },
+    { name: 'For Students', href: '/students' },
+    { name: 'For Preceptors', href: '/preceptors' },
     { name: 'For Institutions', href: '/institutions' },
     { name: 'Help Center', href: '/help' },
 ] as const;
