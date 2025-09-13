@@ -56,11 +56,13 @@ export const sendMessage = action({
 
     try {
       // Get conversation history
-      // @ts-ignore - API types will be generated after deployment
-      const history = await ctx.runQuery(api.chatbot?.getConversationHistory || (() => []), {
-        sessionId: args.sessionId,
-        limit: 10
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const chatbotApi = (api as any).chatbot;
+      const history = chatbotApi ? 
+        await ctx.runQuery(chatbotApi.getConversationHistory, {
+          sessionId: args.sessionId,
+          limit: 10
+        }) : [];
 
       // Build messages array for OpenAI
       const messages = [
@@ -95,19 +97,19 @@ export const sendMessage = action({
       const aiResponse = data.choices[0].message.content;
 
       // Store the conversation
-      // @ts-ignore - API types will be generated after deployment
-      await ctx.runMutation(api.chatbot?.storeMessage || (() => {}), {
-        sessionId: args.sessionId,
-        role: "user",
-        content: args.message
-      });
+      if (chatbotApi) {
+        await ctx.runMutation(chatbotApi.storeMessage, {
+          sessionId: args.sessionId,
+          role: "user",
+          content: args.message
+        });
 
-      // @ts-ignore - API types will be generated after deployment
-      await ctx.runMutation(api.chatbot?.storeMessage || (() => {}), {
-        sessionId: args.sessionId,
-        role: "assistant",
-        content: aiResponse
-      });
+        await ctx.runMutation(chatbotApi.storeMessage, {
+          sessionId: args.sessionId,
+          role: "assistant",
+          content: aiResponse
+        });
+      }
 
       return {
         response: aiResponse,

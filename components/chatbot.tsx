@@ -20,10 +20,11 @@ export function Chatbot() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // @ts-ignore - Convex types will be generated after deployment
-  const sendMessage = useAction(api.chatbot?.sendMessage || (() => Promise.resolve()))
-  // @ts-ignore - Convex types will be generated after deployment
-  const clearConversation = useAction(api.chatbot?.clearConversation || (() => Promise.resolve()))
+  // Safely access chatbot API (will be available after Convex deployment)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chatbotApi = (api as any).chatbot
+  const sendMessage = useAction(chatbotApi?.sendMessage || (() => Promise.resolve({ response: "Chatbot is initializing...", error: true })))
+  const clearConversation = useAction(chatbotApi?.clearConversation || (() => Promise.resolve()))
   
   // Generate or retrieve session ID
   useEffect(() => {
@@ -36,10 +37,9 @@ export function Chatbot() {
   }, [])
 
   // Get conversation history
-  // @ts-ignore - Convex types will be generated after deployment
   const conversationHistory = useQuery(
-    api.chatbot?.getConversationHistory,
-    sessionId ? { sessionId } : 'skip'
+    chatbotApi?.getConversationHistory,
+    sessionId && chatbotApi ? { sessionId } : 'skip'
   ) || []
 
   // Auto-scroll to bottom when new messages arrive
