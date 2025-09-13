@@ -151,26 +151,90 @@ export const sendMessage = action({
         { role: "user", content: args.message }
       ];
 
-      // Call OpenAI API
-      const response: Response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${openaiApiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4-turbo-preview",
-          messages,
-          temperature: 0.8,
-          max_tokens: 1000,
-          presence_penalty: 0.1,
-          frequency_penalty: 0.1
-        })
-      });
+      // Call OpenAI API with fallback models
+      let response: Response;
+      let modelUsed = "gpt-4o";
+      
+      try {
+        // Try GPT-4o first (latest and most capable)
+        response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${openaiApiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages,
+            temperature: 0.8,
+            max_tokens: 1000,
+            presence_penalty: 0.1,
+            frequency_penalty: 0.1
+          })
+        });
+        
+        if (!response.ok && response.status === 404) {
+          // Fallback to gpt-4-turbo if gpt-4o is not available
+          console.log("GPT-4o not available, falling back to gpt-4-turbo");
+          modelUsed = "gpt-4-turbo";
+          response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${openaiApiKey}`
+            },
+            body: JSON.stringify({
+              model: "gpt-4-turbo",
+              messages,
+              temperature: 0.8,
+              max_tokens: 1000,
+              presence_penalty: 0.1,
+              frequency_penalty: 0.1
+            })
+          });
+        }
+        
+        if (!response.ok && response.status === 404) {
+          // Final fallback to gpt-3.5-turbo
+          console.log("GPT-4 models not available, falling back to gpt-3.5-turbo");
+          modelUsed = "gpt-3.5-turbo";
+          response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${openaiApiKey}`
+            },
+            body: JSON.stringify({
+              model: "gpt-3.5-turbo",
+              messages,
+              temperature: 0.8,
+              max_tokens: 800,
+              presence_penalty: 0.1,
+              frequency_penalty: 0.1
+            })
+          });
+        }
+      } catch (error) {
+        console.error("Error calling OpenAI API:", error);
+        throw error;
+      }
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error(`OpenAI API error (${response.status}):`, errorBody);
+        
+        if (response.status === 401) {
+          throw new Error("Invalid API key. Please check your OpenAI API key configuration.");
+        } else if (response.status === 429) {
+          throw new Error("Rate limit exceeded. Please try again in a moment.");
+        } else if (response.status === 500 || response.status === 502 || response.status === 503) {
+          throw new Error("OpenAI service is temporarily unavailable. Please try again later.");
+        } else {
+          throw new Error(`OpenAI API error: ${response.statusText}`);
+        }
       }
+      
+      console.log(`Successfully used model: ${modelUsed}`);
 
       const data: OpenAIResponse = await response.json();
       const aiResponse: string = data.choices[0].message.content;
