@@ -9,6 +9,10 @@ import { MessageCircle, X, Send, Minimize2, Loader2, Bot } from 'lucide-react'
 import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { cn } from '@/lib/utils'
+import { useUser } from '@clerk/nextjs'
+import { usePathname } from 'next/navigation'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 
 export function Chatbot() {
@@ -19,6 +23,10 @@ export function Chatbot() {
   const [sessionId, setSessionId] = useState('')
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  // Get user context
+  const { user } = useUser()
+  const pathname = usePathname()
 
   // Safely access chatbot API (will be available after Convex deployment)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,9 +68,22 @@ export function Chatbot() {
     setIsLoading(true)
 
     try {
+      // Determine user role based on pathname
+      let userRole = 'visitor'
+      if (pathname?.includes('/student')) userRole = 'student'
+      else if (pathname?.includes('/preceptor')) userRole = 'preceptor'
+      else if (pathname?.includes('/admin')) userRole = 'admin'
+      else if (pathname?.includes('/enterprise')) userRole = 'enterprise'
+
       await sendMessage({
         message: userMessage,
-        sessionId
+        sessionId,
+        userContext: {
+          userId: user?.id,
+          userName: user?.firstName || user?.username,
+          userRole,
+          currentPage: pathname
+        }
       })
     } catch (error) {
       console.error('Error sending message:', error)
@@ -112,7 +133,7 @@ export function Chatbot() {
       {isOpen && (
         <Card className={cn(
           "fixed bottom-4 right-4 z-50 shadow-xl transition-all duration-300",
-          isMinimized ? "w-80 h-14" : "w-96 h-[500px]",
+          isMinimized ? "w-80 h-14" : "w-[450px] h-[600px]",
           "flex flex-col"
         )}>
           {/* Header */}
@@ -161,6 +182,68 @@ export function Chatbot() {
                           <li>• General questions</li>
                         </ul>
                       </div>
+                      {/* Quick Actions */}
+                      <div className="mt-6 space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Quick questions:</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={async () => {
+                              const quickMessage = "How do I find a preceptor?"
+                              setMessage(quickMessage)
+                              setTimeout(() => {
+                                handleSendMessage()
+                              }, 100)
+                            }}
+                          >
+                            Find Preceptor
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={async () => {
+                              const quickMessage = "What are the subscription plans?"
+                              setMessage(quickMessage)
+                              setTimeout(() => {
+                                handleSendMessage()
+                              }, 100)
+                            }}
+                          >
+                            Pricing Plans
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={async () => {
+                              const quickMessage = "How do I track clinical hours?"
+                              setMessage(quickMessage)
+                              setTimeout(() => {
+                                handleSendMessage()
+                              }, 100)
+                            }}
+                          >
+                            Track Hours
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={async () => {
+                              const quickMessage = "I need technical support"
+                              setMessage(quickMessage)
+                              setTimeout(() => {
+                                handleSendMessage()
+                              }, 100)
+                            }}
+                          >
+                            Get Support
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -180,7 +263,39 @@ export function Chatbot() {
                                 : 'bg-muted'
                             )}
                           >
-                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                            {msg.role === 'assistant' ? (
+                              <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown 
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                  p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  ul: ({children}) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
+                                  ol: ({children}) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
+                                  li: ({children}) => <li className="mb-1">{children}</li>,
+                                  code: ({className, children}) => {
+                                    const isInline = !className
+                                    return isInline ? (
+                                      <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs">{children}</code>
+                                    ) : (
+                                      <pre className="p-2 rounded bg-gray-100 dark:bg-gray-800 overflow-x-auto">
+                                        <code className="text-xs">{children}</code>
+                                      </pre>
+                                    )
+                                  },
+                                  strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                                  a: ({href, children}) => (
+                                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                      {children}
+                                    </a>
+                                  ),
+                                  }}
+                                >
+                                  {msg.content}
+                                </ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                            )}
                           </div>
                         </div>
                       ))}
