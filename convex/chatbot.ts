@@ -2,6 +2,25 @@ import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
+// Type definitions
+interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+interface OpenAIResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+interface ChatbotResponse {
+  response: string;
+  error: boolean;
+}
+
 const SYSTEM_PROMPT = `You are MentoBot, a helpful AI assistant for MentoLoop, a healthcare education platform that connects Nurse Practitioner (NP) students with qualified preceptors for clinical rotations.
 
 Your knowledge includes:
@@ -44,7 +63,7 @@ export const sendMessage = action({
     message: v.string(),
     sessionId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<ChatbotResponse> => {
     const openaiApiKey = process.env.OPENAI_API_KEY;
     
     if (!openaiApiKey) {
@@ -57,15 +76,15 @@ export const sendMessage = action({
     try {
       // Get conversation history
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const chatbotApi = (api as any).chatbot;
-      const history = chatbotApi ? 
+      const chatbotApi: any = (api as any).chatbot;
+      const history: any[] = chatbotApi ? 
         await ctx.runQuery(chatbotApi.getConversationHistory, {
           sessionId: args.sessionId,
           limit: 10
         }) : [];
 
       // Build messages array for OpenAI
-      const messages = [
+      const messages: ChatMessage[] = [
         { role: "system", content: SYSTEM_PROMPT },
         ...history.map((msg: any) => ({
           role: msg.role,
@@ -75,7 +94,7 @@ export const sendMessage = action({
       ];
 
       // Call OpenAI API
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response: Response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,8 +112,8 @@ export const sendMessage = action({
         throw new Error(`OpenAI API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      const aiResponse = data.choices[0].message.content;
+      const data: OpenAIResponse = await response.json();
+      const aiResponse: string = data.choices[0].message.content;
 
       // Store the conversation
       if (chatbotApi) {
