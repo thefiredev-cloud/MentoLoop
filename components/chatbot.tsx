@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { MessageCircle, X, Send, Minimize2, Loader2, Bot } from 'lucide-react'
-import { useAction, useQuery } from 'convex/react'
+import { useAction, useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { cn } from '@/lib/utils'
 import { useUser } from '@clerk/nextjs'
@@ -28,11 +28,9 @@ export function Chatbot() {
   const { user } = useUser()
   const pathname = usePathname()
 
-  // Safely access chatbot API (will be available after Convex deployment)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chatbotApi = (api as any).chatbot
-  const sendMessage = useAction(chatbotApi?.sendMessage || (() => Promise.resolve({ response: "Chatbot is initializing...", error: true })))
-  const clearConversation = useAction(chatbotApi?.clearConversation || (() => Promise.resolve()))
+  // Access chatbot API
+  const sendMessage = useAction(api.chatbot.sendMessage)
+  const clearConversation = useMutation(api.chatbot.clearConversation)
   
   // Generate or retrieve session ID
   useEffect(() => {
@@ -46,8 +44,8 @@ export function Chatbot() {
 
   // Get conversation history
   const conversationHistory = useQuery(
-    chatbotApi?.getConversationHistory,
-    sessionId && chatbotApi ? { sessionId } : 'skip'
+    api.chatbot.getConversationHistory,
+    sessionId ? { sessionId } : 'skip'
   ) || []
 
   // Auto-scroll to bottom when new messages arrive
@@ -80,7 +78,7 @@ export function Chatbot() {
         sessionId,
         userContext: {
           userId: user?.id,
-          userName: user?.firstName || user?.username,
+          userName: user?.firstName || user?.username || undefined,
           userRole,
           currentPage: pathname
         }

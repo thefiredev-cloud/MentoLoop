@@ -21,6 +21,7 @@ import type * as aiMatching from "../aiMatching.js";
 import type * as auth from "../auth.js";
 import type * as billing from "../billing.js";
 import type * as ceuCourses from "../ceuCourses.js";
+import type * as chatbot from "../chatbot.js";
 import type * as clinicalHours from "../clinicalHours.js";
 import type * as documents from "../documents.js";
 import type * as emails from "../emails.js";
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   billing: typeof billing;
   ceuCourses: typeof ceuCourses;
+  chatbot: typeof chatbot;
   clinicalHours: typeof clinicalHours;
   documents: typeof documents;
   emails: typeof emails;
