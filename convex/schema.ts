@@ -890,4 +890,13 @@ export default defineSchema({
   }).index("byMetric", ["metric"])
     .index("byCategory", ["category"])
     .index("byActive", ["isActive"]),
+
+  // Chatbot messages
+  chatMessages: defineTable({
+    sessionId: v.string(),
+    role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+    content: v.string(),
+    timestamp: v.number(),
+  }).index("bySessionId", ["sessionId"])
+    .index("byTimestamp", ["timestamp"]),
   });

@@ -10,6 +10,7 @@ import { AuthProvider } from '@/components/auth-provider'
 import { NavHeader } from '@/components/nav-header'
 import { WebVitalsDisplay } from '@/components/ui/web-vitals-display'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { Chatbot } from '@/components/chatbot'
 
 
 const geistSans = Geist({
@@ -84,6 +85,7 @@ export default function RootLayout({
                 <ErrorBoundary>
                   <NavHeader />
                   {children}
+                  <Chatbot />
                   <WebVitalsDisplay />
                 </ErrorBoundary>
               </AuthProvider>

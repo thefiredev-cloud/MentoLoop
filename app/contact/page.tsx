@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle, Loader2, Mail, MessageSquare, Phone } from 'lucide-react'
+import { CheckCircle, Loader2, Mail, Phone } from 'lucide-react'
 import { useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useUser } from '@clerk/nextjs'
@@ -123,20 +123,7 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-1">Phone Support</h3>
-                    <p className="text-sm text-muted-foreground">1-800-MENTOR-1</p>
-                    <p className="text-xs text-muted-foreground mt-1">Mon-Fri 9AM-5PM EST</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <MessageSquare className="w-5 h-5 text-primary mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-1">Live Chat</h3>
-                    <p className="text-sm text-muted-foreground">Available for logged-in users</p>
+                    <p className="text-sm text-muted-foreground">512-710-3320</p>
                     <p className="text-xs text-muted-foreground mt-1">Mon-Fri 9AM-5PM EST</p>
                   </div>
                 </div>
