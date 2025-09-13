@@ -151,12 +151,12 @@ export const sendMessage = action({
         { role: "user", content: args.message }
       ];
 
-      // Call OpenAI API with fallback models
+      // Call OpenAI API with speed-optimized models
       let response: Response;
-      let modelUsed = "gpt-4o";
+      let modelUsed = "gpt-4-turbo";
       
       try {
-        // Try GPT-4o first (latest and most capable)
+        // Try GPT-4-turbo first (fast and highly capable - best balance)
         response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -164,39 +164,18 @@ export const sendMessage = action({
             "Authorization": `Bearer ${openaiApiKey}`
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "gpt-4-turbo",
             messages,
             temperature: 0.8,
-            max_tokens: 1000,
+            max_tokens: 800,  // Reduced for faster responses
             presence_penalty: 0.1,
             frequency_penalty: 0.1
           })
         });
         
         if (!response.ok && response.status === 404) {
-          // Fallback to gpt-4-turbo if gpt-4o is not available
-          console.log("GPT-4o not available, falling back to gpt-4-turbo");
-          modelUsed = "gpt-4-turbo";
-          response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${openaiApiKey}`
-            },
-            body: JSON.stringify({
-              model: "gpt-4-turbo",
-              messages,
-              temperature: 0.8,
-              max_tokens: 1000,
-              presence_penalty: 0.1,
-              frequency_penalty: 0.1
-            })
-          });
-        }
-        
-        if (!response.ok && response.status === 404) {
-          // Final fallback to gpt-3.5-turbo
-          console.log("GPT-4 models not available, falling back to gpt-3.5-turbo");
+          // Fallback to gpt-3.5-turbo for maximum speed
+          console.log("GPT-4-turbo not available, falling back to gpt-3.5-turbo for speed");
           modelUsed = "gpt-3.5-turbo";
           response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
@@ -208,12 +187,15 @@ export const sendMessage = action({
               model: "gpt-3.5-turbo",
               messages,
               temperature: 0.8,
-              max_tokens: 800,
+              max_tokens: 600,  // Even faster responses
               presence_penalty: 0.1,
               frequency_penalty: 0.1
             })
           });
         }
+        
+        // Optional: Could add GPT-4o as a final fallback if needed for complex queries
+        // But prioritizing speed means we'll stick with the turbo models
       } catch (error) {
         console.error("Error calling OpenAI API:", error);
         throw error;
