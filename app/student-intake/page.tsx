@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Authenticated, Unauthenticated } from "convex/react"
 import { SignInButton } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,22 +24,88 @@ const steps = [
 ]
 
 export default function StudentIntakePage() {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [completedSteps, setCompletedSteps] = useState<number[]>([])
-  const [formData, setFormData] = useState({
-    personalInfo: {},
-    schoolInfo: {},
-    rotationNeeds: {},
-    paymentAgreement: {},
-    matchingPreferences: {},
-    mentorFitAssessment: {},
+  // Load saved state from sessionStorage on mount
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('studentIntakeCurrentStep')
+      return saved ? parseInt(saved, 10) : 1
+    }
+    return 1
+  })
+
+  const [completedSteps, setCompletedSteps] = useState<number[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('studentIntakeCompletedSteps')
+      return saved ? JSON.parse(saved) : []
+    }
+    return []
+  })
+
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('studentIntakeFormData')
+      return saved ? JSON.parse(saved) : {
+        personalInfo: {},
+        schoolInfo: {},
+        rotationNeeds: {},
+        paymentAgreement: {},
+        matchingPreferences: {},
+        mentorFitAssessment: {},
+      }
+    }
+    return {
+      personalInfo: {},
+      schoolInfo: {},
+      rotationNeeds: {},
+      paymentAgreement: {},
+      matchingPreferences: {},
+      mentorFitAssessment: {},
+    }
   })
 
   const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: { ...prev[section as keyof typeof prev], ...data }
-    }))
+    setFormData(prev => {
+      const newFormData = {
+        ...prev,
+        [section]: { ...prev[section as keyof typeof prev], ...data }
+      }
+      // Save to sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('studentIntakeFormData', JSON.stringify(newFormData))
+      }
+      return newFormData
+    })
+  }, [])
+
+  // Save current step to sessionStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('studentIntakeCurrentStep', currentStep.toString())
+    }
+  }, [currentStep])
+
+  // Save completed steps to sessionStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('studentIntakeCompletedSteps', JSON.stringify(completedSteps))
+    }
+  }, [completedSteps])
+
+  // Check if returning from Stripe
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const returningFromStripe = sessionStorage.getItem('returningFromStripe')
+      if (returningFromStripe === 'true') {
+        // Clear the flag
+        sessionStorage.removeItem('returningFromStripe')
+
+        // Check if payment was successful (would be redirected to confirmation page)
+        // If still on this page, payment was cancelled - stay on step 4
+        if (currentStep < 4) {
+          setCurrentStep(4)
+        }
+      }
+    }
   }, [])
 
   // Validate if a step is completed based on form data
@@ -47,13 +113,9 @@ export default function StudentIntakePage() {
     switch (stepNumber) {
       case 1: // Personal Information
         const personalInfo = formData.personalInfo as {
-          fullName?: string
-          email?: string
-          phoneNumber?: string
           dateOfBirth?: string
         }
-        return !!(personalInfo.fullName && personalInfo.email && 
-                 personalInfo.phoneNumber && personalInfo.dateOfBirth)
+        return !!personalInfo.dateOfBirth
       
       case 2: // School Information
         const schoolInfo = formData.schoolInfo as {

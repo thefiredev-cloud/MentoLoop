@@ -26,6 +26,7 @@ export const initializeDatabase = action({
         { code: "WELCOME10", percentOff: 10, description: "10% off for new students" },
         { code: "STUDENT20", percentOff: 20, description: "20% off student discount" },
         { code: "EARLYBIRD", percentOff: 15, description: "15% early bird discount" },
+        { code: "TESTSTRIPE", percentOff: 99.99, description: "$0.01 test code for Stripe testing" },
       ];
 
       for (const discountCode of commonCodes) {

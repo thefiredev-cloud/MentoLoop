@@ -30,7 +30,8 @@ const NP_TRACKS = [
   { value: 'ACNP', label: 'Acute Care NP (ACNP)' },
   { value: 'WHNP', label: 'Women\'s Health NP (WHNP)' },
   { value: 'NNP', label: 'Neonatal NP (NNP)' },
-  { value: 'DNP', label: 'Doctor of Nursing Practice (DNP)' }
+  { value: 'DNP', label: 'Doctor of Nursing Practice (DNP)' },
+  { value: 'OTHER', label: 'Other (please specify)' }
 ]
 
 const ACADEMIC_YEARS = [
@@ -54,6 +55,7 @@ export default function SchoolInformationStep({
   const [formData, setFormData] = useState({
     university: '',
     npTrack: '',
+    npTrackOther: '',
     specialty: '',
     academicYear: '',
     coordinatorName: '',
@@ -64,8 +66,15 @@ export default function SchoolInformationStep({
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    updateFormData('schoolInfo', { ...formData, [field]: value })
+    const updatedData = { ...formData, [field]: value }
+
+    // Clear the other track field if selecting a non-OTHER option
+    if (field === 'npTrack' && value !== 'OTHER') {
+      updatedData.npTrackOther = ''
+    }
+
+    setFormData(updatedData)
+    updateFormData('schoolInfo', updatedData)
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
@@ -80,6 +89,11 @@ export default function SchoolInformationStep({
 
     if (!formData.npTrack) {
       newErrors.npTrack = 'NP track is required'
+    }
+
+    // If OTHER is selected, require the custom text
+    if (formData.npTrack === 'OTHER' && !formData.npTrackOther.trim()) {
+      newErrors.npTrackOther = 'Please specify your NP track'
     }
 
     if (!formData.specialty.trim()) {
@@ -149,6 +163,22 @@ export default function SchoolInformationStep({
               </div>
               {errors.npTrack && (
                 <p className="text-sm text-destructive">{errors.npTrack}</p>
+              )}
+
+              {/* Show custom input when OTHER is selected */}
+              {formData.npTrack === 'OTHER' && (
+                <div className="mt-3">
+                  <Input
+                    id="npTrackOther"
+                    value={formData.npTrackOther}
+                    onChange={(e) => handleInputChange('npTrackOther', e.target.value)}
+                    placeholder="Please specify your NP track"
+                    className={errors.npTrackOther ? 'border-destructive' : ''}
+                  />
+                  {errors.npTrackOther && (
+                    <p className="text-sm text-destructive mt-1">{errors.npTrackOther}</p>
+                  )}
+                </div>
               )}
             </div>
 

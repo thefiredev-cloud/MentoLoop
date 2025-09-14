@@ -1,28 +1,33 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  CheckCircle, 
-  Clock, 
+import {
+  CheckCircle,
+  Clock,
   Mail,
   User,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Brain
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { markIntakeComplete } from '@/app/actions/clerk-metadata'
+import MentorFitAssessmentStep from '../components/mentorfit-assessment-step'
 
 export default function StudentIntakeConfirmationPage() {
-  // const router = useRouter() // Will be used for future navigation
+  const router = useRouter()
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
   const sessionId = searchParams.get('session_id')
   const { userId } = useAuth()
+  const [showMentorFit, setShowMentorFit] = useState(false)
+  const [mentorFitData, setMentorFitData] = useState({})
+  const [assessmentComplete, setAssessmentComplete] = useState(false)
 
   useEffect(() => {
     // Clear any stored form data and update metadata after successful submission
@@ -183,6 +188,67 @@ export default function StudentIntakeConfirmationPage() {
           </AlertDescription>
         </Alert>
 
+        {/* MentorFit Assessment Section */}
+        {!showMentorFit && !assessmentComplete && (
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                Complete Your MentorFit™ Assessment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our AI-powered assessment helps us match you with the perfect preceptor based on your learning style,
+                preferences, and clinical goals. This takes about 5 minutes to complete.
+              </p>
+              <Button
+                onClick={() => setShowMentorFit(true)}
+                className="w-full"
+                size="lg"
+              >
+                Start MentorFit™ Assessment
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Show MentorFit Assessment */}
+        {showMentorFit && !assessmentComplete && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                MentorFit™ Assessment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MentorFitAssessmentStep
+                data={{ mentorFitAssessment: mentorFitData }}
+                updateFormData={(section, data) => setMentorFitData(data)}
+                onNext={() => {
+                  setAssessmentComplete(true)
+                  setShowMentorFit(false)
+                }}
+                onPrev={() => setShowMentorFit(false)}
+                isFirstStep={false}
+                isLastStep={true}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Assessment Complete Message */}
+        {assessmentComplete && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>MentorFit™ Assessment Complete!</strong> Your responses have been saved and will be used
+              to find your perfect preceptor match.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Quick Actions */}
         <Card>
           <CardHeader>
@@ -190,16 +256,16 @@ export default function StudentIntakeConfirmationPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid md:grid-cols-2 gap-3">
-              <Link href="/dashboard/student">
+              <Link href="/dashboard/student/profile">
                 <Button className="w-full" variant="default">
                   <User className="h-4 w-4 mr-2" />
-                  Go to Dashboard
+                  Complete Profile
                 </Button>
               </Link>
-              <Link href="/dashboard/student/profile">
+              <Link href="/dashboard/student">
                 <Button className="w-full" variant="outline">
                   <Calendar className="h-4 w-4 mr-2" />
-                  Complete Profile
+                  View Dashboard
                 </Button>
               </Link>
             </div>

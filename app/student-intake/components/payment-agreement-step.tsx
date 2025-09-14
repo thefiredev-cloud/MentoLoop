@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { CheckCircle, Star, Zap, Crown, Plus, Sparkles, Calendar, CreditCard as CreditCardIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TermsPrivacyModal } from '@/components/ui/terms-privacy-modal'
 
 interface PaymentAgreementStepProps {
   data: Record<string, unknown>
@@ -25,17 +26,35 @@ interface PaymentAgreementStepProps {
 
 const MEMBERSHIP_BLOCKS = [
   {
+    id: 'starter',
+    name: 'Starter Block',
+    subtitle: 'Perfect for single rotation',
+    hours: 60,
+    price: 495,
+    pricePerHour: 8.25,
+    priceId: 'price_starter', // Stripe price ID
+    features: [
+      '✅ Guaranteed preceptor match',
+      '✅ Basic support + hour tracking',
+      '✅ Valid for current semester'
+    ],
+    icon: Star,
+    color: 'green',
+    recommended: false
+  },
+  {
     id: 'core',
     name: 'Core Block',
-    subtitle: 'Best for short rotations',
-    hours: 60,
-    price: 695,
-    pricePerHour: 11.58,
+    subtitle: 'Best for multiple rotations',
+    hours: 90,
+    price: 795,
+    pricePerHour: 8.83,
     priceId: 'price_core', // Stripe price ID
     features: [
       '✅ Guaranteed preceptor match',
       '✅ Standard support + hour tracking',
-      '✅ Bank unused hours within semester'
+      '✅ Bank unused hours within semester',
+      '✅ Priority response time'
     ],
     icon: Star,
     color: 'blue',
@@ -44,10 +63,10 @@ const MEMBERSHIP_BLOCKS = [
   {
     id: 'pro',
     name: 'Pro Block',
-    subtitle: 'Best value',
-    hours: 120,
-    price: 1295,
-    pricePerHour: 10.79,
+    subtitle: 'Most Popular',
+    hours: 180,
+    price: 1495,
+    pricePerHour: 8.31,
     priceId: 'price_pro', // Stripe price ID
     features: [
       '✅ Priority matching (within 14 days)',
@@ -60,13 +79,13 @@ const MEMBERSHIP_BLOCKS = [
     recommended: true
   },
   {
-    id: 'premium',
-    name: 'Premium Block',
-    subtitle: 'Full coverage option',
-    hours: 180,
+    id: 'elite',
+    name: 'Elite Block',
+    subtitle: 'Complete coverage',
+    hours: 240,
     price: 1895,
-    pricePerHour: 10.53,
-    priceId: 'price_premium', // Stripe price ID
+    pricePerHour: 7.90,
+    priceId: 'price_elite', // Stripe price ID
     features: [
       '✅ Top priority matching (within 7 days)',
       '✅ Dedicated support line',
@@ -139,8 +158,8 @@ export default function PaymentAgreementStep({
 
   const handleAddOnHoursChange = (value: string) => {
     const hours = parseInt(value) || 0
-    // Must be in increments of 20
-    const adjustedHours = Math.floor(hours / 20) * 20
+    // Must be in increments of 10 (allowing 10, 20, 30, etc.)
+    const adjustedHours = Math.floor(hours / 10) * 10
     setAddOnHours(adjustedHours)
     
     if (selectedBlock) {
@@ -198,8 +217,8 @@ export default function PaymentAgreementStep({
     }
 
     // Check if installments are available for the selected plan
-    if (paymentOption === 'installments' && selectedBlock === 'core') {
-      newErrors.paymentOption = 'Installment payments are only available for Pro and Premium blocks'
+    if (paymentOption === 'installments' && (selectedBlock === 'starter' || selectedBlock === 'core')) {
+      newErrors.paymentOption = 'Installment payments are only available for Pro and Elite blocks'
     }
 
     setErrors(newErrors)
@@ -270,7 +289,7 @@ export default function PaymentAgreementStep({
         successUrl: `${window.location.origin}/student-intake/confirmation?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/student-intake`,
         ...(validateDiscountCode?.valid && discountCode ? { discountCode } : {}),
-        ...(paymentOption === 'installments' && selectedBlock !== 'core' ? {
+        ...(paymentOption === 'installments' && selectedBlock !== 'starter' && selectedBlock !== 'core' ? {
           paymentOption: 'installments',
           installmentPlan: installmentPlan
         } : {
@@ -294,7 +313,10 @@ export default function PaymentAgreementStep({
           price: calculateTotal(),
           hours: block.hours + addOnHours
         }))
-        
+
+        // Save a flag indicating we're going to Stripe
+        sessionStorage.setItem('returningFromStripe', 'true')
+
         // Redirect to Stripe checkout
         window.location.href = session.url
       } else {
@@ -311,6 +333,8 @@ export default function PaymentAgreementStep({
 
   const getPlanColor = (color: string) => {
     switch (color) {
+      case 'green':
+        return 'border-green-500 bg-green-50'
       case 'blue':
         return 'border-blue-500 bg-blue-50'
       case 'purple':
@@ -324,6 +348,8 @@ export default function PaymentAgreementStep({
 
   const getIconColor = (color: string) => {
     switch (color) {
+      case 'green':
+        return 'text-green-500'
       case 'blue':
         return 'text-blue-500'
       case 'purple':
@@ -372,6 +398,7 @@ export default function PaymentAgreementStep({
               <div className={cn(
                 "w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center",
                 "bg-gradient-to-br",
+                block.color === 'green' ? "from-green-100 to-green-200" :
                 block.color === 'blue' ? "from-blue-100 to-blue-200" :
                 block.color === 'purple' ? "from-purple-100 to-purple-200" :
                 "from-amber-100 to-amber-200"
@@ -433,8 +460,8 @@ export default function PaymentAgreementStep({
           <CardContent className="space-y-4">
             <div className="bg-background/80 rounded-lg p-4">
               <p className="text-sm text-muted-foreground mb-4">
-                <strong>Available only with active block membership.</strong> Purchase additional hours in 
-                20-hour increments at $10/hr. Hours must be used within the same academic year as your primary block.
+                <strong>Available only with active block membership.</strong> Purchase additional hours in
+                10-hour increments at $10/hr (minimum 30 hours). Hours must be used within the same academic year as your primary block.
               </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3">
@@ -442,18 +469,22 @@ export default function PaymentAgreementStep({
                     Additional Hours:
                   </Label>
                   <div className="relative">
-                    <Input
+                    <select
                       id="addOnHours"
-                      type="number"
-                      min="0"
-                      step="20"
                       value={addOnHours}
                       onChange={(e) => handleAddOnHoursChange(e.target.value)}
-                      className="w-32 pr-8"
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                      hrs
-                    </span>
+                      className="w-32 pr-8 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    >
+                      <option value="0">None</option>
+                      <option value="30">30 hrs</option>
+                      <option value="40">40 hrs</option>
+                      <option value="50">50 hrs</option>
+                      <option value="60">60 hrs</option>
+                      <option value="70">70 hrs</option>
+                      <option value="80">80 hrs</option>
+                      <option value="90">90 hrs</option>
+                      <option value="100">100 hrs</option>
+                    </select>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -550,7 +581,7 @@ export default function PaymentAgreementStep({
                   <div className="flex-1">
                     <div className="font-semibold mb-1 flex items-center gap-2">
                       Split Payments
-                      <Badge variant="secondary" className="text-xs">Available for Pro & Premium</Badge>
+                      <Badge variant="secondary" className="text-xs">Available for Pro & Elite</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">
                       Pay over {installmentPlan} months
@@ -608,12 +639,12 @@ export default function PaymentAgreementStep({
             </div>
 
             {/* Note about installment availability */}
-            {selectedBlock === 'core' && paymentOption === 'installments' && (
+            {(selectedBlock === 'starter' || selectedBlock === 'core') && paymentOption === 'installments' && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-sm text-amber-800 flex items-start gap-2">
                   <span className="text-amber-600">⚠</span>
                   <span>
-                    Installment payments are only available for Pro and Premium blocks. 
+                    Installment payments are only available for Pro and Elite blocks.
                     Please select a different plan or choose full payment.
                   </span>
                 </p>
@@ -766,8 +797,8 @@ export default function PaymentAgreementStep({
                     </label>
                     <p className="text-xs text-muted-foreground">
                       By proceeding, you acknowledge that you have read and agree to our{' '}
-                      <a href="/terms" className="underline hover:text-primary">Terms of Service</a> and{' '}
-                      <a href="/privacy" className="underline hover:text-primary">Privacy Policy</a>
+                      <TermsPrivacyModal type="terms" /> and{' '}
+                      <TermsPrivacyModal type="privacy" />
                     </p>
                   </div>
                 </div>
