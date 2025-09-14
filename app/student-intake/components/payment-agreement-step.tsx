@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { CheckCircle, Star, Zap, Crown, Plus, Sparkles, Calendar, CreditCard as CreditCardIcon } from 'lucide-react'
+import { CheckCircle, Star, Zap, Plus, Sparkles, Calendar, CreditCard as CreditCardIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TermsPrivacyModal } from '@/components/ui/terms-privacy-modal'
 
@@ -26,13 +26,13 @@ interface PaymentAgreementStepProps {
 
 const MEMBERSHIP_BLOCKS = [
   {
-    id: 'starter',
-    name: 'Starter Block',
+    id: 'core',
+    name: 'Core Block',
     subtitle: 'Perfect for single rotation',
     hours: 60,
-    price: 495,
-    pricePerHour: 8.25,
-    priceId: 'price_starter', // Stripe price ID
+    price: 499,
+    pricePerHour: 8.32,
+    priceId: 'price_1S22LRB1lwwjVYGvHmZ7gtYq', // Actual Stripe price ID
     features: [
       '✅ Guaranteed preceptor match',
       '✅ Basic support + hour tracking',
@@ -43,13 +43,13 @@ const MEMBERSHIP_BLOCKS = [
     recommended: false
   },
   {
-    id: 'core',
-    name: 'Core Block',
+    id: 'pro',
+    name: 'Pro Block',
     subtitle: 'Best for multiple rotations',
     hours: 90,
-    price: 795,
-    pricePerHour: 8.83,
-    priceId: 'price_core', // Stripe price ID
+    price: 799,
+    pricePerHour: 8.88,
+    priceId: 'price_1S22LdB1lwwjVYGvqYOegswu', // Actual Stripe price ID
     features: [
       '✅ Guaranteed preceptor match',
       '✅ Standard support + hour tracking',
@@ -58,43 +58,24 @@ const MEMBERSHIP_BLOCKS = [
     ],
     icon: Star,
     color: 'blue',
-    recommended: false
+    recommended: true
   },
   {
-    id: 'pro',
-    name: 'Pro Block',
-    subtitle: 'Most Popular',
-    hours: 180,
-    price: 1495,
-    pricePerHour: 8.31,
-    priceId: 'price_pro', // Stripe price ID
+    id: 'premium',
+    name: 'Premium Block',
+    subtitle: 'Most comprehensive',
+    hours: 120,
+    price: 999,
+    pricePerHour: 8.33,
+    priceId: 'price_1S22LqB1lwwjVYGvR5hlPOvs', // Actual Stripe price ID
     features: [
       '✅ Priority matching (within 14 days)',
       '✅ Extended banking — hours roll across academic year',
       '✅ Access to LoopExchange™ community support',
-      '✅ Payment plan available'
+      '✅ Dedicated support line'
     ],
     icon: Zap,
     color: 'purple',
-    recommended: true
-  },
-  {
-    id: 'elite',
-    name: 'Elite Block',
-    subtitle: 'Complete coverage',
-    hours: 240,
-    price: 1895,
-    pricePerHour: 7.90,
-    priceId: 'price_elite', // Stripe price ID
-    features: [
-      '✅ Top priority matching (within 7 days)',
-      '✅ Dedicated support line',
-      '✅ Hours valid across full academic year',
-      '✅ Bonus MentorFit™ session with preceptor',
-      '✅ Payment plan available'
-    ],
-    icon: Crown,
-    color: 'gold',
     recommended: false
   }
 ]
@@ -218,8 +199,8 @@ export default function PaymentAgreementStep({
     }
 
     // Check if installments are available for the selected plan
-    if (paymentOption === 'installments' && (selectedBlock === 'starter' || selectedBlock === 'core')) {
-      newErrors.paymentOption = 'Installment payments are only available for Pro and Elite blocks'
+    if (paymentOption === 'installments' && selectedBlock === 'core') {
+      newErrors.paymentOption = 'Installment payments are only available for Pro and Premium blocks'
     }
 
     setErrors(newErrors)
@@ -290,7 +271,7 @@ export default function PaymentAgreementStep({
         successUrl: `${window.location.origin}/student-intake/confirmation?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/student-intake`,
         ...(validateDiscountCode?.valid && discountCode ? { discountCode } : {}),
-        ...(paymentOption === 'installments' && selectedBlock !== 'starter' && selectedBlock !== 'core' ? {
+        ...(paymentOption === 'installments' && selectedBlock !== 'core' ? {
           paymentOption: 'installments',
           installmentPlan: installmentPlan
         } : {

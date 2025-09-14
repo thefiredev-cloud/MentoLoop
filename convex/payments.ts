@@ -150,6 +150,11 @@ export const createStudentCheckoutSession = action({
       
       // Map membership plans to actual Stripe price IDs
       const priceIdMap: Record<string, string> = {
+        // Direct mapping for actual Stripe price IDs
+        'price_1S22LRB1lwwjVYGvHmZ7gtYq': 'price_1S22LRB1lwwjVYGvHmZ7gtYq', // Core
+        'price_1S22LdB1lwwjVYGvqYOegswu': 'price_1S22LdB1lwwjVYGvqYOegswu', // Pro
+        'price_1S22LqB1lwwjVYGvR5hlPOvs': 'price_1S22LqB1lwwjVYGvR5hlPOvs', // Premium
+        // Friendly name mapping
         'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S22LRB1lwwjVYGvHmZ7gtYq',
         'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1S22LdB1lwwjVYGvqYOegswu',
         'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S22LqB1lwwjVYGvR5hlPOvs',
