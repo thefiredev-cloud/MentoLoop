@@ -32,7 +32,7 @@ const MEMBERSHIP_BLOCKS = [
     hours: 60,
     price: 499,
     pricePerHour: 8.32,
-    priceId: 'price_1S22LRB1lwwjVYGvHmZ7gtYq', // Actual Stripe price ID
+    priceId: 'price_1S76PAB1lwwjVYGvdx7RQrWr', // LIVE Stripe price ID
     features: [
       '✅ Guaranteed preceptor match',
       '✅ Basic support + hour tracking',
@@ -49,7 +49,7 @@ const MEMBERSHIP_BLOCKS = [
     hours: 90,
     price: 799,
     pricePerHour: 8.88,
-    priceId: 'price_1S22LdB1lwwjVYGvqYOegswu', // Actual Stripe price ID
+    priceId: 'price_1S76PRB1lwwjVYGv8ZmwrsCx', // LIVE Stripe price ID
     features: [
       '✅ Guaranteed preceptor match',
       '✅ Standard support + hour tracking',
@@ -67,7 +67,7 @@ const MEMBERSHIP_BLOCKS = [
     hours: 120,
     price: 999,
     pricePerHour: 8.33,
-    priceId: 'price_1S22LqB1lwwjVYGvR5hlPOvs', // Actual Stripe price ID
+    priceId: 'price_1S76PkB1lwwjVYGv3Lvp1atU', // LIVE Stripe price ID
     features: [
       '✅ Priority matching (within 14 days)',
       '✅ Extended banking — hours roll across academic year',
