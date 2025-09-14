@@ -6,30 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
   Search,
   Upload,
   Download,
   FileText,
-  BookOpen,
   Video,
   Package,
   Star,
   Heart,
-  Share2,
   Filter,
   TrendingUp,
   Users,
   Eye,
-  MessageSquare,
   Plus,
   Folder,
   File,
-  Clock,
-  Award,
-  ChevronRight,
-  Globe
+  Award
 } from 'lucide-react'
 
 export default function LoopExchangePage() {

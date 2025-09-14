@@ -1,5 +1,8 @@
 'use client'
 
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -45,18 +48,18 @@ export default function CEUDashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
 
-  // TODO: Fetch data from Convex when functions are deployed
-  // const availableCourses = useQuery(api.ceuCourses.getAvailableCourses, {
-  //   category: selectedCategory === 'all' ? undefined : selectedCategory,
-  //   searchQuery: searchQuery || undefined,
-  // })
-  // const userEnrollments = useQuery(api.ceuCourses.getUserEnrollments)
-  // const userCertificates = useQuery(api.ceuCourses.getUserCertificates)
-  // const ceuStats = useQuery(api.ceuCourses.getCEUStats)
-  // const enrollInCourse = useMutation(api.ceuCourses.enrollInCourse)
+  // Fetch data from Convex
+  const availableCoursesData = useQuery(api.ceuCourses.getAvailableCourses, {
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    searchQuery: searchQuery || undefined,
+  })
+  const userEnrollments = useQuery(api.ceuCourses.getUserEnrollments)
+  const userCertificates = useQuery(api.ceuCourses.getUserCertificates)
+  const ceuStatsData = useQuery(api.ceuCourses.getCEUStats)
+  const enrollInCourse = useMutation(api.ceuCourses.enrollInCourse)
 
-  // Mock data for now
-  const availableCourses: Course[] = [
+  // Default data while loading
+  const defaultCourses: Course[] = [
     {
       id: "1",
       title: "Advanced Clinical Assessment Techniques",
@@ -86,8 +89,8 @@ export default function CEUDashboard() {
       thumbnail: "/api/placeholder/300/200"
     },
   ]
-  
-  const ceuStats = {
+
+  const defaultStats = {
     totalCredits: 32,
     coursesCompleted: 8,
     coursesInProgress: 2,
@@ -96,8 +99,11 @@ export default function CEUDashboard() {
     requiredCredits: 30,
   }
 
+  const availableCourses = availableCoursesData || defaultCourses
+  const ceuStats = ceuStatsData || defaultStats
+
   // Use real data or defaults
-  const courses: Course[] = availableCourses || [
+  const courses: Course[] = availableCourses as Course[] || [
     {
       id: 1,
       title: 'Advanced Clinical Assessment Techniques',
@@ -161,9 +167,16 @@ export default function CEUDashboard() {
   const progressPercentage = (totalCreditsEarned / creditsNeeded) * 100
 
   const _handleEnroll = async (_courseId: string) => {
-    // TODO: Implement when Convex functions are deployed
-    // await enrollInCourse({ courseId })
-    toast.success('Successfully enrolled in course!')
+    try {
+      if (enrollInCourse) {
+        await enrollInCourse({ courseId: _courseId })
+        toast.success('Successfully enrolled in course!')
+      } else {
+        toast.error('Unable to enroll at this time')
+      }
+    } catch (error) {
+      toast.error('Failed to enroll in course')
+    }
   }
 
   const filteredCourses = courses // Filtering is now done server-side

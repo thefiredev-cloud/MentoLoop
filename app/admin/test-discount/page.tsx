@@ -13,8 +13,25 @@ import { Label } from '@/components/ui/label'
 export default function TestDiscountPage() {
   const [loading, setLoading] = useState(false)
   const [testCode, setTestCode] = useState('NP12345')
-  const [validationResult, setValidationResult] = useState<any>(null)
-  const [promotionCodeResult, setPromotionCodeResult] = useState<any>(null)
+  interface ValidationResult {
+    valid: boolean
+    discount?: {
+      amount: number
+      percentage: number
+    }
+    message?: string
+    code?: string
+    percentOff?: number
+    error?: string
+  }
+  interface PromotionCodeResult {
+    success: boolean
+    results?: Array<{ code: string; status: string }>
+    message?: string
+    error?: string
+  }
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null)
+  const [promotionCodeResult, setPromotionCodeResult] = useState<PromotionCodeResult | null>(null)
 
   const createPromotionCodes = useAction(api.payments.createPromotionCodesForExistingCoupons)
   const validateCode = useQuery(api.payments.validateDiscountCode,
@@ -32,7 +49,7 @@ export default function TestDiscountPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create promotion codes'
       toast.error(errorMessage)
-      setPromotionCodeResult({ error: errorMessage })
+      setPromotionCodeResult({ success: false, error: errorMessage })
     } finally {
       setLoading(false)
     }
@@ -89,7 +106,7 @@ export default function TestDiscountPage() {
                       <p className="text-green-700">{promotionCodeResult.message}</p>
                       {promotionCodeResult.results && (
                         <div className="mt-3 space-y-2">
-                          {promotionCodeResult.results.map((result: any, idx: number) => (
+                          {promotionCodeResult.results.map((result, idx: number) => (
                             <div key={idx} className="flex justify-between items-center py-1 border-t border-green-200">
                               <span className="font-mono">{result.code}</span>
                               <span className={`text-xs px-2 py-1 rounded ${
@@ -152,12 +169,12 @@ export default function TestDiscountPage() {
                     <div className="text-sm">
                       <p className="font-semibold text-green-900">Valid Code!</p>
                       <p className="text-green-700">
-                        Code: <span className="font-mono">{(validationResult || validateCode).code}</span>
+                        Code: <span className="font-mono">{(validationResult || validateCode)?.code}</span>
                       </p>
                       <p className="text-green-700">
-                        Discount: <span className="font-bold">{(validationResult || validateCode).percentOff}% OFF</span>
+                        Discount: <span className="font-bold">{(validationResult || validateCode)?.percentOff}% OFF</span>
                       </p>
-                      {(validationResult || validateCode).percentOff === 100 && (
+                      {(validationResult || validateCode)?.percentOff === 100 && (
                         <p className="text-green-700 font-semibold mt-2">
                           ✨ This is a 100% discount - completely FREE!
                         </p>
@@ -183,7 +200,7 @@ export default function TestDiscountPage() {
           <div className="bg-muted/50 rounded-lg p-4">
             <h4 className="font-semibold mb-2 text-sm">Testing Instructions:</h4>
             <ol className="space-y-2 text-sm text-muted-foreground">
-              <li>1. Click "Create Promotion Codes" to ensure all coupons have promotion codes</li>
+              <li>1. Click &quot;Create Promotion Codes&quot; to ensure all coupons have promotion codes</li>
               <li>2. Validate the NP12345 code to confirm it shows 100% off</li>
               <li>3. Go to the student intake form and test the checkout process</li>
               <li>4. Enter NP12345 at checkout - the Stripe page should show $0 total</li>

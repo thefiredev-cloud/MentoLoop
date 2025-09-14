@@ -363,11 +363,11 @@ export function Chatbot() {
                                 <ReactMarkdown 
                                   remarkPlugins={[remarkGfm]}
                                   components={{
-                                  p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
-                                  ul: ({children}) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
-                                  ol: ({children}) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
-                                  li: ({children}) => <li className="mb-1">{children}</li>,
-                                  code: ({className, children}) => {
+                                  p: ({children}: any) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  ul: ({children}: any) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
+                                  ol: ({children}: any) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
+                                  li: ({children}: any) => <li className="mb-1">{children}</li>,
+                                  code: ({className, children}: any) => {
                                     const isInline = !className
                                     return isInline ? (
                                       <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs">{children}</code>
@@ -377,8 +377,8 @@ export function Chatbot() {
                                       </pre>
                                     )
                                   },
-                                  strong: ({children}) => <strong className="font-semibold">{children}</strong>,
-                                  a: ({href, children}) => (
+                                  strong: ({children}: any) => <strong className="font-semibold">{children}</strong>,
+                                  a: ({href, children}: any) => (
                                     <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                                       {children}
                                     </a>

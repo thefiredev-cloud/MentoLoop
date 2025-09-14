@@ -286,26 +286,40 @@ export const getByEnterpriseId = query({
     }
 
     // Get all preceptors associated with this enterprise
-    // Since preceptors don't have direct enterpriseId, we need to implement proper linking
-    // For now, return all verified preceptors as placeholder
-    // TODO: Implement proper enterprise-preceptor relationship
-    return await ctx.db
-      .query("preceptors")
-      .withIndex("byVerificationStatus", (q) => q.eq("verificationStatus", "verified"))
+    // First, get all users that belong to this enterprise
+    const enterpriseUsers = await ctx.db
+      .query("users")
+      .withIndex("byExternalId")
+      .filter((q) => q.eq(q.field("enterpriseId"), args.enterpriseId))
       .collect();
+
+    const enterpriseUserIds = new Set(enterpriseUsers.map(user => user._id));
+
+    // Then get all preceptors whose userId is in the enterprise users list
+    const preceptors = await ctx.db
+      .query("preceptors")
+      .collect();
+
+    return preceptors.filter(preceptor => enterpriseUserIds.has(preceptor.userId));
   },
 });
 
 // Update preceptor status (for enterprise management)
 export const updatePreceptorStatus = mutation({
-  args: { 
-    preceptorId: v.id("preceptors"), 
+  args: {
+    preceptorId: v.id("preceptors"),
     status: v.union(v.literal("active"), v.literal("inactive"), v.literal("pending"), v.literal("suspended"))
   },
   handler: async (ctx, args) => {
     const userId = await getUserId(ctx);
     if (!userId) {
       throw new Error("Must be authenticated");
+    }
+
+    // Check if user is admin or enterprise user
+    const user = await ctx.db.get(userId);
+    if (!user || (user.userType !== "admin" && user.userType !== "enterprise")) {
+      throw new Error("Unauthorized: Only admin or enterprise users can update preceptor status");
     }
 
     // Map enterprise status to verification status
@@ -341,6 +355,12 @@ export const approvePreceptor = mutation({
     const userId = await getUserId(ctx);
     if (!userId) {
       throw new Error("Must be authenticated");
+    }
+
+    // Check if user is admin or enterprise user
+    const user = await ctx.db.get(userId);
+    if (!user || (user.userType !== "admin" && user.userType !== "enterprise")) {
+      throw new Error("Unauthorized: Only admin or enterprise users can approve preceptors");
     }
 
     await ctx.db.patch(args.preceptorId, {

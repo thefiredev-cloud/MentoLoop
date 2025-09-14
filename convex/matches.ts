@@ -278,11 +278,14 @@ export const createMatch = mutation({
     );
 
     // Extract location data for analytics (preceptor location)
+    // Get additional location data from user if available
+    const preceptorUser = await ctx.db.get(preceptor.userId);
     const locationData = {
       city: preceptor.practiceInfo.city,
       state: preceptor.practiceInfo.state,
       zipCode: preceptor.practiceInfo.zipCode,
-      // TODO: Add county and metro area when location utilities are integrated
+      county: preceptorUser?.location?.county || undefined,
+      metroArea: preceptorUser?.location?.metroArea || undefined,
     };
 
     const matchId = await ctx.db.insert("matches", {
@@ -1342,16 +1345,43 @@ export const getByEnterpriseId = query({
     }
 
     // Get all matches related to this enterprise through students/preceptors
-    // This would require linking students and preceptors to enterprises
-    // TODO: Implement enterprise-to-match relationship
-    // For now, get all matches and filter by enterprise students/preceptors
+    // First, get all users that belong to this enterprise
+    const enterpriseUsers = await ctx.db
+      .query("users")
+      .withIndex("byExternalId")
+      .filter((q) => q.eq(q.field("enterpriseId"), args.enterpriseId))
+      .collect();
+
+    const enterpriseUserIds = new Set(enterpriseUsers.map(user => user._id));
+
+    // Get all students and preceptors that belong to this enterprise
+    const allStudents = await ctx.db.query("students").collect();
+    const allPreceptors = await ctx.db.query("preceptors").collect();
+
+    const enterpriseStudentIds = new Set(
+      allStudents
+        .filter(s => enterpriseUserIds.has(s.userId))
+        .map(s => s._id)
+    );
+    const enterprisePreceptorIds = new Set(
+      allPreceptors
+        .filter(p => enterpriseUserIds.has(p.userId))
+        .map(p => p._id)
+    );
+
+    // Get all matches that involve enterprise students or preceptors
     const matches = await ctx.db
       .query("matches")
       .collect();
 
+    const enterpriseMatches = matches.filter(match =>
+      enterpriseStudentIds.has(match.studentId) ||
+      enterprisePreceptorIds.has(match.preceptorId)
+    );
+
     // Populate student and preceptor data
     const matchesWithData = [];
-    for (const match of matches) {
+    for (const match of enterpriseMatches) {
       const student = await ctx.db.get(match.studentId);
       const preceptor = await ctx.db.get(match.preceptorId);
       matchesWithData.push({

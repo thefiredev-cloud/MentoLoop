@@ -447,15 +447,21 @@ export const getByEnterpriseId = query({
     }
 
     // Get all students associated with this enterprise
-    // TODO: Implement proper enterprise-student relationship query
-    // Since students table doesn't have enterpriseId, we need to query through users or another relationship
-    return await ctx.db
+    // First, get all users that belong to this enterprise
+    const enterpriseUsers = await ctx.db
+      .query("users")
+      .withIndex("byExternalId")
+      .filter((q) => q.eq(q.field("enterpriseId"), args.enterpriseId))
+      .collect();
+
+    const enterpriseUserIds = new Set(enterpriseUsers.map(user => user._id));
+
+    // Then get all students whose userId is in the enterprise users list
+    const students = await ctx.db
       .query("students")
-      .collect()
-      .then(students => students.filter(student => {
-        // This is a placeholder - implement proper enterprise filtering logic
-        return true;
-      }));
+      .collect();
+
+    return students.filter(student => enterpriseUserIds.has(student.userId));
   },
 });
 

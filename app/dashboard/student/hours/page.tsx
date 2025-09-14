@@ -76,7 +76,7 @@ export default function StudentHoursPage() {
       setShowLogForm(false)
       
       toast.success('Hours logged successfully!')
-    } catch (error) {
+    } catch (_error) {
       // Failed to log hours
       toast.error('Failed to log hours. Please try again.')
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -50,15 +50,15 @@ export default function BillingPage() {
 function BillingContent({ userType }: { userType?: string }) {
   const isStudent = userType === 'student'
   
-  // TODO: Fetch real data from Convex when functions are deployed
-  // const currentSubscription = useQuery(api.billing.getCurrentSubscription)
-  // const paymentHistory = useQuery(api.billing.getPaymentHistory, { limit: 10 })
-  // const billingStats = useQuery(api.billing.getBillingStats)
-  // const paymentMethods = useQuery(api.billing.getPaymentMethods)
-  // const downloadInvoice = useMutation(api.billing.downloadInvoice)
+  // Fetch real data from Convex
+  const currentSubscriptionData = useQuery(api.billing.getCurrentSubscription)
+  const paymentHistoryData = useQuery(api.billing.getPaymentHistory, { limit: 10 })
+  const billingStats = useQuery(api.billing.getBillingStats)
+  const paymentMethodsData = useQuery(api.billing.getPaymentMethods)
+  const downloadInvoice = useMutation(api.billing.downloadInvoice)
 
-  // Mock data for now
-  const currentSubscription = isStudent ? {
+  // Default data while loading
+  const defaultSubscription = isStudent ? {
     name: 'Pro Block',
     price: 1295,
     hours: 120,
@@ -71,16 +71,17 @@ function BillingContent({ userType }: { userType?: string }) {
       'Access to LoopExchange™ community support',
     ]
   } : null
-  
-  const paymentHistory = null
-  // const billingStats = null
+
   interface PaymentMethod {
     id: string
     last4: string
     expiryMonth: number
     expiryYear: number
   }
-  const paymentMethods: PaymentMethod[] = []
+
+  const currentSubscription = currentSubscriptionData || defaultSubscription
+  const paymentHistory = paymentHistoryData || null
+  const paymentMethods: PaymentMethod[] = paymentMethodsData || []
 
   // Use real data or defaults
   const currentPlan = currentSubscription || {
