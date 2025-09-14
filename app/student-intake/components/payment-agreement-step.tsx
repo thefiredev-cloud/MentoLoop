@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAction, useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -130,6 +130,7 @@ export default function PaymentAgreementStep({
   const [paymentOption, setPaymentOption] = useState<'full' | 'installments'>('full')
   const [installmentPlan, setInstallmentPlan] = useState<3 | 4>(3)
   const { isLoaded, isSignedIn } = useAuth()
+  const { user } = useUser()
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
   const validateDiscountCode = useQuery(api.payments.validateDiscountCode, 
@@ -256,28 +257,28 @@ export default function PaymentAgreementStep({
       const block = MEMBERSHIP_BLOCKS.find(b => b.id === selectedBlock)
       if (!block) throw new Error('No block selected')
 
-      // Get student information from previous steps
-      const personalInfo = data.personalInfo as {
-        fullName?: string
-        email?: string
-      }
+      // Get student information from Clerk user
+      const fullName = user?.fullName || user?.firstName || ''
+      const email = user?.primaryEmailAddress?.emailAddress || ''
+
+      // Get school information from form data
       const schoolInfo = data.schoolInfo as {
         university?: string
         specialty?: string
       }
-      
-      if (!personalInfo?.fullName || !personalInfo?.email) {
-        throw new Error('Missing student information. Please complete previous steps.')
+
+      if (!fullName || !email) {
+        throw new Error('Missing user information. Please ensure you are signed in properly.')
       }
 
       // Create Stripe checkout session with discount code if valid and installment options
       const session = await createStudentCheckoutSession({
         priceId: block.priceId,
-        customerEmail: personalInfo.email,
-        customerName: personalInfo.fullName,
+        customerEmail: email,
+        customerName: fullName,
         membershipPlan: block.id,
         metadata: {
-          studentName: personalInfo.fullName,
+          studentName: fullName,
           school: schoolInfo?.university || '',
           specialty: schoolInfo?.specialty || '',
           membershipPlan: block.id,
