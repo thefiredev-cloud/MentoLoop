@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MessageCircle, X, Send, Minimize2, Loader2, Bot } from 'lucide-react'
+import { MessageCircle, X, Send, Minimize2, Maximize2, Loader2, Bot, Sparkles } from 'lucide-react'
 import { useAction, useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { cn } from '@/lib/utils'
@@ -13,14 +13,17 @@ import { useUser } from '@clerk/nextjs'
 import { usePathname } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { motion, AnimatePresence } from 'motion/react'
 
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
+  const [isMaximized, setIsMaximized] = useState(false)
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState('')
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   
@@ -64,6 +67,7 @@ export function Chatbot() {
     const userMessage = message.trim()
     setMessage('')
     setIsLoading(true)
+    setShowTypingIndicator(true)
 
     try {
       // Determine user role based on pathname
@@ -87,6 +91,7 @@ export function Chatbot() {
       console.error('Error sending message:', error)
     } finally {
       setIsLoading(false)
+      setShowTypingIndicator(false)
       // Focus back on input after sending
       setTimeout(() => inputRef.current?.focus(), 100)
     }
@@ -115,54 +120,132 @@ export function Chatbot() {
   const messages = conversationHistory || []
 
   return (
-    <>
-      {/* Chat Button */}
-      {!isOpen && (
-        <button
-          onClick={toggleChat}
-          className="fixed bottom-4 right-4 z-40 bg-primary text-primary-foreground rounded-full p-3 shadow-lg hover:scale-105 transition-transform duration-200"
-          aria-label="Open chat"
-        >
-          <MessageCircle className="w-6 h-6" />
-        </button>
-      )}
+    <div>
+      {/* Chat Button with Enhanced Animation */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0, rotate: -180 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0, opacity: 0, rotate: 180 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              duration: 0.4
+            }}
+            onClick={toggleChat}
+            className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full p-4 shadow-2xl hover:shadow-primary/25"
+            aria-label="Open chat"
+          >
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 3
+              }}
+            >
+              <MessageCircle className="w-7 h-7" />
+            </motion.div>
+            {/* Pulse animation for attention */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-primary/30"
+              animate={{ scale: [1, 1.5, 1.5], opacity: [0.5, 0, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      {/* Chat Window */}
-      {isOpen && (
-        <Card className={cn(
-          "fixed bottom-4 right-4 z-50 shadow-xl transition-all duration-300",
-          isMinimized ? "w-80 h-14" : "w-[450px] h-[600px]",
-          "flex flex-col"
-        )}>
-          {/* Header */}
-          <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-primary" />
-              <CardTitle className="text-base font-semibold">MentoBot</CardTitle>
-            </div>
+      {/* Chat Window with Smooth Animations */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, scale: 0.3, x: 100 }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+            exit={{ opacity: 0, y: 100, scale: 0.3, x: 100 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+              duration: 0.5
+            }}
+            className={cn(
+              "fixed z-50",
+              isMaximized
+                ? "inset-4"
+                : "bottom-6 right-6",
+              "flex"
+            )}
+          >
+            <Card className={cn(
+              "shadow-2xl transition-all duration-300 backdrop-blur-sm bg-background/95",
+              isMinimized
+                ? "w-80 h-14"
+                : isMaximized
+                  ? "w-full h-full"
+                  : "w-[550px] h-[750px] lg:w-[600px] lg:h-[800px]",
+              "flex flex-col border-2 border-primary/20"
+            )}>
+          {/* Enhanced Header */}
+          <CardHeader className="px-4 py-3 border-b bg-gradient-to-r from-primary/10 to-primary/5 flex flex-row items-center justify-between space-y-0">
+            <motion.div
+              className="flex items-center gap-2"
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <Bot className="w-5 h-5 text-primary" />
+              </motion.div>
+              <CardTitle className="text-base font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                MentoBot AI Assistant
+              </CardTitle>
+              <Sparkles className="w-4 h-4 text-primary/60" />
+            </motion.div>
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setIsMinimized(!isMinimized)}
-              >
-                <Minimize2 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={toggleChat}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-primary/10"
+                  onClick={() => setIsMaximized(!isMaximized)}
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-primary/10"
+                  onClick={() => setIsMinimized(!isMinimized)}
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-destructive/10"
+                  onClick={toggleChat}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </motion.div>
             </div>
           </CardHeader>
 
           {/* Chat Content */}
           {!isMinimized && (
-            <>
+            <div className="flex flex-col flex-1">
               <CardContent className="flex-1 p-0 overflow-hidden">
                 <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
                   {messages.length === 0 ? (
@@ -212,53 +295,67 @@ export function Chatbot() {
                           >
                             Pricing Plans
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-7"
-                            onClick={async () => {
-                              const quickMessage = "How do I track clinical hours?"
-                              setMessage(quickMessage)
-                              setTimeout(() => {
-                                handleSendMessage()
-                              }, 100)
-                            }}
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
-                            Track Hours
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-7"
-                            onClick={async () => {
-                              const quickMessage = "I need technical support"
-                              setMessage(quickMessage)
-                              setTimeout(() => {
-                                handleSendMessage()
-                              }, 100)
-                            }}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs h-8 px-3 hover:bg-primary/10 hover:border-primary"
+                              onClick={async () => {
+                                const quickMessage = "How do I track clinical hours?"
+                                setMessage(quickMessage)
+                                setTimeout(() => {
+                                  handleSendMessage()
+                                }, 100)
+                              }}
+                            >
+                              ⏱️ Track Hours
+                            </Button>
+                          </motion.div>
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
-                            Get Support
-                          </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs h-8 px-3 hover:bg-primary/10 hover:border-primary"
+                              onClick={async () => {
+                                const quickMessage = "I need technical support"
+                                setMessage(quickMessage)
+                                setTimeout(() => {
+                                  handleSendMessage()
+                                }, 100)
+                              }}
+                            >
+                              🛠️ Get Support
+                            </Button>
+                          </motion.div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {messages.map((msg: { role: string; content: string }, index: number) => (
-                        <div
+                        <motion.div
                           key={index}
+                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
                           className={cn(
                             "flex",
                             msg.role === 'user' ? 'justify-end' : 'justify-start'
                           )}
                         >
-                          <div
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
                             className={cn(
-                              "max-w-[80%] rounded-lg px-3 py-2 text-sm",
+                              "max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm",
                               msg.role === 'user'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted'
+                                ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground'
+                                : 'bg-gradient-to-r from-muted to-muted/80 border border-border'
                             )}
                           >
                             {msg.role === 'assistant' ? (
@@ -294,58 +391,106 @@ export function Chatbot() {
                             ) : (
                               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                             )}
-                          </div>
-                        </div>
+                          </motion.div>
+                        </motion.div>
                       ))}
-                      {isLoading && (
-                        <div className="flex justify-start">
-                          <div className="bg-muted rounded-lg px-3 py-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                      {showTypingIndicator && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex justify-start"
+                        >
+                          <div className="bg-gradient-to-r from-muted to-muted/80 rounded-2xl px-4 py-3 border border-border">
+                            <div className="flex items-center gap-1">
+                              <motion.div
+                                animate={{ opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+                                className="w-2 h-2 bg-primary rounded-full"
+                              />
+                              <motion.div
+                                animate={{ opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                                className="w-2 h-2 bg-primary rounded-full"
+                              />
+                              <motion.div
+                                animate={{ opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+                                className="w-2 h-2 bg-primary rounded-full"
+                              />
+                            </div>
                           </div>
-                        </div>
+                        </motion.div>
                       )}
                     </div>
                   )}
                 </ScrollArea>
               </CardContent>
 
-              {/* Input Area */}
-              <div className="border-t p-3">
+              {/* Enhanced Input Area */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="border-t bg-gradient-to-r from-background to-muted/20 p-4"
+              >
                 <div className="flex gap-2">
                   <Input
                     ref={inputRef}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
+                    placeholder="Ask me anything about MentoLoop..."
                     disabled={isLoading}
-                    className="flex-1"
+                    className="flex-1 border-primary/20 focus:border-primary bg-background/50 placeholder:text-muted-foreground/60"
                   />
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!message.trim() || isLoading}
-                    size="icon"
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!message.trim() || isLoading}
+                      size="icon"
+                      className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    >
+                      {isLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Loader2 className="w-4 h-4" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          whileHover={{ x: 2 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
+                          <Send className="w-4 h-4" />
+                        </motion.div>
+                      )}
+                    </Button>
+                  </motion.div>
                 </div>
                 {messages.length > 0 && (
-                  <button
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleClearChat}
-                    className="text-xs text-muted-foreground hover:text-foreground mt-2 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary mt-3 transition-all flex items-center gap-1 mx-auto"
                   >
+                    <X className="w-3 h-3" />
                     Clear conversation
-                  </button>
+                  </motion.button>
                 )}
-              </div>
-            </>
+              </motion.div>
+            </div>
           )}
         </Card>
-      )}
-    </>
+      </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }

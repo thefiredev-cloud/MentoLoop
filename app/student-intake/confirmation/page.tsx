@@ -232,7 +232,6 @@ export default function StudentIntakeConfirmationPage() {
                 }}
                 onPrev={() => setShowMentorFit(false)}
                 isFirstStep={false}
-                isLastStep={true}
               />
             </CardContent>
           </Card>

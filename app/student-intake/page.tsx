@@ -64,7 +64,7 @@ export default function StudentIntakePage() {
   })
 
   const updateFormData = useCallback((section: string, data: Record<string, unknown>) => {
-    setFormData(prev => {
+    setFormData((prev: Record<string, Record<string, unknown>>) => {
       const newFormData = {
         ...prev,
         [section]: { ...prev[section as keyof typeof prev], ...data }

@@ -169,7 +169,7 @@ export function TermsPrivacyModal({
       </div>
 
       <div>
-        <h3 className="font-semibold text-lg mb-3">8. Children's Privacy</h3>
+        <h3 className="font-semibold text-lg mb-3">8. Children&apos;s Privacy</h3>
         <p className="text-sm text-muted-foreground">
           Our services are not intended for individuals under 18 years of age. We do not knowingly collect
           personal information from children.
@@ -180,7 +180,7 @@ export function TermsPrivacyModal({
         <h3 className="font-semibold text-lg mb-3">9. Changes to This Policy</h3>
         <p className="text-sm text-muted-foreground">
           We may update this privacy policy from time to time. We will notify you of changes by posting
-          the new policy on this page and updating the "last updated" date.
+          the new policy on this page and updating the &quot;last updated&quot; date.
         </p>
       </div>
 
