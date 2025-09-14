@@ -247,19 +247,18 @@ export const createStudentCheckoutSession = action({
           if (validation.valid) {
             // Discount validation successful
             
-            // IMPORTANT: Use the exact coupon ID format that Stripe expects
-            // The coupon ID in Stripe is case-sensitive and must match exactly
+            // IMPORTANT: We need to look up the promotion code ID from our database
+            // since Stripe checkout sessions work better with promotion codes
             const stripeCouponId = args.discountCode.toUpperCase();
-            
-            // Applying Stripe coupon
-            
-            // Apply the coupon/discount to the checkout session
-            // Using 'discounts' parameter which is the correct way for checkout sessions
+
+            // Applying Stripe discount
+
+            // First try to apply as a coupon (for backward compatibility)
             checkoutParams["discounts[0][coupon]"] = stripeCouponId;
-            
-            // Alternative: Try using promotion_code if coupon doesn't work
-            // Some Stripe accounts use promotion codes instead of coupons
-            // checkoutParams["discounts[0][promotion_code]"] = stripeCouponId;
+
+            // Also enable promotion codes in checkout as a fallback
+            // This allows manual entry if automatic application fails
+            checkoutParams["allow_promotion_codes"] = "true";
             
             discountApplied = true;
             discountAmount = validation.percentOff || 0;
@@ -273,8 +272,6 @@ export const createStudentCheckoutSession = action({
             if (validation.percentOff === 100) {
               // 100% discount detected
               checkoutParams["payment_method_types[0]"] = "card";
-              // Allow promotion codes in checkout for fallback
-              checkoutParams["allow_promotion_codes"] = "false"; // Disable manual entry since we're applying programmatically
             }
             
             const discountParams = {
@@ -1085,6 +1082,34 @@ export const createDiscountCoupon = action({
 
       const coupon = await couponResponse.json();
 
+      // Create a promotion code that references this coupon
+      // This allows customers to enter the code at checkout
+      const promoCodeResponse = await fetch("https://api.stripe.com/v1/promotion_codes", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeSecretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          "coupon": coupon.id,
+          "code": args.code,
+          ...(args.maxRedemptions && { "max_redemptions": args.maxRedemptions.toString() }),
+          ...(args.metadata && Object.entries(args.metadata).reduce((acc, [key, value]) => {
+            acc[`metadata[${key}]`] = value;
+            return acc;
+          }, {} as Record<string, string>)),
+        }),
+      });
+
+      let promotionCode = null;
+      if (promoCodeResponse.ok) {
+        promotionCode = await promoCodeResponse.json();
+      } else {
+        // Log warning but don't fail - coupon still works
+        const errorText = await promoCodeResponse.text();
+        console.warn(`Failed to create promotion code: ${errorText}`);
+      }
+
       // Store coupon in database for tracking
       await ctx.runMutation(internal.payments.storeCouponDetails, {
         couponId: coupon.id,
@@ -1094,11 +1119,13 @@ export const createDiscountCoupon = action({
         maxRedemptions: args.maxRedemptions,
         redeemBy: args.redeemBy,
         metadata: args.metadata,
+        promotionCodeId: promotionCode?.id,
       });
 
       return {
         success: true,
         couponId: coupon.id,
+        promotionCodeId: promotionCode?.id,
         code: args.code,
         percentOff: args.percentOff,
       };
@@ -1324,6 +1351,7 @@ export const storeCouponDetails = internalMutation({
     maxRedemptions: v.optional(v.number()),
     redeemBy: v.optional(v.number()),
     metadata: v.optional(v.record(v.string(), v.string())),
+    promotionCodeId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("discountCodes", {
@@ -1334,6 +1362,7 @@ export const storeCouponDetails = internalMutation({
       maxRedemptions: args.maxRedemptions,
       redeemBy: args.redeemBy,
       metadata: args.metadata,
+      promotionCodeId: args.promotionCodeId,
       createdAt: Date.now(),
       active: true,
     });
@@ -1433,5 +1462,117 @@ export const checkUserPaymentByUserId = query({
       membershipPlan: successfulPayment?.membershipPlan || null,
       paidAt: successfulPayment?.createdAt || null,
     };
+  },
+});
+
+// Create promotion codes for existing coupons
+export const createPromotionCodesForExistingCoupons = action({
+  handler: async (ctx): Promise<{
+    success: boolean;
+    message: string;
+    results: Array<{ code: string; status: string; promotionCodeId?: string; error?: string }>;
+  }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    const results = [];
+
+    try {
+      // Get all existing discount codes from database
+      const discountCodes = await ctx.runQuery(internal.payments.getAllDiscountCodes);
+
+      for (const discount of discountCodes) {
+        // Skip if already has a promotion code
+        if (discount.promotionCodeId) {
+          results.push({
+            code: discount.code,
+            status: "already_has_promotion_code",
+            promotionCodeId: discount.promotionCodeId,
+          });
+          continue;
+        }
+
+        try {
+          // Create a promotion code for this coupon
+          const promoCodeResponse = await fetch("https://api.stripe.com/v1/promotion_codes", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${stripeSecretKey}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              "coupon": discount.couponId,
+              "code": discount.code,
+              ...(discount.maxRedemptions && { "max_redemptions": discount.maxRedemptions.toString() }),
+            }),
+          });
+
+          if (promoCodeResponse.ok) {
+            const promotionCode = await promoCodeResponse.json();
+
+            // Update the database with the promotion code ID
+            await ctx.runMutation(internal.payments.updateDiscountCodeWithPromotionId, {
+              discountCodeId: discount._id,
+              promotionCodeId: promotionCode.id,
+            });
+
+            results.push({
+              code: discount.code,
+              status: "created",
+              promotionCodeId: promotionCode.id,
+            });
+          } else {
+            const errorText = await promoCodeResponse.text();
+            results.push({
+              code: discount.code,
+              status: "failed",
+              error: errorText,
+            });
+          }
+        } catch (error) {
+          results.push({
+            code: discount.code,
+            status: "error",
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      }
+
+      const createdCount = results.filter(r => r.status === "created").length;
+      const existingCount = results.filter(r => r.status === "already_has_promotion_code").length;
+      const failedCount = results.filter(r => r.status === "failed" || r.status === "error").length;
+
+      return {
+        success: failedCount === 0,
+        message: `Created: ${createdCount}, Already exist: ${existingCount}, Failed: ${failedCount}`,
+        results,
+      };
+    } catch (error) {
+      throw new Error(`Failed to create promotion codes: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
+// Internal query to get all discount codes
+export const getAllDiscountCodes = internalQuery({
+  handler: async (ctx) => {
+    return await ctx.db.query("discountCodes").collect();
+  },
+});
+
+// Internal mutation to update discount code with promotion ID
+export const updateDiscountCodeWithPromotionId = internalMutation({
+  args: {
+    discountCodeId: v.id("discountCodes"),
+    promotionCodeId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.discountCodeId, {
+      promotionCodeId: args.promotionCodeId,
+      updatedAt: Date.now(),
+    });
   },
 });

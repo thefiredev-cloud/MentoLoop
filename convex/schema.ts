@@ -779,6 +779,7 @@ export default defineSchema({
     maxRedemptions: v.optional(v.number()), // Maximum number of times code can be used
     redeemBy: v.optional(v.number()), // Expiration timestamp
     metadata: v.optional(v.record(v.string(), v.string())), // Additional metadata
+    promotionCodeId: v.optional(v.string()), // Stripe promotion code ID
     active: v.boolean(), // Whether the code is currently active
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
