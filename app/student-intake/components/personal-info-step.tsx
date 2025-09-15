@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,13 +25,15 @@ export default function PersonalInfoStep({
   isFirstStep, 
   isLastStep: _isLastStep 
 }: PersonalInfoStepProps) {
+  const { user } = useUser()
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
     dateOfBirth: '',
     preferredContact: '',
     linkedinOrResume: '',
+    // hidden but stored for downstream use
+    fullName: '',
+    email: '',
+    phone: '',
     ...(data.personalInfo || {})
   })
 
@@ -47,32 +50,25 @@ export default function PersonalInfoStep({
     }
   }
 
+  useEffect(() => {
+    // Prefill from Clerk for hidden fields
+    const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : ''
+    const email = user?.primaryEmailAddress?.emailAddress || ''
+    const phone = user?.primaryPhoneNumber?.phoneNumber || ''
+    const next = { ...formData, fullName, email, phone }
+    setFormData(next)
+    updateFormData('personalInfo', next)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required'
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required'
-    } else if (!/^\(\d{3}\)\s\d{3}-\d{4}$/.test(formData.phone) && !/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Please enter a valid phone number'
-    }
 
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = 'Date of birth is required'
     }
 
-    if (!formData.preferredContact) {
-      newErrors.preferredContact = 'Please select a preferred contact method'
-    }
+    // preferredContact optional now
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -95,63 +91,11 @@ export default function PersonalInfoStep({
     }
   }
 
-  const handlePhoneChange = (value: string) => {
-    const formatted = formatPhoneNumber(value)
-    const newFormData = { ...formData, phone: formatted }
-    setFormData(newFormData)
-    updateFormData('personalInfo', newFormData)
-    // Clear error when user starts typing
-    if (errors.phone) {
-      setErrors(prev => ({ ...prev, phone: '' }))
-    }
-  }
+  const handlePhoneChange = (_value: string) => {}
 
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name *</Label>
-          <Input
-            id="fullName"
-            value={formData.fullName}
-            onChange={(e) => handleInputChange('fullName', e.target.value)}
-            placeholder="Enter your full name"
-            className={errors.fullName ? 'border-destructive' : ''}
-          />
-          {errors.fullName && (
-            <p className="text-sm text-destructive">{errors.fullName}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address *</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            placeholder="your.email@example.com"
-            className={errors.email ? 'border-destructive' : ''}
-          />
-          {errors.email && (
-            <p className="text-sm text-destructive">{errors.email}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number *</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) => handlePhoneChange(e.target.value)}
-            placeholder="(555) 123-4567"
-            className={errors.phone ? 'border-destructive' : ''}
-          />
-          {errors.phone && (
-            <p className="text-sm text-destructive">{errors.phone}</p>
-          )}
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="dateOfBirth">Date of Birth *</Label>
           <Input
@@ -167,12 +111,12 @@ export default function PersonalInfoStep({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="preferredContact">Preferred Contact Method *</Label>
+          <Label htmlFor="preferredContact">Preferred Contact Method (Optional)</Label>
           <Select 
             value={formData.preferredContact} 
             onValueChange={(value) => handleInputChange('preferredContact', value)}
           >
-            <SelectTrigger className={errors.preferredContact ? 'border-destructive' : ''}>
+            <SelectTrigger>
               <SelectValue placeholder="Select contact method" />
             </SelectTrigger>
             <SelectContent>
@@ -181,9 +125,6 @@ export default function PersonalInfoStep({
               <SelectItem value="text">Text/SMS</SelectItem>
             </SelectContent>
           </Select>
-          {errors.preferredContact && (
-            <p className="text-sm text-destructive">{errors.preferredContact}</p>
-          )}
         </div>
 
         <div className="space-y-2">
@@ -194,9 +135,7 @@ export default function PersonalInfoStep({
             onChange={(e) => handleInputChange('linkedinOrResume', e.target.value)}
             placeholder="LinkedIn URL or file upload link"
           />
-          <p className="text-xs text-muted-foreground">
-            You can provide a LinkedIn profile URL or upload your resume to a cloud service and paste the link
-          </p>
+          <p className="text-xs text-muted-foreground">Optional</p>
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { SiteHeader } from "@/app/dashboard/site-header"
 import { LoadingBar } from "@/app/dashboard/loading-bar"
 import { DashboardNavbar } from "@/app/dashboard/dashboard-navbar"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import Footer from "@/app/(landing)/footer"
+// Dashboard uses a simplified footer to avoid layout overlap
 import { Suspense } from 'react'
 
 export default function DashboardLayout({
@@ -47,7 +47,11 @@ export default function DashboardLayout({
           </div>
         </SidebarProvider>
         {/* Footer */}
-        <Footer />
+        <div className="w-full border-t border-gray-200 bg-white">
+          <div className="container max-w-7xl mx-auto p-4 text-xs text-gray-500">
+            © MentoLoop. Need help? Call 512-710-3320
+          </div>
+        </div>
       </div>
     </>
   )

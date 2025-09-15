@@ -206,9 +206,7 @@ export default function AgreementsStep({
       if (!data.rotationNeeds || Object.keys(data.rotationNeeds).length === 0) {
         throw new Error('Rotation needs are missing. Please complete all steps.')
       }
-      if (!data.learningStyle || Object.keys(data.learningStyle).length === 0) {
-        throw new Error('Learning style preferences are missing. Please complete all steps.')
-      }
+      // Learning style may be optional for non-premium users; defaults will be applied below
       
       // Ensure learning style has all required fields with defaults
       const learningStyleData = data.learningStyle || {}
@@ -328,6 +326,12 @@ export default function AgreementsStep({
 
   return (
     <div className="space-y-6">
+      <div className="text-sm text-muted-foreground">
+        By continuing, you agree to our
+        {' '}<a className="underline" href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+        {' '}and{' '}
+        <a className="underline" href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+      </div>
       {/* Payment Terms */}
       <Card>
         <CardHeader>

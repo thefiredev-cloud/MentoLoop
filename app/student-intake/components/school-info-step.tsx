@@ -27,6 +27,7 @@ const degreeTracksOptions = [
   { value: 'WHNP', label: 'Women\'s Health NP (WHNP)' },
   { value: 'NNP', label: 'Neonatal NP (NNP)' },
   { value: 'DNP', label: 'Doctor of Nursing Practice (DNP)' },
+  { value: 'OTHER', label: 'Other (specify)' },
 ]
 
 export default function SchoolInfoStep({ 
@@ -40,6 +41,7 @@ export default function SchoolInfoStep({
   const [formData, setFormData] = useState({
     programName: '',
     degreeTrack: '',
+    otherDegreeTrack: '',
     schoolCity: '',
     schoolState: '',
     programFormat: '',
@@ -77,6 +79,9 @@ export default function SchoolInfoStep({
 
     if (!formData.degreeTrack) {
       newErrors.degreeTrack = 'Degree track is required'
+    }
+    if (formData.degreeTrack === 'OTHER' && !formData.otherDegreeTrack.trim()) {
+      newErrors.otherDegreeTrack = 'Please specify your degree track'
     }
 
     if (!formData.schoolCity.trim()) {
@@ -147,6 +152,22 @@ export default function SchoolInfoStep({
             <p className="text-sm text-destructive">{errors.degreeTrack}</p>
           )}
         </div>
+
+        {formData.degreeTrack === 'OTHER' && (
+          <div className="space-y-2">
+            <Label htmlFor="otherDegreeTrack">Specify Degree Track *</Label>
+            <Input
+              id="otherDegreeTrack"
+              value={formData.otherDegreeTrack}
+              onChange={(e) => handleInputChange('otherDegreeTrack', e.target.value)}
+              placeholder="e.g., Dual NP Program"
+              className={errors.otherDegreeTrack ? 'border-destructive' : ''}
+            />
+            {errors.otherDegreeTrack && (
+              <p className="text-sm text-destructive">{errors.otherDegreeTrack}</p>
+            )}
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="programFormat">Program Format *</Label>

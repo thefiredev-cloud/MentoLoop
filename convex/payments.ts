@@ -44,6 +44,7 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
             headers: {
               "Authorization": `Bearer ${stripeSecretKey}`,
               "Content-Type": "application/x-www-form-urlencoded",
+              "Idempotency-Key": `customer_update_${args.email}`,
             },
             body: new URLSearchParams({
               name: args.name,
@@ -69,6 +70,7 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
+            "Idempotency-Key": `customer_create_${args.email}`,
           },
           body: new URLSearchParams({
             email: args.email,
@@ -128,9 +130,11 @@ export const createStudentCheckoutSession = action({
       .map(([key]) => key);
 
     if (missingVars.length > 0) {
-      // Missing required Stripe price environment variables
-      // Continue with fallbacks but log the issue
-      // Using fallback price IDs
+      // In production, fail fast if price IDs are not provided via env
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(`Missing required Stripe price environment variables: ${missingVars.join(', ')}`)
+      }
+      // In non-production, continue with fallbacks
     }
 
     try {
@@ -170,7 +174,7 @@ export const createStudentCheckoutSession = action({
       
       // Price ID mapping configured
       
-      const stripePriceId = priceIdMap[args.priceId];
+      let stripePriceId = priceIdMap[args.priceId];
       
       // Check if we're doing a legacy conversion
       if (oldPriceIds.includes(args.priceId)) {
@@ -178,9 +182,17 @@ export const createStudentCheckoutSession = action({
       }
       
       // Stripe price ID selected
-      
+
       if (!stripePriceId) {
         throw new Error(`Invalid price ID: ${args.priceId}`);
+      }
+
+      // Special discount code to force one-cent price (for testing/promotions)
+      const pennyEnv = process.env.STRIPE_PRICE_ID_ONECENT || process.env.STRIPE_PRICE_ID_PENNY;
+      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT"];
+      if (args.discountCode && pennyEnv && pennyCodes.includes(args.discountCode.toUpperCase())) {
+        stripePriceId = pennyEnv;
+      }`);
       }
 
       // First, create or get the Stripe customer
@@ -300,6 +312,7 @@ export const createStudentCheckoutSession = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
+          "Idempotency-Key": `intake_${args.customerEmail}_${stripePriceId}_${args.discountCode || "none"}`,
         },
         body: new URLSearchParams(checkoutParams),
       });
@@ -443,6 +456,7 @@ async function createStripeCheckoutSession(params: {
     headers: {
       "Authorization": `Bearer ${params.stripeSecretKey}`,
       "Content-Type": "application/x-www-form-urlencoded",
+      "Idempotency-Key": `match_${params.matchId}_price_${params.priceId}`,
     },
     body: new URLSearchParams({
       "mode": "payment",
@@ -495,6 +509,22 @@ export const handleStripeWebhook = action({
       // Parse the verified event
       const event = JSON.parse(args.payload);
 
+      // Idempotency: skip already processed events
+      const already = await ctx.db
+        .query("stripeEvents")
+        .withIndex("byEventId", (q) => q.eq("eventId", event.id))
+        .first();
+      if (already) {
+        return { received: true, duplicate: true };
+      }
+      // Record event before processing (prevents concurrent dupes)
+      await ctx.db.insert("stripeEvents", {
+        eventId: event.id,
+        type: event.type || "unknown",
+        createdAt: (event.created ? event.created * 1000 : Date.now()),
+        processedAt: undefined,
+      });
+
       switch (event.type) {
         case "checkout.session.completed":
           await handleCheckoutCompleted(ctx, event.data.object);
@@ -515,6 +545,14 @@ export const handleStripeWebhook = action({
           // Unhandled event type - no action needed
       }
 
+      // Mark processed
+      const rec = await ctx.db
+        .query("stripeEvents")
+        .withIndex("byEventId", (q) => q.eq("eventId", event.id))
+        .first();
+      if (rec) {
+        await ctx.db.patch(rec._id, { processedAt: Date.now() });
+      }
       return { received: true };
     } catch (error) {
       // Webhook processing failed
@@ -550,6 +588,42 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
     amount: session.amount_total,
     paidAt: Date.now(),
   });
+
+  // Persist final payment details (non-blocking)
+  try {
+    const paymentIntentId = session.payment_intent;
+    const customerEmail = session.customer_details?.email || "";
+    if (paymentIntentId && customerEmail) {
+      const sk = process.env.STRIPE_SECRET_KEY as string;
+      const resp = await fetch(`https://api.stripe.com/v1/payment_intents/${paymentIntentId}`, {
+        headers: { "Authorization": `Bearer ${sk}` },
+      });
+      if (resp.ok) {
+        const pi = await resp.json();
+        const receiptUrl = pi?.charges?.data?.[0]?.receipt_url || undefined;
+        const currency = (pi?.currency || session.currency || "usd").toString();
+        const amount = (pi?.amount_received ?? session.amount_total) as number;
+        const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
+        if (user) {
+          await ctx.db.insert("payments", {
+            userId: user._id,
+            matchId,
+            stripePaymentIntentId: paymentIntentId,
+            stripeCustomerId: session.customer,
+            amount,
+            currency,
+            status: "succeeded",
+            description: session.metadata?.rotationType || "Clinical rotation payment",
+            receiptUrl,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }
+      }
+    }
+  } catch (_e) {
+    // ignore
+  }
 
   // Send confirmation emails
   await ctx.runAction(internal.emails.sendPaymentConfirmationEmail, {
@@ -909,6 +983,7 @@ export const createMembershipProducts = action({
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
+            "Idempotency-Key": `product_${membership.name.replace(/\s+/g, '_').toLowerCase()}`,
           },
           body: new URLSearchParams({
             "name": membership.name,
@@ -930,6 +1005,7 @@ export const createMembershipProducts = action({
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
+            "Idempotency-Key": `price_${membership.name.replace(/\s+/g, '_').toLowerCase()}_${membership.price}`,
           },
           body: new URLSearchParams({
             "product": product.id,
@@ -983,6 +1059,7 @@ export const createSubscription = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
+          "Idempotency-Key": `subscription_${args.customerId}_${args.priceId}`,
         },
         body: new URLSearchParams({
           "customer": args.customerId,
@@ -1061,6 +1138,7 @@ export const createDiscountCoupon = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
+          "Idempotency-Key": `coupon_${args.code}`,
         },
         body: new URLSearchParams({
           "id": args.code,
@@ -1089,6 +1167,7 @@ export const createDiscountCoupon = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
+          "Idempotency-Key": `promotion_${args.code}`,
         },
         body: new URLSearchParams({
           "coupon": coupon.id,
@@ -1502,6 +1581,7 @@ export const createPromotionCodesForExistingCoupons = action({
             headers: {
               "Authorization": `Bearer ${stripeSecretKey}`,
               "Content-Type": "application/x-www-form-urlencoded",
+              "Idempotency-Key": `promotion_${discount.code}`,
             },
             body: new URLSearchParams({
               "coupon": discount.couponId,
@@ -1576,3 +1656,4 @@ export const updateDiscountCodeWithPromotionId = internalMutation({
     });
   },
 });
+

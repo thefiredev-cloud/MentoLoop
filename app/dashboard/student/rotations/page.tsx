@@ -166,9 +166,7 @@ export default function StudentRotationsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(rotation.status)}
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                    {/* More menu hidden until actions are available */}
                   </div>
                 </div>
               </CardHeader>
