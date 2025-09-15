@@ -112,7 +112,18 @@ export const sendMessage = mutation({
     // Determine sender type
     const isStudent = conversation.studentUserId === userId;
     const senderType = isStudent ? "student" : "preceptor";
-    
+
+    // Enforce preceptor-first messaging: students cannot send the first non-system message
+    const firstNonSystem = await ctx.db
+      .query("messages")
+      .withIndex("byConversationAndTime", (q) => q.eq("conversationId", args.conversationId))
+      .filter((q) => q.neq(q.field("senderType"), "system"))
+      .order("asc")
+      .first();
+    if (!firstNonSystem && isStudent) {
+      throw new Error("Please wait for your preceptor to send the first message.");
+    }
+
     // Validate content
     if (!args.content.trim()) {
       throw new Error("Message content cannot be empty");
