@@ -317,6 +317,7 @@ export default function AvailabilityStep({
                     <Badge key={date} variant="secondary" className="gap-1">
                       {new Date(date).toLocaleDateString()}
                       <button 
+                        type="button"
                         onClick={() => removeStartDate(date)}
                         className="text-xs hover:text-destructive"
                       >
@@ -420,6 +421,7 @@ export default function AvailabilityStep({
                 <Badge key={school} variant="secondary" className="gap-1">
                   {school}
                   <button 
+                    type="button"
                     onClick={() => removeSchool(school)}
                     className="text-xs hover:text-destructive"
                   >
@@ -453,6 +455,7 @@ export default function AvailabilityStep({
                 <Badge key={language} variant="secondary" className="gap-1">
                   {language}
                   <button 
+                    type="button"
                     onClick={() => removeLanguage(language)}
                     className="text-xs hover:text-destructive"
                   >
@@ -476,6 +479,18 @@ export default function AvailabilityStep({
               >
                 Add Language
               </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Telehealth</Label>
+            <div className="flex items-center gap-2">
+              <Switch 
+                id="willingTelehealth"
+                checked={!!(formData as any).willingTelehealth}
+                onCheckedChange={(checked) => handleInputChange('willingTelehealth', !!checked)}
+              />
+              <span className="text-sm text-muted-foreground">Willing to precept via telehealth</span>
             </div>
           </div>
         </CardContent>

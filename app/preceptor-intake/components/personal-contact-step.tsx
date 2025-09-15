@@ -58,6 +58,7 @@ export default function PersonalContactStep({
     fullName: '',
     email: '',
     mobilePhone: '',
+    licenseNumber: '',
     licenseType: '',
     specialty: '',
     statesLicensed: [] as string[],
@@ -182,6 +183,20 @@ export default function PersonalContactStep({
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="licenseNumber">License Number *</Label>
+          <Input
+            id="licenseNumber"
+            value={formData.licenseNumber}
+            onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+            placeholder="State license number"
+            className={errors.licenseNumber ? 'border-destructive' : ''}
+          />
+          {errors.licenseNumber && (
+            <p className="text-sm text-destructive">{errors.licenseNumber}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="email">Email Address *</Label>
           <Input
             id="email"
@@ -277,6 +292,7 @@ export default function PersonalContactStep({
             <Badge key={state} variant="secondary" className="gap-1">
               {state}
               <button 
+                type="button"
                 onClick={() => removeState(state)}
                 className="text-xs hover:text-destructive"
               >
@@ -338,6 +354,9 @@ export default function PersonalContactStep({
       </Card>
 
       <div className="flex justify-between pt-6">
+    if (!formData.licenseNumber.trim()) {
+      newErrors.licenseNumber = 'License number is required'
+    }
         <Button 
           variant="outline" 
           onClick={onPrev} 

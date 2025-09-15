@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,6 +30,8 @@ function PreceptorDashboardContent() {
   const user = useQuery(api.users.current)
   const dashboardStats = useQuery(api.preceptors.getPreceptorDashboardStats)
   const earnings = useQuery(api.preceptors.getPreceptorEarnings)
+  const createAccountLink = useAction(api.payments.createPreceptorAccountLink)
+  const refreshStatus = useAction(api.payments.refreshPreceptorConnectStatus)
 
   if (!user) {
     return <div>Loading...</div>
@@ -48,6 +50,8 @@ function PreceptorDashboardContent() {
 
   const { preceptor } = dashboardStats
   const hasCompletedIntake = !!preceptor
+  const connectStatus = preceptor?.stripeConnectStatus || 'none'
+  const payoutsEnabled = !!preceptor?.payoutsEnabled
 
   return (
     <div className="space-y-8">
@@ -73,6 +77,44 @@ function PreceptorDashboardContent() {
             <p className="text-xs text-muted-foreground">
               {dashboardStats.pendingMatchesCount > 0 && `${dashboardStats.pendingMatchesCount} pending matches`}
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Payouts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm">
+              Status: {payoutsEnabled ? (
+                <span className="text-green-600 font-medium">Enabled</span>
+              ) : (
+                <span className="text-yellow-700 font-medium">{connectStatus === 'none' ? 'Not set up' : connectStatus}</span>
+              )}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button
+                className="text-sm underline"
+                onClick={async () => {
+                  try {
+                    const { url } = await createAccountLink({} as any)
+                    if (url) window.location.href = url
+                  } catch (e) {
+                    console.error(e)
+                  }
+                }}
+              >
+                {payoutsEnabled ? 'Manage in Stripe' : 'Setup Payments'}
+              </button>
+              <button
+                className="text-sm underline text-muted-foreground"
+                onClick={async () => {
+                  try { await refreshStatus({} as any) } catch {}
+                }}
+              >
+                Refresh
+              </button>
+            </div>
           </CardContent>
         </Card>
 

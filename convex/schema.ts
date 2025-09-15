@@ -288,6 +288,7 @@ export default defineSchema({
         fullName: v.string(),
         email: v.string(),
         mobilePhone: v.string(),
+        licenseNumber: v.optional(v.string()),
         licenseType: v.union(v.literal("NP"), v.literal("MD/DO"), v.literal("PA"), v.literal("other")),
         specialty: v.union(
           v.literal("FNP"), v.literal("PNP"), v.literal("PMHNP"), 
@@ -337,6 +338,7 @@ export default defineSchema({
         comfortableWithFirstRotation: v.boolean(),
         schoolsWorkedWith: v.optional(v.array(v.string())),
         languagesSpoken: v.optional(v.array(v.string())),
+        willingTelehealth: v.optional(v.boolean()),
       }),
       // MentorFit Mentoring Style Assessment
       mentoringStyle: v.object({
@@ -387,6 +389,12 @@ export default defineSchema({
         v.literal("pending"), v.literal("under-review"), 
         v.literal("verified"), v.literal("rejected")
       ),
+      // Stripe Connect
+      stripeConnectAccountId: v.optional(v.string()),
+      stripeConnectStatus: v.optional(v.union(
+        v.literal("none"), v.literal("onboarding"), v.literal("enabled"), v.literal("restricted")
+      )),
+      payoutsEnabled: v.optional(v.boolean()),
       createdAt: v.number(),
       updatedAt: v.number(),
     }).index("byUserId", ["userId"])

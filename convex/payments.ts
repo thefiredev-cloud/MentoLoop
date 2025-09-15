@@ -1687,3 +1687,151 @@ export const updateDiscountCodeWithPromotionId = internalMutation({
   },
 });
 
+// =====================
+// Stripe Connect (Preceptors)
+// =====================
+
+export const createPreceptorConnectAccount = action({
+  args: {},
+  handler: async (ctx) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const preceptor = await ctx.db
+      .query("preceptors")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .first();
+    if (!preceptor) throw new Error("Preceptor profile not found");
+
+    if (preceptor.stripeConnectAccountId) {
+      return { accountId: preceptor.stripeConnectAccountId };
+    }
+
+    const email = preceptor.personalInfo.email;
+    const res = await fetch("https://api.stripe.com/v1/accounts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        type: "express",
+        business_type: "individual",
+        email,
+        "capabilities[transfers][requested]": "true",
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Stripe error creating account: ${res.status} ${t}`);
+    }
+    const account = await res.json();
+
+    await ctx.db.patch(preceptor._id, {
+      stripeConnectAccountId: account.id,
+      stripeConnectStatus: "onboarding",
+      payoutsEnabled: false,
+      updatedAt: Date.now(),
+    });
+    return { accountId: account.id };
+  },
+});
+
+export const createPreceptorAccountLink = action({
+  args: {},
+  handler: async (ctx) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mentoloop.com";
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    let preceptor = await ctx.db
+      .query("preceptors")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .first();
+    if (!preceptor) throw new Error("Preceptor profile not found");
+
+    if (!preceptor.stripeConnectAccountId) {
+      const created = await ctx.runAction(internal.payments.createPreceptorConnectAccount, {} as any);
+      preceptor = await ctx.db.get(preceptor._id);
+      if (!created?.accountId && !(preceptor && preceptor.stripeConnectAccountId)) {
+        throw new Error("Failed to create Connect account");
+      }
+    }
+
+    const accountId = preceptor.stripeConnectAccountId as string;
+    const res = await fetch("https://api.stripe.com/v1/account_links", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        account: accountId,
+        refresh_url: `${baseUrl}/preceptor-intake/confirmation?stripe_connect=refresh`,
+        return_url: `${baseUrl}/preceptor-intake/confirmation?stripe_connect=complete`,
+        type: "account_onboarding",
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Stripe error creating account link: ${res.status} ${t}`);
+    }
+    const link = await res.json();
+    return { url: link.url };
+  },
+});
+
+export const refreshPreceptorConnectStatus = action({
+  args: {},
+  handler: async (ctx) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const preceptor = await ctx.db
+      .query("preceptors")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .first();
+    if (!preceptor || !preceptor.stripeConnectAccountId) throw new Error("Connect account not found");
+
+    const res = await fetch(`https://api.stripe.com/v1/accounts/${preceptor.stripeConnectAccountId}`, {
+      headers: { Authorization: `Bearer ${stripeSecretKey}` },
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Stripe error retrieving account: ${res.status} ${t}`);
+    }
+    const account = await res.json();
+    const payoutsEnabled = !!account.payouts_enabled;
+    const status = payoutsEnabled ? "enabled" : (account.requirements?.disabled_reason ? "restricted" : "onboarding");
+    await ctx.db.patch(preceptor._id, {
+      payoutsEnabled,
+      stripeConnectStatus: status as any,
+      updatedAt: Date.now(),
+    });
+    return { payoutsEnabled, status };
+  },
+});
