@@ -493,6 +493,18 @@ export default function AvailabilityStep({
               <span className="text-sm text-muted-foreground">Willing to precept via telehealth</span>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label>LoopExchange Privacy</Label>
+            <div className="flex items-center gap-2">
+              <Switch 
+                id="privacyOptOutExchange"
+                checked={!!(formData as any).privacyOptOutExchange}
+                onCheckedChange={(checked) => handleInputChange('privacyOptOutExchange', !!checked)}
+              />
+              <span className="text-sm text-muted-foreground">Hide my profile from LoopExchange directory</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

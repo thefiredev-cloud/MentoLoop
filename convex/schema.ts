@@ -339,6 +339,7 @@ export default defineSchema({
         schoolsWorkedWith: v.optional(v.array(v.string())),
         languagesSpoken: v.optional(v.array(v.string())),
         willingTelehealth: v.optional(v.boolean()),
+        privacyOptOutExchange: v.optional(v.boolean()),
       }),
       // MentorFit Mentoring Style Assessment
       mentoringStyle: v.object({
