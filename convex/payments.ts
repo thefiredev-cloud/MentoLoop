@@ -846,7 +846,7 @@ export const logIntakePaymentAttempt = internalMutation({
     discountPercent: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("intakePaymentAttempts", {
+    const insertedId = await ctx.db.insert("intakePaymentAttempts", {
       customerEmail: args.customerEmail,
       customerName: args.customerName,
       membershipPlan: args.membershipPlan,
@@ -857,6 +857,36 @@ export const logIntakePaymentAttempt = internalMutation({
       discountPercent: args.discountPercent,
       createdAt: Date.now(),
     });
+
+    // Grant hour credits if succeeded
+    try {
+      if (args.status === "succeeded") {
+        const user = await ctx.runQuery(internal.users.getUserByEmail, { email: args.customerEmail });
+        if (user) {
+          const plan = (args.membershipPlan || '').toLowerCase();
+          const planHours: Record<string, number> = { starter: 60, core: 90, pro: 180, elite: 240 };
+          const hours = planHours[plan] || 0;
+          if (hours > 0) {
+            const now = Date.now();
+            const oneYear = 365 * 24 * 60 * 60 * 1000;
+            await ctx.db.insert("hourCredits", {
+              userId: user._id,
+              source: plan as any,
+              hoursTotal: hours,
+              hoursRemaining: hours,
+              rolloverAllowed: plan !== 'a_la_carte',
+              issuedAt: now,
+              expiresAt: now + oneYear,
+              stripePaymentIntentId: undefined,
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to grant hour credits:", e);
+    }
+
+    return insertedId;
   },
 });
 

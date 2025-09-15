@@ -177,7 +177,37 @@ export const updateHoursEntry = mutation({
       updates.academicYear = getAcademicYear(entryDate);
     }
 
+    const prevStatus = entry.status;
     await ctx.db.patch(args.entryId, updates);
+
+    // If entry transitioned to approved, deduct from hour credits (FIFO by issuedAt)
+    if (args.status === "approved" && prevStatus !== "approved") {
+      try {
+        const userIdForCredits = student.userId;
+        const now = Date.now();
+        let remainingToDeduct = (args.hoursWorked ?? entry.hoursWorked) || 0;
+
+        // Fetch non-expired credits with remaining hours, oldest first
+        let credits = await ctx.db
+          .query("hourCredits")
+          .withIndex("byUser", (q) => q.eq("userId", userIdForCredits))
+          .collect();
+        credits = credits
+          .filter((c) => c.expiresAt > now && c.hoursRemaining > 0)
+          .sort((a, b) => a.issuedAt - b.issuedAt);
+
+        for (const credit of credits) {
+          if (remainingToDeduct <= 0) break;
+          const deduct = Math.min(credit.hoursRemaining, remainingToDeduct);
+          await ctx.db.patch(credit._id, {
+            hoursRemaining: credit.hoursRemaining - deduct,
+          });
+          remainingToDeduct -= deduct;
+        }
+      } catch (e) {
+        console.error("Failed to deduct hour credits:", e);
+      }
+    }
   },
 });
 
@@ -349,6 +379,15 @@ export const getStudentHoursSummary = query({
       });
     }
 
+    // Credits summary
+    const credits = await ctx.db
+      .query("hourCredits")
+      .withIndex("byUser", (q) => q.eq("userId", student.userId))
+      .collect();
+    const validCredits = credits.filter((c) => c.expiresAt > Date.now());
+    const totalCreditsRemaining = validCredits.reduce((sum, c) => sum + c.hoursRemaining, 0);
+    const nextExpiration = validCredits.length > 0 ? Math.min(...validCredits.map((c) => c.expiresAt)) : null;
+
     return {
       totalHours,
       totalRequiredHours,
@@ -367,6 +406,10 @@ export const getStudentHoursSummary = query({
         )
         .collect()
         .then(entries => entries.length),
+      credits: {
+        totalRemaining: totalCreditsRemaining,
+        nextExpiration,
+      },
     };
   },
 });

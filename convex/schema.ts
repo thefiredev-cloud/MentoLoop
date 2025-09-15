@@ -90,6 +90,34 @@ export default defineSchema({
       .index("byStripePaymentIntentId", ["stripePaymentIntentId"])
       .index("byStatus", ["status"]),
 
+    // Hour credits allocated to students (blocks and a la carte)
+    hourCredits: defineTable({
+      userId: v.id("users"),
+      source: v.union(
+        v.literal("starter"),
+        v.literal("core"),
+        v.literal("pro"),
+        v.literal("elite"),
+        v.literal("a_la_carte")
+      ),
+      hoursTotal: v.number(),
+      hoursRemaining: v.number(),
+      rolloverAllowed: v.boolean(),
+      issuedAt: v.number(),
+      expiresAt: v.number(), // milliseconds since epoch
+      stripePaymentIntentId: v.optional(v.string()),
+    })
+      .index("byUser", ["userId"]) 
+      .index("byUserAndExpiry", ["userId", "expiresAt"]) 
+      .index("byPaymentIntent", ["stripePaymentIntentId"]),
+
+    // Idempotency for incoming webhooks (e.g., Stripe)
+    webhookEvents: defineTable({
+      provider: v.string(),
+      eventId: v.string(),
+      processedAt: v.number(),
+    }).index("byProviderEvent", ["provider", "eventId"]),
+
     // Preceptor earnings - payments FROM MentoLoop TO preceptors
     preceptorEarnings: defineTable({
       preceptorId: v.id("users"),
@@ -798,6 +826,14 @@ export default defineSchema({
     .index("byCustomerEmail", ["customerEmail"])
     .index("byCouponAndEmail", ["couponId", "customerEmail"])
     .index("byStripeSessionId", ["stripeSessionId"]),
+
+  // Stripe webhook processed events (for idempotency/deduplication)
+  stripeEvents: defineTable({
+    eventId: v.string(),
+    type: v.string(),
+    createdAt: v.number(),
+    processedAt: v.optional(v.number()),
+  }).index("byEventId", ["eventId"]),
 
   // Documents table for storing student/preceptor documents
   documents: defineTable({

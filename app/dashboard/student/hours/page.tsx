@@ -109,6 +109,11 @@ export default function StudentHoursPage() {
 
   const progressPercentage = hoursSummary?.progressPercentage || 0
 
+  const creditsRemaining = hoursSummary?.credits?.totalRemaining || 0
+  const nextExpiration = hoursSummary?.credits?.nextExpiration
+    ? new Date(hoursSummary.credits.nextExpiration).toLocaleDateString()
+    : null
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -179,21 +184,17 @@ export default function StudentHoursPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Status</CardTitle>
+            <CardTitle className="text-sm font-medium">Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2">
-              {hoursSummary?.isOnTrack ? (
-                <>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium text-green-700">On Track</span>
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium text-yellow-700">Behind</span>
-                </>
-              )}
+            <div className="text-2xl font-bold">{creditsRemaining}h</div>
+            <p className="text-xs text-muted-foreground">
+              {nextExpiration ? `Next expires: ${nextExpiration}` : 'No active credits'}
+            </p>
+            <div className="mt-2">
+              <Button size="sm" variant="outline" onClick={() => {
+                window.location.href = '/student-intake'
+              }}>Buy More Hours</Button>
             </div>
           </CardContent>
         </Card>
