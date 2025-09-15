@@ -37,6 +37,7 @@ export default function StripeCheckoutStep({
 }: StripeCheckoutStepProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string>('')
+  const [discountCode, setDiscountCode] = useState<string>('')
   const { isLoaded, isSignedIn } = useAuth()
   
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
@@ -140,6 +141,7 @@ export default function StripeCheckoutStep({
         customerEmail: studentInfo.email,
         customerName: studentInfo.fullName,
         membershipPlan: membership.plan,
+        discountCode: discountCode || undefined,
         metadata: {
           studentName: studentInfo.fullName,
           school: studentInfo.school,
@@ -243,6 +245,20 @@ export default function StripeCheckoutStep({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label htmlFor="discount" className="text-sm font-medium">Discount Code</label>
+              <input
+                id="discount"
+                className="w-full border rounded px-3 py-2"
+                placeholder="Enter code (optional)"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">For testing, ONECENT uses your $0.01 price if configured.</p>
+            </div>
+          </div>
+
           <Alert>
             <Lock className="h-4 w-4" />
             <AlertDescription>

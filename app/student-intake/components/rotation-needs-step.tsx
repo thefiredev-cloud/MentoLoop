@@ -64,6 +64,7 @@ export default function RotationNeedsStep({
     requiredHours: '',
     customHours: '',
     specialtyPreferences: [] as string[],
+    otherSpecialty: '',
     locationPreference: '',
     preferredStartDate: '',
     preferredEndDate: '',
@@ -101,6 +102,9 @@ export default function RotationNeedsStep({
 
     if (formData.specialtyPreferences.length === 0) {
       newErrors.specialtyPreferences = 'Please select at least one specialty preference'
+    }
+    if (formData.specialtyPreferences.includes('other') && !formData.otherSpecialty.trim()) {
+      newErrors.otherSpecialty = 'Please specify the other specialty'
     }
 
     if (!formData.locationPreference.trim()) {
@@ -196,10 +200,25 @@ export default function RotationNeedsStep({
                   </label>
                 </div>
               ))}
+          </div>
+          {errors.specialtyPreferences && (
+            <p className="text-sm text-destructive">{errors.specialtyPreferences}</p>
+          )}
+          {formData.specialtyPreferences.includes('other') && (
+            <div className="space-y-2">
+              <Label htmlFor="otherSpecialty">Specify Other Specialty *</Label>
+              <Input
+                id="otherSpecialty"
+                value={formData.otherSpecialty}
+                onChange={(e) => handleInputChange('otherSpecialty', e.target.value)}
+                placeholder="e.g., Cardiology, Endocrinology"
+                className={errors.otherSpecialty ? 'border-destructive' : ''}
+              />
+              {errors.otherSpecialty && (
+                <p className="text-sm text-destructive">{errors.otherSpecialty}</p>
+              )}
             </div>
-            {errors.specialtyPreferences && (
-              <p className="text-sm text-destructive">{errors.specialtyPreferences}</p>
-            )}
+          )}
           </div>
 
           <div className="space-y-2">
