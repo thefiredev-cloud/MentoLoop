@@ -290,6 +290,8 @@ export const createStudentCheckoutSession = action({
             if (validation.percentOff === 100) {
               // 100% discount detected
               checkoutParams["payment_method_types[0]"] = "card";
+              // Highlight zero total in Checkout UI for reassurance
+              checkoutParams["custom_text[submit][message]"] = "NP12345 applied — Total $0.00";
             }
             
             const discountParams = {
