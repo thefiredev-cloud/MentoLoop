@@ -258,14 +258,21 @@ export const createStudentCheckoutSession = action({
           if (validation.valid) {
             // Discount validation successful
             
-            // IMPORTANT: We need to look up the promotion code ID from our database
-            // since Stripe checkout sessions work better with promotion codes
+            // Look up coupon details to prefer promotion_code for Checkout
+            const couponDoc = await ctx.runQuery(internal.payments.checkCouponExists, {
+              code: args.discountCode,
+            });
             const stripeCouponId = args.discountCode.toUpperCase();
+            const promotionCodeId = (couponDoc as any)?.promotionCodeId as string | undefined;
 
             // Applying Stripe discount
-
-            // First try to apply as a coupon (for backward compatibility)
-            checkoutParams["discounts[0][coupon]"] = stripeCouponId;
+            if (promotionCodeId) {
+              // Prefer promotion_code for payment mode sessions
+              checkoutParams["discounts[0][promotion_code]"] = promotionCodeId;
+            } else {
+              // Fallback: apply coupon directly (works when coupon id equals code)
+              checkoutParams["discounts[0][coupon]"] = stripeCouponId;
+            }
 
             // Also enable promotion codes in checkout as a fallback
             // This allows manual entry if automatic application fails
@@ -279,7 +286,7 @@ export const createStudentCheckoutSession = action({
             checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
             checkoutParams["metadata[originalPrice]"] = stripePriceId;
             
-            // For 100% discounts, we still need payment method for Stripe to process
+            // For 100% discounts, Stripe still requires a payment method type
             if (validation.percentOff === 100) {
               // 100% discount detected
               checkoutParams["payment_method_types[0]"] = "card";
@@ -327,8 +334,9 @@ export const createStudentCheckoutSession = action({
       // Stripe session created successfully
       
       // Calculate final amount based on discount
-      const basePrice = args.membershipPlan === 'core' ? 695 : 
-                       args.membershipPlan === 'pro' ? 1295 : 1895;
+      // Reflect LIVE price points used in mapping above for accurate analytics
+      const basePrice = args.membershipPlan === 'core' ? 499 : 
+                       args.membershipPlan === 'pro' ? 799 : 999;
       const finalAmount = discountApplied ? basePrice * (1 - discountAmount / 100) : basePrice;
 
       // Log the intake payment attempt with discount info

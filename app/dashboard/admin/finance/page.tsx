@@ -42,8 +42,8 @@ function FinancialManagementContent() {
   // Get real financial data
   const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
   const intakePayments = useQuery(api.intakePayments.getAllIntakePayments)
-  const pendingEarnings = useQuery(api.preceptors.getAllPreceptorEarnings as any, { status: 'pending' } as any)
-  const payEarning = useAction(api.payments.payPreceptorEarning as any)
+  const pendingEarnings = useQuery(api.preceptors.getAllPreceptorEarnings, { status: 'pending' })
+  const payEarning = useAction(api.payments.payPreceptorEarning)
   
   // Calculate financial metrics
   const totalRevenue = paymentAttempts?.filter(p => p.status === 'succeeded')
@@ -280,7 +280,7 @@ function FinancialManagementContent() {
                 {(pendingEarnings || []).length === 0 && (
                   <div className="text-sm text-muted-foreground">No pending payouts.</div>
                 )}
-                {(pendingEarnings || []).map((e: any) => (
+                {(pendingEarnings || []).map((e) => (
                   <div key={e._id} className="flex items-center justify-between p-3 border rounded">
                     <div>
                       <div className="font-medium">{e.preceptorName}</div>
@@ -288,7 +288,7 @@ function FinancialManagementContent() {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-sm font-semibold">{formatCurrency(e.amount)}</div>
-                      <Button size="sm" onClick={async () => { try { await payEarning({ earningId: e._id } as any) } catch (err) { console.error(err) } }}>
+                      <Button size="sm" onClick={async () => { try { await payEarning({ earningId: e._id }) } catch (err) { console.error(err) } }}>
                         Pay Now
                       </Button>
                     </div>

@@ -111,11 +111,8 @@ function MessagesContent() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     try {
-      const el = messagesEndRef.current as any
-      if (el && typeof el.scrollIntoView === 'function') {
-        el.scrollIntoView({ behavior: 'smooth' })
-      }
-    } catch (_err) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    } catch {
       // no-op in non-DOM test environments
     }
   }, [messages])

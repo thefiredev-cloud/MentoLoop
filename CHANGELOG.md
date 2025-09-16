@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests stabilized and QA prior to deploy
   - Unit/integration tests green; Playwright browsers installed
   - Messages page a11y/empty states verified; auto-selects first conversation
+  - Component tests updated for new `messages` data shape; mocks aligned
+  - Minor typing cleanup to reduce eslint warnings in admin finance
 ### Payments/Stripe
 - Webhook signature verification with idempotent dedupe via `webhookEvents`
 - Consistent idempotency keys for customer/session/subscription writes
