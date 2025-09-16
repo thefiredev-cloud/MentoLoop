@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
+import { action, internalAction, internalMutation, internalQuery, query, mutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
 // Internal action to create or update Stripe customer for a user  
@@ -1570,6 +1570,83 @@ export const createOrUpdateStripeCustomer = action({
   },
   handler: async (ctx, args): Promise<{ customerId: string; created: boolean }> => {
     return await ctx.runAction(internal.payments.createOrUpdateStripeCustomerInternal, args);
+  },
+});
+
+// Grant zero-cost access using a 100% discount code (e.g., NP12345) without redirecting to Stripe
+export const grantZeroCostAccessByCode = mutation({
+  args: {
+    code: v.string(),
+    membershipPlan: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Validate code from DB
+    const coupon = await ctx.runQuery(internal.payments.checkCouponExists, { code: args.code });
+    if (!coupon || (coupon as any).percentOff !== 100) {
+      throw new Error("Invalid or ineligible discount code");
+    }
+
+    // Get user by externalId
+    const user = await ctx.runQuery(internal.payments.getUserByExternalId, { externalId: identity.subject });
+    if (!user) throw new Error("User not found");
+
+    const email = (user as any).email as string | undefined;
+    const now = Date.now();
+    const pseudoSessionId = `free_${args.code}_${now}`;
+
+    // Record zero-cost attempt as succeeded
+    await ctx.db.insert("intakePaymentAttempts", {
+      customerEmail: email || identity.email || "",
+      customerName: identity.name || email || "",
+      membershipPlan: args.membershipPlan,
+      stripeSessionId: pseudoSessionId,
+      stripeCustomerId: undefined,
+      amount: 0,
+      currency: "usd",
+      status: "succeeded",
+      discountCode: args.code.toUpperCase(),
+      discountPercent: 100,
+      paidAt: now,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Mark discount usage
+    await ctx.db.insert("discountUsage", {
+      couponId: (coupon as any)._id,
+      customerEmail: email || identity.email || "",
+      stripeSessionId: pseudoSessionId,
+      amountDiscounted: 0,
+      usedAt: now,
+    });
+
+    // Update user metadata and student payment status
+    try {
+      await ctx.runMutation(internal.users.updateUserMetadata, {
+        userId: (user as any)._id,
+        publicMetadata: {
+          intakeCompleted: true,
+          paymentCompleted: true,
+          intakeCompletedAt: new Date(now).toISOString(),
+          membershipPlan: args.membershipPlan,
+        },
+      });
+    } catch (_e) {}
+
+    try {
+      await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
+        userId: (user as any)._id,
+        paymentStatus: 'paid',
+        membershipPlan: args.membershipPlan,
+        stripeSessionId: pseudoSessionId,
+        paidAt: now,
+      } as any);
+    } catch (_e) {}
+
+    return { success: true };
   },
 });
 

@@ -41,6 +41,7 @@ export default function StripeCheckoutStep({
   const { isLoaded, isSignedIn } = useAuth()
   
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
+  const grantZeroCostAccessByCode = useMutation(api.payments.grantZeroCostAccessByCode)
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
 
@@ -135,6 +136,23 @@ export default function StripeCheckoutStep({
         membershipPlan: membership.plan as 'core' | 'pro' | 'premium'
       })
       
+      // If using a 100% test code (e.g., NP12345), grant access without redirecting to Stripe
+      if (discountCode && discountCode.trim().toUpperCase() === 'NP12345') {
+        await grantZeroCostAccessByCode({
+          code: discountCode.trim().toUpperCase(),
+          membershipPlan: membership.plan,
+        })
+
+        updateFormData('payment', {
+          sessionId: `free_${Date.now()}`,
+          status: 'succeeded',
+        })
+
+        sessionStorage.setItem('selectedMembershipPlan', membership.plan)
+        window.location.href = `${window.location.origin}/student-intake/confirmation?success=true&free=true`
+        return
+      }
+
       // Create Stripe checkout session
       const session = await createStudentCheckoutSession({
         priceId: membership.priceId,
