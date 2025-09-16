@@ -8,17 +8,16 @@ import { z } from "zod";
 import { validateHealthcarePrompt } from "@/lib/prompts";
 
 // naive per-user rate limiting (in-memory token bucket)
-const rl = (globalThis as any).__gpt5_rl || new Map<string, { tokens: number; ts: number }>();
-(globalThis as any).__gpt5_rl = rl;
+const chatRateLimiter = new Map<string, { tokens: number; ts: number }>();
 function rateLimit(key: string, max = 20, windowMs = 60_000) {
   const now = Date.now();
-  const entry = rl.get(key) || { tokens: 0, ts: now };
+  const entry = chatRateLimiter.get(key) || { tokens: 0, ts: now };
   if (now - entry.ts > windowMs) {
     entry.tokens = 0;
     entry.ts = now;
   }
   entry.tokens += 1;
-  rl.set(key, entry);
+  chatRateLimiter.set(key, entry);
   return entry.tokens <= max;
 }
 
@@ -64,13 +63,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Prepend user context for better personalization
+    const userRole =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (((user?.publicMetadata as any)?.role as string) || "student").toString();
     const enhancedMessages = [
       {
         role: "system" as const,
-        content: `User context: ${user?.firstName || ""} ${user?.lastName || ""} (Role: ${
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ((user?.publicMetadata as any)?.role as string) || "student"
-        })`,
+        // Avoid sending PII/PHI like names to the LLM
+        content: `User context: (Role: ${userRole})`,
       },
       ...validated.messages,
     ];
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       return new Response(readable, {
         headers: {
           "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
           Connection: "keep-alive",
         },
       });
@@ -118,13 +118,16 @@ export async function POST(req: NextRequest) {
       max_tokens: validated.maxTokens,
     });
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       content: completion.choices[0].message.content,
       usage: completion.usage,
       model: completion.model,
     });
+    res.headers.set("cache-control", "no-store");
+    return res;
   } catch (error) {
-    console.error("GPT-5 API Error:", error);
+    // Sanitize logs to avoid PHI/PII leakage
+    console.error("GPT-5 API Error");
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request", details: error.errors },

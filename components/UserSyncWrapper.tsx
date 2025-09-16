@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import logger from '@/lib/logger'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useAuth } from '@clerk/nextjs'
@@ -44,7 +45,7 @@ export function UserSyncWrapper({ children }: { children: ReactNode }) {
       
       try {
         const result = await ensureUserExists()
-        console.log('[UserSyncWrapper] User sync successful:', {
+        logger.info('[UserSyncWrapper] User sync successful:', {
           userId: result.userId,
           isNew: result.isNew,
           clerkId: result.clerkId,
@@ -54,7 +55,7 @@ export function UserSyncWrapper({ children }: { children: ReactNode }) {
         setSyncError(null)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        console.error(`[UserSyncWrapper] Failed to sync user (attempt ${syncAttemptRef.current}/${maxRetries}):`, errorMessage)
+        logger.warn(`[UserSyncWrapper] Failed to sync user (attempt ${syncAttemptRef.current}/${maxRetries}):`, errorMessage)
         
         // Retry with exponential backoff for auth errors
         if (errorMessage.includes('Not authenticated') && syncAttemptRef.current < maxRetries) {
@@ -69,7 +70,7 @@ export function UserSyncWrapper({ children }: { children: ReactNode }) {
         } else {
           setSyncStatus('error')
           setSyncError('Failed to sync user profile. Please refresh the page.')
-          console.error('[UserSyncWrapper] Max retries reached or non-recoverable error.')
+          logger.error('[UserSyncWrapper] Max retries reached or non-recoverable error.')
         }
       }
     }
@@ -90,7 +91,7 @@ export function UserSyncWrapper({ children }: { children: ReactNode }) {
   // Log sync status changes
   useEffect(() => {
     if (syncStatus !== 'idle') {
-      console.log('[UserSyncWrapper] Sync status:', syncStatus, syncError || '')
+      logger.debug('[UserSyncWrapper] Sync status:', syncStatus, syncError || '')
     }
   }, [syncStatus, syncError])
 

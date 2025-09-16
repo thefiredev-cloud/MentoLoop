@@ -7,11 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Initial GitHub repository setup
-- Comprehensive documentation and contributing guidelines
-- CI/CD pipeline with GitHub Actions
-- Healthcare compliance security checks
+### Hardening
+- Tests stabilized and QA prior to deploy
+  - Unit/integration tests green; Playwright browsers installed
+  - Messages page a11y/empty states verified; auto-selects first conversation
+### Payments/Stripe
+- Webhook signature verification with idempotent dedupe via `webhookEvents`
+- Consistent idempotency keys for customer/session/subscription writes
+- New internal `insertPaymentRecord` mutation; actions route writes through internal mutations
+### GPT‑5 Guardrails
+- `/api/gpt5`, `/api/gpt5/documentation`, `/api/gpt5/function` set `Cache-Control: no-store`
+- Sanitized logs to avoid PHI/PII; PHI validators preserved; per-user rate limits
+### Performance
+- Preceptors page keeps lazy background and skeleton states; no layout jank observed
+### Compliance/Security
+- Guarded student intake logs in production; reduced risk of PHI in server logs
 
 ## [0.9.7] - 2025-01-20
 

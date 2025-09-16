@@ -74,7 +74,7 @@ function StudentProfileContent() {
                 <AvatarFallback>{firstName?.[0]}{lastName?.[0]}</AvatarFallback>
               </Avatar>
               {isEditing && (
-                <button className="absolute bottom-0 right-0 rounded-full bg-primary p-1 text-primary-foreground">
+                <button type="button" className="absolute bottom-0 right-0 rounded-full bg-primary p-1 text-primary-foreground">
                   <Camera className="h-4 w-4" />
                 </button>
               )}

@@ -65,6 +65,7 @@ export const HeroHeader = () => {
                             </Link>
 
                             <button
+                                type="button"
                                 onClick={() => setMenuState(!menuState)}
                                 aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}
                                 className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden">
@@ -119,13 +120,10 @@ export const HeroHeader = () => {
                                 <Unauthenticated>
                                     <SignInButton mode="modal">
                                         <Button
-                                            asChild
                                             variant="outline"
                                             size="sm"
                                             className={cn(isScrolled && 'lg:hidden')}>
-                                            <Link href="#">
-                                                <span>Login</span>
-                                            </Link>
+                                            <span>Login</span>
                                         </Button>
                                     </SignInButton>
                                     <Button

@@ -1,6 +1,7 @@
 import { cronJobs } from "convex/server";
-import { internalAction, query } from "./_generated/server";
+import { internalAction, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { api } from "./_generated/api";
 import { v } from "convex/values";
 
 const crons = cronJobs();
@@ -24,6 +25,13 @@ crons.daily(
   "send survey requests",
   { hourUTC: 10, minuteUTC: 0 }, // 10 AM UTC
   internal.scheduledTasks.sendSurveyRequests
+);
+
+// Cleanup old webhook event records (keep 30 days)
+crons.daily(
+  "cleanup old webhook events",
+  { hourUTC: 3, minuteUTC: 0 },
+  internal.scheduledTasks.cleanupOldWebhookEvents
 );
 
 // Internal action to send rotation start reminders
@@ -231,6 +239,36 @@ export const sendSurveyRequests = internalAction({
     return { totalProcessed: recentlyCompletedMatches.length, results };
   },
 });
+
+// Remove webhook event rows older than 30 days to keep storage tidy
+export const cleanupOldWebhookEvents = internalAction({
+  handler: async (ctx): Promise<{ deleted: number }> => {
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+    let deleted = 0
+    // No index on processedAt; scan and delete in batches
+    const all = await ctx.runQuery(api.scheduledTasks.listWebhookEvents)
+    for (const ev of all) {
+      if (ev.processedAt < cutoff) {
+        await ctx.runMutation(internal.scheduledTasks.deleteWebhookEvent, { id: ev._id })
+        deleted++
+      }
+    }
+    return { deleted }
+  }
+})
+
+export const listWebhookEvents = query({
+  handler: async (ctx) => {
+    return await ctx.db.query('webhookEvents').collect()
+  }
+})
+
+export const deleteWebhookEvent = internalMutation({
+  args: { id: v.id('webhookEvents') },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id)
+  }
+})
 
 // Helper queries for scheduled tasks
 

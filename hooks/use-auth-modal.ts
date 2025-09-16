@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth, useClerk } from '@clerk/nextjs'
+import logger from '@/lib/logger'
 import { useCallback } from 'react'
 
 export function useAuthModal() {
@@ -10,7 +11,7 @@ export function useAuthModal() {
   const safeOpenSignIn = useCallback((props?: any) => {
     // Prevent opening sign-in modal if user is already signed in
     if (isLoaded && isSignedIn) {
-      console.log('User is already signed in, redirecting to dashboard')
+      logger.debug('User is already signed in, redirecting to dashboard')
       window.location.href = '/dashboard'
       return
     }
@@ -24,7 +25,7 @@ export function useAuthModal() {
   const safeOpenSignUp = useCallback((props?: any) => {
     // Prevent opening sign-up modal if user is already signed in
     if (isLoaded && isSignedIn) {
-      console.log('User is already signed in, redirecting to dashboard')
+      logger.debug('User is already signed in, redirecting to dashboard')
       window.location.href = '/dashboard'
       return
     }

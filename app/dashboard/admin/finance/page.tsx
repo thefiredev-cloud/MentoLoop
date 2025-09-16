@@ -22,8 +22,10 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react'
-import { useQuery } from 'convex/react'
+import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+
+type CSVCell = string | number | boolean | null | object | undefined
 
 export default function FinancialManagement() {
   return (
@@ -35,10 +37,13 @@ export default function FinancialManagement() {
 
 function FinancialManagementContent() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   // Get real financial data
   const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
   const intakePayments = useQuery(api.intakePayments.getAllIntakePayments)
+  const pendingEarnings = useQuery(api.preceptors.getAllPreceptorEarnings as any, { status: 'pending' } as any)
+  const payEarning = useAction(api.payments.payPreceptorEarning as any)
   
   // Calculate financial metrics
   const totalRevenue = paymentAttempts?.filter(p => p.status === 'succeeded')
@@ -85,6 +90,29 @@ function FinancialManagementContent() {
         return <Badge variant="outline">{status}</Badge>
     }
   }
+
+  const exportCsv = (rows: Array<Record<string, CSVCell>>, filename: string) => {
+    if (!rows || rows.length === 0) return
+    const header = Object.keys(rows[0])
+    const csv = [header.join(','), ...rows.map(r => header.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const filteredTransactions = (paymentAttempts || []).filter(p => {
+    if (!searchTerm) return true
+    const term = searchTerm.toLowerCase()
+    return (
+      String(p.stripeSessionId).toLowerCase().includes(term) ||
+      String(p.status).toLowerCase().includes(term) ||
+      String(p.amount).toLowerCase().includes(term)
+    )
+  }).filter(p => statusFilter === 'all' ? true : p.status === statusFilter)
 
   return (
     <div className="container mx-auto py-6">
@@ -158,6 +186,7 @@ function FinancialManagementContent() {
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="memberships">Memberships</TabsTrigger>
           <TabsTrigger value="matches">Match Payments</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
@@ -176,11 +205,37 @@ function FinancialManagementContent() {
                       className="pl-8 w-64"
                     />
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                  <Button variant="outline" size="sm">
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="border rounded px-2 py-1 text-sm"
+                      value={statusFilter}
+                      onChange={e => setStatusFilter(e.target.value)}
+                    >
+                      <option value="all">All</option>
+                      <option value="succeeded">Succeeded</option>
+                      <option value="pending">Pending</option>
+                      <option value="failed">Failed</option>
+                    </select>
+                    <Button variant="outline" size="sm" onClick={() => setStatusFilter('all')}>
+                      <Filter className="h-4 w-4 mr-2" />
+                      Reset
+                    </Button>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const rows = filteredTransactions.map(p => ({
+                        amount: formatCurrency(p.amount),
+                        status: p.status,
+                        createdAt: new Date(p.createdAt).toISOString(),
+                        stripeSessionId: p.stripeSessionId,
+                        matchId: p.matchId || '',
+                        failureReason: p.failureReason || '',
+                      }))
+                      exportCsv(rows, 'transactions.csv')
+                    }}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
@@ -189,7 +244,7 @@ function FinancialManagementContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {paymentAttempts?.slice(0, 10).map((payment) => (
+                {filteredTransactions.slice(0, 10).map((payment) => (
                   <div key={payment._id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="space-y-1">
                       <div className="font-medium text-sm">
@@ -206,6 +261,35 @@ function FinancialManagementContent() {
                       {getStatusBadge(payment.status)}
                       <Button variant="ghost" size="sm">
                         <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payouts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Preceptor Payouts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(pendingEarnings || []).length === 0 && (
+                  <div className="text-sm text-muted-foreground">No pending payouts.</div>
+                )}
+                {(pendingEarnings || []).map((e: any) => (
+                  <div key={e._id} className="flex items-center justify-between p-3 border rounded">
+                    <div>
+                      <div className="font-medium">{e.preceptorName}</div>
+                      <div className="text-xs text-muted-foreground">Student: {e.studentName} · {new Date(e.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-semibold">{formatCurrency(e.amount)}</div>
+                      <Button size="sm" onClick={async () => { try { await payEarning({ earningId: e._id } as any) } catch (err) { console.error(err) } }}>
+                        Pay Now
                       </Button>
                     </div>
                   </div>
@@ -259,6 +343,29 @@ function FinancialManagementContent() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const rows = (intakePayments || []).map(p => ({
+                      customerName: p.customerName,
+                      customerEmail: p.customerEmail,
+                      membershipPlan: p.membershipPlan,
+                      amount: formatCurrency(p.amount),
+                      status: p.status,
+                      createdAt: new Date(p.createdAt).toISOString(),
+                      discountCode: p.discountCode || '',
+                      discountPercent: p.discountPercent ?? '',
+                      stripeSessionId: p.stripeSessionId,
+                    }))
+                    exportCsv(rows, 'membership_payments.csv')
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
               </div>
             </CardContent>
           </Card>

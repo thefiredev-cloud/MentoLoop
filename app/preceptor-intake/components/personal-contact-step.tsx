@@ -354,9 +354,6 @@ export default function PersonalContactStep({
       </Card>
 
       <div className="flex justify-between pt-6">
-    if (!formData.licenseNumber.trim()) {
-      newErrors.licenseNumber = 'License number is required'
-    }
         <Button 
           variant="outline" 
           onClick={onPrev} 

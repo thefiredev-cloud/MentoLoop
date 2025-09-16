@@ -97,6 +97,7 @@ export default function DashboardPage() {
                 Looking for clinical placements and preceptor matches
               </p>
               <button 
+                type="button"
                 onClick={() => handleRoleSelection('student')}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
               >
@@ -117,6 +118,7 @@ export default function DashboardPage() {
                 Healthcare professional ready to mentor students
               </p>
               <button 
+                type="button"
                 onClick={() => handleRoleSelection('preceptor')}
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
               >
@@ -133,6 +135,7 @@ export default function DashboardPage() {
               Students are pursuing their NP degree and need clinical rotations. Preceptors are licensed healthcare professionals (NP, MD, DO, PA) who mentor students during clinical rotations.
             </p>
             <button 
+              type="button"
               onClick={() => router.push('/help')}
               className="text-primary hover:underline"
             >

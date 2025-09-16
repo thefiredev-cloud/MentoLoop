@@ -459,6 +459,33 @@ export const createMatchWithCompatibility = mutation({
   }
 });
 
+// Recompute compatibility for an existing match and update its score
+export const recomputeMatchCompatibility = mutation({
+  args: {
+    matchId: v.id("matches"),
+  },
+  handler: async (ctx, { matchId }): Promise<{ score: number; tier: 'GOLD' | 'SILVER' | 'BRONZE' }> => {
+    const match = await ctx.db.get(matchId)
+    if (!match) throw new Error('Match not found')
+
+    const student = await ctx.db.get(match.studentId)
+    const preceptor = await ctx.db.get(match.preceptorId)
+    if (!student || !preceptor) throw new Error('Student or preceptor not found')
+
+    const compatibility: any = await ctx.runQuery(api.mentorfit.calculateCompatibility, {
+      studentId: match.studentId,
+      preceptorId: match.preceptorId,
+    })
+
+    await ctx.db.patch(matchId, {
+      mentorFitScore: compatibility.score,
+      updatedAt: Date.now(),
+    })
+
+    return { score: compatibility.score, tier: compatibility.tier }
+  },
+})
+
 // Save MentorFit assessment answers for a student
 export const saveMentorFitAssessment = mutation({
   args: {

@@ -29,6 +29,8 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 
+type CSVCell = string | number | boolean | null | object | undefined
+
 interface Match {
   _id: Id<'matches'>
   studentId: Id<'students'>
@@ -78,12 +80,19 @@ interface Match {
 export default function MatchManagementPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [tierFilter, setTierFilter] = useState<string>('')
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
   const [showMatchDetails, setShowMatchDetails] = useState(false)
+  const auditLogs = useQuery(
+    api.admin.getAuditLogsForEntity,
+    showMatchDetails && selectedMatch ? { entityType: 'match', entityId: selectedMatch._id, limit: 10 } : 'skip'
+  )
   const [showOverrideDialog, setShowOverrideDialog] = useState(false)
   const [showForceMatchDialog, setShowForceMatchDialog] = useState(false)
   const [overrideScore, setOverrideScore] = useState([5])
   const [overrideReason, setOverrideReason] = useState('')
+  const [sortBy, setSortBy] = useState<'created' | 'score'>('created')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [forceMatchData, setForceMatchData] = useState({
     studentId: '',
     preceptorId: '',
@@ -104,6 +113,7 @@ export default function MatchManagementPage() {
   // Mutations
   const overrideMatchScore = useMutation(api.admin.overrideMatchScore)
   const forceCreateMatch = useMutation(api.admin.forceCreateMatch)
+  const recomputeCompatibility = useMutation(api.mentorfit.recomputeMatchCompatibility)
 
   // Handle match selection
   const handleViewMatch = (match: {_id: string; [key: string]: unknown}) => {
@@ -195,6 +205,13 @@ export default function MatchManagementPage() {
       default:
         return <Badge variant="outline">{status}</Badge>
     }
+  }
+
+  const getMentorFitTierBadge = (score: number | undefined) => {
+    const s = typeof score === 'number' ? score : 0
+    if (s >= 9.0) return <Badge className="bg-yellow-500 text-yellow-900">Gold</Badge>
+    if (s >= 7.5) return <Badge className="bg-gray-300 text-gray-800">Silver</Badge>
+    return <Badge className="bg-amber-600 text-white">Bronze</Badge>
   }
 
   const formatDate = (dateString: string) => {
@@ -318,6 +335,35 @@ export default function MatchManagementPage() {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={tierFilter} onValueChange={setTierFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tiers</SelectItem>
+                  <SelectItem value="gold">Gold (≥ 9.0)</SelectItem>
+                  <SelectItem value="silver">Silver (7.5–8.9)</SelectItem>
+                  <SelectItem value="bronze">Bronze (&lt; 7.5)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'created' | 'score')}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Sort By" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created">Created</SelectItem>
+                  <SelectItem value="score">MentorFit Score</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortDir} onValueChange={(v) => setSortDir(v as 'asc' | 'desc')}>
+                <SelectTrigger className="w-28">
+                  <SelectValue placeholder="Order" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">Desc</SelectItem>
+                  <SelectItem value="asc">Asc</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -337,7 +383,33 @@ export default function MatchManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {matchesData.map((match) => (
+                  {matchesData
+                    .filter((m) => {
+                      // text search filter
+                      const term = searchTerm.trim().toLowerCase()
+                      if (term) {
+                        const student = (m.student?.personalInfo?.fullName || '').toLowerCase()
+                        const preceptor = (m.preceptor?.personalInfo?.fullName || '').toLowerCase()
+                        const rotation = (m.rotationDetails.rotationType || '').toLowerCase()
+                        if (!student.includes(term) && !preceptor.includes(term) && !rotation.includes(term)) {
+                          return false
+                        }
+                      }
+                      if (!tierFilter || tierFilter === 'all') return true
+                      const s = m.mentorFitScore || 0
+                      if (tierFilter === 'gold') return s >= 9.0
+                      if (tierFilter === 'silver') return s >= 7.5 && s < 9.0
+                      if (tierFilter === 'bronze') return s < 7.5
+                      return true
+                    })
+                    .sort((a, b) => {
+                      const dir = sortDir === 'asc' ? 1 : -1
+                      if (sortBy === 'score') {
+                        return (a.mentorFitScore - b.mentorFitScore) * dir
+                      }
+                      return ((a.createdAt || 0) - (b.createdAt || 0)) * dir
+                    })
+                    .map((match) => (
                     <TableRow key={match._id}>
                       <TableCell>
                         <div>
@@ -358,6 +430,7 @@ export default function MatchManagementPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{match.mentorFitScore.toFixed(1)}/10</span>
+                          {getMentorFitTierBadge(match.mentorFitScore)}
                           {match.aiAnalysis && (
                             <Badge variant="outline" className="text-xs">
                               AI: {match.aiAnalysis.enhancedScore.toFixed(1)}
@@ -384,12 +457,65 @@ export default function MatchManagementPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const result = await recomputeCompatibility({ matchId: match._id })
+                                toast.success(`Recomputed: ${result.score}/10 (${result.tier})`)
+                              } catch (e) {
+                                toast.error('Failed to recompute MentorFit')
+                              }
+                            }}
+                          >
+                            <Brain className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const filtered = matchesData.filter((m) => {
+                      if (!tierFilter || tierFilter === 'all') return true
+                      const s = m.mentorFitScore || 0
+                      if (tierFilter === 'gold') return s >= 9.0
+                      if (tierFilter === 'silver') return s >= 7.5 && s < 9.0
+                      if (tierFilter === 'bronze') return s < 7.5
+                      return true
+                    })
+                    const rows = filtered.map((m) => ({
+                      student: m.student?.personalInfo?.fullName || '',
+                      preceptor: m.preceptor?.personalInfo?.fullName || '',
+                      rotation: m.rotationDetails.rotationType,
+                      startDate: m.rotationDetails.startDate,
+                      endDate: m.rotationDetails.endDate,
+                      weeklyHours: m.rotationDetails.weeklyHours,
+                      score: m.mentorFitScore,
+                      status: m.status,
+                      paymentStatus: m.paymentStatus,
+                      createdAt: new Date(m.createdAt).toISOString(),
+                    }))
+                    const header = Object.keys(rows[0] || {})
+                    const csv = [header.join(','), ...rows.map(r => header.map(k => JSON.stringify(r[k as keyof typeof r] ?? '')).join(','))].join('\n')
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = 'matches.csv'
+                    a.click()
+                    URL.revokeObjectURL(url)
+                  }}
+                >
+                  Export CSV
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="text-center py-8">
@@ -480,6 +606,35 @@ export default function MatchManagementPage() {
                   </div>
                 </div>
               )}
+
+              {/* Audit Logs */}
+              <div>
+                <h3 className="font-semibold mb-2">Audit Logs</h3>
+                {auditLogs && auditLogs.length > 0 ? (
+                  <div className="space-y-2">
+                    {auditLogs.map((log: { _id: string; action: string; timestamp: number | string; details?: { reason?: string; previousValue?: { mentorFitScore?: number }; newValue?: { mentorFitScore?: number } } }) => (
+                      <div key={log._id} className="text-sm p-3 rounded border">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{log.action}</div>
+                          <div className="text-muted-foreground">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </div>
+                        </div>
+                        {log.details?.reason && (
+                          <div className="mt-1">Reason: {log.details.reason}</div>
+                        )}
+                        {log.details?.newValue?.mentorFitScore !== undefined && (
+                          <div className="mt-1">
+                            Score: {log.details?.previousValue?.mentorFitScore ?? '-'} → {log.details.newValue.mentorFitScore}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">No recent audit entries.</div>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>

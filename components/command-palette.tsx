@@ -53,6 +53,7 @@ export function CommandPalette() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-lg border border-border/50 hover:border-border transition-all duration-200 hover:bg-muted/50"
       >

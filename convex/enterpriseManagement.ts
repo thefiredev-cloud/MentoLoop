@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireEnterpriseAccess } from './auth'
 
 // Get enterprise students with details
 export const getEnterpriseStudents = query({
@@ -349,6 +350,7 @@ export const approveEnterpriseStudent = mutation({
     studentId: v.id("students"),
   },
   handler: async (ctx, args) => {
+    await requireEnterpriseAccess(ctx, args.enterpriseId)
     // Update student status
     await ctx.db.patch(args.studentId, {
       status: "submitted",
@@ -370,6 +372,7 @@ export const updateEnterpriseSettings = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    await requireEnterpriseAccess(ctx, args.enterpriseId)
     const enterprise = await ctx.db.get(args.enterpriseId);
     if (!enterprise) {
       throw new Error("Enterprise not found");

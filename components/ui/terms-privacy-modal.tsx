@@ -196,7 +196,7 @@ export function TermsPrivacyModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className={triggerClassName}>
+        <button type="button" className={triggerClassName}>
           {triggerText || defaultTriggerText}
         </button>
       </DialogTrigger>

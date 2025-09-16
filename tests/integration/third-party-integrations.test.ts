@@ -539,6 +539,7 @@ describe('Third-Party Service Integrations', () => {
     it('should respect maximum retry attempts', async () => {
       // Clear previous mock calls
       mockFetch.mockClear()
+      mockApiCall.mockClear()
       
       // Mock persistent failure
       mockFetch.mockResolvedValue({
@@ -623,9 +624,9 @@ const mockPreceptorProfile = {
   communicationStyle: 'direct'
 }
 
-const mockApiCall = async () => {
+const mockApiCall = vi.fn(async () => {
   return await fetch('https://api.example.com/test')
-}
+})
 
 // Mock implementation functions (these would be imported from actual code)
 async function callOpenAIForMatching(params: any) {
@@ -864,19 +865,30 @@ async function callWithRetry(service: string, apiCall: Function, options = { max
   
   while (attempts <= options.maxRetries) {
     try {
-      const result = await apiCall()
-      return { success: true, result }
+      const res: any = await apiCall()
+      // Treat fetch-like responses with !ok as failures to trigger retry
+      if (res && typeof res === 'object' && 'ok' in res && res.ok === false) {
+        const retryAfter = (res.headers && typeof res.headers.get === 'function') ? res.headers.get('retry-after') : undefined
+        const err = new Error(`HTTP ${res.status || 'error'}`)
+        // Optional: small wait if server asked for it, then throw to trigger retry
+        if (retryAfter) {
+          const ms = Number(retryAfter) * 1000
+          if (!Number.isNaN(ms) && ms > 0) {
+            await new Promise(r => setTimeout(r, ms))
+          }
+        }
+        throw err
+      }
+      return { success: true, result: res }
     } catch (error) {
       attempts++
-      
       if (attempts > options.maxRetries) {
         return { success: false, error: (error as Error).message }
       }
-      
-      // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000))
+      // Wait before retry (exponential backoff) – cap per-step wait to 100ms in test env
+      const backoffMs = Math.min(Math.pow(2, attempts) * 1000, 50)
+      await new Promise(resolve => setTimeout(resolve, backoffMs))
     }
   }
-  
   return { success: false, error: 'Max retries exceeded' }
 }

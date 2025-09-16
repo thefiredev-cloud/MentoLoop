@@ -174,7 +174,7 @@ export default function InstitutionsPage() {
                   transition={{ delay: 0.2, duration: 0.5 }}
                 >
                   <Link
-                    href="#"
+                    href="/sign-up/institution"
                     className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
                     <div className="relative flex items-center justify-center">
                       <Award className="w-4 h-4 text-yellow-400 animate-pulse" />

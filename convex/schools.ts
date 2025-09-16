@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from './auth'
 
 // Get all active schools
 export const getAllSchools = query({
@@ -69,6 +70,7 @@ export const createSchool = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx)
     return await ctx.db.insert("schools", {
       ...args,
       isActive: true,
@@ -101,6 +103,7 @@ export const updateSchool = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx)
     const { schoolId, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([_, value]) => value !== undefined)
@@ -114,6 +117,7 @@ export const updateSchool = mutation({
 export const deactivateSchool = mutation({
   args: { schoolId: v.id("schools") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx)
     return await ctx.db.patch(args.schoolId, { isActive: false });
   },
 });
@@ -121,6 +125,7 @@ export const deactivateSchool = mutation({
 // Seed initial schools data
 export const seedSchools = mutation({
   handler: async (ctx) => {
+    await requireAdmin(ctx)
     // Check if schools already exist
     const existingSchools = await ctx.db.query("schools").take(1);
     if (existingSchools.length > 0) {

@@ -158,6 +158,7 @@ export const NavHeader = memo(function NavHeader() {
 
                         {/* Mobile Menu Button */}
                         <button
+                            type="button"
                             onClick={toggleMenu}
                             aria-label={menuState ? 'Close Menu' : 'Open Menu'}
                             className="md:hidden">

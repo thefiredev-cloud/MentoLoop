@@ -242,6 +242,7 @@ export default function StudentLandingPage() {
               <Card key={index} className="border-0 shadow-lg">
                 <CardContent className="p-6">
                   <button
+                    type="button"
                     className="w-full text-left flex justify-between items-center"
                     onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
                   >

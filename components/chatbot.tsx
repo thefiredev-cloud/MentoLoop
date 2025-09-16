@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { useUser } from '@clerk/nextjs'
 import { usePathname } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
+import type { Components as MarkdownComponents } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { motion, AnimatePresence } from 'motion/react'
 
@@ -363,11 +364,11 @@ export function Chatbot() {
                                 <ReactMarkdown 
                                   remarkPlugins={[remarkGfm]}
                                   components={{
-                                  p: ({children}: any) => <p className="mb-2 last:mb-0">{children}</p>,
-                                  ul: ({children}: any) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
-                                  ol: ({children}: any) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
-                                  li: ({children}: any) => <li className="mb-1">{children}</li>,
-                                  code: ({className, children}: any) => {
+                                  p: ({children}: { children: React.ReactNode }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  ul: ({children}: { children: React.ReactNode }) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
+                                  ol: ({children}: { children: React.ReactNode }) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
+                                  li: ({children}: { children: React.ReactNode }) => <li className="mb-1">{children}</li>,
+                                  code: ({className, children}: { className?: string; children: React.ReactNode }) => {
                                     const isInline = !className
                                     return isInline ? (
                                       <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs">{children}</code>
@@ -377,13 +378,13 @@ export function Chatbot() {
                                       </pre>
                                     )
                                   },
-                                  strong: ({children}: any) => <strong className="font-semibold">{children}</strong>,
-                                  a: ({href, children}: any) => (
+                                  strong: ({children}: { children: React.ReactNode }) => <strong className="font-semibold">{children}</strong>,
+                                  a: ({href, children}: { href?: string; children: React.ReactNode }) => (
                                     <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                                       {children}
                                     </a>
                                   ),
-                                  }}
+                                  } as unknown as MarkdownComponents}
                                 >
                                   {msg.content}
                                 </ReactMarkdown>

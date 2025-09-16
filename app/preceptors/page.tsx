@@ -6,7 +6,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import MentoLoopBackground from '@/components/mentoloop-background'
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+const MentoLoopBackground = dynamic(() => import('@/components/mentoloop-background'), {
+  ssr: false,
+  loading: () => <div className="min-h-fit" />
+})
 import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
 import { motion } from 'motion/react'
 import { 
@@ -149,7 +154,7 @@ export default function PreceptorsPage() {
                   transition={{ delay: 0.2, duration: 0.5 }}
                 >
                   <Link
-                    href="#"
+                    href="/sign-up/preceptor"
                     className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
                     <div className="relative flex items-center justify-center">
                       <Heart className="w-4 h-4 text-red-400 animate-pulse" />
@@ -389,22 +394,42 @@ export default function PreceptorsPage() {
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 mb-4 italic">&quot;{testimonial.text}&quot;</p>
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {preceptorTestimonials === undefined ? (
+              Array.from({ length: 3 }).map((_, idx) => (
+                <Card key={idx} className="border-0 shadow-lg">
+                  <CardContent className="p-6 space-y-3">
+                    <div className="flex gap-1">
+                      {Array.from({ length: 5 }).map((__, i) => (
+                        <Skeleton key={i} className="h-5 w-5 rounded-sm" />
+                      ))}
+                    </div>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-1/3" />
+                      <Skeleton className="h-3 w-1/4" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              testimonials.map((testimonial, index) => (
+                <Card key={index} className="border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="flex mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 mb-4 italic">&quot;{testimonial.text}&quot;</p>
+                    <div>
+                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                      <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>

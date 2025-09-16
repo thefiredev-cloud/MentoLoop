@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin, requireEnterpriseAccess } from './auth'
 
 // Create a new enterprise inquiry/signup
 export const createEnterpriseInquiry = mutation({
@@ -59,6 +60,7 @@ export const createEnterpriseInquiry = mutation({
 export const getEnterpriseInquiries = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx)
     return await ctx.db
       .query("enterprises")
       .filter((q) => q.eq(q.field("status"), "pending"))
@@ -85,6 +87,7 @@ export const updateEnterpriseStatus = mutation({
     status: v.union(v.literal("active"), v.literal("inactive"), v.literal("pending"), v.literal("suspended")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx)
     await ctx.db.patch(args.enterpriseId, {
       status: args.status,
       updatedAt: Date.now(),
@@ -96,6 +99,7 @@ export const updateEnterpriseStatus = mutation({
 export const getEnterpriseById = query({
   args: { enterpriseId: v.id("enterprises") },
   handler: async (ctx, args) => {
+    await requireEnterpriseAccess(ctx, args.enterpriseId)
     return await ctx.db.get(args.enterpriseId);
   },
 });
@@ -117,6 +121,7 @@ export const countEnterprises = query({
 export const getEnterpriseDashboardStats = query({
   args: { enterpriseId: v.id("enterprises") },
   handler: async (ctx, args) => {
+    await requireEnterpriseAccess(ctx, args.enterpriseId)
     const enterprise = await ctx.db.get(args.enterpriseId);
     if (!enterprise) {
       throw new Error("Enterprise not found");
@@ -174,6 +179,7 @@ export const getEnterpriseRecentActivity = query({
     limit: v.optional(v.number())
   },
   handler: async (ctx, args) => {
+    await requireEnterpriseAccess(ctx, args.enterpriseId)
     const limit = args.limit ?? 10;
     
     const enterprise = await ctx.db.get(args.enterpriseId);

@@ -1,0 +1,517 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, Users, Clock } from 'lucide-react'
+
+interface AvailabilityStepProps {
+  data: Record<string, unknown>
+  updateFormData: (section: string, data: Record<string, unknown>) => void
+  onNext: () => void
+  onPrev: () => void
+  isFirstStep: boolean
+  isLastStep: boolean
+}
+
+const availableRotations = [
+  { value: 'family-practice', label: 'Family Practice' },
+  { value: 'pediatrics', label: 'Pediatrics' },
+  { value: 'psych-mental-health', label: 'Psych/Mental Health' },
+  { value: 'adult-gero', label: 'Adult/Gero' },
+  { value: 'womens-health', label: 'Women\'s Health' },
+  { value: 'acute-care', label: 'Acute Care' },
+  { value: 'other', label: 'Other' },
+]
+
+const daysOfWeek = [
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+  { value: 'sunday', label: 'Sunday' },
+]
+
+const studentDegreeLevels = [
+  { value: 'BSN-to-DNP', label: 'BSN-to-DNP' },
+  { value: 'MSN', label: 'MSN' },
+  { value: 'post-masters', label: 'Post-Master\'s' },
+  { value: 'no-preference', label: 'No Preference' },
+]
+
+export default function AvailabilityStep({ 
+  data, 
+  updateFormData, 
+  onNext, 
+  onPrev, 
+  isFirstStep, 
+  isLastStep: _isLastStep 
+}: AvailabilityStepProps) {
+  const [formData, setFormData] = useState({
+    // Availability
+    currentlyAccepting: false,
+    availableRotations: [] as string[],
+    maxStudentsPerRotation: '',
+    rotationDurationPreferred: '',
+    preferredStartDates: [] as string[],
+    daysAvailable: [] as string[],
+    // Matching Preferences
+    studentDegreeLevelPreferred: '',
+    comfortableWithFirstRotation: false,
+    schoolsWorkedWith: [] as string[],
+    languagesSpoken: [] as string[],
+    ...(data.availability || {}),
+    ...(data.matchingPreferences || {})
+  })
+
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [newStartDate, setNewStartDate] = useState('')
+  const [newSchool, setNewSchool] = useState('')
+  const [newLanguage, setNewLanguage] = useState('')
+
+  useEffect(() => {
+    // Split data between availability and matching preferences
+    const { 
+      currentlyAccepting, 
+      availableRotations, 
+      maxStudentsPerRotation, 
+      rotationDurationPreferred, 
+      preferredStartDates, 
+      daysAvailable,
+      ...matchingData 
+    } = formData
+
+    updateFormData('availability', {
+      currentlyAccepting,
+      availableRotations,
+      maxStudentsPerRotation,
+      rotationDurationPreferred,
+      preferredStartDates,
+      daysAvailable,
+    })
+
+    updateFormData('matchingPreferences', matchingData)
+  }, [formData, updateFormData])
+
+  const handleInputChange = (field: string, value: string | boolean | number) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const handleRotationChange = (rotation: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      availableRotations: checked 
+        ? [...prev.availableRotations, rotation]
+        : prev.availableRotations.filter((r: string) => r !== rotation)
+    }))
+    if (errors.availableRotations) {
+      setErrors((prev) => ({ ...prev, availableRotations: '' }))
+    }
+  }
+
+  const handleDayChange = (day: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      daysAvailable: checked 
+        ? [...prev.daysAvailable, day]
+        : prev.daysAvailable.filter((d: string) => d !== day)
+    }))
+    if (errors.daysAvailable) {
+      setErrors((prev) => ({ ...prev, daysAvailable: '' }))
+    }
+  }
+
+  const addStartDate = () => {
+    if (newStartDate && !formData.preferredStartDates.includes(newStartDate)) {
+      setFormData((prev) => ({
+        ...prev,
+        preferredStartDates: [...prev.preferredStartDates, newStartDate]
+      }))
+      setNewStartDate('')
+    }
+  }
+
+  const removeStartDate = (date: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredStartDates: prev.preferredStartDates.filter((d: string) => d !== date)
+    }))
+  }
+
+  const addSchool = () => {
+    if (newSchool.trim() && !formData.schoolsWorkedWith.includes(newSchool.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        schoolsWorkedWith: [...prev.schoolsWorkedWith, newSchool.trim()]
+      }))
+      setNewSchool('')
+    }
+  }
+
+  const removeSchool = (school: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      schoolsWorkedWith: prev.schoolsWorkedWith.filter((s: string) => s !== school)
+    }))
+  }
+
+  const addLanguage = () => {
+    if (newLanguage.trim() && !formData.languagesSpoken.includes(newLanguage.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        languagesSpoken: [...prev.languagesSpoken, newLanguage.trim()]
+      }))
+      setNewLanguage('')
+    }
+  }
+
+  const removeLanguage = (language: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      languagesSpoken: prev.languagesSpoken.filter((l: string) => l !== language)
+    }))
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (formData.currentlyAccepting) {
+      if (formData.availableRotations.length === 0) {
+        newErrors.availableRotations = 'Please select at least one rotation type'
+      }
+
+      if (!formData.maxStudentsPerRotation) {
+        newErrors.maxStudentsPerRotation = 'Please specify maximum students per rotation'
+      }
+
+      if (!formData.rotationDurationPreferred) {
+        newErrors.rotationDurationPreferred = 'Please select rotation duration preference'
+      }
+
+      if (formData.preferredStartDates.length === 0) {
+        newErrors.preferredStartDates = 'Please add at least one preferred start date'
+      }
+
+      if (formData.daysAvailable.length === 0) {
+        newErrors.daysAvailable = 'Please select at least one available day'
+      }
+    }
+
+    if (!formData.studentDegreeLevelPreferred) {
+      newErrors.studentDegreeLevelPreferred = 'Please select student degree level preference'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleNext = () => {
+    if (validateForm()) {
+      onNext()
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Current Availability */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Current Availability
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="currentlyAccepting"
+              checked={formData.currentlyAccepting}
+              onCheckedChange={(checked) => handleInputChange('currentlyAccepting', checked)}
+            />
+            <Label htmlFor="currentlyAccepting" className="text-sm font-medium">
+              Are you currently accepting students?
+            </Label>
+          </div>
+
+          {formData.currentlyAccepting && (
+            <div className="space-y-6 p-4 border rounded-lg bg-muted/20">
+              <div className="space-y-3">
+                <Label>Available Rotations *</Label>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {availableRotations.map((rotation) => (
+                    <div key={rotation.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={rotation.value}
+                        checked={formData.availableRotations.includes(rotation.value)}
+                        onCheckedChange={(checked) => handleRotationChange(rotation.value, checked as boolean)}
+                      />
+                      <Label htmlFor={rotation.value} className="text-sm font-normal">
+                        {rotation.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                {errors.availableRotations && (
+                  <p className="text-sm text-destructive">{errors.availableRotations}</p>
+                )}
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="maxStudents">Max # of Students per Rotation *</Label>
+                  <Select 
+                    value={formData.maxStudentsPerRotation} 
+                    onValueChange={(value) => handleInputChange('maxStudentsPerRotation', value)}
+                  >
+                    <SelectTrigger className={errors.maxStudentsPerRotation ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="Select maximum" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 student</SelectItem>
+                      <SelectItem value="2">2 students</SelectItem>
+                      <SelectItem value="3+">3+ students</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.maxStudentsPerRotation && (
+                    <p className="text-sm text-destructive">{errors.maxStudentsPerRotation}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rotationDuration">Rotation Duration Preferred *</Label>
+                  <Select 
+                    value={formData.rotationDurationPreferred} 
+                    onValueChange={(value) => handleInputChange('rotationDurationPreferred', value)}
+                  >
+                    <SelectTrigger className={errors.rotationDurationPreferred ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="4-weeks">4 weeks</SelectItem>
+                      <SelectItem value="8-weeks">8 weeks</SelectItem>
+                      <SelectItem value="12-weeks">12 weeks</SelectItem>
+                      <SelectItem value="flexible">Flexible</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.rotationDurationPreferred && (
+                    <p className="text-sm text-destructive">{errors.rotationDurationPreferred}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Preferred Start Dates *</Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {formData.preferredStartDates.map((date: string) => (
+                    <Badge key={date} variant="secondary" className="gap-1">
+                      {new Date(date).toLocaleDateString()}
+                      <button 
+                        type="button"
+                        onClick={() => removeStartDate(date)}
+                        className="text-xs hover:text-destructive"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="date"
+                    value={newStartDate}
+                    onChange={(e) => setNewStartDate(e.target.value)}
+                    className="max-w-xs"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={addStartDate}
+                    disabled={!newStartDate}
+                  >
+                    Add Date
+                  </Button>
+                </div>
+                {errors.preferredStartDates && (
+                  <p className="text-sm text-destructive">{errors.preferredStartDates}</p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <Label>Days Available *</Label>
+                <div className="grid gap-3 md:grid-cols-4">
+                  {daysOfWeek.map((day) => (
+                    <div key={day.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={day.value}
+                        checked={formData.daysAvailable.includes(day.value)}
+                        onCheckedChange={(checked) => handleDayChange(day.value, checked as boolean)}
+                      />
+                      <Label htmlFor={day.value} className="text-sm font-normal">
+                        {day.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                {errors.daysAvailable && (
+                  <p className="text-sm text-destructive">{errors.daysAvailable}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Matching Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Student Matching Preferences
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="degreeLevel">Student Degree Level Preferred *</Label>
+            <Select 
+              value={formData.studentDegreeLevelPreferred} 
+              onValueChange={(value) => handleInputChange('studentDegreeLevelPreferred', value)}
+            >
+              <SelectTrigger className={errors.studentDegreeLevelPreferred ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select preference" />
+              </SelectTrigger>
+              <SelectContent>
+                {studentDegreeLevels.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.studentDegreeLevelPreferred && (
+              <p className="text-sm text-destructive">{errors.studentDegreeLevelPreferred}</p>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="firstRotation"
+              checked={formData.comfortableWithFirstRotation}
+              onCheckedChange={(checked) => handleInputChange('comfortableWithFirstRotation', checked)}
+            />
+            <Label htmlFor="firstRotation" className="text-sm">
+              Comfortable with first-rotation students?
+            </Label>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Schools Worked With Previously (Optional)</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.schoolsWorkedWith.map((school: string) => (
+                <Badge key={school} variant="secondary" className="gap-1">
+                  {school}
+                  <button 
+                    type="button"
+                    onClick={() => removeSchool(school)}
+                    className="text-xs hover:text-destructive"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={newSchool}
+                onChange={(e) => setNewSchool(e.target.value)}
+                placeholder="School or program name"
+                className="max-w-xs"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={addSchool}
+                disabled={!newSchool.trim()}
+              >
+                Add School
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Languages Spoken (Optional)</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.languagesSpoken.map((language: string) => (
+                <Badge key={language} variant="secondary" className="gap-1">
+                  {language}
+                  <button 
+                    type="button"
+                    onClick={() => removeLanguage(language)}
+                    className="text-xs hover:text-destructive"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={newLanguage}
+                onChange={(e) => setNewLanguage(e.target.value)}
+                placeholder="Language"
+                className="max-w-xs"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={addLanguage}
+                disabled={!newLanguage.trim()}
+              >
+                Add Language
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-muted/50">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Clock className="h-5 w-5 text-primary mt-1 shrink-0" />
+            <div>
+              <p className="text-sm font-medium mb-1">Flexible Scheduling</p>
+              <p className="text-xs text-muted-foreground">
+                You can update your availability anytime through your dashboard. We&apos;ll only show your profile 
+                to students when you&apos;re actively accepting placements, and you can pause availability whenever needed.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-between pt-6">
+        <Button 
+          variant="outline" 
+          onClick={onPrev} 
+          disabled={isFirstStep}
+        >
+          Previous
+        </Button>
+        <Button onClick={handleNext}>
+          Next: Mentoring Style
+        </Button>
+      </div>
+    </div>
+  )
+}
+

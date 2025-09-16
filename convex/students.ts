@@ -100,41 +100,39 @@ export const createOrUpdateStudent = mutation({
     membershipPlan: v.optional(v.union(v.literal("core"), v.literal("pro"), v.literal("premium"))),
   },
   handler: async (ctx, args) => {
-    console.log("[createOrUpdateStudent] Starting submission processing");
-    
-    // Enhanced logging for debugging
-    console.log("[createOrUpdateStudent] Received data structure:", {
-      hasPersonalInfo: !!args.personalInfo,
-      hasSchoolInfo: !!args.schoolInfo,
-      hasRotationNeeds: !!args.rotationNeeds,
-      hasMatchingPreferences: !!args.matchingPreferences,
-      hasLearningStyle: !!args.learningStyle,
-      hasAgreements: !!args.agreements,
-      learningStyleKeys: args.learningStyle ? Object.keys(args.learningStyle) : [],
-      matchingPrefsKeys: args.matchingPreferences ? Object.keys(args.matchingPreferences) : [],
-    });
+    const allowDebug = typeof process !== "undefined" && process.env.NODE_ENV !== "production";
+    if (allowDebug) {
+      console.log("[createOrUpdateStudent] Starting submission processing");
+      console.log("[createOrUpdateStudent] Received data structure:", {
+        hasPersonalInfo: !!args.personalInfo,
+        hasSchoolInfo: !!args.schoolInfo,
+        hasRotationNeeds: !!args.rotationNeeds,
+        hasMatchingPreferences: !!args.matchingPreferences,
+        hasLearningStyle: !!args.learningStyle,
+        hasAgreements: !!args.agreements,
+        learningStyleKeys: args.learningStyle ? Object.keys(args.learningStyle) : [],
+        matchingPrefsKeys: args.matchingPreferences ? Object.keys(args.matchingPreferences) : [],
+      });
+    }
 
     // Step 1: Check authentication
-    console.log("[createOrUpdateStudent] Step 1: Checking authentication");
+    if (allowDebug) console.log("[createOrUpdateStudent] Step 1: Checking authentication");
     const identity = await ctx.auth.getUserIdentity();
-    console.log("[createOrUpdateStudent] Identity check:", {
-      hasIdentity: !!identity,
-      subject: identity?.subject,
-      email: identity?.email,
-      name: identity?.name
-    });
+    if (allowDebug) {
+      console.log("[createOrUpdateStudent] Identity present:", { hasIdentity: !!identity });
+    }
 
     if (!identity) {
-      console.error("[createOrUpdateStudent] No identity found - user not authenticated");
+      if (allowDebug) console.error("[createOrUpdateStudent] No identity found - user not authenticated");
       throw new Error("Not authenticated. Please sign in and try again.");
     }
 
     // Step 2: Get or create user
-    console.log("[createOrUpdateStudent] Step 2: Getting user ID");
+    if (allowDebug) console.log("[createOrUpdateStudent] Step 2: Getting user ID");
     let userId = await getUserId(ctx);
     
     if (!userId) {
-      console.log("[createOrUpdateStudent] User not found, attempting to create");
+      if (allowDebug) console.log("[createOrUpdateStudent] User not found, attempting to create");
       
       try {
         // Attempt to create the user if not exists
@@ -144,7 +142,7 @@ export const createOrUpdateStudent = mutation({
           .unique();
         
         if (!existingUser) {
-          console.log("[createOrUpdateStudent] Creating new user record");
+          if (allowDebug) console.log("[createOrUpdateStudent] Creating new user record");
           const userEmail = identity.email ?? "";
           const isAdmin = isAdminEmail(userEmail);
           
@@ -156,13 +154,13 @@ export const createOrUpdateStudent = mutation({
             permissions: isAdmin ? ["full_admin_access"] : undefined,
             createdAt: Date.now(),
           });
-          console.log("[createOrUpdateStudent] User created with ID:", userId);
+          if (allowDebug) console.log("[createOrUpdateStudent] User created with ID:", userId);
         } else {
           userId = existingUser._id;
-          console.log("[createOrUpdateStudent] Found existing user with ID:", userId);
+          if (allowDebug) console.log("[createOrUpdateStudent] Found existing user with ID:", userId);
         }
       } catch (userCreationError) {
-        console.error("[createOrUpdateStudent] Error during user creation/lookup:", userCreationError);
+        if (allowDebug) console.error("[createOrUpdateStudent] Error during user creation/lookup");
         // Try one more time with getUserId in case there was a race condition
         userId = await getUserId(ctx);
         if (!userId) {
@@ -170,12 +168,12 @@ export const createOrUpdateStudent = mutation({
         }
       }
     } else {
-      console.log("[createOrUpdateStudent] Found user with ID:", userId);
+      if (allowDebug) console.log("[createOrUpdateStudent] Found user with ID:", userId);
     }
 
     // Re-verify we have a user ID
     if (!userId) {
-      console.error("[createOrUpdateStudent] Failed to get or create user ID");
+      if (allowDebug) console.error("[createOrUpdateStudent] Failed to get or create user ID");
       throw new Error("Unable to process your request. Please refresh the page and try again.");
     }
 

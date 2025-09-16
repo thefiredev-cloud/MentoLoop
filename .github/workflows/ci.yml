@@ -26,9 +26,12 @@ jobs:
       
     - name: Run ESLint
       run: npm run lint
-      
+
     - name: Run TypeScript type check
       run: npm run type-check
+
+    - name: Static scan (dead links, env parity)
+      run: node scripts/static-scan.js
 
   build:
     name: Build Application

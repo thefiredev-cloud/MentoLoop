@@ -54,6 +54,7 @@ export function withCurrentUser<P extends object>(
           <div className="text-center">
             <p className="text-sm text-destructive">Failed to load user profile</p>
             <button 
+              type="button"
               onClick={() => window.location.reload()} 
               className="mt-2 text-xs text-primary hover:underline"
             >

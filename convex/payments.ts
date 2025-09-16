@@ -192,7 +192,6 @@ export const createStudentCheckoutSession = action({
       const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT"];
       if (args.discountCode && pennyEnv && pennyCodes.includes(args.discountCode.toUpperCase())) {
         stripePriceId = pennyEnv;
-      }`);
       }
 
       // First, create or get the Stripe customer
@@ -495,7 +494,6 @@ export const handleStripeWebhook = action({
     }
 
     try {
-      // Verify webhook signature to ensure it's from Stripe
       const verificationResult = await ctx.runAction(internal.paymentsNode.verifyStripeSignature, {
         payload: args.payload,
         signature: args.signature,
@@ -506,23 +504,19 @@ export const handleStripeWebhook = action({
         throw new Error("Invalid webhook signature");
       }
 
-      // Parse the verified event
       const event = JSON.parse(args.payload);
 
-      // Idempotency: skip already processed events
-      const already = await ctx.db
-        .query("stripeEvents")
-        .withIndex("byEventId", (q) => q.eq("eventId", event.id))
-        .first();
-      if (already) {
+      // Idempotency via internal helpers
+      const existing = await ctx.runQuery(internal.payments.getWebhookEventByProviderAndId, {
+        provider: "stripe",
+        eventId: event.id,
+      });
+      if (existing) {
         return { received: true, duplicate: true };
       }
-      // Record event before processing (prevents concurrent dupes)
-      await ctx.db.insert("stripeEvents", {
+      const insertedId = await ctx.runMutation(internal.payments.insertWebhookEvent, {
+        provider: "stripe",
         eventId: event.id,
-        type: event.type || "unknown",
-        createdAt: (event.created ? event.created * 1000 : Date.now()),
-        processedAt: undefined,
       });
 
       switch (event.type) {
@@ -542,20 +536,11 @@ export const handleStripeWebhook = action({
           await handleCustomerUpdated(ctx, event.data.object);
           break;
         default:
-          // Unhandled event type - no action needed
       }
 
-      // Mark processed
-      const rec = await ctx.db
-        .query("stripeEvents")
-        .withIndex("byEventId", (q) => q.eq("eventId", event.id))
-        .first();
-      if (rec) {
-        await ctx.db.patch(rec._id, { processedAt: Date.now() });
-      }
+      await ctx.runMutation(internal.payments.markWebhookEventProcessed, { id: insertedId });
       return { received: true };
     } catch (error) {
-      // Webhook processing failed
       throw new Error(`Webhook processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
@@ -605,7 +590,7 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
         const amount = (pi?.amount_received ?? session.amount_total) as number;
         const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
         if (user) {
-          await ctx.db.insert("payments", {
+          await ctx.runMutation(internal.payments.insertPaymentRecord, {
             userId: user._id,
             matchId,
             stripePaymentIntentId: paymentIntentId,
@@ -615,9 +600,35 @@ async function handleCheckoutCompleted(ctx: any, session: any) {
             status: "succeeded",
             description: session.metadata?.rotationType || "Clinical rotation payment",
             receiptUrl,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
           });
+
+          // Create preceptor earning record (pending)
+          try {
+            const match = await ctx.runQuery(internal.matches.getMatchById, { matchId });
+            const preceptorDoc = match ? await ctx.runQuery(internal.preceptors.getPreceptorById, { preceptorId: match.preceptorId }) : null;
+            const studentDoc = match ? await ctx.runQuery(internal.students.getStudentById, { studentId: match.studentId }) : null;
+            const preceptorUserId = preceptorDoc?.userId;
+            const studentUserId = studentDoc?.userId;
+            if (preceptorUserId && studentUserId) {
+              const percent = Number(process.env.PRECEPTOR_PAYOUT_PERCENT || '0.70');
+              const payoutAmount = Math.round((amount as number) * Math.max(0, Math.min(percent, 0.95)));
+              await ctx.db.insert("preceptorEarnings", {
+                preceptorId: preceptorUserId,
+                matchId,
+                studentId: studentUserId,
+                amount: payoutAmount,
+                currency,
+                status: "pending",
+                description: session.metadata?.rotationType || "Clinical rotation",
+                rotationStartDate: match?.rotationDetails?.startDate,
+                rotationEndDate: match?.rotationDetails?.endDate,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              });
+            }
+          } catch (e) {
+            console.error("Failed creating preceptor earning:", e);
+          }
         }
       }
     }
@@ -913,6 +924,36 @@ export const updatePaymentAttempt = internalMutation({
         updatedAt: Date.now(),
       });
     }
+  },
+});
+
+// Internal mutation to insert a finalized payment record (to be called from actions)
+export const insertPaymentRecord = internalMutation({
+  args: {
+    userId: v.id("users"),
+    matchId: v.optional(v.id("matches")),
+    stripePaymentIntentId: v.string(),
+    stripeCustomerId: v.optional(v.string()),
+    amount: v.number(),
+    currency: v.string(),
+    status: v.union(v.literal("succeeded"), v.literal("refunded"), v.literal("partially_refunded")),
+    description: v.optional(v.string()),
+    receiptUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("payments", {
+      userId: args.userId,
+      matchId: args.matchId,
+      stripePaymentIntentId: args.stripePaymentIntentId,
+      stripeCustomerId: args.stripeCustomerId,
+      amount: args.amount,
+      currency: args.currency,
+      status: args.status,
+      description: args.description,
+      receiptUrl: args.receiptUrl,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -1693,29 +1734,23 @@ export const updateDiscountCodeWithPromotionId = internalMutation({
 
 export const createPreceptorConnectAccount = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ accountId: string }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) throw new Error("Stripe not configured");
 
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
-      .first();
+    const user = await ctx.runQuery(internal.payments.getUserByExternalId, { externalId: identity.subject });
     if (!user) throw new Error("User not found");
 
-    const preceptor = await ctx.db
-      .query("preceptors")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .first();
+    const preceptor = await ctx.runQuery(internal.payments.getPreceptorByUserId, { userId: user._id });
     if (!preceptor) throw new Error("Preceptor profile not found");
 
     if (preceptor.stripeConnectAccountId) {
       return { accountId: preceptor.stripeConnectAccountId };
     }
 
-    const email = preceptor.personalInfo.email;
+    const email = preceptor.personalInfo.email as string;
     const res = await fetch("https://api.stripe.com/v1/accounts", {
       method: "POST",
       headers: {
@@ -1735,11 +1770,14 @@ export const createPreceptorConnectAccount = action({
     }
     const account = await res.json();
 
-    await ctx.db.patch(preceptor._id, {
-      stripeConnectAccountId: account.id,
-      stripeConnectStatus: "onboarding",
-      payoutsEnabled: false,
-      updatedAt: Date.now(),
+    await ctx.runMutation(internal.payments.patchPreceptor, {
+      preceptorId: preceptor._id,
+      updates: {
+        stripeConnectAccountId: account.id,
+        stripeConnectStatus: "onboarding",
+        payoutsEnabled: false,
+        updatedAt: Date.now(),
+      },
     });
     return { accountId: account.id };
   },
@@ -1747,34 +1785,28 @@ export const createPreceptorConnectAccount = action({
 
 export const createPreceptorAccountLink = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ url: string }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) throw new Error("Stripe not configured");
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mentoloop.com";
 
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
-      .first();
+    const user = await ctx.runQuery(internal.payments.getUserByExternalId, { externalId: identity.subject });
     if (!user) throw new Error("User not found");
 
-    let preceptor = await ctx.db
-      .query("preceptors")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .first();
+    let preceptor = await ctx.runQuery(internal.payments.getPreceptorByUserId, { userId: user._id });
     if (!preceptor) throw new Error("Preceptor profile not found");
 
     if (!preceptor.stripeConnectAccountId) {
-      const created = await ctx.runAction(internal.payments.createPreceptorConnectAccount, {} as any);
-      preceptor = await ctx.db.get(preceptor._id);
+      const created = await ctx.runAction(api.payments.createPreceptorConnectAccount, {} as any);
+      preceptor = await ctx.runQuery(internal.payments.getPreceptorByUserId, { userId: user._id });
       if (!created?.accountId && !(preceptor && preceptor.stripeConnectAccountId)) {
         throw new Error("Failed to create Connect account");
       }
     }
 
-    const accountId = preceptor.stripeConnectAccountId as string;
+    const accountId = (preceptor!.stripeConnectAccountId as string);
     const res = await fetch("https://api.stripe.com/v1/account_links", {
       method: "POST",
       headers: {
@@ -1799,22 +1831,16 @@ export const createPreceptorAccountLink = action({
 
 export const refreshPreceptorConnectStatus = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ payoutsEnabled: boolean; status: string }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) throw new Error("Stripe not configured");
 
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
-      .first();
+    const user = await ctx.runQuery(internal.payments.getUserByExternalId, { externalId: identity.subject });
     if (!user) throw new Error("User not found");
 
-    const preceptor = await ctx.db
-      .query("preceptors")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .first();
+    const preceptor = await ctx.runQuery(internal.payments.getPreceptorByUserId, { userId: user._id });
     if (!preceptor || !preceptor.stripeConnectAccountId) throw new Error("Connect account not found");
 
     const res = await fetch(`https://api.stripe.com/v1/accounts/${preceptor.stripeConnectAccountId}`, {
@@ -1827,11 +1853,137 @@ export const refreshPreceptorConnectStatus = action({
     const account = await res.json();
     const payoutsEnabled = !!account.payouts_enabled;
     const status = payoutsEnabled ? "enabled" : (account.requirements?.disabled_reason ? "restricted" : "onboarding");
-    await ctx.db.patch(preceptor._id, {
-      payoutsEnabled,
-      stripeConnectStatus: status as any,
-      updatedAt: Date.now(),
+    await ctx.runMutation(internal.payments.patchPreceptor, {
+      preceptorId: preceptor._id,
+      updates: {
+        payoutsEnabled,
+        stripeConnectStatus: status as any,
+        updatedAt: Date.now(),
+      },
     });
     return { payoutsEnabled, status };
+  },
+});
+
+export const payPreceptorEarning = action({
+  args: { earningId: v.id("preceptorEarnings") },
+  handler: async (ctx, args): Promise<{ success: true; transferId: string }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+
+    const earning = await ctx.runQuery(internal.payments.getPreceptorEarningById, { earningId: args.earningId });
+    if (!earning) throw new Error("Earning not found");
+    if (earning.status !== "pending") throw new Error("Earning already paid or cancelled");
+
+    const preceptor = await ctx.runQuery(internal.payments.getPreceptorByUserId, { userId: earning.preceptorId });
+    if (!preceptor || !preceptor.stripeConnectAccountId) throw new Error("Preceptor Stripe Connect account missing");
+
+    const res = await fetch("https://api.stripe.com/v1/transfers", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        amount: String(earning.amount),
+        currency: earning.currency || "usd",
+        destination: preceptor.stripeConnectAccountId,
+        description: earning.description || "MentoLoop Preceptor Payout",
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Stripe transfer error: ${res.status} ${t}`);
+    }
+    const transfer = await res.json();
+
+    await ctx.runMutation(internal.payments.patchPreceptorEarning, {
+      earningId: args.earningId,
+      updates: {
+        status: "paid",
+        paymentReference: transfer.id,
+        paidAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    });
+
+    return { success: true, transferId: transfer.id };
+  },
+});
+
+// Internal query to check if a webhook event exists
+export const getWebhookEventByProviderAndId = internalQuery({
+  args: { provider: v.string(), eventId: v.string() },
+  handler: async (ctx, { provider, eventId }) => {
+    return await ctx.db
+      .query("webhookEvents")
+      .withIndex("byProviderEvent", (q) => q.eq("provider", provider).eq("eventId", eventId))
+      .first();
+  },
+});
+
+// Internal mutation to insert a webhook event row
+export const insertWebhookEvent = internalMutation({
+  args: { provider: v.string(), eventId: v.string() },
+  handler: async (ctx, { provider, eventId }) => {
+    return await ctx.db.insert("webhookEvents", {
+      provider,
+      eventId,
+      processedAt: 0,
+    });
+  },
+});
+
+// Internal mutation to mark a webhook event as processed
+export const markWebhookEventProcessed = internalMutation({
+  args: { id: v.id("webhookEvents") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.patch(id, { processedAt: Date.now() });
+  },
+});
+
+// Internal query to get user by externalId (Clerk id)
+export const getUserByExternalId = internalQuery({
+  args: { externalId: v.string() },
+  handler: async (ctx, { externalId }) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", externalId))
+      .unique();
+  },
+});
+
+// Internal query to get preceptor by userId
+export const getPreceptorByUserId = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    return await ctx.db
+      .query("preceptors")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .first();
+  },
+});
+
+// Internal mutation to patch a preceptor document
+export const patchPreceptor = internalMutation({
+  args: { preceptorId: v.id("preceptors"), updates: v.any() },
+  handler: async (ctx, { preceptorId, updates }) => {
+    await ctx.db.patch(preceptorId, updates as any);
+  },
+});
+
+// Internal mutation to patch preceptor earning by id
+export const patchPreceptorEarning = internalMutation({
+  args: { earningId: v.id("preceptorEarnings"), updates: v.any() },
+  handler: async (ctx, { earningId, updates }) => {
+    await ctx.db.patch(earningId, updates as any);
+  },
+});
+
+// Internal query to get earning by id
+export const getPreceptorEarningById = internalQuery({
+  args: { earningId: v.id("preceptorEarnings") },
+  handler: async (ctx, { earningId }) => {
+    return await ctx.db.get(earningId);
   },
 });

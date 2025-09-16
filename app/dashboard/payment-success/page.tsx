@@ -246,6 +246,7 @@ export default function PaymentSuccess() {
           A receipt for your payment has been sent to your email address.
           You can also find it in your{' '}
           <button 
+            type="button"
             onClick={() => router.push('/dashboard/billing')}
             className="underline hover:text-foreground"
           >

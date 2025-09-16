@@ -14,6 +14,8 @@ export default function DiscountSetupPage() {
   const [error, setError] = useState<string | null>(null)
   
   const initializeNPDiscountCode = useAction(api.payments.initializeNPDiscountCode)
+  const initializeAllDiscountCodes = useAction(api.payments.initializeAllDiscountCodes)
+  const createPromotionCodesForExisting = useAction(api.payments.createPromotionCodesForExistingCoupons)
 
   const handleInitialize = async () => {
     setLoading(true)
@@ -26,6 +28,42 @@ export default function DiscountSetupPage() {
       toast.success('Discount code NP12345 initialized successfully!')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize discount code'
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleInitializeAll = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+
+    try {
+      const response = await initializeAllDiscountCodes()
+      toast.success(response.message)
+      setResult({ success: response.success, message: response.message })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize discount codes'
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreatePromotions = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+
+    try {
+      const response = await createPromotionCodesForExisting()
+      toast.success(response.message)
+      setResult({ success: response.success, message: response.message })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create promotion codes'
       setError(errorMessage)
       toast.error(errorMessage)
     } finally {
@@ -53,14 +91,30 @@ export default function DiscountSetupPage() {
             </ul>
           </div>
 
-          <Button 
-            onClick={handleInitialize}
-            disabled={loading}
-            className="w-full"
-            size="lg"
-          >
-            {loading ? 'Initializing...' : 'Initialize NP12345 Discount Code'}
-          </Button>
+          <div className="grid gap-3">
+            <Button 
+              onClick={handleInitialize}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? 'Initializing...' : 'Initialize NP12345 Discount Code'}
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleInitializeAll}
+              disabled={loading}
+            >
+              Initialize All Discount Codes (NP12345, MENTO10, MENTO25)
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleCreatePromotions}
+              disabled={loading}
+            >
+              Create Promotion Codes for Existing Coupons
+            </Button>
+          </div>
 
           {result && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">

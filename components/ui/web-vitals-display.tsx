@@ -108,6 +108,7 @@ export const WebVitalsDisplay = ({ className, showInProduction = false }: WebVit
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-sm">Web Vitals</h3>
           <button
+            type="button"
             onClick={() => setIsVisible(false)}
             className="text-gray-400 hover:text-gray-600 text-xs"
           >

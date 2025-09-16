@@ -218,6 +218,7 @@ export default function FAQPage() {
                     return (
                       <Card key={globalIndex} className="overflow-hidden">
                         <button
+                          type="button"
                           className="w-full text-left p-6 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           onClick={() => setOpenIndex(isOpen ? null : globalIndex)}
                         >

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { getUserId } from "./auth";
+import { getUserId, requireAdmin } from "./auth";
 
 // Create or update preceptor profile
 export const createOrUpdatePreceptor = mutation({
@@ -198,7 +198,7 @@ export const updateVerificationStatus = mutation({
     status: v.union(v.literal("pending"), v.literal("under-review"), v.literal("verified"), v.literal("rejected"))
   },
   handler: async (ctx, args) => {
-    // TODO: Add admin authorization check
+    await requireAdmin(ctx);
     await ctx.db.patch(args.preceptorId, { 
       verificationStatus: args.status,
       updatedAt: Date.now(),
@@ -210,6 +210,11 @@ export const updateVerificationStatus = mutation({
 export const getPreceptorsByStatus = query({
   args: { status: v.union(v.literal("pending"), v.literal("under-review"), v.literal("verified"), v.literal("rejected")) },
   handler: async (ctx, args) => {
+    // Admin-only view
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("Authentication required");
+    const user = await ctx.db.get(userId);
+    if (!user || user.userType !== "admin") throw new Error("Admin access required");
     return await ctx.db
       .query("preceptors")
       .withIndex("byVerificationStatus", (q) => q.eq("verificationStatus", args.status))
@@ -935,6 +940,32 @@ export const getPreceptorEarnings = query({
 });
 
 // Get detailed earnings history
+export const getAllPreceptorEarnings = query({
+  args: { status: v.optional(v.union(v.literal("pending"), v.literal("paid"), v.literal("cancelled"))) },
+  handler: async (ctx, args) => {
+    // Admin-only
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("Authentication required");
+    const user = await ctx.db.get(userId);
+    if (!user || user.userType !== "admin") throw new Error("Admin access required");
+
+    let earnings = await ctx.db.query("preceptorEarnings").order("desc").collect();
+    if (args.status) earnings = earnings.filter((e) => e.status === args.status);
+
+    // Enrich with names
+    const enriched = [] as any[];
+    for (const e of earnings) {
+      const preceptorUser = await ctx.db.get(e.preceptorId);
+      const studentUser = await ctx.db.get(e.studentId);
+      enriched.push({
+        ...e,
+        preceptorName: preceptorUser?.name || "Preceptor",
+        studentName: studentUser?.name || "Student",
+      });
+    }
+    return enriched;
+  },
+});
 export const getPreceptorEarningsHistory = query({
   args: {
     limit: v.optional(v.number()),

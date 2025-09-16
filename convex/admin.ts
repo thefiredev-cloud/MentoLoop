@@ -1,6 +1,35 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+// Read audit logs for a specific entity (admin only)
+export const getAuditLogsForEntity = query({
+  args: {
+    entityType: v.string(),
+    entityId: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .first();
+
+    if (!currentUser || currentUser.userType !== "admin") {
+      throw new Error("Admin access required");
+    }
+
+    const logs = await ctx.db
+      .query("auditLogs")
+      .withIndex("byEntity", (q) => q.eq("entityType", args.entityType).eq("entityId", args.entityId))
+      .order("desc")
+      .take(args.limit || 10);
+
+    return logs;
+  },
+});
 
 // Search and filter users (admin only)
 export const searchUsers = query({
@@ -304,7 +333,19 @@ export const overrideMatchScore = mutation({
       updatedAt: Date.now(),
     });
 
-    // Audit logging removed - functionality deprecated
+    // Write audit log
+    await ctx.db.insert("auditLogs", {
+      action: "override_score",
+      entityType: "match",
+      entityId: args.matchId as unknown as string,
+      performedBy: currentUser._id,
+      details: {
+        previousValue: { mentorFitScore: previousScore },
+        newValue: { mentorFitScore: args.newScore },
+        reason: args.reason,
+      },
+      timestamp: Date.now(),
+    });
 
     return args.matchId;
   },

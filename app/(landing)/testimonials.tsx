@@ -198,6 +198,7 @@ export default function WallOfLoveSection() {
                         <div className="flex space-x-2">
                             {testimonials.map((_, index) => (
                                 <button
+                                    type="button"
                                     key={index}
                                     onClick={() => setCurrentIndex(index)}
                                     className={cn(

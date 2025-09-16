@@ -109,10 +109,14 @@ function StudentDashboardContent() {
       {/* Welcome Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, {student.personalInfo.fullName.split(' ')[0]}!
+          Welcome back, {(student?.personalInfo?.fullName?.split(' ')[0]) || (clerkUser?.firstName ?? 'Student')}!
         </h1>
+        {false && (
         <p className="text-muted-foreground">
           {student.schoolInfo.degreeTrack} Student • {student.schoolInfo.programName}
+        </p>)}
+        <p className="text-muted-foreground">
+          {(student?.schoolInfo?.degreeTrack || 'Nursing')} Student • {(student?.schoolInfo?.programName || 'Program')}
         </p>
       </div>
 
@@ -144,10 +148,10 @@ function StudentDashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {currentMatch ? currentMatch.rotationDetails.rotationType : 'None'}
+              {currentMatch?.rotationDetails?.rotationType || 'None'}
             </div>
             <p className="text-xs text-muted-foreground">
-              {currentMatch ? `${currentMatch.rotationDetails.weeklyHours}h/week` : 'No active rotation'}
+              {currentMatch?.rotationDetails?.weeklyHours ? `${currentMatch.rotationDetails.weeklyHours}h/week` : 'No active rotation'}
             </p>
           </CardContent>
         </Card>

@@ -74,3 +74,33 @@ export async function getUserIdOrCreate(
   }
   return user._id;
 }
+
+export async function requireAdmin(
+  ctx: QueryCtx | MutationCtx
+): Promise<Id<"users">> {
+  const userId = await requireAuth(ctx)
+  const user = await ctx.db.get(userId)
+  if (!user || user.userType !== "admin") {
+    throw new Error("Admin access required")
+  }
+  return userId
+}
+
+export async function requireEnterpriseAccess(
+  ctx: QueryCtx | MutationCtx,
+  enterpriseId: Id<'enterprises'>
+): Promise<{ userId: Id<'users'>; isAdmin: boolean }> {
+  const userId = await requireAuth(ctx)
+  const user = await ctx.db.get(userId)
+  if (!user) throw new Error('Authentication required')
+  const isAdmin = user.userType === 'admin'
+  if (isAdmin) return { userId, isAdmin }
+  const enterprise = await ctx.db.get(enterpriseId)
+  if (!enterprise) throw new Error('Enterprise not found')
+  const belongs = user.enterpriseId && enterpriseId === user.enterpriseId
+  const isEnterpriseAdmin = Array.isArray((enterprise as any).adminUsers) && (enterprise as any).adminUsers.some((id: any) => id === userId)
+  if (!belongs && !isEnterpriseAdmin) {
+    throw new Error('Enterprise access required')
+  }
+  return { userId, isAdmin }
+}

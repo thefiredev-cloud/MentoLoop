@@ -21,6 +21,8 @@ import {
   ChevronRight
 } from 'lucide-react'
 
+type CSVCell = string | number | boolean | null | object | undefined
+
 export default function BillingPage() {
   const user = useQuery(api.users.current)
   const router = useRouter()
@@ -49,6 +51,7 @@ export default function BillingPage() {
 
 function BillingContent({ userType }: { userType?: string }) {
   const isStudent = userType === 'student'
+  const router = useRouter()
   
   // Fetch real data from Convex
   const currentSubscriptionData = useQuery(api.billing.getCurrentSubscription)
@@ -103,11 +106,20 @@ function BillingContent({ userType }: { userType?: string }) {
   }
   const payments: Payment[] = paymentHistory || []
 
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Billing & Payments</h1>
-        <Button>
+        <Button onClick={() => {
+          if (isStudent) {
+            toast.info('Payment method management coming soon')
+          } else {
+            router.push('/dashboard/payment-gated')
+          }
+        }}>
           <Plus className="mr-2 h-4 w-4" />
           {isStudent ? 'Update Payment Method' : 'Upgrade Plan'}
         </Button>
@@ -132,7 +144,7 @@ function BillingContent({ userType }: { userType?: string }) {
           <div className="space-y-4">
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold">
-                ${currentPlan.price}
+                {formatCurrency(currentPlan.price)}
               </span>
               {isStudent && (
                 <span className="text-muted-foreground">/ month</span>
@@ -161,7 +173,7 @@ function BillingContent({ userType }: { userType?: string }) {
                       {currentPlan.status === 'active' ? 'Active' : 'Pending'}
                     </p>
                   </div>
-                  <Button variant="outline">Change Plan</Button>
+                  <Button variant="outline" onClick={() => router.push('/dashboard/payment-gated')}>Change Plan</Button>
                 </div>
               </>
             )}
@@ -202,11 +214,11 @@ function BillingContent({ userType }: { userType?: string }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">Default</Badge>
-                  <Button variant="ghost" size="sm">Edit</Button>
+                  <Button variant="ghost" size="sm" onClick={() => toast.info('Edit payment method coming soon')}>Edit</Button>
                 </div>
               </div>
               
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={() => toast.info('Add payment method coming soon')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Payment Method
               </Button>
@@ -225,7 +237,27 @@ function BillingContent({ userType }: { userType?: string }) {
                 {isStudent ? 'Your transaction history' : 'Your earnings history'}
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => {
+              const rows: Array<Record<string, CSVCell>> = payments.map(p => ({
+                amount: formatCurrency(p.amount),
+                date: p.date,
+                status: p.status,
+                receiptUrl: p.receiptUrl || ''
+              }))
+              if (rows.length === 0) {
+                toast.info('No payments to export')
+                return
+              }
+              const header = Object.keys(rows[0])
+              const csv = [header.join(','), ...rows.map(r => header.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n')
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = 'billing_history.csv'
+              a.click()
+              URL.revokeObjectURL(url)
+            }}>
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
@@ -241,7 +273,7 @@ function BillingContent({ userType }: { userType?: string }) {
                       <DollarSign className="h-4 w-4 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-medium">${payment.amount}.00</p>
+                      <p className="font-medium">{formatCurrency(payment.amount)}</p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(payment.date).toLocaleDateString('en-US', { 
                           month: 'long', 
@@ -301,7 +333,7 @@ function BillingContent({ userType }: { userType?: string }) {
                 Receive invoices and payment confirmations
               </p>
             </div>
-            <Button variant="outline" size="sm">Configure</Button>
+            <Button variant="outline" size="sm" onClick={() => toast.info('Invoice email preferences coming soon')}>Configure</Button>
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -311,7 +343,7 @@ function BillingContent({ userType }: { userType?: string }) {
                 Add or update your tax details
               </p>
             </div>
-            <Button variant="outline" size="sm">Update</Button>
+            <Button variant="outline" size="sm" onClick={() => toast.info('Tax info update coming soon')}>Update</Button>
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -321,7 +353,7 @@ function BillingContent({ userType }: { userType?: string }) {
                 Update your billing address information
               </p>
             </div>
-            <Button variant="outline" size="sm">Edit</Button>
+            <Button variant="outline" size="sm" onClick={() => toast.info('Billing address edit coming soon')}>Edit</Button>
           </div>
         </CardContent>
       </Card>
@@ -341,7 +373,7 @@ function BillingContent({ userType }: { userType?: string }) {
                 </p>
               </div>
             </div>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => router.push('/support')}>
               Contact Support
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>

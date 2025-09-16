@@ -181,7 +181,9 @@ export const updateHoursEntry = mutation({
     await ctx.db.patch(args.entryId, updates);
 
     // If entry transitioned to approved, deduct from hour credits (FIFO by issuedAt)
-    if (args.status === "approved" && prevStatus !== "approved") {
+    const newStatus = (args.status ?? (updates as any).status ?? prevStatus) as string;
+    const prev = prevStatus as unknown as string;
+    if (newStatus === "approved" && prev !== "approved") {
       try {
         const userIdForCredits = student.userId;
         const now = Date.now();

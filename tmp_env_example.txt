@@ -1,0 +1,88 @@
+# MentoLoop Environment Variables Template
+# Copy this file to .env.local for development
+# Use these variable names in Netlify Dashboard for production
+
+# ============================================
+# AUTHENTICATION (Clerk)
+# ============================================
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_YOUR_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY=sk_test_YOUR_CLERK_SECRET_KEY
+CLERK_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
+
+# Clerk URLs
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/dashboard
+
+# ============================================
+# DATABASE (Convex)
+# ============================================
+CONVEX_DEPLOYMENT=prod:YOUR_CONVEX_DEPLOYMENT
+NEXT_PUBLIC_CONVEX_URL=https://YOUR_CONVEX_URL.convex.cloud
+
+# ============================================
+# AI SERVICES
+# ============================================
+OPENAI_API_KEY=sk-proj-YOUR_OPENAI_API_KEY
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+
+# ============================================
+# PAYMENT PROCESSING (Stripe)
+# ============================================
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_STRIPE_PUBLISHABLE_KEY
+STRIPE_SECRET_KEY=sk_test_YOUR_STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_STRIPE_WEBHOOK_SECRET
+
+# ============================================
+# COMMUNICATIONS
+# ============================================
+# Twilio (SMS)
+TWILIO_ACCOUNT_SID=YOUR_TWILIO_ACCOUNT_SID
+TWILIO_AUTH_TOKEN=YOUR_TWILIO_AUTH_TOKEN
+TWILIO_PHONE_NUMBER=+1YOUR_PHONE_NUMBER
+
+# SendGrid (Email)
+SENDGRID_API_KEY=SG.YOUR_SENDGRID_API_KEY
+SENDGRID_FROM_EMAIL=support@YOUR_DOMAIN.com
+
+# ============================================
+# APPLICATION SETTINGS
+# ============================================
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://YOUR_DOMAIN.com
+NEXT_PUBLIC_API_URL=https://YOUR_DOMAIN.com/api
+NEXT_PUBLIC_EMAIL_DOMAIN=YOUR_DOMAIN.com
+
+# ============================================
+# FEATURE FLAGS (Optional)
+# ============================================
+ENABLE_AI_MATCHING=true
+ENABLE_SMS_NOTIFICATIONS=true
+ENABLE_EMAIL_NOTIFICATIONS=true
+ENABLE_PAYMENT_PROCESSING=true
+
+# ============================================
+# SECURITY SETTINGS (Optional)
+# ============================================
+ENABLE_SECURITY_HEADERS=true
+ENABLE_RATE_LIMITING=true
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_WINDOW_MS=900000
+
+# ============================================
+# MONITORING (Optional)
+# ============================================
+SENTRY_DSN=YOUR_SENTRY_DSN
+GOOGLE_ANALYTICS_ID=YOUR_GA_ID
+
+# ============================================
+# NOTES FOR NETLIFY DEPLOYMENT:
+# ============================================
+# 1. Go to Netlify Dashboard → Site Settings → Environment Variables
+# 2. Add each variable above with your actual values
+# 3. Use production keys for live deployment (pk_live_, sk_live_)
+# 4. Use test keys for staging/development (pk_test_, sk_test_)
+# 5. Never commit actual API keys to your repository

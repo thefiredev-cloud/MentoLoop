@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import logger from '@/lib/logger'
 import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs'
 import { useConvexAuth } from 'convex/react'
 
@@ -48,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (retryCount < 3) {
         // Retry connection after a delay
         const timer = setTimeout(() => {
-          console.log(`Retrying Convex connection (attempt ${retryCount + 1}/3)...`)
+          logger.debug(`Retrying Convex connection (attempt ${retryCount + 1}/3)...`)
           setRetryCount(prev => prev + 1)
           // Force a re-render to trigger Convex reconnection
           window.location.reload()
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Log authentication state changes (development only)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('Auth State:', {
+      logger.debug('Auth State:', {
         isClerkLoaded,
         isSignedIn,
         isConvexLoading,

@@ -4,23 +4,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
+import { z } from "zod";
+import { validateHealthcarePrompt } from "@/lib/prompts";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 // naive per-user rate limiting (in-memory)
-const rl = (globalThis as any).__gpt5_fn_rl || new Map<string, { tokens: number; ts: number }>();
-(globalThis as any).__gpt5_fn_rl = rl;
+const fnRateLimiter = new Map<string, { tokens: number; ts: number }>();
 function rateLimit(key: string, max = 10, windowMs = 60_000) {
   const now = Date.now();
-  const entry = rl.get(key) || { tokens: 0, ts: now };
+  const entry = fnRateLimiter.get(key) || { tokens: 0, ts: now };
   if (now - entry.ts > windowMs) {
     entry.tokens = 0;
     entry.ts = now;
   }
   entry.tokens += 1;
-  rl.set(key, entry);
+  fnRateLimiter.set(key, entry);
   return entry.tokens <= max;
 }
+
+const BodySchema = z.object({
+  operation: z.string(),
+  // parameters are tool-call specific; keep as unknown and narrow in handler
+  parameters: z.unknown().optional(),
+});
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -29,7 +36,22 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { operation, parameters } = body || {};
+    const { operation, parameters } = BodySchema.parse(body);
+
+    // PHI/PII guardrail: scan string inputs in parameters (shallow)
+    if (parameters && typeof parameters === "object") {
+      for (const value of Object.values(parameters as Record<string, unknown>)) {
+        if (typeof value === "string") {
+          const check = validateHealthcarePrompt(value);
+          if (!check.valid) {
+            return NextResponse.json(
+              { error: "Invalid content", issues: check.issues },
+              { status: 400 }
+            );
+          }
+        }
+      }
+    }
 
     const functions = [
       {
@@ -79,11 +101,13 @@ export async function POST(req: NextRequest) {
       function_call: "auto",
     });
 
-    const functionCall = (completion.choices[0] as any)?.message?.function_call;
-    if (functionCall) {
-      const functionName = functionCall.name as string;
+    const functionCall = completion.choices?.[0]?.message?.function_call as
+      | { name?: string; arguments?: string }
+      | undefined;
+    if (functionCall?.name) {
+      const functionName = functionCall.name;
       const functionArgs = JSON.parse(functionCall.arguments || "{}");
-      let result: any;
+      let result: unknown;
       switch (functionName) {
         case "scheduleSession":
           result = {
@@ -105,9 +129,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ function: functionName, arguments: functionArgs, result });
     }
 
-    return NextResponse.json({ message: completion.choices[0].message.content });
+    const res = NextResponse.json({ message: completion.choices[0].message.content });
+    res.headers.set("cache-control", "no-store");
+    return res;
   } catch (error) {
-    console.error("Function calling error:", error);
+    // Sanitize logs to avoid PHI/PII leakage
+    console.error("Function calling error");
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid request", details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ error: "Function execution failed" }, { status: 500 });
   }
 }
