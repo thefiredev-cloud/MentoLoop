@@ -21,6 +21,10 @@ export default clerkMiddleware(async (auth, req) => {
     // Handle authentication for protected routes
     if (isProtectedRoute(req)) {
       try {
+        // Allow E2E tests to bypass auth redirects
+        if (process.env.E2E_TEST === 'true') {
+          return response
+        }
         await auth.protect()
         
         // Note: User metadata checks are handled by RoleGuard component

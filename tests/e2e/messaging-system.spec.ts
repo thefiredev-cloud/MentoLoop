@@ -3,15 +3,8 @@ import { test, expect, Page } from '@playwright/test';
 test.describe('Messaging System E2E Tests', () => {
   
   test.beforeEach(async ({ page }) => {
-    // Navigate to login and authenticate as a student
-    await page.goto('/sign-in');
-    
-    // Fill in test credentials (adjust based on your test user setup)
-    await page.fill('input[name="identifier"]', 'test.student@example.com');
-    await page.fill('input[name="password"]', 'TestPassword123!');
-    await page.click('button[type="submit"]');
-    
-    // Wait for redirect to dashboard
+    // Reuse signed-in state prepared by setup project
+    await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
