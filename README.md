@@ -12,7 +12,7 @@ A modern, full-stack mentorship platform built specifically for healthcare profe
 Built with Next.js 15, Convex real-time database, Clerk authentication, AI-enhanced matching (OpenAI/Gemini), and comprehensive healthcare compliance features.
 
 ## 🚀 Live Demo
-[**Try MentoLoop →**](https://mentoloop.com) | [**Documentation →**](https://docs.mentoloop.com)
+Deployed via GitHub → Netlify. Preview environment available. Documentation lives in `docs/` within this repo.
 
 ## 📸 Screenshots
 
@@ -44,8 +44,9 @@ Built with Next.js 15, Convex real-time database, Clerk authentication, AI-enhan
 - 🎨 **TailwindCSS v4** - Modern utility-first CSS with custom design system
 - 🔐 **Clerk Authentication** - Complete user management with role-based access
 - 🗄️ **Convex Real-time Database** - Serverless backend with real-time sync
-- 🧠 **AI Integration** - OpenAI GPT-4 and Google Gemini Pro for intelligent matching
+- 🧠 **AI Integration** - OpenAI and Google Gemini for MentorFit™ and documentation assistance
 - 📞 **Third-party Integrations** - SendGrid, Twilio, Stripe for communications and payments
+- 🧾 **Payments Reliability** - Stripe idempotency on all writes and webhook de-duplication via Convex `webhookEvents`
 - 🧪 **Comprehensive Testing** - Vitest unit tests, Playwright E2E tests, integration testing
 - 🛡️ **Security & Compliance** - HIPAA/FERPA compliant with audit logging
 - 📱 **Responsive Design** - Mobile-first approach with PWA capabilities
@@ -82,10 +83,9 @@ Built with Next.js 15, Convex real-time database, Clerk authentication, AI-enhan
 - **Turbopack** - Fast build tool
 
 ### Deployment & Infrastructure
-- **Netlify** - Primary deployment platform
-- **Vercel** - Alternative deployment option
-- **GitHub Actions** - CI/CD pipeline
-- **Environment Management** - Multi-stage deployment
+- **Netlify** - Primary deployment (connected to GitHub)
+- **GitHub Actions** - CI pipeline defined in `.github/workflows/ci.yml`
+- **Environment Management** - All secrets set in Netlify; Convex deployment configured
 
 ## Getting Started
 
@@ -174,13 +174,33 @@ NEXT_PUBLIC_CLERK_FRONTEND_API_URL=https://your-clerk-frontend-api-url.clerk.acc
 
 ### Development
 
-Start the development server:
+Local development (optional):
 
 ```bash
+npm ci
 npm run dev
 ```
 
-Your application will be available at `http://localhost:3000`.
+Quality checks:
+
+```bash
+# Type safety
+npm run type-check
+
+# Linting
+npm run lint
+
+# Unit tests (Vitest)
+npm run test:unit:run
+
+# E2E tests (Playwright)
+npx playwright test
+
+# Env/Integration smoke checks (non-interactive)
+node scripts/validate-env.js
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-stripe.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-clerk.ps1
+```
 
 ## Architecture
 
@@ -201,7 +221,7 @@ Your application will be available at `http://localhost:3000`.
 - Custom Clerk pricing table component
 - Subscription-based access control
 - Real-time payment status updates
-- Webhook-driven payment tracking
+- Webhook-driven payment tracking with idempotency & dedupe
 
 ### Email System Architecture
 - **Internal Action Pattern** - Dedicated internal functions for email operations
@@ -213,6 +233,7 @@ Your application will be available at `http://localhost:3000`.
 - **React Key Management** - Unique keys for ScrollArea and list components
 - **Action vs Mutation** - Proper separation for Convex operations
 - **Component Optimization** - Streamlined dashboard rendering
+- **Page Profiling** - Preceptors page targeted for improvements (TTFB noted in crawl)
 
 ### Database Schema
 ```typescript
@@ -311,18 +332,17 @@ The starter kit includes a fully customizable theme system. You can customize co
 - `CLERK_WEBHOOK_SECRET` - Clerk webhook secret (set in Convex dashboard)
 - `NEXT_PUBLIC_CLERK_FRONTEND_API_URL` - Clerk frontend API URL (set in Convex dashboard)
 
+Stripe keys are managed in the Netlify environment; no secrets are committed to the repo.
+
 ## Deployment
 
-### Vercel Deployment (Recommended)
+### Netlify Deployment
 
-1. Connect your repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+1. Connect this GitHub repo to Netlify
+2. Set environment variables in Netlify (Clerk, Stripe, Convex)
+3. Deploy automatically on push to `main`
 
-The project is optimized for Vercel with:
-- Automatic builds with Turbopack
-- Environment variable management
-- Edge function support
+CI runs on GitHub Actions; Netlify builds from the repository with `netlify.toml`.
 
 ### Manual Deployment
 
@@ -356,17 +376,21 @@ npm start
 - `npm run build` - Build for production
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript in project references mode
+- `npm run test:unit:run` - Run Vitest unit tests once
+- `npx playwright test` - Run Playwright E2E tests
 
-## Why Starter.diy?
+Utility scripts:
+- `node scripts/validate-env.js` - Validate required env vars
+- `scripts/check-stripe.ps1` - Non-interactive Stripe connectivity check
+- `scripts/check-clerk.ps1` - Non-interactive Clerk connectivity check
 
-**THE EASIEST TO SET UP. EASIEST IN TERMS OF CODE.**
+## Security & Compliance
 
-- ✅ **Clerk + Convex + Clerk Billing** make it incredibly simple
-- ✅ **No complex payment integrations** - Clerk handles everything
-- ✅ **Real-time user sync** - Webhooks work out of the box
-- ✅ **Beautiful UI** - Tailark.com inspired landing page blocks
-- ✅ **Production ready** - Authentication, payments, and database included
-- ✅ **Type safe** - Full TypeScript support throughout
+- HIPAA/FERPA-aligned application practices
+- Do not log PHI or sensitive user content
+- Encryption in transit; audit trails for data access
+- Route-level role checks and secure external integrations
 
 ## 🤝 Contributing
 
@@ -416,6 +440,4 @@ This project is licensed under the MIT License.
 
 ---
 
-**Stop rebuilding the same foundation over and over.** Starter.diy eliminates weeks of integration work by providing a complete, production-ready SaaS template with authentication, payments, and real-time data working seamlessly out of the box.
-
-Built using Next.js 15, Convex, Clerk, and modern web technologies.
+Built using Next.js, Convex, Clerk, Stripe, SendGrid, Twilio, and modern web technologies.
