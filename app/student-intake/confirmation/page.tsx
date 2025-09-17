@@ -17,7 +17,7 @@ import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { markIntakeComplete } from '@/app/actions/clerk-metadata'
 import MentorFitAssessmentStep from '../components/mentorfit-assessment-step'
-import { useAction } from 'convex/react'
+import { useAction, useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
 export default function StudentIntakeConfirmationPage() {
@@ -29,6 +29,8 @@ export default function StudentIntakeConfirmationPage() {
   const [mentorFitData, setMentorFitData] = useState({})
   const [assessmentComplete, setAssessmentComplete] = useState(false)
   const confirmCheckout = useAction(api.payments.confirmCheckoutSession)
+  const currentUser = useQuery(api.users.current)
+  const setUserType = useMutation(api.users.updateUserType)
 
   useEffect(() => {
     // Clear any stored form data and update metadata after successful submission
@@ -83,6 +85,20 @@ export default function StudentIntakeConfirmationPage() {
     }
     confirm()
   }, [success, sessionId, confirmCheckout])
+
+  useEffect(() => {
+    // Ensure the user role in Convex is student after successful intake
+    const enforceStudentRole = async () => {
+      if (success === 'true' && currentUser?._id && currentUser.userType !== 'student') {
+        try {
+          await setUserType({ userId: currentUser._id, userType: 'student' })
+        } catch (_e) {
+          // non-fatal, user can still navigate
+        }
+      }
+    }
+    enforceStudentRole()
+  }, [success, currentUser?._id, currentUser?.userType, setUserType])
 
   if (success !== 'true') {
     return (
