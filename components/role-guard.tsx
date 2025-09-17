@@ -1,10 +1,10 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { hasPermission, canAccessRoute, getDefaultDashboardRoute } from '@/lib/rbac'
 import { useRouter, usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle } from 'lucide-react'
 import { useUser } from '@clerk/nextjs'
@@ -28,14 +28,32 @@ export function RoleGuard({
   const { user: clerkUser } = useUser()
   const router = useRouter()
   const pathname = usePathname()
+  const setUserType = useMutation(api.users.updateUserType)
+  const fixingRole = useRef(false)
 
   useEffect(() => {
-    if (user && requiredRole && user.userType !== requiredRole) {
-      // Redirect to appropriate dashboard based on user's actual role
+    // Auto-correct role to student if Clerk metadata indicates completed intake/payment
+    const shouldBeStudent = requiredRole === 'student'
+      && clerkUser?.publicMetadata?.intakeCompleted
+      && clerkUser?.publicMetadata?.paymentCompleted
+    if (user && shouldBeStudent && user.userType !== 'student' && !fixingRole.current) {
+      fixingRole.current = true
+      setUserType({ userId: user._id, userType: 'student' })
+        .catch(() => {})
+        .finally(() => { fixingRole.current = false })
+    }
+  }, [user, requiredRole, clerkUser?.publicMetadata?.intakeCompleted, clerkUser?.publicMetadata?.paymentCompleted, setUserType])
+
+  useEffect(() => {
+    // Redirect only when not in the student autocorrect case
+    const shouldBeStudent = requiredRole === 'student'
+      && clerkUser?.publicMetadata?.intakeCompleted
+      && clerkUser?.publicMetadata?.paymentCompleted
+    if (user && requiredRole && user.userType !== requiredRole && !shouldBeStudent) {
       const defaultRoute = getDefaultDashboardRoute(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise')
       router.replace(defaultRoute)
     }
-  }, [user, requiredRole, router])
+  }, [user, requiredRole, router, clerkUser?.publicMetadata?.intakeCompleted, clerkUser?.publicMetadata?.paymentCompleted])
 
   // Loading state
   if (!user) {
