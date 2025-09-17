@@ -17,6 +17,9 @@ import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { markIntakeComplete } from '@/app/actions/clerk-metadata'
 import MentorFitAssessmentStep from '../components/mentorfit-assessment-step'
+import { useEffectOnce } from 'react-bits'
+import { useAction } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 export default function StudentIntakeConfirmationPage() {
   const searchParams = useSearchParams()
@@ -26,6 +29,7 @@ export default function StudentIntakeConfirmationPage() {
   const [showMentorFit, setShowMentorFit] = useState(true)
   const [mentorFitData, setMentorFitData] = useState({})
   const [assessmentComplete, setAssessmentComplete] = useState(false)
+  const confirmCheckout = useAction(api.payments.confirmCheckoutSession)
 
   useEffect(() => {
     // Clear any stored form data and update metadata after successful submission
@@ -66,6 +70,20 @@ export default function StudentIntakeConfirmationPage() {
       updateMetadata()
     }
   }, [success, userId])
+
+  useEffect(() => {
+    // After redirect, immediately confirm the session to flip attempt to succeeded
+    const confirm = async () => {
+      if (success === 'true' && sessionId) {
+        try {
+          await confirmCheckout({ sessionId })
+        } catch (_e) {
+          // non-fatal; webhook will catch up
+        }
+      }
+    }
+    confirm()
+  }, [success, sessionId, confirmCheckout])
 
   if (success !== 'true') {
     return (

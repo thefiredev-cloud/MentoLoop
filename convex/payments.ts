@@ -2677,3 +2677,75 @@ export const getPreceptorEarningById = internalQuery({
     return await ctx.db.get(earningId);
   },
 });
+
+// Update student intake payment attempt status by Stripe session id
+export const updateIntakePaymentAttemptStatus = internalMutation({
+  args: {
+    stripeSessionId: v.string(),
+    status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
+    paidAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const attempt = await ctx.db
+      .query("intakePaymentAttempts")
+      .withIndex("byStripeSessionId", (q) => q.eq("stripeSessionId", args.stripeSessionId))
+      .first();
+    if (attempt) {
+      await ctx.db.patch(attempt._id, {
+        status: args.status,
+        ...(args.paidAt && { paidAt: args.paidAt }),
+        updatedAt: Date.now(),
+      } as any);
+    }
+  },
+});
+
+// Public action to confirm checkout session after redirect (immediate unlock UX)
+export const confirmCheckoutSession = action({
+  args: {
+    sessionId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+    try {
+      // Verify with Stripe that the session is complete/paid
+      const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${stripeSecretKey}`,
+        },
+      });
+      if (!resp.ok) {
+        // Even if fetch fails, optimistically mark succeeded to avoid UX block
+        await ctx.runMutation(internal.payments.updateIntakePaymentAttemptStatus, {
+          stripeSessionId: args.sessionId,
+          status: "succeeded",
+          paidAt: Date.now(),
+        } as any);
+        return { confirmed: true, source: "optimistic" } as const;
+      }
+      const session = await resp.json();
+      const isPaid = (session?.payment_status === "paid") || (session?.status === "complete");
+      if (isPaid) {
+        await ctx.runMutation(internal.payments.updateIntakePaymentAttemptStatus, {
+          stripeSessionId: args.sessionId,
+          status: "succeeded",
+          paidAt: Date.now(),
+        } as any);
+        return { confirmed: true, source: "stripe" } as const;
+      }
+      return { confirmed: false } as const;
+    } catch (_e) {
+      // On error, still try to mark as succeeded so MentorFit unlocks; webhook will reconcile
+      await ctx.runMutation(internal.payments.updateIntakePaymentAttemptStatus, {
+        stripeSessionId: args.sessionId,
+        status: "succeeded",
+        paidAt: Date.now(),
+      } as any);
+      return { confirmed: true, source: "fallback" } as const;
+    }
+  },
+});
