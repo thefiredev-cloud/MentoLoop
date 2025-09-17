@@ -321,6 +321,8 @@ export const createStudentCheckoutSession = action({
 
       let discountApplied = false;
       let discountAmount = 0;
+      // Track whether we are explicitly applying a discount via discounts[] so we do not also set allow_promotion_codes
+      let hasExplicitDiscount = false;
 
       // Handle discount code if provided
       if (args.discountCode) {
@@ -348,15 +350,18 @@ export const createStudentCheckoutSession = action({
               if (promotionCodeId) {
                 // Prefer promotion_code for payment mode sessions
                 checkoutParams["discounts[0][promotion_code]"] = promotionCodeId;
+                hasExplicitDiscount = true;
               } else {
                 // Fallback: apply coupon directly (works when coupon id equals code)
                 checkoutParams["discounts[0][coupon]"] = stripeCouponId;
+                hasExplicitDiscount = true;
               }
             }
 
-            // Also enable promotion codes in checkout as a fallback
-            // This allows manual entry if automatic application fails
-            checkoutParams["allow_promotion_codes"] = "true";
+            // If we did not explicitly apply a discount, allow manual entry in Checkout
+            if (!hasExplicitDiscount) {
+              checkoutParams["allow_promotion_codes"] = "true";
+            }
             
             discountApplied = true;
             discountAmount = validation.percentOff || 0;
@@ -438,10 +443,14 @@ export const createStudentCheckoutSession = action({
                 // Apply discount to checkout (prefer promotion_code)
                 if (promotionCodeId) {
                   checkoutParams['discounts[0][promotion_code]'] = promotionCodeId;
+                  hasExplicitDiscount = true;
                 } else {
                   checkoutParams['discounts[0][coupon]'] = codeUpper;
+                  hasExplicitDiscount = true;
                 }
-                checkoutParams['allow_promotion_codes'] = 'true';
+                if (!hasExplicitDiscount) {
+                  checkoutParams['allow_promotion_codes'] = 'true';
+                }
 
                 discountApplied = true;
                 discountAmount = 100;
