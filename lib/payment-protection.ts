@@ -7,6 +7,7 @@ export interface PaymentStatus {
   membershipPlan: string | null;
   paidAt: number | null;
   loading: boolean;
+  mentorfitUnlocked?: boolean;
 }
 
 /**
@@ -30,6 +31,7 @@ export function usePaymentProtection(): PaymentStatus {
       membershipPlan: null,
       paidAt: null,
       loading: true,
+      mentorfitUnlocked: false,
     };
   }
 
@@ -40,6 +42,7 @@ export function usePaymentProtection(): PaymentStatus {
       membershipPlan: null,
       paidAt: null,
       loading: true,
+      mentorfitUnlocked: false,
     };
   }
 
@@ -51,6 +54,7 @@ export function usePaymentProtection(): PaymentStatus {
       membershipPlan: null,
       paidAt: null,
       loading: false,
+      mentorfitUnlocked: false,
     };
   }
 
@@ -61,6 +65,7 @@ export function usePaymentProtection(): PaymentStatus {
       membershipPlan: null,
       paidAt: null,
       loading: false,
+      mentorfitUnlocked: false,
     };
   }
 
@@ -69,6 +74,7 @@ export function usePaymentProtection(): PaymentStatus {
     membershipPlan: paymentStatus.membershipPlan,
     paidAt: paymentStatus.paidAt,
     loading: false,
+    mentorfitUnlocked: (paymentStatus as any).mentorfitUnlocked ?? false,
   };
 }
 
@@ -114,6 +120,11 @@ export function canAccessFormSection(
 ): boolean {
   const requiredTiers = getRequiredMembershipForSection(section);
   
+  // Entitlement override: if MentorFit is unlocked, allow mentorfit/learning-style sections
+  if ((section === 'mentorfit' || section === 'learning-style') && paymentStatus.mentorfitUnlocked) {
+    return true;
+  }
+
   // If no tiers required (empty array), section is open to all
   if (requiredTiers.length === 0) {
     return true;

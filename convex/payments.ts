@@ -2185,11 +2185,24 @@ export const checkUserPaymentStatus = query({
       .filter((q) => q.eq(q.field("status"), "succeeded"))
       .first();
 
+    const membershipPlan = successfulPayment?.membershipPlan || null;
+    const discountPercent = (successfulPayment as any)?.discountPercent as number | undefined;
+    const discountCode = ((successfulPayment as any)?.discountCode || "").toString().toUpperCase();
+
+    // Qualifying discounts unlock MentorFit even if plan isn't premium
+    const discountUnlock = (discountPercent !== undefined && discountPercent >= 100) ||
+      ["NP12345", "MENTO12345"].includes(discountCode);
+
+    const mentorfitUnlocked = !!successfulPayment && (
+      (membershipPlan === "premium") || discountUnlock
+    );
+
     return {
       hasPayment: !!successfulPayment,
-      membershipPlan: successfulPayment?.membershipPlan || null,
+      membershipPlan,
       paidAt: successfulPayment?.createdAt || null,
-    };
+      mentorfitUnlocked,
+    } as const;
   },
 });
 
@@ -2202,11 +2215,12 @@ export const checkUserPaymentByUserId = query({
     hasPayment: boolean;
     membershipPlan: string | null;
     paidAt: number | null;
+    mentorfitUnlocked: boolean;
   }> => {
     // Get user to find their email
     const user = await ctx.db.get(args.userId);
     if (!user?.email) {
-      return { hasPayment: false, membershipPlan: null, paidAt: null };
+      return { hasPayment: false, membershipPlan: null, paidAt: null, mentorfitUnlocked: false };
     }
 
     // Check if user has any successful intake payment
@@ -2216,10 +2230,22 @@ export const checkUserPaymentByUserId = query({
       .filter((q) => q.eq(q.field("status"), "succeeded"))
       .first();
 
+    const membershipPlan = successfulPayment?.membershipPlan || null;
+    const discountPercent = (successfulPayment as any)?.discountPercent as number | undefined;
+    const discountCode = ((successfulPayment as any)?.discountCode || "").toString().toUpperCase();
+
+    const discountUnlock = (discountPercent !== undefined && discountPercent >= 100) ||
+      ["NP12345", "MENTO12345"].includes(discountCode);
+
+    const mentorfitUnlocked = !!successfulPayment && (
+      (membershipPlan === "premium") || discountUnlock
+    );
+
     return {
       hasPayment: !!successfulPayment,
-      membershipPlan: successfulPayment?.membershipPlan || null,
+      membershipPlan,
       paidAt: successfulPayment?.createdAt || null,
+      mentorfitUnlocked,
     };
   },
 });

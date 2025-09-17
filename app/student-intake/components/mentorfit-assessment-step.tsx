@@ -179,7 +179,7 @@ export default function MentorFitAssessmentStep({
   isFirstStep 
 }: MentorFitAssessmentStepProps) {
   const paymentStatus = usePaymentProtection()
-  const canAccessSection = canAccessFormSection(paymentStatus, 'learning-style')
+  const canAccessSection = canAccessFormSection(paymentStatus, 'mentorfit')
   
   const [formData, setFormData] = useState({
     assessmentAnswers: {},

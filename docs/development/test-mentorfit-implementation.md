@@ -44,15 +44,10 @@ Successfully implemented payment gates for MentorFit questions in both student a
 
 ### Payment Detection
 ```typescript
-<Protect
-  condition={(has) => {
-    // Check if user has any paid plan (not free_user)
-    return !has({ plan: "free_user" })
-  }}
-  fallback={<MentorFitPreview />}
->
-  {/* MentorFit questions */}
-</Protect>
+// Entitlement-based gating using Convex payment status
+const { mentorfitUnlocked, membershipPlan } = usePaymentProtection();
+const unlocked = mentorfitUnlocked || membershipPlan === 'premium';
+return unlocked ? children : <MentorFitPreview />;
 ```
 
 ### Data Handling
@@ -82,9 +77,12 @@ Successfully implemented payment gates for MentorFit questions in both student a
 5. **Skip Functionality**: Verify "Continue with Basic Matching" works correctly
 
 ## Files Modified
-- ✅ `/components/mentorfit-gate.tsx` (created)
+- ✅ `/components/mentorfit-gate.tsx` (uses entitlement instead of Clerk Protect)
 - ✅ `/app/student-intake/components/matching-preferences-step.tsx` (updated)
-- ✅ `/app/preceptor-intake/components/mentoring-style-step.tsx` (updated)
+- ✅ `/app/student-intake/components/mentorfit-assessment-step.tsx` (uses 'mentorfit' section key)
+- ✅ `/app/preceptor-intake/components/mentoring-style-step.tsx` (unchanged logic, reads gate)
+- ✅ `/lib/payment-protection.ts` (returns mentorfitUnlocked and access override)
+- ✅ `/convex/payments.ts` (returns mentorfitUnlocked based on plan/discount)
 
 ## Implementation Complete ✓
 The MentorFit payment gate has been successfully implemented with proper fallbacks for free users while maintaining the premium value proposition for paid subscribers.

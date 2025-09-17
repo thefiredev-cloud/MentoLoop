@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Brain, Star, Sparkles, ArrowRight, Lock, Users } from 'lucide-react'
 import CustomClerkPricing from '@/components/custom-clerk-pricing'
+import { usePaymentProtection } from '@/lib/payment-protection'
 
 interface MentorFitGateProps {
   children: ReactNode
@@ -184,15 +185,12 @@ function MentorFitPreview({ userType, onSkip }: { userType?: 'student' | 'precep
 }
 
 export default function MentorFitGate({ children, userType, onSkip }: MentorFitGateProps) {
-  return (
-    <Protect
-      condition={(has) => {
-        // Check if user has any paid plan (not free_user)
-        return !has({ plan: "free_user" })
-      }}
-      fallback={<MentorFitPreview userType={userType} onSkip={onSkip} />}
-    >
-      {children}
-    </Protect>
-  )
+  const paymentStatus = usePaymentProtection()
+  const unlocked = paymentStatus.mentorfitUnlocked || (paymentStatus.membershipPlan === 'premium')
+
+  if (unlocked) {
+    return <>{children}</>
+  }
+
+  return <MentorFitPreview userType={userType} onSkip={onSkip} />
 }
