@@ -314,8 +314,8 @@ export const createStudentCheckoutSession = action({
         checkoutParams["line_items[0][price]"] = stripePriceId;
         checkoutParams["line_items[0][quantity]"] = "1";
         checkoutParams["metadata[paymentOption]"] = "full";
-        // SCA hardening
-        checkoutParams["automatic_payment_methods[enabled]"] = "true";
+        // SCA hardening: use payment_method_types explicitly for card; remove unsupported automatic_payment_methods
+        checkoutParams["payment_method_types[0]"] = "card";
         checkoutParams["payment_intent_data[setup_future_usage]"] = "off_session";
       }
 
