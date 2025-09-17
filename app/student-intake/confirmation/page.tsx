@@ -17,7 +17,6 @@ import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { markIntakeComplete } from '@/app/actions/clerk-metadata'
 import MentorFitAssessmentStep from '../components/mentorfit-assessment-step'
-import { useEffectOnce } from 'react-bits'
 import { useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
