@@ -1,4 +1,4 @@
-import { useConvex, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 
@@ -15,7 +15,6 @@ export interface PaymentStatus {
  */
 export function usePaymentProtection(): PaymentStatus {
   const { user, isLoaded } = useUser();
-  const convex = useConvex();
   
   // Query payment status using user's email with error handling
   const paymentStatus = useQuery(

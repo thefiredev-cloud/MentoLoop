@@ -126,6 +126,7 @@ export default function PreceptorSearchPage() {
     setSearchQuery('')
     setSelectedSpecialty('')
     setSelectedRotationType('')
+    setSelectedState('')
     setSelectedCity('')
     setSelectedPracticeSettings([])
     setCurrentlyAcceptingOnly(true)
@@ -212,7 +213,7 @@ export default function PreceptorSearchPage() {
             <CardTitle className="text-lg">Search Filters</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label>Specialty</Label>
                 <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
@@ -245,6 +246,16 @@ export default function PreceptorSearchPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Input
+                  placeholder="e.g., TX"
+                  value={selectedState}
+                  onChange={(e) => setSelectedState(e.target.value.toUpperCase())}
+                  maxLength={2}
+                />
               </div>
 
               <div className="space-y-2">

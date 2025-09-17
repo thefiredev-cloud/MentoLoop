@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, CheckCircle, FileText, Shield } from 'lucide-react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { useAuth } from '@clerk/nextjs'
 import Link from 'next/link'
 
@@ -45,6 +46,7 @@ export default function AgreementsStep({
   const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
   const ensureUserExistsWithRetry = useMutation(api.users.ensureUserExistsWithRetry)
+  const saveMentorFitAssessment = useMutation(api.mentorfit.saveMentorFitAssessment)
   const _currentUser = useQuery(api.users.current)
   
   // Type definitions for form data from previous steps
@@ -88,6 +90,12 @@ export default function AgreementsStep({
     idealPreceptorQualities?: string
     languagesSpoken?: string[]
     comfortableWithSharedPlacements?: boolean
+    practiceStylePreference?: string
+    teachingPreference?: string
+    communicationStyle?: string
+    schedulingFlexibility?: string
+    mentorshipGoals?: string
+    additionalPreferences?: string
   }
   
   type LearningStyle = {
@@ -241,10 +249,16 @@ export default function AgreementsStep({
           matchingPrefsRaw.comfortableWithSharedPlacements === true ? true :
           matchingPrefsRaw.comfortableWithSharedPlacements === false ? false :
           matchingPrefsRaw.comfortableWithSharedPlacements ?? false,
-        languagesSpoken: matchingPrefsRaw.languagesSpoken || [],
-        idealPreceptorQualities: matchingPrefsRaw.idealPreceptorQualities || "",
+        languagesSpoken: Array.isArray(matchingPrefsRaw.languagesSpoken) ? matchingPrefsRaw.languagesSpoken : [],
+        idealPreceptorQualities: typeof matchingPrefsRaw.idealPreceptorQualities === 'string' && matchingPrefsRaw.idealPreceptorQualities.trim() ? matchingPrefsRaw.idealPreceptorQualities : undefined,
+        practiceStylePreference: typeof matchingPrefsRaw.practiceStyle === 'string' && matchingPrefsRaw.practiceStyle.trim() ? matchingPrefsRaw.practiceStyle : undefined,
+        teachingPreference: typeof matchingPrefsRaw.teachingPreference === 'string' && matchingPrefsRaw.teachingPreference.trim() ? matchingPrefsRaw.teachingPreference : undefined,
+        communicationStyle: typeof matchingPrefsRaw.communicationStyle === 'string' && matchingPrefsRaw.communicationStyle.trim() ? matchingPrefsRaw.communicationStyle : undefined,
+        schedulingFlexibility: typeof matchingPrefsRaw.schedulingFlexibility === 'string' && matchingPrefsRaw.schedulingFlexibility.trim() ? matchingPrefsRaw.schedulingFlexibility : undefined,
+        mentorshipGoals: typeof matchingPrefsRaw.mentorshipGoals === 'string' && matchingPrefsRaw.mentorshipGoals.trim() ? matchingPrefsRaw.mentorshipGoals : undefined,
+        additionalPreferences: typeof matchingPrefsRaw.additionalPreferences === 'string' && matchingPrefsRaw.additionalPreferences.trim() ? matchingPrefsRaw.additionalPreferences : undefined,
       } as MatchingPreferences
-      
+
       // Log the final processed data before submission
       const finalData = {
         personalInfo: data.personalInfo as PersonalInfo,
@@ -261,7 +275,24 @@ export default function AgreementsStep({
       
       // Submit all form data to Convex
       console.log('[Client] Submitting to Convex mutation')
-      await createOrUpdateStudent(finalData)
+      const createdStudentId = await createOrUpdateStudent(finalData)
+
+      const mentorFitAnswers = (data.mentorFitAssessment as { assessmentAnswers?: Record<string, string> } | undefined)?.assessmentAnswers
+
+      if (createdStudentId) {
+        if (mentorFitAnswers && Object.keys(mentorFitAnswers).length > 0) {
+          try {
+            await saveMentorFitAssessment({
+              studentId: createdStudentId as Id<'students'>,
+              assessmentAnswers: mentorFitAnswers,
+            })
+          } catch (error) {
+            console.error('[Client] Failed to save MentorFit assessment:', error)
+          }
+        }
+      } else {
+        throw new Error('Failed to create student profile')
+      }
       
       console.log('[Client] Submission successful!')
       setIsSubmitted(true)

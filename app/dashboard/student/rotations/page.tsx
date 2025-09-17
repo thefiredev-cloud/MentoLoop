@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
@@ -14,7 +15,6 @@ import {
   User,
   FileText,
   Plus,
-  MoreHorizontal,
   CheckCircle,
   AlertCircle,
   BookOpen
@@ -61,12 +61,6 @@ export default function StudentRotationsPage() {
     }
   }
 
-  const _getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return 'bg-green-500'
-    if (percentage >= 70) return 'bg-yellow-500'
-    return 'bg-blue-500'
-  }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -91,9 +85,11 @@ export default function StudentRotationsPage() {
             Track your clinical rotation progress and requirements
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Request New Rotation
+        <Button asChild>
+          <Link href="/dashboard/student/search">
+            <Plus className="h-4 w-4 mr-2" />
+            Request New Rotation
+          </Link>
         </Button>
       </div>
 

@@ -85,7 +85,7 @@ const MEMBERSHIP_BLOCKS = [
 export default function PaymentAgreementStep({ 
   data, 
   updateFormData, 
-  onNext,
+  onNext: _onNext,
   onPrev,
   isFirstStep 
 }: PaymentAgreementStepProps) {
@@ -101,12 +101,6 @@ export default function PaymentAgreementStep({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [discountCode, setDiscountCode] = useState<string>('')
-  const [discountValidation, setDiscountValidation] = useState<{
-    valid: boolean;
-    percentOff?: number;
-    description?: string;
-    error?: string;
-  } | null>(null)
   const [validatingDiscount, setValidatingDiscount] = useState(false)
   const [paymentOption, setPaymentOption] = useState<'full' | 'installments'>('full')
   const [installmentPlan, setInstallmentPlan] = useState<3 | 4>(3)
@@ -654,7 +648,6 @@ export default function PaymentAgreementStep({
                     value={discountCode}
                     onChange={(e) => {
                       setDiscountCode(e.target.value.toUpperCase())
-                      setDiscountValidation(null)
                     }}
                     className="flex-1"
                   />

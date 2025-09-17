@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { 
   CreditCard, 
@@ -18,10 +18,10 @@ import {
   AlertCircle,
   FileText,
   Plus,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react'
-
-type CSVCell = string | number | boolean | null | object | undefined
+import type { Id } from '@/convex/_generated/dataModel'
 
 export default function BillingPage() {
   const user = useQuery(api.users.current)
@@ -56,9 +56,11 @@ function BillingContent({ userType }: { userType?: string }) {
   // Fetch real data from Convex
   const currentSubscriptionData = useQuery(api.billing.getCurrentSubscription)
   const paymentHistoryData = useQuery(api.billing.getPaymentHistory, { limit: 10 })
-  const billingStats = useQuery(api.billing.getBillingStats)
   const paymentMethodsData = useQuery(api.billing.getPaymentMethods)
   const downloadInvoice = useMutation(api.billing.downloadInvoice)
+  const createPortal = useAction(api.payments.createBillingPortalSession)
+  const [downloadingPaymentId, setDownloadingPaymentId] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   // Default data while loading
   const defaultSubscription = isStudent ? {
@@ -77,13 +79,16 @@ function BillingContent({ userType }: { userType?: string }) {
 
   interface PaymentMethod {
     id: string
-    last4: string
-    expiryMonth: number
-    expiryYear: number
+    type?: string
+    brand?: string
+    last4?: string
+    expiryMonth?: number
+    expiryYear?: number
+    isDefault?: boolean
   }
 
   const currentSubscription = currentSubscriptionData || defaultSubscription
-  const paymentHistory = paymentHistoryData || null
+  const paymentHistory = paymentHistoryData ?? []
   const paymentMethods: PaymentMethod[] = paymentMethodsData || []
 
   // Use real data or defaults
@@ -97,32 +102,102 @@ function BillingContent({ userType }: { userType?: string }) {
       : ['Unlimited student connections', 'Automated scheduling', 'Evaluation tools']
   }
 
+  type CSVCell = string | number | boolean | null | object | undefined
+
   interface Payment {
     id: string
     amount: number
     date: string
     status: string
     receiptUrl?: string
+    convexPaymentId?: Id<'payments'>
   }
-  const payments: Payment[] = paymentHistory || []
+  const payments: Payment[] = paymentHistory.map((payment) => ({
+    ...payment,
+    convexPaymentId: payment.id.startsWith('payments|') ? payment.id as Id<'payments'> : undefined,
+  }))
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+
+  const handleInvoiceDownload = async (payment: Payment) => {
+    if (payment.receiptUrl) {
+      window.open(payment.receiptUrl, '_blank')
+      return
+    }
+
+    if (!payment.convexPaymentId) {
+      toast.info('Invoice download not available for this payment')
+      return
+    }
+
+    try {
+      setDownloadingPaymentId(payment.id)
+      const result = await downloadInvoice({ paymentId: payment.convexPaymentId })
+      if (result?.url) {
+        window.open(result.url, '_blank')
+      } else {
+        toast.error('Invoice download link unavailable')
+      }
+    } catch (error) {
+      console.error('downloadInvoice failed', error)
+      toast.error('Failed to download invoice')
+    } finally {
+      setDownloadingPaymentId(null)
+    }
+  }
+
+  const handleContactSupport = () => {
+    router.push('/support')
+  }
+
+  const handleManageBilling = async () => {
+    try {
+      setPortalLoading(true)
+      const base = window.location.origin
+      const { url } = await createPortal({ returnUrl: `${base}/dashboard/billing` })
+      if (url) {
+        window.location.href = url
+      } else {
+        toast.error('Failed to open billing portal')
+      }
+    } catch (e) {
+      console.error('createBillingPortalSession failed', e)
+      toast.error('Failed to open billing portal')
+    } finally {
+      setPortalLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Billing & Payments</h1>
-        <Button onClick={() => {
-          if (isStudent) {
-            toast.info('Payment method management coming soon')
-          } else {
-            router.push('/dashboard/payment-gated')
-          }
-        }}>
-          <Plus className="mr-2 h-4 w-4" />
-          {isStudent ? 'Update Payment Method' : 'Upgrade Plan'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (isStudent) {
+                handleContactSupport()
+              } else {
+                router.push('/dashboard/payment-gated')
+              }
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {isStudent ? 'Update Payment Method' : 'Upgrade Plan'}
+          </Button>
+          {isStudent && (
+            <Button onClick={handleManageBilling} disabled={portalLoading}>
+              {portalLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              Manage billing
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Current Plan */}
@@ -199,13 +274,13 @@ function BillingContent({ userType }: { userType?: string }) {
                   </div>
                   <div>
                     <p className="font-medium">
-                      {paymentMethods?.length > 0 
+                      {paymentMethods?.length > 0 && paymentMethods[0].last4 
                         ? `•••• •••• •••• ${paymentMethods[0].last4}`
                         : '•••• •••• •••• ••••'
                       }
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {paymentMethods?.length > 0 
+                      {paymentMethods?.length > 0 && paymentMethods[0].expiryMonth && paymentMethods[0].expiryYear 
                         ? `Expires ${paymentMethods[0].expiryMonth}/${paymentMethods[0].expiryYear}`
                         : 'No payment method'
                       }
@@ -213,15 +288,30 @@ function BillingContent({ userType }: { userType?: string }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Default</Badge>
-                  <Button variant="ghost" size="sm" onClick={() => toast.info('Edit payment method coming soon')}>Edit</Button>
+                  {paymentMethods?.length > 0 && paymentMethods[0].isDefault && (
+                    <Badge variant="secondary">Default</Badge>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleContactSupport}
+                  >
+                    Contact Support
+                  </Button>
                 </div>
               </div>
               
-              <Button variant="outline" className="w-full" onClick={() => toast.info('Add payment method coming soon')}>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleContactSupport}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Payment Method
               </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Need to make changes? Reach out and we&apos;ll update your billing details with you.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -291,15 +381,14 @@ function BillingContent({ userType }: { userType?: string }) {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={async () => {
-                        if (payment.receiptUrl) {
-                          window.open(payment.receiptUrl, '_blank')
-                        } else {
-                          toast.info('Invoice download not available')
-                        }
-                      }}
+                      onClick={() => handleInvoiceDownload(payment)}
+                      disabled={!payment.receiptUrl && !payment.convexPaymentId || downloadingPaymentId === payment.id}
                     >
-                      <FileText className="mr-2 h-4 w-4" />
+                      {downloadingPaymentId === payment.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="mr-2 h-4 w-4" />
+                      )}
                       Invoice
                     </Button>
                   </div>
@@ -326,37 +415,43 @@ function BillingContent({ userType }: { userType?: string }) {
           <CardTitle>Billing Settings</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Invoice Emails</p>
-              <p className="text-sm text-muted-foreground">
-                Receive invoices and payment confirmations
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Invoice Emails</p>
+                <p className="text-sm text-muted-foreground">
+                  Receive invoices and payment confirmations
+                </p>
+              </div>
+            <Button variant="outline" size="sm" onClick={handleContactSupport}>
+              Contact Support
+            </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => toast.info('Invoice email preferences coming soon')}>Configure</Button>
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Tax Information</p>
-              <p className="text-sm text-muted-foreground">
-                Add or update your tax details
-              </p>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Tax Information</p>
+                <p className="text-sm text-muted-foreground">
+                  Add or update your tax details
+                </p>
+              </div>
+            <Button variant="outline" size="sm" onClick={handleContactSupport}>
+              Contact Support
+            </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => toast.info('Tax info update coming soon')}>Update</Button>
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Billing Address</p>
-              <p className="text-sm text-muted-foreground">
-                Update your billing address information
-              </p>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Billing Address</p>
+                <p className="text-sm text-muted-foreground">
+                  Update your billing address information
+                </p>
+              </div>
+            <Button variant="outline" size="sm" onClick={handleContactSupport}>
+              Contact Support
+            </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => toast.info('Billing address edit coming soon')}>Edit</Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       {/* Support */}
       <Card>

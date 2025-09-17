@@ -164,30 +164,35 @@ export const getPaymentMethods = query({
       .query("users")
       .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
       .first();
-    
     if (!user) return [];
 
-    // Get student record for Stripe customer ID
     const student = await ctx.db
       .query("students")
       .withIndex("byUserId", (q) => q.eq("userId", user._id))
       .first();
-
     if (!student || !student.stripeCustomerId) return [];
 
-    // In production, this would fetch from Stripe API
-    // For now, return sample data if customer exists
-    return [
-      {
-        id: "pm_sample",
-        type: "card",
-        brand: "visa",
-        last4: "4242",
-        expiryMonth: 12,
-        expiryYear: 2025,
-        isDefault: true,
-      }
-    ];
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) return [];
+
+    try {
+      const url = `https://api.stripe.com/v1/payment_methods?customer=${student.stripeCustomerId}&type=card`;
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${stripeSecretKey}` } });
+      if (!resp.ok) return [];
+      const data = await resp.json();
+      const methods = (data?.data || []).map((pm: any) => ({
+        id: pm.id,
+        type: pm.type,
+        brand: pm.card?.brand,
+        last4: pm.card?.last4,
+        expiryMonth: pm.card?.exp_month,
+        expiryYear: pm.card?.exp_year,
+        isDefault: pm.id === (student as any).defaultPaymentMethodId,
+      }));
+      return methods;
+    } catch (_e) {
+      return [];
+    }
   },
 });
 

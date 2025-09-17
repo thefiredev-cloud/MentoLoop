@@ -21,9 +21,9 @@ export default function DashboardLayout({
       </Suspense>
       
       {/* Main Dashboard Container - Below Navbar */}
-      <div className="min-h-screen pt-14">
+      <div className="min-h-screen pt-14 flex flex-col">
         <SidebarProvider>
-          <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+          <div className="flex flex-1 min-h-0 overflow-hidden">
             {/* Sidebar - fixed width, no z-index conflicts */}
             <Suspense fallback={<div className="w-64 bg-background border-r" />}>
               <AppSidebar />

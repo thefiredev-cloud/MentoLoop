@@ -13,11 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { 
   User, 
-  Mail, 
-  Phone, 
-  MapPin, 
   GraduationCap, 
-  Calendar, 
   Edit2,
   Save,
   Camera

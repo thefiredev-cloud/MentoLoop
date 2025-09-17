@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -21,7 +21,6 @@ import {
 import Link from 'next/link'
 
 export default function PreceptorIntakeConfirmationPage() {
-  // const router = useRouter() // Will be used for future navigation
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
   const stripeConnect = searchParams.get('stripe_connect')

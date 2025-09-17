@@ -80,19 +80,6 @@ export default function PersonalInfoStep({
     }
   }
 
-  const formatPhoneNumber = (value: string) => {
-    const phoneNumber = value.replace(/\D/g, '')
-    if (phoneNumber.length <= 3) {
-      return phoneNumber
-    } else if (phoneNumber.length <= 6) {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`
-    } else {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
-    }
-  }
-
-  const handlePhoneChange = (_value: string) => {}
-
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">

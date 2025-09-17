@@ -18,7 +18,7 @@ export default function PersonalInformationStep({
   data,
   updateFormData,
   onNext,
-  isFirstStep
+  isFirstStep: _isFirstStep
 }: PersonalInformationStepProps) {
   const [formData, setFormData] = useState({
     dateOfBirth: '',

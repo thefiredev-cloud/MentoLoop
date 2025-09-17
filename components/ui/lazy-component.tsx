@@ -68,13 +68,15 @@ export function useLazyLoading(options: IntersectionObserverInit = {}) {
       }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    const element = ref.current;
+
+    if (element) {
+      observer.observe(element);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (element) {
+        observer.unobserve(element);
       }
     };
   }, [options]);
@@ -117,6 +119,7 @@ export const LazyImage = React.memo(function LazyImage({
   return (
     <div ref={ref} className={cn("relative overflow-hidden", className)}>
       {isVisible ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           alt={alt}

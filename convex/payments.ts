@@ -97,6 +97,25 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
   },
 });
 
+// Resolve a Stripe price id from a lookup_key
+export const resolvePriceByLookupKey = internalAction({
+  args: { lookupKey: v.string() },
+  handler: async (_ctx, args): Promise<{ priceId?: string }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+    try {
+      const url = `https://api.stripe.com/v1/prices?active=true&limit=1&lookup_keys[]=${encodeURIComponent(args.lookupKey)}`;
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${stripeSecretKey}` } });
+      if (!resp.ok) return {};
+      const data = await resp.json();
+      const id = data?.data?.[0]?.id as string | undefined;
+      return id ? { priceId: id } : {};
+    } catch {
+      return {};
+    }
+  },
+});
+
 // Stripe payment processing for student intake
 export const createStudentCheckoutSession = action({
   args: {
@@ -184,14 +203,70 @@ export const createStudentCheckoutSession = action({
       // Stripe price ID selected
 
       if (!stripePriceId) {
-        throw new Error(`Invalid price ID: ${args.priceId}`);
+        // Treat provided value as a Stripe lookup_key and resolve dynamically
+        const lkCandidates = [args.priceId];
+        if (args.membershipPlan) lkCandidates.push(`mentoloop_${args.membershipPlan}`);
+        let resolved: { priceId?: string } = {};
+        for (const lk of lkCandidates) {
+          resolved = await (ctx as any).runAction(internal.payments.resolvePriceByLookupKey, { lookupKey: lk });
+          if (resolved?.priceId) break;
+        }
+        if (resolved?.priceId) {
+          stripePriceId = resolved.priceId;
+        } else {
+          throw new Error(`Invalid price or lookup_key: ${args.priceId}`);
+        }
       }
 
       // Special discount code to force one-cent price (for testing/promotions)
       const pennyEnv = process.env.STRIPE_PRICE_ID_ONECENT || process.env.STRIPE_PRICE_ID_PENNY;
-      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT"];
-      if (args.discountCode && pennyEnv && pennyCodes.includes(args.discountCode.toUpperCase())) {
-        stripePriceId = pennyEnv;
+      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT","MENTO12345"];
+      let isPennyCode = false;
+      if (args.discountCode && pennyCodes.includes(args.discountCode.toUpperCase())) {
+        isPennyCode = true;
+        if (pennyEnv) {
+          stripePriceId = pennyEnv;
+        } else {
+          // No env price set; lazily create a $0.01 price we can use
+          try {
+            const productResp = await fetch("https://api.stripe.com/v1/products", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${stripeSecretKey}`,
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Idempotency-Key": `product_penny_1_usd`,
+              },
+              body: new URLSearchParams({
+                name: "MentoLoop Penny Charge",
+                description: "Synthetic product to support $0.01 promotional checkouts",
+                type: "service",
+              }),
+            });
+            const product = productResp.ok ? await productResp.json() : null;
+
+            const priceResp = await fetch("https://api.stripe.com/v1/prices", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${stripeSecretKey}`,
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Idempotency-Key": `price_penny_1_usd`,
+              },
+              body: new URLSearchParams({
+                product: product?.id,
+                unit_amount: "1",
+                currency: "usd",
+                billing_scheme: "per_unit",
+              }),
+            });
+            if (priceResp.ok) {
+              const pennyPrice = await priceResp.json();
+              stripePriceId = pennyPrice.id;
+            }
+          } catch (_e) {
+            // If creation fails, we fall back to normal pricing
+            isPennyCode = false;
+          }
+        }
       }
 
       // First, create or get the Stripe customer
@@ -239,6 +314,9 @@ export const createStudentCheckoutSession = action({
         checkoutParams["line_items[0][price]"] = stripePriceId;
         checkoutParams["line_items[0][quantity]"] = "1";
         checkoutParams["metadata[paymentOption]"] = "full";
+        // SCA hardening
+        checkoutParams["automatic_payment_methods[enabled]"] = "true";
+        checkoutParams["payment_intent_data[setup_future_usage]"] = "off_session";
       }
 
       let discountApplied = false;
@@ -265,13 +343,15 @@ export const createStudentCheckoutSession = action({
             const stripeCouponId = args.discountCode.toUpperCase();
             const promotionCodeId = (couponDoc as any)?.promotionCodeId as string | undefined;
 
-            // Applying Stripe discount
-            if (promotionCodeId) {
-              // Prefer promotion_code for payment mode sessions
-              checkoutParams["discounts[0][promotion_code]"] = promotionCodeId;
-            } else {
-              // Fallback: apply coupon directly (works when coupon id equals code)
-              checkoutParams["discounts[0][coupon]"] = stripeCouponId;
+            // Applying Stripe discount (skip for penny-code which uses price override)
+            if (!isPennyCode) {
+              if (promotionCodeId) {
+                // Prefer promotion_code for payment mode sessions
+                checkoutParams["discounts[0][promotion_code]"] = promotionCodeId;
+              } else {
+                // Fallback: apply coupon directly (works when coupon id equals code)
+                checkoutParams["discounts[0][coupon]"] = stripeCouponId;
+              }
             }
 
             // Also enable promotion codes in checkout as a fallback
@@ -300,8 +380,79 @@ export const createStudentCheckoutSession = action({
               applied: discountApplied
             };
           } else {
-            // Invalid discount code
-            // Don't throw error, just proceed without discount
+            // Invalid discount code. If this is the special NP12345 code, lazily create
+            // the Stripe coupon & promotion code on-the-fly to enable 100% off without
+            // requiring prior admin initialization.
+            const codeUpper = (args.discountCode || '').toUpperCase();
+            if (codeUpper === 'NP12345') {
+              try {
+                // Create coupon with fixed ID = NP12345 (idempotent)
+                const couponResp = await fetch('https://api.stripe.com/v1/coupons', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${stripeSecretKey}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Idempotency-Key': `coupon_${codeUpper}`,
+                  },
+                  body: new URLSearchParams({
+                    id: codeUpper,
+                    percent_off: '100',
+                    duration: 'once',
+                  }),
+                });
+                const couponOk = couponResp.ok;
+                const coupon = couponOk ? await couponResp.json() : null;
+
+                // Create a promotion code bound to this coupon with same code (idempotent)
+                let promotionCodeId: string | undefined = undefined;
+                if (coupon) {
+                  const promoResp = await fetch('https://api.stripe.com/v1/promotion_codes', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${stripeSecretKey}`,
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                      'Idempotency-Key': `promotion_${codeUpper}`,
+                    },
+                    body: new URLSearchParams({
+                      coupon: coupon.id,
+                      code: codeUpper,
+                    }),
+                  });
+                  if (promoResp.ok) {
+                    const promo = await promoResp.json();
+                    promotionCodeId = promo.id;
+                  }
+                }
+
+                // Persist in Convex for future validation
+                try {
+                  await ctx.runMutation(internal.payments.storeCouponDetails, {
+                    couponId: coupon?.id || codeUpper,
+                    code: codeUpper,
+                    percentOff: 100,
+                    duration: 'once',
+                    promotionCodeId,
+                  } as any);
+                } catch (_e) {}
+
+                // Apply discount to checkout (prefer promotion_code)
+                if (promotionCodeId) {
+                  checkoutParams['discounts[0][promotion_code]'] = promotionCodeId;
+                } else {
+                  checkoutParams['discounts[0][coupon]'] = codeUpper;
+                }
+                checkoutParams['allow_promotion_codes'] = 'true';
+
+                discountApplied = true;
+                discountAmount = 100;
+                checkoutParams['metadata[discountCode]'] = codeUpper;
+                checkoutParams['metadata[discountPercent]'] = '100';
+                checkoutParams['custom_text[submit][message]'] = `${codeUpper} applied — Total $0.00`;
+              } catch (_createErr) {
+                // If creation fails, proceed without discount
+              }
+            }
+            // Otherwise proceed without discount
           }
         } catch (error) {
           // Error validating discount code
@@ -335,11 +486,48 @@ export const createStudentCheckoutSession = action({
       // Log the session response to verify discount application
       // Stripe session created successfully
       
-      // Calculate final amount based on discount
+      // Calculate final amount based on discount or penny-code override
       // Reflect LIVE price points used in mapping above for accurate analytics
       const basePrice = args.membershipPlan === 'core' ? 499 : 
                        args.membershipPlan === 'pro' ? 799 : 999;
-      const finalAmount = discountApplied ? basePrice * (1 - discountAmount / 100) : basePrice;
+      // If MENTO12345 (or another penny code) was applied, the final price is $0.01
+      if (isPennyCode) {
+        discountApplied = true;
+        // Compute an effective percent-off purely for analytics/metadata
+        discountAmount = Math.max(0, Math.min(100, Math.round((1 - 0.01 / basePrice) * 100)));
+        // Emphasize penny total in Checkout UI
+        checkoutParams["custom_text[submit][message]"] = `${(args.discountCode || '').toUpperCase()} applied — Total $0.01`;
+        // Add discount metadata for downstream analytics
+        checkoutParams["metadata[discountCode]"] = (args.discountCode || '').toUpperCase();
+        checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
+        checkoutParams["allow_promotion_codes"] = "true";
+      }
+      const finalAmount = isPennyCode
+        ? 0.01
+        : (discountApplied ? basePrice * (1 - discountAmount / 100) : basePrice);
+
+      // Ensure penny-code exists in Convex for tracking/validation if needed
+      if (isPennyCode && args.discountCode) {
+        try {
+          const existingPenny = await ctx.runQuery(internal.payments.checkCouponExists, {
+            code: args.discountCode,
+          });
+          if (!existingPenny) {
+            await ctx.runMutation(internal.payments.storeCouponDetails, {
+              couponId: `synthetic_${(args.discountCode || '').toUpperCase()}`,
+              code: (args.discountCode || '').toUpperCase(),
+              percentOff: discountAmount,
+              duration: "once",
+              metadata: {
+                type: "penny",
+                basePrice: basePrice.toString(),
+              },
+            });
+          }
+        } catch (_e) {
+          // non-fatal
+        }
+      }
 
       // Log the intake payment attempt with discount info
       await ctx.runMutation(internal.payments.logIntakePaymentAttempt, {
@@ -533,8 +721,36 @@ export const handleStripeWebhook = action({
         case "checkout.session.completed":
           await handleCheckoutCompleted(ctx, event.data.object);
           break;
+        case "invoice.created":
+        case "invoice.finalized":
+        case "invoice.payment_succeeded":
+        case "invoice.payment_failed":
+        case "invoice.marked_uncollectible":
+        case "invoice.voided":
+          await handleInvoiceEvent(ctx, event);
+          break;
+        case "customer.subscription.created":
+        case "customer.subscription.updated":
+        case "customer.subscription.deleted":
+        case "customer.subscription.paused":
+        case "customer.subscription.resumed":
+          await handleSubscriptionEvent(ctx, event);
+          break;
         case "payment_intent.succeeded":
           await handlePaymentSucceeded(ctx, event.data.object);
+          break;
+        case "payment_intent.requires_action":
+        case "payment_intent.processing":
+          // Record in audit for visibility; client will resolve via Checkout redirect or future off-session
+          try {
+            await ctx.runMutation(internal.payments.insertPaymentsAudit, {
+              action: `webhook_${event.type}`,
+              stripeObject: "payment_intent",
+              stripeId: event.data.object?.id || "unknown",
+              details: { status: event.data.object?.status },
+              createdAt: Date.now(),
+            });
+          } catch (_e) {}
           break;
         case "payment_intent.payment_failed":
           await handlePaymentFailed(ctx, event.data.object);
@@ -833,6 +1049,97 @@ async function handleCustomerUpdated(ctx: any, customer: any) {
       // Failed to sync customer update
     }
   }
+}
+
+async function handleInvoiceEvent(ctx: any, event: any) {
+  const invoice = event.data.object;
+  try {
+    await ctx.db.insert("stripeInvoices", {
+      stripeInvoiceId: invoice.id,
+      stripeCustomerId: invoice.customer,
+      subscriptionId: invoice.subscription || undefined,
+      amountDue: invoice.amount_due,
+      amountPaid: invoice.amount_paid,
+      currency: invoice.currency,
+      status: invoice.status,
+      hostedInvoiceUrl: invoice.hosted_invoice_url,
+      invoicePdf: invoice.invoice_pdf,
+      createdAt: (invoice.created ? invoice.created * 1000 : Date.now()),
+      dueDate: invoice.due_date ? invoice.due_date * 1000 : undefined,
+      paidAt: invoice.status === "paid" && invoice.status_transitions?.paid_at
+        ? invoice.status_transitions.paid_at * 1000
+        : undefined,
+      metadata: invoice.metadata || {},
+    });
+  } catch (_e) {
+    // if exists, update
+    const existing = await ctx.db
+      .query("stripeInvoices")
+      .withIndex("byInvoiceId", (q: any) => q.eq("stripeInvoiceId", invoice.id))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        status: invoice.status,
+        amountPaid: invoice.amount_paid,
+        hostedInvoiceUrl: invoice.hosted_invoice_url,
+        invoicePdf: invoice.invoice_pdf,
+        updatedAt: Date.now(),
+      } as any);
+    }
+  }
+
+  // audit
+  try {
+    await ctx.db.insert("paymentsAudit", {
+      action: `webhook_${event.type}`,
+      stripeObject: "invoice",
+      stripeId: invoice.id,
+      details: { status: invoice.status },
+      createdAt: Date.now(),
+    });
+  } catch (_e) {}
+}
+
+async function handleSubscriptionEvent(ctx: any, event: any) {
+  const sub = event.data.object;
+  try {
+    // upsert
+    const existing = await ctx.db
+      .query("stripeSubscriptions")
+      .withIndex("bySubscriptionId", (q: any) => q.eq("stripeSubscriptionId", sub.id))
+      .first();
+    const base = {
+      stripeSubscriptionId: sub.id,
+      stripeCustomerId: sub.customer,
+      status: sub.status,
+      currentPeriodStart: sub.current_period_start ? sub.current_period_start * 1000 : undefined,
+      currentPeriodEnd: sub.current_period_end ? sub.current_period_end * 1000 : undefined,
+      cancelAtPeriodEnd: sub.cancel_at_period_end,
+      canceledAt: sub.canceled_at ? sub.canceled_at * 1000 : undefined,
+      defaultPaymentMethod: sub.default_payment_method || undefined,
+      priceId: sub.items?.data?.[0]?.price?.id,
+      quantity: sub.items?.data?.[0]?.quantity,
+      metadata: sub.metadata || {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    } as any;
+    if (existing) {
+      await ctx.db.patch(existing._id, base);
+    } else {
+      await ctx.db.insert("stripeSubscriptions", base);
+    }
+  } catch (_e) {}
+
+  // audit
+  try {
+    await ctx.db.insert("paymentsAudit", {
+      action: `webhook_${event.type}`,
+      stripeObject: "subscription",
+      stripeId: sub.id,
+      details: { status: sub.status },
+      createdAt: Date.now(),
+    });
+  } catch (_e) {}
 }
 
 // Internal mutations for payment tracking
@@ -1195,6 +1502,133 @@ export const getStripePricing = action({
   },
 });
 
+// Create a refund for a PaymentIntent (full or partial) and record audit
+export const createRefund = action({
+  args: {
+    paymentIntentId: v.string(),
+    amount: v.optional(v.number()), // cents; omit for full refund
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<{ refundId: string; status: string }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+
+    const params = new URLSearchParams({ payment_intent: args.paymentIntentId });
+    if (args.amount && args.amount > 0) params.set("amount", String(args.amount));
+    if (args.reason) params.set("reason", args.reason);
+
+    const resp = await fetch("https://api.stripe.com/v1/refunds", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Idempotency-Key": `refund_${args.paymentIntentId}_${args.amount ?? 'full'}`,
+      },
+      body: params,
+    });
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error(`Stripe refund error: ${resp.status} - ${t}`);
+    }
+    const refund = await resp.json();
+
+    // Update payments table if present
+    try {
+      const payment: any = await ctx.runQuery(internal.payments.getPaymentByStripePaymentIntentId, {
+        paymentIntentId: args.paymentIntentId,
+      });
+      if (payment) {
+        const newStatus = refund.amount === payment.amount ? "refunded" : "partially_refunded";
+        await ctx.runMutation(internal.payments.patchPayment, {
+          paymentId: payment._id,
+          updates: {
+            status: newStatus,
+            refundedAmount: (payment.refundedAmount || 0) + (refund.amount || 0),
+            updatedAt: Date.now(),
+          },
+        });
+      }
+    } catch (_e) {}
+
+    // Audit
+    try {
+      await ctx.runMutation(internal.payments.insertPaymentsAudit, {
+        action: "refund_created",
+        stripeObject: "payment_intent",
+        stripeId: args.paymentIntentId,
+        details: { refundId: refund.id, amount: refund.amount },
+        createdAt: Date.now(),
+      });
+    } catch (_e) {}
+
+    return { refundId: refund.id, status: refund.status };
+  },
+});
+
+// Create a Stripe Billing Portal session for the current user
+export const createBillingPortalSession = action({
+  args: { returnUrl: v.string() },
+  handler: async (ctx, args): Promise<{ url: string }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Look up the user and student to find an existing Stripe customer id
+    const user = await ctx.runQuery(internal.payments.getUserByExternalId, {
+      externalId: identity.subject,
+    });
+
+    if (!user) throw new Error("User not found");
+
+    const student = await ctx.runQuery(internal.payments.getStudentByUserId, {
+      userId: (user as any)._id,
+    });
+
+    let stripeCustomerId: string | undefined = (student as any)?.stripeCustomerId;
+
+    // If we don't have a stored customer id, try finding by email in Stripe
+    const userEmail = (user as any).email as string | undefined;
+    if (!stripeCustomerId && userEmail) {
+      try {
+        const searchResponse = await fetch(
+          `https://api.stripe.com/v1/customers/search?query=email:'${userEmail}'`,
+          { headers: { Authorization: `Bearer ${stripeSecretKey}` } }
+        );
+        if (searchResponse.ok) {
+          const data = await searchResponse.json();
+          stripeCustomerId = data?.data?.[0]?.id;
+        }
+      } catch (_e) {}
+    }
+
+    if (!stripeCustomerId) throw new Error("Stripe customer not found");
+
+    // Create Billing Portal session
+    const response = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Idempotency-Key": `portal_${stripeCustomerId}_${Date.now()}`,
+      },
+      body: new URLSearchParams({
+        customer: stripeCustomerId,
+        return_url: args.returnUrl,
+      }),
+    });
+
+    if (!response.ok) {
+      const t = await response.text();
+      throw new Error(`Stripe portal error: ${response.status} - ${t}`);
+    }
+
+    const session = await response.json();
+    return { url: session.url };
+  },
+});
+
 // Create a discount coupon in Stripe
 export const createDiscountCoupon = action({
   args: {
@@ -1501,6 +1935,44 @@ export const initializeAllDiscountCodes = action({
   },
 });
 
+// Initialize the MENTO12345 penny code ($0.01 final price via special handling)
+export const initializeMentoPennyCode = action({
+  handler: async (ctx): Promise<{
+    success: boolean;
+    message: string;
+    code?: string;
+  }> => {
+    try {
+      const code = "MENTO12345";
+      const existing: any = await ctx.runQuery(internal.payments.checkCouponExists, { code });
+      if (existing) {
+        return {
+          success: true,
+          message: `Discount code ${code} already exists`,
+          code,
+        };
+      }
+
+      // Store a synthetic record so validation passes; price override is handled at checkout
+      await ctx.runMutation(internal.payments.storeCouponDetails, {
+        couponId: `synthetic_${code}`,
+        code,
+        percentOff: 0,
+        duration: "once",
+        metadata: { type: "penny" },
+      } as any);
+
+      return {
+        success: true,
+        message: `Successfully initialized ${code} penny discount (final price $0.01 handled in checkout)`,
+        code,
+      };
+    } catch (error) {
+      throw new Error(`Failed to initialize MENTO12345: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
 // Internal mutation to store coupon details
 export const storeCouponDetails = internalMutation({
   args: {
@@ -1558,6 +2030,47 @@ export const trackDiscountUsage = internalMutation({
       amountDiscounted: args.amountDiscounted,
       usedAt: Date.now(),
     });
+  },
+});
+
+// Internal mutation to insert audit records
+export const insertPaymentsAudit = internalMutation({
+  args: {
+    action: v.string(),
+    stripeObject: v.string(),
+    stripeId: v.string(),
+    details: v.optional(v.record(v.string(), v.any())),
+    userId: v.optional(v.id("users")),
+    createdAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("paymentsAudit", {
+      action: args.action,
+      stripeObject: args.stripeObject,
+      stripeId: args.stripeId,
+      details: args.details,
+      userId: args.userId,
+      createdAt: args.createdAt ?? Date.now(),
+    });
+  },
+});
+
+// Internal query to get payment by Stripe payment intent id
+export const getPaymentByStripePaymentIntentId = internalQuery({
+  args: { paymentIntentId: v.string() },
+  handler: async (ctx, { paymentIntentId }) => {
+    return await ctx.db
+      .query("payments")
+      .withIndex("byStripePaymentIntentId", (q) => q.eq("stripePaymentIntentId", paymentIntentId))
+      .first();
+  },
+});
+
+// Internal mutation to patch payment by id
+export const patchPayment = internalMutation({
+  args: { paymentId: v.id("payments"), updates: v.any() },
+  handler: async (ctx, { paymentId, updates }) => {
+    await ctx.db.patch(paymentId, updates as any);
   },
 });
 
@@ -2037,6 +2550,17 @@ export const getUserByExternalId = internalQuery({
       .query("users")
       .withIndex("byExternalId", (q) => q.eq("externalId", externalId))
       .unique();
+  },
+});
+
+// Internal query to get student by userId
+export const getStudentByUserId = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    return await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .first();
   },
 });
 

@@ -106,7 +106,7 @@ export default function StudentIntakePage() {
         }
       }
     }
-  }, [])
+  }, [currentStep])
 
   // Validate if a step is completed based on form data
   const validateStep = useCallback((stepNumber: number): boolean => {

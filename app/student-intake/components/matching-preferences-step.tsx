@@ -86,10 +86,10 @@ const MENTORFIT_QUESTIONS = [
 export default function MatchingPreferencesStep({ 
   data, 
   updateFormData, 
-  onNext,
+  onNext: _onNext,
   onPrev,
   isFirstStep,
-  isLastStep 
+  isLastStep: _isLastStep 
 }: MatchingPreferencesStepProps) {
   const router = useRouter()
   const paymentStatus = usePaymentProtection()

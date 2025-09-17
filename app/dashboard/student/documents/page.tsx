@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { toast } from 'sonner'
 
 export default function StudentDocumentsPage() {
   return (
@@ -18,6 +21,8 @@ export default function StudentDocumentsPage() {
   )
 }
 
+type DocumentType = 'Agreement' | 'Template' | 'Hours Log' | 'Credential' | 'Evaluation' | 'Other'
+
 function StudentDocumentsContent() {
   const docs = useQuery(api.documents.getAllDocuments)
   const upload = useMutation(api.documents.uploadDocument)
@@ -25,7 +30,7 @@ function StudentDocumentsContent() {
 
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
-  const [documentType, setDocumentType] = useState<'Agreement' | 'Template' | 'Hours Log' | 'Credential' | 'Evaluation' | 'Other'>('Credential')
+  const [documentType, setDocumentType] = useState<DocumentType>('Credential')
   const [fileUrl, setFileUrl] = useState('')
   const [fileType, setFileType] = useState('application/pdf')
   const [fileSize, setFileSize] = useState('0')
@@ -41,14 +46,26 @@ function StudentDocumentsContent() {
       setError('Name and file URL are required')
       return
     }
-    await upload({ name, documentType, fileUrl, fileType, fileSize: Number(fileSize) || 0 })
-    setShowForm(false)
-    setName('')
-    setFileUrl('')
+    try {
+      await upload({ name, documentType, fileUrl, fileType, fileSize: Number(fileSize) || 0 })
+      setShowForm(false)
+      setName('')
+      setFileUrl('')
+      toast.success('Document saved')
+    } catch (error) {
+      console.error('Failed to upload document', error)
+      toast.error('Unable to save document. Please try again.')
+    }
   }
 
-  const onDelete = async (id: string) => {
-    await remove({ documentId: id as any })
+  const onDelete = async (id: Id<'documents'>) => {
+    try {
+      await remove({ documentId: id })
+      toast.success('Document removed')
+    } catch (error) {
+      console.error('Failed to delete document', error)
+      toast.error('Unable to delete document right now')
+    }
   }
 
   return (
@@ -59,6 +76,12 @@ function StudentDocumentsContent() {
           {showForm ? 'Close' : 'Upload Document'}
         </Button>
       </div>
+
+      <Alert>
+        <AlertDescription>
+          Uploads currently accept shareable links (Google Drive, Dropbox, etc.). Make sure link privacy is set to allow MentoLoop staff to view your document. For secure uploads or questions, contact support any time.
+        </AlertDescription>
+      </Alert>
 
       {showForm && (
         <Card>
@@ -74,7 +97,7 @@ function StudentDocumentsContent() {
               </div>
               <div>
                 <label className="text-sm">Type</label>
-                <Select value={documentType} onValueChange={(v) => setDocumentType(v as any)}>
+                <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentType)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Choose type" />
                   </SelectTrigger>
@@ -152,7 +175,7 @@ function StudentDocumentsContent() {
                       View
                     </a>
                   )}
-                  <button onClick={() => onDelete(d._id)} className="text-sm text-destructive">
+                  <button onClick={() => onDelete(d._id as Id<'documents'>)} className="text-sm text-destructive">
                     Delete
                   </button>
                 </div>
@@ -164,4 +187,3 @@ function StudentDocumentsContent() {
     </div>
   )
 }
-

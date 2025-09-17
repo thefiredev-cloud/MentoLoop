@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -31,7 +31,7 @@ interface StripeCheckoutStepProps {
 export default function StripeCheckoutStep({ 
   data, 
   updateFormData, 
-  onNext,
+  onNext: _onNext,
   onPrev,
   isFirstStep 
 }: StripeCheckoutStepProps) {
@@ -42,7 +42,6 @@ export default function StripeCheckoutStep({
   
   const createStudentCheckoutSession = useAction(api.payments.createStudentCheckoutSession)
   const grantZeroCostAccessByCode = useMutation(api.payments.grantZeroCostAccessByCode)
-  const createOrUpdateStudent = useMutation(api.students.createOrUpdateStudent)
   const ensureUserExists = useMutation(api.users.ensureUserExists)
 
   // Get the student info and membership data from previous steps
@@ -80,61 +79,6 @@ export default function StripeCheckoutStep({
     try {
       // First ensure user exists in database
       await ensureUserExists()
-      
-      // Create or update student record with initial data
-      await createOrUpdateStudent({
-        personalInfo: {
-          fullName: studentInfo.fullName,
-          email: studentInfo.email,
-          phone: '', // Will be updated later
-          dateOfBirth: '', // Will be updated later
-          preferredContact: 'email'
-        },
-        schoolInfo: {
-          programName: studentInfo.school,
-          degreeTrack: studentInfo.specialty as "FNP" | "PNP" | "PMHNP" | "AGNP" | "ACNP" | "WHNP" | "NNP" | "DNP",
-          schoolLocation: {
-            city: '',
-            state: studentInfo.state
-          },
-          programFormat: 'hybrid',
-          expectedGraduation: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 1 year from now
-        },
-        rotationNeeds: {
-          rotationTypes: [studentInfo.specialty.toLowerCase().replace('np', '') as "family-practice"],
-          startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-          endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 120 days from now
-          weeklyHours: '24-32',
-          daysAvailable: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-          willingToTravel: false,
-          preferredLocation: {
-            city: '',
-            state: studentInfo.state
-          }
-        },
-        matchingPreferences: {
-          comfortableWithSharedPlacements: false
-        },
-        learningStyle: {
-          learningMethod: 'hands-on',
-          clinicalComfort: 'somewhat-comfortable',
-          feedbackPreference: 'real-time',
-          structurePreference: 'general-guidance',
-          mentorRelationship: 'teacher-coach',
-          observationPreference: 'mix-both',
-          correctionStyle: 'supportive-private',
-          retentionStyle: 'watching-doing',
-          additionalResources: 'occasionally',
-          proactiveQuestions: 3
-        },
-        agreements: {
-          agreedToPaymentTerms: true,
-          agreedToTermsAndPrivacy: true,
-          digitalSignature: studentInfo.fullName,
-          submissionDate: new Date().toISOString().split('T')[0]
-        },
-        membershipPlan: membership.plan as 'core' | 'pro' | 'premium'
-      })
       
       // If using a 100% test code (e.g., NP12345), grant access without redirecting to Stripe
       if (discountCode && discountCode.trim().toUpperCase() === 'NP12345') {

@@ -29,8 +29,6 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 
-type CSVCell = string | number | boolean | null | object | undefined
-
 interface Match {
   _id: Id<'matches'>
   studentId: Id<'students'>
@@ -464,7 +462,7 @@ export default function MatchManagementPage() {
                               try {
                                 const result = await recomputeCompatibility({ matchId: match._id })
                                 toast.success(`Recomputed: ${result.score}/10 (${result.tier})`)
-                              } catch (e) {
+                              } catch {
                                 toast.error('Failed to recompute MentorFit')
                               }
                             }}

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,10 +47,11 @@ export function Chatbot() {
   }, [])
 
   // Get conversation history
-  const conversationHistory = useQuery(
+  const rawConversationHistory = useQuery(
     api.chatbot.getConversationHistory,
     sessionId ? { sessionId } : 'skip'
-  ) || []
+  )
+  const conversationHistory = useMemo(() => rawConversationHistory ?? [], [rawConversationHistory])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

@@ -19,7 +19,6 @@ import {
   Plus,
   Download,
   FileText,
-  CheckCircle,
   AlertCircle,
   BarChart3
 } from 'lucide-react'
@@ -45,6 +44,38 @@ export default function StudentHoursPage() {
 
   if (!user) {
     return <div>Loading...</div>
+  }
+
+  const handleExportHours = () => {
+    if (!recentHours || recentHours.length === 0) {
+      toast.info('No hours to export yet')
+      return
+    }
+
+    try {
+      const header = ['Date', 'Hours Worked', 'Rotation Type', 'Site', 'Status']
+      const rows = recentHours.map((entry) => [
+        entry.date,
+        entry.hoursWorked?.toString() ?? '0',
+        entry.rotationType ?? '',
+        entry.site ?? '',
+        entry.status ?? ''
+      ])
+      const csvContent = [header, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+        .join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = 'clinical-hours.csv'
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to export hours', error)
+      toast.error('Unable to export hours right now')
+    }
   }
 
   // Handle form submission
@@ -76,8 +107,8 @@ export default function StudentHoursPage() {
       setShowLogForm(false)
       
       toast.success('Hours logged successfully!')
-    } catch (_error) {
-      // Failed to log hours
+    } catch (error) {
+      console.error('Failed to log clinical hours entry', error)
       toast.error('Failed to log hours. Please try again.')
     }
   }
@@ -125,7 +156,7 @@ export default function StudentHoursPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExportHours}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>

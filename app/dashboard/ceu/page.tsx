@@ -53,7 +53,6 @@ export default function CEUDashboard() {
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     searchQuery: searchQuery || undefined,
   })
-  const userEnrollments = useQuery(api.ceuCourses.getUserEnrollments)
   const userCertificates = useQuery(api.ceuCourses.getUserCertificates)
   const ceuStatsData = useQuery(api.ceuCourses.getCEUStats)
   const enrollInCourse = useMutation(api.ceuCourses.enrollInCourse)
@@ -135,13 +134,21 @@ export default function CEUDashboard() {
   ]
 
   // const enrollments = [] // userEnrollments || []
-  const certificates = [ // userCertificates || [
+  const defaultCertificates: Array<{
+    id: string
+    courseTitle: string
+    completedDate: string
+    credits: number
+    certificateUrl?: string
+    certificateNumber?: string
+  }> = [
     {
       id: 'cert-1',
       courseTitle: 'Pharmacology Update 2024',
       completedDate: '2024-01-15',
       credits: 3,
-      certificateUrl: '#'
+      certificateUrl: '#',
+      certificateNumber: 'CEU-2024-1042'
     },
     {
       id: 'cert-2',
@@ -151,6 +158,8 @@ export default function CEUDashboard() {
       certificateNumber: 'CEU-2023-1897'
     }
   ]
+
+  const certificates = userCertificates ?? defaultCertificates
 
   const categories = [
     { value: 'all', label: 'All Courses' },
@@ -175,6 +184,7 @@ export default function CEUDashboard() {
         toast.error('Unable to enroll at this time')
       }
     } catch (error) {
+      console.error('Failed to enroll in course', error)
       toast.error('Failed to enroll in course')
     }
   }
@@ -447,9 +457,11 @@ export default function CEUDashboard() {
                           Completed on {new Date(cert.completedDate).toLocaleDateString()} • 
                           {' '}{cert.credits} CEUs earned
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Certificate #{cert.certificateNumber}
-                        </p>
+                        {'certificateNumber' in cert && cert.certificateNumber && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Certificate #{cert.certificateNumber}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">

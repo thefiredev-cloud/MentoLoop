@@ -58,7 +58,7 @@ export default function RotationNeedsStep({
   onNext,
   onPrev,
   isFirstStep,
-  isLastStep 
+  isLastStep: _isLastStep 
 }: RotationNeedsStepProps) {
   const [formData, setFormData] = useState({
     requiredHours: '',

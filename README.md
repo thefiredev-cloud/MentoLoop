@@ -12,18 +12,20 @@ A modern, full-stack mentorship platform built specifically for healthcare profe
 Built with Next.js 15, Convex real-time database, Clerk authentication, AI-enhanced matching (OpenAI/Gemini), and comprehensive healthcare compliance features.
 
 ## 🚀 Live Demo
+[Production: sandboxmentoloop.online](https://sandboxmentoloop.online)
+
 Deployed via GitHub → Netlify. Preview environment available. Documentation lives in `docs/` within this repo.
 
 ## 📸 Screenshots
 
 ### Student Dashboard
-![Student Dashboard](https://via.placeholder.com/800x400/0066CC/FFFFFF?text=Student+Dashboard+Coming+Soon)
+![Student Dashboard](https://sandboxmentoloop.online/window.svg)
 
 ### AI-Powered Matching
-![AI Matching](https://via.placeholder.com/800x400/00AA44/FFFFFF?text=AI+Matching+Interface+Coming+Soon)
+![AI Matching](https://sandboxmentoloop.online/globe.svg)
 
 ### Preceptor Management
-![Preceptor Dashboard](https://via.placeholder.com/800x400/AA0044/FFFFFF?text=Preceptor+Dashboard+Coming+Soon)
+![Preceptor Dashboard](https://sandboxmentoloop.online/file.svg)
 
 ## Core Healthcare Features
 

@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     })
 
     return new NextResponse(null, { status: 204 })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Analytics error' }, { status: 500 })
   }
 }
@@ -38,4 +38,3 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({ status: 'ok' })
 }
-

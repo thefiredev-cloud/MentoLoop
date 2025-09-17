@@ -81,8 +81,8 @@ export function getClerkDomain(): string {
       const encodedDomain = key.substring(8).split('$')[0]
       const domain = Buffer.from(encodedDomain, 'base64').toString('utf-8')
       return `https://${domain}`
-    } catch (e) {
-      // Fallback to default if parsing fails
+    } catch (error) {
+      console.warn('Failed to parse Clerk live key domain', error)
       return 'https://loved-lamprey-34.clerk.accounts.dev'
     }
   }

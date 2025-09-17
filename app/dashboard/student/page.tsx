@@ -15,7 +15,6 @@ import {
   User,
   Search,
   FileText,
-  BookOpen,
   AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'

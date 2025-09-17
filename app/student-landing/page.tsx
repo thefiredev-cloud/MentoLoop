@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { 
   CheckCircle, 
   ChevronRight,
-  Star,
   Shield,
   DollarSign,
   Clock,

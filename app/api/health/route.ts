@@ -47,7 +47,7 @@ export async function GET() {
     } else {
       external.convex = { reachable: false, reason: 'missing_url' }
     }
-  } catch (e) {
+  } catch {
     external.convex = { reachable: false, error: 'fetch_failed' }
   }
 
@@ -62,7 +62,7 @@ export async function GET() {
     } else {
       external.stripe = { reachable: false, reason: 'missing_key' }
     }
-  } catch (e) {
+  } catch {
     external.stripe = { reachable: false, error: 'fetch_failed' }
   }
 
@@ -74,5 +74,4 @@ export async function GET() {
   res.headers.set('content-type', 'application/json; charset=utf-8')
   return res
 }
-
 

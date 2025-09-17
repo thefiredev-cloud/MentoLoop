@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { User, Mail, Phone, Building, MapPin, Stethoscope, Lock, Crown, Zap, FileText, ClipboardCheck } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Stethoscope, Lock } from 'lucide-react'
 import LockedSection from '@/components/form-protection/locked-section'
-import { usePaymentProtection, canAccessFormSection } from '@/lib/payment-protection'
+import { usePaymentProtection } from '@/lib/payment-protection'
 
 interface ProtectedPreceptorIntakeStepProps {
   data: Record<string, unknown>
@@ -44,7 +44,7 @@ export default function ProtectedPreceptorIntakeStep({
   onNext,
   onPrev,
   isFirstStep,
-  isLastStep
+  isLastStep: _isLastStep
 }: ProtectedPreceptorIntakeStepProps) {
   const paymentStatus = usePaymentProtection()
   

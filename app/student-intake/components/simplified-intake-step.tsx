@@ -51,11 +51,11 @@ const HOUR_REQUIREMENTS = [
   { value: 'other', label: 'Other' }
 ]
 
-export default function SimplifiedIntakeStep({ 
-  data, 
-  updateFormData, 
+export default function SimplifiedIntakeStep({
+  data,
+  updateFormData,
   onNext,
-  isFirstStep 
+  isFirstStep: _isFirstStep
 }: SimplifiedIntakeStepProps) {
   const [formData, setFormData] = useState({
     fullName: '',

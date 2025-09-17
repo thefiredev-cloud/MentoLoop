@@ -9,7 +9,6 @@ import {
   Users, 
   Calendar, 
   FileText,
-  Star,
   Stethoscope,
   Target,
   ChartBar,
@@ -101,10 +100,14 @@ function PreceptorDashboardContent() {
                 className="text-sm underline"
                 onClick={async () => {
                   try {
-                    const { url } = await createAccountLink({} as any)
-                    if (url) window.location.href = url
-                  } catch (e) {
-                    console.error(e)
+                    const { url } = await createAccountLink({})
+                    if (url) {
+                      window.location.href = url
+                    } else {
+                      console.error('Stripe account link missing URL')
+                    }
+                  } catch (error) {
+                    console.error('Failed to create account link', error)
                   }
                 }}
               >
@@ -113,7 +116,11 @@ function PreceptorDashboardContent() {
               <button
                 className="text-sm underline text-muted-foreground"
                 onClick={async () => {
-                  try { await refreshStatus({} as any) } catch {}
+                  try {
+                    await refreshStatus({})
+                  } catch (error) {
+                    console.error('Failed to refresh connect status', error)
+                  }
                 }}
               >
                 Refresh

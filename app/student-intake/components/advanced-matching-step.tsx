@@ -13,7 +13,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select'
-import { Target, Users, Languages, Zap, Crown } from 'lucide-react'
+import { Target, Zap } from 'lucide-react'
 import LockedSection from '@/components/form-protection/locked-section'
 import { usePaymentProtection, canAccessFormSection } from '@/lib/payment-protection'
 

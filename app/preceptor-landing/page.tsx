@@ -12,7 +12,6 @@ import {
   DollarSign,
   Clock,
   Award,
-  Users,
   Plus,
   Stethoscope,
   Trophy,

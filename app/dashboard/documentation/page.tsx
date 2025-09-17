@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useClinicalDocumentation } from "@/hooks/use-gpt5";
 
 export default function DocumentationPage() {
@@ -99,4 +99,3 @@ export default function DocumentationPage() {
     </div>
   );
 }
-

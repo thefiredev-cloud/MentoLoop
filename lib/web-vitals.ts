@@ -114,8 +114,8 @@ export class PerformanceMonitor {
         });
         longTaskObserver.observe({ entryTypes: ['longtask'] });
         this.observers.push(longTaskObserver);
-      } catch (e) {
-        // PerformanceObserver not supported
+      } catch (error) {
+        console.warn('PerformanceObserver long task monitoring not supported', error)
       }
 
       // Monitor memory usage

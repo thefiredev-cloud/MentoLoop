@@ -44,8 +44,8 @@ export default function DashboardPage() {
       
       // Redirect to appropriate dashboard
       router.push(`/dashboard/${role}`)
-    } catch (_error) {
-      // Failed to update user role
+    } catch (error) {
+      console.error('Failed to update user role', error)
       toast.error('Failed to save your role. Please try again.')
     }
   }

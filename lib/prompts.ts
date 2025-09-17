@@ -172,8 +172,10 @@ export function validateResponse(
   return true;
 }
 
+type GenericRecord = Record<string, unknown>;
+
 export const PromptGenerators = {
-  generateMatchingPrompt(student: any, preceptors: any[]): string {
+  generateMatchingPrompt(student: { specialty?: string | null }, preceptors: GenericRecord[]): string {
     return new PromptBuilder()
       .addContext("Healthcare mentorship matching for nursing education")
       .addContext(`Student specialty: ${student?.specialty ?? "unknown"}`)
@@ -184,7 +186,7 @@ export const PromptGenerators = {
       .addConstraint("Factor in geographic proximity")
       .build("Create optimal student-preceptor matches with detailed reasoning");
   },
-  generateEvaluationPrompt(performance: any, rubric: any): string {
+  generateEvaluationPrompt(_performance: GenericRecord, rubric: GenericRecord): string {
     return new PromptBuilder()
       .addContext("Clinical performance evaluation")
       .addContext(`Evaluation rubric: ${JSON.stringify(rubric)}`)
@@ -194,7 +196,7 @@ export const PromptGenerators = {
       .addConstraint("Align with QSEN competencies")
       .build("Generate comprehensive performance evaluation", "narrative");
   },
-  generateLearningPathPrompt(assessment: any, goals: string[]): string {
+  generateLearningPathPrompt(assessment: GenericRecord, goals: string[]): string {
     return new PromptBuilder()
       .addContext("Personalized nursing education pathway")
       .addContext(`Current competencies: ${JSON.stringify(assessment)}`)
@@ -205,4 +207,3 @@ export const PromptGenerators = {
       .build("Design 12-week learning pathway with specific objectives");
   },
 };
-

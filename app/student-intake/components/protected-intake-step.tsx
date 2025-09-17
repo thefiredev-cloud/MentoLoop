@@ -12,9 +12,9 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select'
-import { User, Mail, School, Clock, MapPin, Stethoscope, Lock, Crown, Zap } from 'lucide-react'
+import { User, Mail, School, Clock, MapPin, Stethoscope, Lock, Zap } from 'lucide-react'
 import LockedSection from '@/components/form-protection/locked-section'
-import { usePaymentProtection, canAccessFormSection, getLockedSectionPreview } from '@/lib/payment-protection'
+import { usePaymentProtection, canAccessFormSection } from '@/lib/payment-protection'
 
 interface ProtectedIntakeStepProps {
   data: Record<string, unknown>
@@ -57,7 +57,7 @@ export default function ProtectedIntakeStep({
   data, 
   updateFormData, 
   onNext,
-  isFirstStep 
+  isFirstStep: _isFirstStep 
 }: ProtectedIntakeStepProps) {
   const paymentStatus = usePaymentProtection()
   const canAccessBasicInfo = canAccessFormSection(paymentStatus, 'personal-info')

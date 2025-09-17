@@ -11,15 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { 
   Bell, 
   BellOff, 
-  CheckCircle2, 
-  AlertCircle, 
   Info,
   MessageSquare,
   Calendar,
   DollarSign,
   Users,
-  Clock,
-  Archive,
   Trash2,
   CheckCheck
 } from 'lucide-react'
@@ -83,22 +79,6 @@ const mockNotifications = [
     actionUrl: '/dashboard/student/profile'
   }
 ]
-
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'match':
-      return Users
-    case 'payment':
-      return DollarSign
-    case 'reminder':
-      return Calendar
-    case 'message':
-      return MessageSquare
-    case 'system':
-    default:
-      return Info
-  }
-}
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {

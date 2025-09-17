@@ -224,6 +224,12 @@ export default defineSchema({
         comfortableWithSharedPlacements: v.optional(v.boolean()),
         languagesSpoken: v.optional(v.array(v.string())),
         idealPreceptorQualities: v.optional(v.string()),
+        practiceStylePreference: v.optional(v.string()),
+        teachingPreference: v.optional(v.string()),
+        communicationStyle: v.optional(v.string()),
+        schedulingFlexibility: v.optional(v.string()),
+        mentorshipGoals: v.optional(v.string()),
+        additionalPreferences: v.optional(v.string()),
       }),
       // MentorFit Learning Style Assessment
       learningStyle: v.object({
@@ -843,6 +849,57 @@ export default defineSchema({
     createdAt: v.number(),
     processedAt: v.optional(v.number()),
   }).index("byEventId", ["eventId"]),
+
+  // Stripe Subscriptions (for future recurring billing / institutional plans)
+  stripeSubscriptions: defineTable({
+    stripeSubscriptionId: v.string(),
+    stripeCustomerId: v.string(),
+    status: v.string(), // trialing, active, past_due, canceled, unpaid, incomplete
+    currentPeriodStart: v.optional(v.number()),
+    currentPeriodEnd: v.optional(v.number()),
+    cancelAtPeriodEnd: v.optional(v.boolean()),
+    canceledAt: v.optional(v.number()),
+    defaultPaymentMethod: v.optional(v.string()),
+    priceId: v.optional(v.string()),
+    quantity: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("bySubscriptionId", ["stripeSubscriptionId"])
+    .index("byCustomerId", ["stripeCustomerId"])
+    .index("byStatus", ["status"]),
+
+  // Stripe Invoices
+  stripeInvoices: defineTable({
+    stripeInvoiceId: v.string(),
+    stripeCustomerId: v.string(),
+    subscriptionId: v.optional(v.string()),
+    amountDue: v.optional(v.number()),
+    amountPaid: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    status: v.optional(v.string()), // draft, open, paid, uncollectible, void
+    hostedInvoiceUrl: v.optional(v.string()),
+    invoicePdf: v.optional(v.string()),
+    createdAt: v.number(),
+    dueDate: v.optional(v.number()),
+    paidAt: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+  }).index("byInvoiceId", ["stripeInvoiceId"])
+    .index("byCustomerId", ["stripeCustomerId"])
+    .index("bySubscriptionId", ["subscriptionId"])
+    .index("byStatus", ["status"])
+    .index("byCreatedAt", ["createdAt"]),
+
+  // Payments audit ledger (append-only)
+  paymentsAudit: defineTable({
+    action: v.string(), // webhook_processed, refund_created, credit_note_created
+    stripeObject: v.string(), // invoice, subscription, payment_intent
+    stripeId: v.string(),
+    details: v.optional(v.record(v.string(), v.any())),
+    createdAt: v.number(),
+    userId: v.optional(v.id("users")),
+  }).index("byStripeObject", ["stripeObject", "stripeId"])
+    .index("byAction", ["action"]),
 
   // Documents table for storing student/preceptor documents
   documents: defineTable({

@@ -270,6 +270,98 @@ export const deleteWebhookEvent = internalMutation({
   }
 })
 
+// Dunning scan: refresh invoice statuses, attempt payment, and record audit entries
+export const runDunningScan = internalAction({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args): Promise<{ processed: number; attempts: number; paid: number; failed: number }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+    if (!stripeSecretKey) throw new Error('Stripe not configured')
+
+    const now = Date.now()
+    const limit = Math.min(Math.max(args.limit ?? 50, 1), 200)
+
+    const db = (ctx as any).db
+
+    // Candidates: invoices that are open or past_due and created in last 180 days
+    const sixMonthsAgo = now - 180 * 24 * 60 * 60 * 1000
+    const candidates = await db
+      .query('stripeInvoices')
+      .withIndex('byStatus', (q: any) => q.eq('status', 'open'))
+      .filter((q: any) => q.gte(q.field('createdAt'), sixMonthsAgo))
+      .take(Math.floor(limit / 2))
+
+    const pastDue = await db
+      .query('stripeInvoices')
+      .withIndex('byStatus', (q: any) => q.eq('status', 'past_due'))
+      .filter((q: any) => q.gte(q.field('createdAt'), sixMonthsAgo))
+      .take(Math.ceil(limit / 2))
+
+    const invoices = [...candidates, ...pastDue]
+
+    let processed = 0
+    let attempts = 0
+    let paid = 0
+    let failed = 0
+
+    for (const inv of invoices) {
+      processed++
+      // Refresh invoice from Stripe
+      try {
+        const getResp = await fetch(`https://api.stripe.com/v1/invoices/${inv.stripeInvoiceId}`, {
+          headers: { Authorization: `Bearer ${stripeSecretKey}` },
+        })
+        if (!getResp.ok) continue
+        const fresh = await getResp.json()
+
+        // Update local record if status changed
+        if (fresh.status && fresh.status !== inv.status) {
+          await db.patch(inv._id, {
+            status: fresh.status,
+            amountPaid: fresh.amount_paid,
+            hostedInvoiceUrl: fresh.hosted_invoice_url,
+            invoicePdf: fresh.invoice_pdf,
+          } as any)
+        }
+
+        // Attempt payment if past_due or open with due date passed
+        const dueMs = fresh.due_date ? fresh.due_date * 1000 : undefined
+        const shouldAttempt = fresh.status === 'past_due' || (fresh.status === 'open' && dueMs && dueMs < now)
+        if (shouldAttempt) {
+          attempts++
+          const payResp = await fetch(`https://api.stripe.com/v1/invoices/${inv.stripeInvoiceId}/pay`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${stripeSecretKey}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Idempotency-Key': `invoice_pay_${inv.stripeInvoiceId}`,
+            },
+          })
+          const ok = payResp.ok
+          try {
+            await db.insert('paymentsAudit', {
+              action: ok ? 'dunning_attempt_paid' : 'dunning_attempt_failed',
+              stripeObject: 'invoice',
+              stripeId: inv.stripeInvoiceId,
+              details: { statusBefore: fresh.status },
+              createdAt: Date.now(),
+            } as any)
+          } catch (_) {}
+
+          if (ok) {
+            paid++
+          } else {
+            failed++
+          }
+        }
+      } catch (_) {
+        // ignore individual invoice errors
+      }
+    }
+
+    return { processed, attempts, paid, failed }
+  },
+})
+
 // Helper queries for scheduled tasks
 
 export const getUpcomingMatches = query({

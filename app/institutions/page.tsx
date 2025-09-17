@@ -11,8 +11,7 @@ import MentoLoopBackground from '@/components/mentoloop-background'
 import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
 import { motion } from 'motion/react'
 import { 
-  Users, Shield, BarChart3, Building2, 
-  ChevronRight, GraduationCap, CheckCircle,
+  Users, Shield, CheckCircle,
   TrendingUp, Award, Briefcase, ArrowRight,
   Globe, Zap, Target
 } from 'lucide-react'
@@ -66,7 +65,7 @@ export default function InstitutionsPage() {
         })
       }, 2000)
     } catch (error) {
-      // Error submitting inquiry
+      console.error('Failed to submit enterprise inquiry', error)
       toast.error('There was an error submitting your inquiry. Please try again.')
     } finally {
       setIsSubmitting(false)

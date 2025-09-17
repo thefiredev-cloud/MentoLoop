@@ -47,7 +47,7 @@ export const DashboardNavbar = () => {
 
   return (
     <header 
-      className="fixed top-0 z-[60] w-full h-14 bg-white border-b border-gray-200">
+      className="fixed top-0 z-[60] w-full h-14 bg-background border-b shadow-sm">
       <nav className="flex h-full items-center px-4 lg:px-6">
         <div className="flex flex-1 items-center justify-between">
           {/* Navigation Links */}
@@ -67,8 +67,8 @@ export const DashboardNavbar = () => {
                       href={item.href}
                       className={cn(
                         "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
-                        "hover:bg-white/10 hover:text-primary",
-                        pathname === item.href && "bg-white/10 text-primary"
+                        "hover:bg-gray-100",
+                        pathname === item.href && "bg-gray-100 text-primary"
                       )}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.name}</span>
@@ -80,7 +80,7 @@ export const DashboardNavbar = () => {
             <div className="md:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="hover:bg-white/10">
+                  <Button variant="ghost" size="sm" className="hover:bg-gray-100">
                     Quick Links
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
@@ -119,7 +119,7 @@ export const DashboardNavbar = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="hover:bg-white/10"
+                className="hover:bg-gray-100"
                 asChild>
                 <Link href="/dashboard/admin">
                   <Settings className="h-5 w-5" />

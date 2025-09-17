@@ -68,6 +68,8 @@ export default function AvailabilityStep({
     comfortableWithFirstRotation: false,
     schoolsWorkedWith: [] as string[],
     languagesSpoken: [] as string[],
+    willingTelehealth: false,
+    privacyOptOutExchange: false,
     ...(data.availability || {}),
     ...(data.matchingPreferences || {})
   })
@@ -487,7 +489,7 @@ export default function AvailabilityStep({
             <div className="flex items-center gap-2">
               <Switch 
                 id="willingTelehealth"
-                checked={!!(formData as any).willingTelehealth}
+                checked={formData.willingTelehealth}
                 onCheckedChange={(checked) => handleInputChange('willingTelehealth', !!checked)}
               />
               <span className="text-sm text-muted-foreground">Willing to precept via telehealth</span>
@@ -499,7 +501,7 @@ export default function AvailabilityStep({
             <div className="flex items-center gap-2">
               <Switch 
                 id="privacyOptOutExchange"
-                checked={!!(formData as any).privacyOptOutExchange}
+                checked={formData.privacyOptOutExchange}
                 onCheckedChange={(checked) => handleInputChange('privacyOptOutExchange', !!checked)}
               />
               <span className="text-sm text-muted-foreground">Hide my profile from LoopExchange directory</span>

@@ -16,6 +16,7 @@ export default function DiscountSetupPage() {
   const initializeNPDiscountCode = useAction(api.payments.initializeNPDiscountCode)
   const initializeAllDiscountCodes = useAction(api.payments.initializeAllDiscountCodes)
   const createPromotionCodesForExisting = useAction(api.payments.createPromotionCodesForExistingCoupons)
+  const initializeMentoPennyCode = useAction(api.payments.initializeMentoPennyCode)
 
   const handleInitialize = async () => {
     setLoading(true)
@@ -71,6 +72,24 @@ export default function DiscountSetupPage() {
     }
   }
 
+  const handleInitializeMentoPenny = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+
+    try {
+      const response = await initializeMentoPennyCode()
+      toast.success(response.message || 'MENTO12345 initialized')
+      setResult({ success: response.success, message: response.message })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize MENTO12345'
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="container mx-auto py-10 max-w-2xl">
       <Card>
@@ -99,6 +118,13 @@ export default function DiscountSetupPage() {
               size="lg"
             >
               {loading ? 'Initializing...' : 'Initialize NP12345 Discount Code'}
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={handleInitializeMentoPenny}
+              disabled={loading}
+            >
+              Initialize MENTO12345 ($0.01) Penny Code
             </Button>
             <Button 
               variant="outline"
@@ -161,6 +187,7 @@ export default function DiscountSetupPage() {
               <li>3. Proceed to Step 4 (Payment)</li>
               <li>4. Enter discount code: <span className="font-mono font-bold">NP12345</span></li>
               <li>5. The total should show 100% off ($0)</li>
+              <li>6. Or enter <span className="font-mono font-bold">MENTO12345</span> for a $0.01 checkout</li>
             </ol>
           </div>
         </CardContent>
