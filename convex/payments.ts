@@ -475,19 +475,63 @@ export const createStudentCheckoutSession = action({
       // Log the final checkout parameters being sent to Stripe
       // Final checkout params prepared
       
-      const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${stripeSecretKey}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Idempotency-Key": `intake_${args.customerEmail}_${stripePriceId}_${args.discountCode || "none"}`,
-        },
-        body: new URLSearchParams(checkoutParams),
-      });
+      // Build a stable idempotency key based on the final request parameters to avoid
+      // Stripe idempotency errors when params change across retries or different attempts.
+      function stableKeyPairs(params: Record<string, string>): string {
+        const keys = Object.keys(params).sort();
+        return keys.map((k) => `${k}=${params[k]}`).join('&');
+      }
+      function hashString(input: string): string {
+        let hash = 0;
+        for (let i = 0; i < input.length; i++) {
+          const chr = input.charCodeAt(i);
+          hash = ((hash << 5) - hash) + chr;
+          hash |= 0; // Convert to 32bit integer
+        }
+        // Ensure positive and compact string
+        return Math.abs(hash).toString(36);
+      }
+      function computeIdempotencyKey(prefix: string, email: string, params: Record<string, string>): string {
+        const digest = hashString(stableKeyPairs(params));
+        return `${prefix}_${email}_${digest}`;
+      }
+
+      const initialIdempotencyKey = computeIdempotencyKey("intake", args.customerEmail, checkoutParams);
+
+      const makeRequest = async (key: string) => {
+        return await fetch("https://api.stripe.com/v1/checkout/sessions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${stripeSecretKey}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Idempotency-Key": key,
+          },
+          body: new URLSearchParams(checkoutParams),
+        });
+      };
+
+      let response = await makeRequest(initialIdempotencyKey);
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Stripe API error: ${response.status} - ${errorText}`);
+        // Retry once with a fresh idempotency key if Stripe reports idempotency_error
+        let shouldRetry = false;
+        try {
+          const parsed = JSON.parse(errorText);
+          shouldRetry = parsed?.error?.type === "idempotency_error";
+        } catch (_e) {
+          shouldRetry = /idempotency/i.test(errorText);
+        }
+        if (shouldRetry) {
+          const retryKey = `${initialIdempotencyKey}_${Date.now()}`;
+          response = await makeRequest(retryKey);
+          if (!response.ok) {
+            const retryErr = await response.text();
+            throw new Error(`Stripe API error: ${response.status} - ${retryErr}`);
+          }
+        } else {
+          throw new Error(`Stripe API error: ${response.status} - ${errorText}`);
+        }
       }
 
       const session = await response.json();
