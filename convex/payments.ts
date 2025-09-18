@@ -2,6 +2,30 @@ import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, query, mutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
+const sanitizeSeed = (seed: string): string => seed.replace(/[^a-zA-Z0-9_-]/g, "_");
+
+const stableIdempotencyDigest = (params: Record<string, string>): string => {
+  return Object.keys(params)
+    .sort()
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key] ?? "")}`)
+    .join("&");
+};
+
+const hashString = (input: string): string => {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    const chr = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+};
+
+const computeIdempotencyKey = (prefix: string, seed: string, params: Record<string, string>): string => {
+  const digest = hashString(stableIdempotencyDigest(params));
+  return `${prefix}_${sanitizeSeed(seed)}_${digest}`;
+};
+
 const MEMBERSHIP_PLAN_KEYS = ["starter", "core", "pro", "elite"] as const;
 type MembershipPlanKey = typeof MEMBERSHIP_PLAN_KEYS[number];
 
@@ -179,6 +203,13 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
       if (searchData.data && searchData.data.length > 0) {
         // Customer exists, update them
         const customerId = searchData.data[0].id;
+        const updateParams: Record<string, string> = {
+          name: args.name,
+          ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
+            acc[`metadata[${key}]`] = value;
+            return acc;
+          }, {} as Record<string, string>) : {}),
+        };
         const updateResponse = await fetch(
           `https://api.stripe.com/v1/customers/${customerId}`,
           {
@@ -186,15 +217,9 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
             headers: {
               "Authorization": `Bearer ${stripeSecretKey}`,
               "Content-Type": "application/x-www-form-urlencoded",
-              "Idempotency-Key": `customer_update_${args.email}`,
+              "Idempotency-Key": computeIdempotencyKey("customer_update", args.email, updateParams),
             },
-            body: new URLSearchParams({
-              name: args.name,
-              ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
-                acc[`metadata[${key}]`] = value;
-                return acc;
-              }, {} as Record<string, string>) : {}),
-            }),
+            body: new URLSearchParams(updateParams),
           }
         );
 
@@ -207,21 +232,22 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
         return { customerId: customer.id, created: false };
       } else {
         // Create new customer
+        const createParams: Record<string, string> = {
+          email: args.email,
+          name: args.name,
+          ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
+            acc[`metadata[${key}]`] = value;
+            return acc;
+          }, {} as Record<string, string>) : {}),
+        };
         const createResponse = await fetch("https://api.stripe.com/v1/customers", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
-            "Idempotency-Key": `customer_create_${args.email}`,
+            "Idempotency-Key": computeIdempotencyKey("customer_create", args.email, createParams),
           },
-          body: new URLSearchParams({
-            email: args.email,
-            name: args.name,
-            ...(args.metadata ? Object.entries(args.metadata).reduce((acc, [key, value]) => {
-              acc[`metadata[${key}]`] = value;
-              return acc;
-            }, {} as Record<string, string>) : {}),
-          }),
+          body: new URLSearchParams(createParams),
         });
 
         if (!createResponse.ok) {
@@ -363,7 +389,7 @@ export const createStudentCheckoutSession = action({
 
       // Special discount code to force one-cent price (for testing/promotions)
       const pennyEnv = process.env.STRIPE_PRICE_ID_ONECENT || process.env.STRIPE_PRICE_ID_PENNY;
-      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT","MENTO12345"];
+      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT"]; // MENTO12345 removed; now handled as 99.9% discount
       let isPennyCode = false;
       if (args.discountCode && pennyCodes.includes(args.discountCode.toUpperCase())) {
         isPennyCode = true;
@@ -642,25 +668,6 @@ export const createStudentCheckoutSession = action({
       
       // Build a stable idempotency key based on the final request parameters to avoid
       // Stripe idempotency errors when params change across retries or different attempts.
-      function stableKeyPairs(params: Record<string, string>): string {
-        const keys = Object.keys(params).sort();
-        return keys.map((k) => `${k}=${params[k]}`).join('&');
-      }
-      function hashString(input: string): string {
-        let hash = 0;
-        for (let i = 0; i < input.length; i++) {
-          const chr = input.charCodeAt(i);
-          hash = ((hash << 5) - hash) + chr;
-          hash |= 0; // Convert to 32bit integer
-        }
-        // Ensure positive and compact string
-        return Math.abs(hash).toString(36);
-      }
-      function computeIdempotencyKey(prefix: string, email: string, params: Record<string, string>): string {
-        const digest = hashString(stableKeyPairs(params));
-        return `${prefix}_${email}_${digest}`;
-      }
-
       const initialIdempotencyKey = computeIdempotencyKey("intake", args.customerEmail, checkoutParams);
 
       const makeRequest = async (key: string) => {
