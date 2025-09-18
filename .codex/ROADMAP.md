@@ -29,6 +29,7 @@ Phases: Quick Wins → Backend Hardening → UX + Performance → AI/Matching �
 - Exports: invoices/receipts CSVs with stable columns and escaping.
 - Admin finance: reliable totals, date ranges, pagination; accurate status badges.
 - Entitlements: derive product access from Stripe state; optimistic UI plus server enforcement.
+- Discount codes: unified metadata, cross-product coupon sync action, Stripe ops rollback/verification runbook.
 
 ## Phase 4 — Auth, RBAC, Access Control
 - RoleGuard coverage: protect routes/components; deny-by-default in sensitive views.
@@ -97,4 +98,3 @@ Phases: Quick Wins → Backend Hardening → UX + Performance → AI/Matching �
 - Fix Convex errors: `convex/payments.ts` (`ctx.db` usage, typed queries), `convex/scheduledTasks.ts` (`internalMutation` vs `internalAction`, typed params).
 - Remove remaining `any` usages in UI map/render paths and typed CSV helpers.
 - Resolve lingering UI entities/encoding and router imports.
-

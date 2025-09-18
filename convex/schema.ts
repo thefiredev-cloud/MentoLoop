@@ -57,6 +57,7 @@ export default defineSchema({
       customerName: v.string(),
       membershipPlan: v.string(), // core, pro, premium
       stripeSessionId: v.string(),
+      stripePriceId: v.optional(v.string()),
       stripeCustomerId: v.optional(v.string()),
       amount: v.number(), // Amount in cents
       currency: v.optional(v.string()),
@@ -272,7 +273,15 @@ export default defineSchema({
         submissionDate: v.string(),
       }),
       // Membership and payment information
-      membershipPlan: v.optional(v.union(v.literal("core"), v.literal("pro"), v.literal("premium"))),
+      membershipPlan: v.optional(
+        v.union(
+          v.literal("starter"),
+          v.literal("core"),
+          v.literal("pro"),
+          v.literal("elite"),
+          v.literal("premium"),
+        ),
+      ),
       stripeCustomerId: v.optional(v.string()),
       paymentStatus: v.optional(v.union(v.literal("pending"), v.literal("paid"), v.literal("failed"))),
       // Status tracking
@@ -457,6 +466,8 @@ export default defineSchema({
       updatedAt: v.number(),
     }).index("byStudentId", ["studentId"])
       .index("byPreceptorId", ["preceptorId"])
+      .index("byStudentIdAndStatus", ["studentId", "status"]) // supports status-qualified queries
+      .index("byPreceptorIdAndStatus", ["preceptorId", "status"]) // supports status-qualified queries
       .index("byStatus", ["status"])
       .index("byMentorFitScore", ["mentorFitScore"])
       .index("byLocation", ["locationData.state", "locationData.city"])
@@ -652,6 +663,8 @@ export default defineSchema({
     .index("byPreceptor", ["preceptorId"])
     .index("byStudentUser", ["studentUserId"])
     .index("byPreceptorUser", ["preceptorUserId"])
+    .index("byStudentUserAndStatus", ["studentUserId", "status"]) // supports status-qualified queries
+    .index("byPreceptorUserAndStatus", ["preceptorUserId", "status"]) // supports status-qualified queries
     .index("byLastMessage", ["lastMessageAt"])
     .index("byStatus", ["status"]),
 
@@ -835,6 +848,8 @@ export default defineSchema({
     couponId: v.id("discountCodes"), // Reference to the discount code
     customerEmail: v.string(), // Email of the customer who used the code
     stripeSessionId: v.string(), // Stripe checkout session where the code was used
+    stripePriceId: v.optional(v.string()), // Stripe price ID tied to the usage
+    membershipPlan: v.optional(v.string()), // Membership block tied to the usage
     amountDiscounted: v.number(), // Amount discounted in cents
     usedAt: v.number(), // Timestamp when the code was used
   }).index("byCouponId", ["couponId"])

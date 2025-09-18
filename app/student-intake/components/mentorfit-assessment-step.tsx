@@ -254,7 +254,7 @@ export default function MentorFitAssessmentStep({
       <LockedSection 
         sectionTitle="MentorFit Learning Style Assessment"
         preview="Comprehensive 15-question assessment analyzing learning style, feedback preferences, mentoring approach, stress management, and personality traits for precise preceptor matching using advanced AI algorithms."
-        requiredTier={['premium']}
+        requiredTier={['elite', 'premium']}
         userTier={paymentStatus.membershipPlan}
       />
     )
@@ -274,7 +274,7 @@ export default function MentorFitAssessmentStep({
             <div className="ml-auto flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-500" />
               <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded">
-                PREMIUM REQUIRED
+                ELITE REQUIRED
               </span>
             </div>
           </CardTitle>

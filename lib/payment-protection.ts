@@ -10,6 +10,13 @@ export interface PaymentStatus {
   mentorfitUnlocked?: boolean;
 }
 
+const normalizeMembershipPlan = (plan: string | null | undefined): string | null => {
+  if (!plan) return null;
+  const normalized = plan.toLowerCase();
+  if (normalized === 'premium') return 'elite';
+  return normalized;
+};
+
 /**
  * Hook to check if current user has completed payment for intake form access
  * This is used to protect comprehensive intake forms from being copied/stolen
@@ -69,12 +76,19 @@ export function usePaymentProtection(): PaymentStatus {
     };
   }
 
+  const normalizedStatus = paymentStatus as {
+    hasPayment: boolean;
+    membershipPlan: string | null;
+    paidAt: number | null;
+    mentorfitUnlocked?: boolean;
+  };
+
   return {
-    hasPayment: paymentStatus.hasPayment,
-    membershipPlan: paymentStatus.membershipPlan,
-    paidAt: paymentStatus.paidAt,
+    hasPayment: normalizedStatus.hasPayment,
+    membershipPlan: normalizeMembershipPlan(normalizedStatus.membershipPlan),
+    paidAt: normalizedStatus.paidAt,
     loading: false,
-    mentorfitUnlocked: (paymentStatus as any).mentorfitUnlocked ?? false,
+    mentorfitUnlocked: normalizedStatus.mentorfitUnlocked ?? false,
   };
 }
 
@@ -99,15 +113,15 @@ export function getRequiredMembershipForSection(section: string): string[] {
     case 'payment-agreement':
       return []; // This is the payment step itself
     case 'matching-preferences':
-      return ['core', 'pro', 'premium']; // Only this step is gated
+      return ['starter', 'core', 'pro', 'elite', 'premium']; // All paid blocks
     case 'mentorfit':
-      return ['premium']; // MentorFit is premium-only feature
+      return ['elite', 'premium']; // MentorFit is elite-only feature
     case 'learning-style':
-      return ['premium']; // Same as mentorfit (they're the same feature)
+      return ['elite', 'premium']; // Same as mentorfit (they're the same feature)
     case 'agreements':
-      return ['core', 'pro', 'premium'];
+      return ['starter', 'core', 'pro', 'elite', 'premium'];
     default:
-      return ['premium'];
+      return ['elite', 'premium'];
   }
 }
 
@@ -140,8 +154,12 @@ export function canAccessFormSection(
     return false;
   }
 
-  const userTier = paymentStatus.membershipPlan;
-  return userTier ? requiredTiers.includes(userTier) : false;
+  const normalizedRequired = requiredTiers
+    .map((tier) => normalizeMembershipPlan(tier))
+    .filter((tier): tier is string => Boolean(tier));
+
+  const userTier = normalizeMembershipPlan(paymentStatus.membershipPlan);
+  return userTier ? normalizedRequired.includes(userTier) : false;
 }
 
 /**
@@ -171,12 +189,15 @@ export function getLockedSectionPreview(section: string): string {
  */
 export function getMembershipRequiredMessage(section: string): string {
   const requiredTiers = getRequiredMembershipForSection(section);
+  const normalizedTiers = requiredTiers
+    .map((tier) => normalizeMembershipPlan(tier))
+    .filter((tier): tier is string => Boolean(tier));
   
-  if (requiredTiers.includes('core')) {
+  if (normalizedTiers.includes('starter') || normalizedTiers.includes('core')) {
     return 'Complete payment to access this section';
-  } else if (requiredTiers.includes('pro')) {
-    return 'Pro or Premium membership required for this section';
+  } else if (normalizedTiers.includes('pro')) {
+    return 'Pro or Elite membership required for this section';
   } else {
-    return 'Premium membership required for this advanced section';
+    return 'Elite membership required for this advanced section';
   }
 }

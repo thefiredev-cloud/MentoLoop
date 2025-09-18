@@ -663,8 +663,7 @@ export const getPendingMatchesForStudent = query({
 
     const matches = await ctx.db
       .query("matches")
-      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
-      .filter((q) => q.eq(q.field("status"), "suggested"))
+      .withIndex("byStudentIdAndStatus", (q) => q.eq("studentId", student._id).eq("status", "suggested"))
       .order("desc")
       .collect();
 
@@ -715,12 +714,17 @@ export const getActiveMatchesForStudent = query({
 
     if (!student) return [];
 
-    const matches = await ctx.db
+    const active = await ctx.db
       .query("matches")
-      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
-      .filter((q) => q.or(q.eq(q.field("status"), "active"), q.eq(q.field("status"), "confirmed")))
+      .withIndex("byStudentIdAndStatus", (q) => q.eq("studentId", student._id).eq("status", "active"))
       .order("desc")
       .collect();
+    const confirmed = await ctx.db
+      .query("matches")
+      .withIndex("byStudentIdAndStatus", (q) => q.eq("studentId", student._id).eq("status", "confirmed"))
+      .order("desc")
+      .collect();
+    const matches = [...active, ...confirmed];
 
     // Populate preceptor data
     const matchesWithData = [];
@@ -754,8 +758,7 @@ export const getCompletedMatchesForStudent = query({
 
     const matches = await ctx.db
       .query("matches")
-      .withIndex("byStudentId", (q) => q.eq("studentId", student._id))
-      .filter((q) => q.eq(q.field("status"), "completed"))
+      .withIndex("byStudentIdAndStatus", (q) => q.eq("studentId", student._id).eq("status", "completed"))
       .order("desc")
       .collect();
 
@@ -891,12 +894,17 @@ export const getPendingMatchesForPreceptor = query({
 
     if (!preceptor) return [];
 
-    const matches = await ctx.db
+    const suggested = await ctx.db
       .query("matches")
-      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", preceptor._id))
-      .filter((q) => q.or(q.eq(q.field("status"), "suggested"), q.eq(q.field("status"), "pending")))
+      .withIndex("byPreceptorIdAndStatus", (q) => q.eq("preceptorId", preceptor._id).eq("status", "suggested"))
       .order("desc")
       .collect();
+    const pending = await ctx.db
+      .query("matches")
+      .withIndex("byPreceptorIdAndStatus", (q) => q.eq("preceptorId", preceptor._id).eq("status", "pending"))
+      .order("desc")
+      .collect();
+    const matches = [...suggested, ...pending];
 
     // Populate student data with enhanced details
     const matchesWithData = [];
@@ -954,12 +962,19 @@ export const getAcceptedMatchesForPreceptor = query({
 
     if (!preceptor) return [];
 
-    const matches = await ctx.db
+    const active = await ctx.db
       .query("matches")
-      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", preceptor._id))
-      .filter((q) => q.or(q.eq(q.field("status"), "confirmed"), q.eq(q.field("status"), "active")))
+      .withIndex("byPreceptorIdAndStatus", (q) => q.eq("preceptorId", preceptor._id).eq("status", "active"))
       .order("desc")
       .collect();
+    const completed = await ctx.db
+      .query("matches")
+      .withIndex("byPreceptorIdAndStatus", (q) =>
+        q.eq("preceptorId", preceptor._id).eq("status", "completed"),
+      )
+      .order("desc")
+      .collect();
+    const matches = [...active, ...completed];
 
     // Populate student data with enhanced details
     const matchesWithData = [];
@@ -1009,8 +1024,9 @@ export const getReviewingMatchesForPreceptor = query({
 
     const matches = await ctx.db
       .query("matches")
-      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", preceptor._id))
-      .filter((q) => q.eq(q.field("status"), "reviewing"))
+      .withIndex("byPreceptorIdAndStatus", (q) =>
+        q.eq("preceptorId", preceptor._id).eq("status", "confirmed"),
+      )
       .order("desc")
       .collect();
 
@@ -1044,12 +1060,17 @@ export const getActiveStudentsForPreceptor = query({
 
     if (!preceptor) return [];
 
-    const matches = await ctx.db
+    const active = await ctx.db
       .query("matches")
-      .withIndex("byPreceptorId", (q) => q.eq("preceptorId", preceptor._id))
-      .filter((q) => q.or(q.eq(q.field("status"), "active"), q.eq(q.field("status"), "confirmed")))
+      .withIndex("byPreceptorIdAndStatus", (q) => q.eq("preceptorId", preceptor._id).eq("status", "active"))
       .order("desc")
       .collect();
+    const confirmed = await ctx.db
+      .query("matches")
+      .withIndex("byPreceptorIdAndStatus", (q) => q.eq("preceptorId", preceptor._id).eq("status", "confirmed"))
+      .order("desc")
+      .collect();
+    const matches = [...active, ...confirmed];
 
     // Populate student data with additional details
     const matchesWithData = [];

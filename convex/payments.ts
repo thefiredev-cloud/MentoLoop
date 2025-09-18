@@ -2,6 +2,148 @@ import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, query, mutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
+const MEMBERSHIP_PLAN_KEYS = ["starter", "core", "pro", "elite"] as const;
+type MembershipPlanKey = typeof MEMBERSHIP_PLAN_KEYS[number];
+
+interface MembershipPlanConfig {
+  basePrice: number;
+  hours: number;
+  envKey?: string;
+  fallbackPriceId?: string;
+  lookupKeys: string[];
+  aliases?: string[];
+}
+
+const MEMBERSHIP_PLAN_CONFIG: Record<MembershipPlanKey, MembershipPlanConfig> = {
+  starter: {
+    basePrice: 495,
+    hours: 60,
+    envKey: "STRIPE_PRICE_ID_STARTER",
+    lookupKeys: ["mentoloop_starter", "price_starter", "starter"],
+    aliases: ["starter_block"],
+  },
+  core: {
+    basePrice: 795,
+    hours: 90,
+    envKey: "STRIPE_PRICE_ID_CORE",
+    fallbackPriceId: "price_1S77IeKVzfTBpytSbMSAb8PK",
+    lookupKeys: ["mentoloop_core", "price_core", "core"],
+    aliases: ["core_block"],
+  },
+  pro: {
+    basePrice: 1495,
+    hours: 180,
+    envKey: "STRIPE_PRICE_ID_PRO",
+    fallbackPriceId: "price_1S77JeKVzfTBpytS1UfSG4Pl",
+    lookupKeys: ["mentoloop_pro", "price_pro", "pro"],
+    aliases: ["pro_block"],
+  },
+  elite: {
+    basePrice: 1895,
+    hours: 240,
+    envKey: "STRIPE_PRICE_ID_ELITE",
+    fallbackPriceId: "price_1S77KDKVzfTBpytSnfhEuDMi",
+    lookupKeys: [
+      "mentoloop_elite",
+      "price_elite",
+      "mentoloop_premium",
+      "price_premium",
+      "elite",
+      "premium",
+    ],
+    aliases: ["premium", "premium_block", "premium_plus"],
+  },
+};
+
+const MEMBERSHIP_PLAN_ALIASES: Record<string, MembershipPlanKey> = {};
+MEMBERSHIP_PLAN_KEYS.forEach((key) => {
+  const config = MEMBERSHIP_PLAN_CONFIG[key];
+  config.aliases?.forEach((alias) => {
+    MEMBERSHIP_PLAN_ALIASES[alias] = key;
+  });
+});
+
+const isMembershipPlanKey = (value: string): value is MembershipPlanKey =>
+  MEMBERSHIP_PLAN_KEYS.includes(value as MembershipPlanKey);
+
+const resolveMembershipPlan = (plan: string | null | undefined): MembershipPlanKey => {
+  const normalized = (plan ?? "").toLowerCase();
+  if (isMembershipPlanKey(normalized)) {
+    return normalized;
+  }
+  if (normalized && MEMBERSHIP_PLAN_ALIASES[normalized]) {
+    return MEMBERSHIP_PLAN_ALIASES[normalized];
+  }
+  return "core";
+};
+
+const getStudentPriceIds = (): string[] => {
+  const ids = new Set<string>();
+  MEMBERSHIP_PLAN_KEYS.forEach((key) => {
+    const config = MEMBERSHIP_PLAN_CONFIG[key];
+    const envPriceId = config.envKey ? process.env[config.envKey] : undefined;
+    if (envPriceId) {
+      ids.add(envPriceId);
+    }
+    if (config.fallbackPriceId) {
+      ids.add(config.fallbackPriceId);
+    }
+  });
+  return Array.from(ids);
+};
+
+const withAudienceMetadata = (metadata: Record<string, string> | undefined, audience = "student") => {
+  const result: Record<string, string> = { ...(metadata || {}) };
+  if (!result.audience) {
+    result.audience = audience;
+  }
+  if (!result.scope) {
+    result.scope = "student_products";
+  }
+  return result;
+};
+
+const normalizeStripeCouponDuration = (
+  duration: string | null | undefined,
+): "once" | "repeating" | "forever" => {
+  if (duration === "repeating" || duration === "forever") {
+    return duration;
+  }
+  return "once";
+};
+
+const fetchProductIdsForPrices = async (
+  stripeSecretKey: string,
+  priceIds: string[],
+): Promise<string[]> => {
+  const productIds = new Set<string>();
+
+  for (const priceId of priceIds) {
+    try {
+      const response = await fetch(`https://api.stripe.com/v1/prices/${priceId}`, {
+        headers: {
+          Authorization: `Bearer ${stripeSecretKey}`,
+        },
+      });
+
+      if (!response.ok) continue;
+
+      const price = await response.json();
+      const product = price?.product;
+
+      if (typeof product === "string") {
+        productIds.add(product);
+      } else if (product?.id) {
+        productIds.add(product.id as string);
+      }
+    } catch (_error) {
+      // If Stripe lookup fails for a specific price, skip it without breaking coupon creation
+    }
+  }
+
+  return Array.from(productIds);
+};
+
 // Internal action to create or update Stripe customer for a user  
 export const createOrUpdateStripeCustomerInternal = internalAction({
   args: {
@@ -139,9 +281,11 @@ export const createStudentCheckoutSession = action({
 
     // Validate that Stripe price IDs are configured
     const requiredEnvVars = {
+      STRIPE_PRICE_ID_STARTER: process.env.STRIPE_PRICE_ID_STARTER || process.env.STRIPE_PRICE_ID_CORE,
       STRIPE_PRICE_ID_CORE: process.env.STRIPE_PRICE_ID_CORE,
       STRIPE_PRICE_ID_PRO: process.env.STRIPE_PRICE_ID_PRO,
-      STRIPE_PRICE_ID_PREMIUM: process.env.STRIPE_PRICE_ID_PREMIUM
+      STRIPE_PRICE_ID_PREMIUM: process.env.STRIPE_PRICE_ID_PREMIUM,
+      STRIPE_PRICE_ID_ELITE: process.env.STRIPE_PRICE_ID_ELITE || process.env.STRIPE_PRICE_ID_PREMIUM,
     };
 
     const missingVars = Object.entries(requiredEnvVars)
@@ -158,56 +302,55 @@ export const createStudentCheckoutSession = action({
 
     try {
       // Payment processing started
-      
+
+      const membershipPlanKey = resolveMembershipPlan(args.membershipPlan);
+      const planConfig = MEMBERSHIP_PLAN_CONFIG[membershipPlanKey];
+
       // Define old/legacy price IDs for detection and mapping
       const oldPriceIds = [
         'price_1S1ylsKVzfTBpytSRBfYbhzd',  // Old Core
         'price_1S1yltKVzfTBpytSoqseGrEF',  // Old Pro
         'price_1S1yltKVzfTBpytSOdNgTEFP'   // Old Premium
       ];
-      
+
       if (oldPriceIds.includes(args.priceId)) {
         // Old price ID detected, will convert
         // Don't throw error - we'll map it to the new ID below
       }
-      
-      // Map membership plans to actual Stripe price IDs
-      const priceIdMap: Record<string, string> = {
-        // LIVE price IDs (created January 2025 - Actually LIVE in production)
-        'price_1S77IeKVzfTBpytSbMSAb8PK': 'price_1S77IeKVzfTBpytSbMSAb8PK', // Core Block LIVE ($499)
-        'price_1S77JeKVzfTBpytS1UfSG4Pl': 'price_1S77JeKVzfTBpytS1UfSG4Pl', // Pro Block LIVE ($799)
-        'price_1S77KDKVzfTBpytSnfhEuDMi': 'price_1S77KDKVzfTBpytSnfhEuDMi', // Premium Block LIVE ($999)
-        // Previous TEST mode price IDs (now deprecated but mapped to LIVE)
-        'price_1S76PAB1lwwjVYGvdx7RQrWr': 'price_1S77IeKVzfTBpytSbMSAb8PK', // Old Test Core -> Live Core
-        'price_1S76PRB1lwwjVYGv8ZmwrsCx': 'price_1S77JeKVzfTBpytS1UfSG4Pl', // Old Test Pro -> Live Pro
-        'price_1S76PkB1lwwjVYGv3Lvp1atU': 'price_1S77KDKVzfTBpytSnfhEuDMi', // Old Test Premium -> Live Premium
-        // Friendly name mapping
-        'price_core': process.env.STRIPE_PRICE_ID_CORE || 'price_1S77IeKVzfTBpytSbMSAb8PK',
-        'price_pro': process.env.STRIPE_PRICE_ID_PRO || 'price_1S77JeKVzfTBpytS1UfSG4Pl',
-        'price_premium': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S77KDKVzfTBpytSnfhEuDMi',
-        // Legacy mapping - automatically convert old IDs to new ones
-        'price_1S1ylsKVzfTBpytSRBfYbhzd': process.env.STRIPE_PRICE_ID_CORE || 'price_1S77IeKVzfTBpytSbMSAb8PK', // Old Core -> Live Core
-        'price_1S1yltKVzfTBpytSoqseGrEF': process.env.STRIPE_PRICE_ID_PRO || 'price_1S77JeKVzfTBpytS1UfSG4Pl',  // Old Pro -> Live Pro
-        'price_1S1yltKVzfTBpytSOdNgTEFP': process.env.STRIPE_PRICE_ID_PREMIUM || 'price_1S77KDKVzfTBpytSnfhEuDMi' // Old Premium -> Live Premium
+
+      const legacyPriceMap: Record<string, string> = {
+        'price_1S77IeKVzfTBpytSbMSAb8PK': 'price_1S77IeKVzfTBpytSbMSAb8PK',
+        'price_1S77JeKVzfTBpytS1UfSG4Pl': 'price_1S77JeKVzfTBpytS1UfSG4Pl',
+        'price_1S77KDKVzfTBpytSnfhEuDMi': 'price_1S77KDKVzfTBpytSnfhEuDMi',
+        'price_1S76PAB1lwwjVYGvdx7RQrWr': 'price_1S77IeKVzfTBpytSbMSAb8PK',
+        'price_1S76PRB1lwwjVYGv8ZmwrsCx': 'price_1S77JeKVzfTBpytS1UfSG4Pl',
+        'price_1S76PkB1lwwjVYGv3Lvp1atU': 'price_1S77KDKVzfTBpytSnfhEuDMi',
       };
-      
-      // Price ID mapping configured
-      
+
+      const priceIdMap: Record<string, string> = { ...legacyPriceMap };
+
+      MEMBERSHIP_PLAN_KEYS.forEach((key) => {
+        const config = MEMBERSHIP_PLAN_CONFIG[key];
+        const envPriceId = config.envKey ? process.env[config.envKey] : undefined;
+        const canonicalPriceId = envPriceId || config.fallbackPriceId;
+        if (canonicalPriceId) {
+          priceIdMap[canonicalPriceId] = canonicalPriceId;
+          config.lookupKeys.forEach((lookup) => {
+            priceIdMap[lookup] = canonicalPriceId;
+          });
+        }
+      });
+
       let stripePriceId = priceIdMap[args.priceId];
-      
-      // Check if we're doing a legacy conversion
-      if (oldPriceIds.includes(args.priceId)) {
-        // Legacy price ID converted to current ID
-      }
-      
-      // Stripe price ID selected
 
       if (!stripePriceId) {
-        // Treat provided value as a Stripe lookup_key and resolve dynamically
-        const lkCandidates = [args.priceId];
-        if (args.membershipPlan) lkCandidates.push(`mentoloop_${args.membershipPlan}`);
+        const lookupCandidates = Array.from(new Set([
+          args.priceId,
+          ...planConfig.lookupKeys,
+        ]));
         let resolved: { priceId?: string } = {};
-        for (const lk of lkCandidates) {
+        for (const lk of lookupCandidates) {
+          if (!lk) continue;
           resolved = await (ctx as any).runAction(internal.payments.resolvePriceByLookupKey, { lookupKey: lk });
           if (resolved?.priceId) break;
         }
@@ -274,7 +417,7 @@ export const createStudentCheckoutSession = action({
         email: args.customerEmail,
         name: args.customerName,
         metadata: {
-          membershipPlan: args.membershipPlan,
+          membershipPlan: membershipPlanKey,
         }
       });
 
@@ -290,6 +433,8 @@ export const createStudentCheckoutSession = action({
           return acc;
         }, {} as Record<string, string>),
       };
+
+      checkoutParams["metadata[membershipPlan]"] = membershipPlanKey;
 
       // Configure payment based on type (full or installments)
       if (args.paymentOption === "installments" && args.installmentPlan) {
@@ -391,7 +536,25 @@ export const createStudentCheckoutSession = action({
             const codeUpper = (args.discountCode || '').toUpperCase();
             if (codeUpper === 'NP12345') {
               try {
+                const npMetadata = withAudienceMetadata({
+                  type: 'np_full_discount',
+                });
+                const npStudentPriceIds = getStudentPriceIds();
+                const npProductIds = await fetchProductIdsForPrices(stripeSecretKey, npStudentPriceIds);
+
                 // Create coupon with fixed ID = NP12345 (idempotent)
+                const couponParams = new URLSearchParams({
+                  id: codeUpper,
+                  percent_off: '100',
+                  duration: 'once',
+                });
+                Object.entries(npMetadata).forEach(([key, value]) => {
+                  couponParams.append(`metadata[${key}]`, value);
+                });
+                npProductIds.forEach((productId, index) => {
+                  couponParams.append(`applies_to[products][${index}]`, productId);
+                });
+
                 const couponResp = await fetch('https://api.stripe.com/v1/coupons', {
                   method: 'POST',
                   headers: {
@@ -399,11 +562,7 @@ export const createStudentCheckoutSession = action({
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Idempotency-Key': `coupon_${codeUpper}`,
                   },
-                  body: new URLSearchParams({
-                    id: codeUpper,
-                    percent_off: '100',
-                    duration: 'once',
-                  }),
+                  body: couponParams,
                 });
                 const couponOk = couponResp.ok;
                 const coupon = couponOk ? await couponResp.json() : null;
@@ -411,6 +570,14 @@ export const createStudentCheckoutSession = action({
                 // Create a promotion code bound to this coupon with same code (idempotent)
                 let promotionCodeId: string | undefined = undefined;
                 if (coupon) {
+                  const promoParams = new URLSearchParams({
+                    coupon: coupon.id,
+                    code: codeUpper,
+                  });
+                  Object.entries(npMetadata).forEach(([key, value]) => {
+                    promoParams.append(`metadata[${key}]`, value);
+                  });
+
                   const promoResp = await fetch('https://api.stripe.com/v1/promotion_codes', {
                     method: 'POST',
                     headers: {
@@ -418,10 +585,7 @@ export const createStudentCheckoutSession = action({
                       'Content-Type': 'application/x-www-form-urlencoded',
                       'Idempotency-Key': `promotion_${codeUpper}`,
                     },
-                    body: new URLSearchParams({
-                      coupon: coupon.id,
-                      code: codeUpper,
-                    }),
+                    body: promoParams,
                   });
                   if (promoResp.ok) {
                     const promo = await promoResp.json();
@@ -437,6 +601,7 @@ export const createStudentCheckoutSession = action({
                     percentOff: 100,
                     duration: 'once',
                     promotionCodeId,
+                    metadata: npMetadata,
                   } as any);
                 } catch (_e) {}
 
@@ -541,8 +706,7 @@ export const createStudentCheckoutSession = action({
       
       // Calculate final amount based on discount or penny-code override
       // Reflect LIVE price points used in mapping above for accurate analytics
-      const basePrice = args.membershipPlan === 'core' ? 499 : 
-                       args.membershipPlan === 'pro' ? 799 : 999;
+      const basePrice = planConfig.basePrice;
       // If MENTO12345 (or another penny code) was applied, the final price is $0.01
       if (isPennyCode) {
         discountApplied = true;
@@ -571,10 +735,10 @@ export const createStudentCheckoutSession = action({
               code: (args.discountCode || '').toUpperCase(),
               percentOff: discountAmount,
               duration: "once",
-              metadata: {
+              metadata: withAudienceMetadata({
                 type: "penny",
                 basePrice: basePrice.toString(),
-              },
+              }),
             });
           }
         } catch (_e) {
@@ -586,8 +750,9 @@ export const createStudentCheckoutSession = action({
       await ctx.runMutation(internal.payments.logIntakePaymentAttempt, {
         customerEmail: args.customerEmail,
         customerName: args.customerName,
-        membershipPlan: args.membershipPlan,
+        membershipPlan: membershipPlanKey,
         stripeSessionId: session.id,
+        stripePriceId: stripePriceId,
         amount: finalAmount * 100, // Convert to cents
         status: "pending",
         discountCode: discountApplied && args.discountCode ? args.discountCode : undefined,
@@ -605,6 +770,8 @@ export const createStudentCheckoutSession = action({
             couponId: coupon._id,
             customerEmail: args.customerEmail,
             stripeSessionId: session.id,
+            stripePriceId: stripePriceId,
+            membershipPlan: membershipPlanKey,
             amountDiscounted: basePrice * (discountAmount / 100) * 100, // In cents
           });
         }
@@ -981,8 +1148,11 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       customerName: studentName || '',
       membershipPlan: membershipPlan || 'core',
       stripeSessionId: session.id,
+      stripePriceId: (session.metadata?.originalPrice as string | undefined) || undefined,
       amount: session.amount_total,
       status: "succeeded",
+      discountCode: typeof session.metadata?.discountCode === 'string' ? session.metadata.discountCode : undefined,
+      discountPercent: session.metadata?.discountPercent ? Number(session.metadata.discountPercent) : undefined,
     });
     
 
@@ -1017,7 +1187,7 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       try {
         await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
           userId: user._id,
-          paymentStatus: 'completed',
+          paymentStatus: 'paid',
           membershipPlan: membershipPlan || 'core',
           stripeSessionId: session.id,
           stripeCustomerId: stripeCustomerId,
@@ -1221,17 +1391,22 @@ export const logIntakePaymentAttempt = internalMutation({
     customerName: v.string(),
     membershipPlan: v.string(),
     stripeSessionId: v.string(),
+    stripePriceId: v.optional(v.string()),
     amount: v.number(),
     status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
     discountCode: v.optional(v.string()),
     discountPercent: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const planKey = resolveMembershipPlan(args.membershipPlan);
+    const planConfig = MEMBERSHIP_PLAN_CONFIG[planKey];
+
     const insertedId = await ctx.db.insert("intakePaymentAttempts", {
       customerEmail: args.customerEmail,
       customerName: args.customerName,
-      membershipPlan: args.membershipPlan,
+      membershipPlan: planKey,
       stripeSessionId: args.stripeSessionId,
+      stripePriceId: args.stripePriceId,
       amount: args.amount,
       status: args.status,
       discountCode: args.discountCode,
@@ -1244,21 +1419,19 @@ export const logIntakePaymentAttempt = internalMutation({
       if (args.status === "succeeded") {
         const user = await ctx.runQuery(internal.users.getUserByEmail, { email: args.customerEmail });
         if (user) {
-          const plan = (args.membershipPlan || '').toLowerCase();
-          const planHours: Record<string, number> = { starter: 60, core: 90, pro: 180, elite: 240 };
-          const hours = planHours[plan] || 0;
+          const hours = planConfig?.hours ?? 0;
           if (hours > 0) {
             const now = Date.now();
             const oneYear = 365 * 24 * 60 * 60 * 1000;
             await ctx.db.insert("hourCredits", {
               userId: user._id,
-              source: plan as any,
+              source: planKey as any,
               hoursTotal: hours,
               hoursRemaining: hours,
-              rolloverAllowed: plan !== 'a_la_carte',
+              rolloverAllowed: (args.membershipPlan || '').toLowerCase() !== 'a_la_carte',
               issuedAt: now,
               expiresAt: now + oneYear,
-              stripePaymentIntentId: undefined,
+              stripePaymentIntentId: args.stripeSessionId,
             });
           }
         }
@@ -1691,6 +1864,7 @@ export const createDiscountCoupon = action({
     maxRedemptions: v.optional(v.number()),
     redeemBy: v.optional(v.number()), // Unix timestamp for expiration
     metadata: v.optional(v.record(v.string(), v.string())),
+    useCodeAsCouponId: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -1700,6 +1874,32 @@ export const createDiscountCoupon = action({
     }
 
     try {
+      const metadata = withAudienceMetadata(args.metadata);
+      const studentPriceIds = getStudentPriceIds();
+      const productIds = await fetchProductIdsForPrices(stripeSecretKey, studentPriceIds);
+
+      const couponParams = new URLSearchParams({
+        "percent_off": args.percentOff.toString(),
+        "duration": args.duration,
+      });
+
+      if (args.useCodeAsCouponId !== false) {
+        couponParams.append("id", args.code);
+      }
+
+      if (args.maxRedemptions) {
+        couponParams.append("max_redemptions", args.maxRedemptions.toString());
+      }
+      if (args.redeemBy) {
+        couponParams.append("redeem_by", args.redeemBy.toString());
+      }
+      Object.entries(metadata).forEach(([key, value]) => {
+        couponParams.append(`metadata[${key}]`, value);
+      });
+      productIds.forEach((productId, index) => {
+        couponParams.append(`applies_to[products][${index}]`, productId);
+      });
+
       // Create the coupon with the specified discount
       const couponResponse = await fetch("https://api.stripe.com/v1/coupons", {
         method: "POST",
@@ -1708,17 +1908,7 @@ export const createDiscountCoupon = action({
           "Content-Type": "application/x-www-form-urlencoded",
           "Idempotency-Key": `coupon_${args.code}`,
         },
-        body: new URLSearchParams({
-          "id": args.code,
-          "percent_off": args.percentOff.toString(),
-          "duration": args.duration,
-          ...(args.maxRedemptions && { "max_redemptions": args.maxRedemptions.toString() }),
-          ...(args.redeemBy && { "redeem_by": args.redeemBy.toString() }),
-          ...(args.metadata && Object.entries(args.metadata).reduce((acc, [key, value]) => {
-            acc[`metadata[${key}]`] = value;
-            return acc;
-          }, {} as Record<string, string>)),
-        }),
+        body: couponParams,
       });
 
       if (!couponResponse.ok) {
@@ -1730,6 +1920,16 @@ export const createDiscountCoupon = action({
 
       // Create a promotion code that references this coupon
       // This allows customers to enter the code at checkout
+      const promoParams = new URLSearchParams({
+        "coupon": coupon.id,
+        "code": args.code,
+      });
+      if (args.maxRedemptions) {
+        promoParams.append("max_redemptions", args.maxRedemptions.toString());
+      }
+      Object.entries(metadata).forEach(([key, value]) => {
+        promoParams.append(`metadata[${key}]`, value);
+      });
       const promoCodeResponse = await fetch("https://api.stripe.com/v1/promotion_codes", {
         method: "POST",
         headers: {
@@ -1737,15 +1937,7 @@ export const createDiscountCoupon = action({
           "Content-Type": "application/x-www-form-urlencoded",
           "Idempotency-Key": `promotion_${args.code}`,
         },
-        body: new URLSearchParams({
-          "coupon": coupon.id,
-          "code": args.code,
-          ...(args.maxRedemptions && { "max_redemptions": args.maxRedemptions.toString() }),
-          ...(args.metadata && Object.entries(args.metadata).reduce((acc, [key, value]) => {
-            acc[`metadata[${key}]`] = value;
-            return acc;
-          }, {} as Record<string, string>)),
-        }),
+        body: promoParams,
       });
 
       let promotionCode = null;
@@ -1765,7 +1957,7 @@ export const createDiscountCoupon = action({
         duration: args.duration,
         maxRedemptions: args.maxRedemptions,
         redeemBy: args.redeemBy,
-        metadata: args.metadata,
+        metadata,
         promotionCodeId: promotionCode?.id,
       });
 
@@ -1809,6 +2001,14 @@ export const validateDiscountCode = query({
         return {
           valid: false,
           error: "This discount code has expired",
+        };
+      }
+
+      const audience = (coupon.metadata?.audience || coupon.metadata?.Audience || '').toLowerCase();
+      if (audience && audience !== 'student') {
+        return {
+          valid: false,
+          error: "This discount code is not available for student purchases",
         };
       }
 
@@ -2073,6 +2273,8 @@ export const trackDiscountUsage = internalMutation({
     couponId: v.id("discountCodes"),
     customerEmail: v.string(),
     stripeSessionId: v.string(),
+    stripePriceId: v.optional(v.string()),
+    membershipPlan: v.optional(v.string()),
     amountDiscounted: v.number(),
   },
   handler: async (ctx, args) => {
@@ -2080,6 +2282,8 @@ export const trackDiscountUsage = internalMutation({
       couponId: args.couponId,
       customerEmail: args.customerEmail,
       stripeSessionId: args.stripeSessionId,
+      stripePriceId: args.stripePriceId,
+      membershipPlan: args.membershipPlan,
       amountDiscounted: args.amountDiscounted,
       usedAt: Date.now(),
     });
@@ -2149,6 +2353,9 @@ export const grantZeroCostAccessByCode = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
+    const planKey = resolveMembershipPlan(args.membershipPlan);
+    const planConfig = MEMBERSHIP_PLAN_CONFIG[planKey];
+
     // Validate code from DB
     const coupon = await ctx.runQuery(internal.payments.checkCouponExists, { code: args.code });
     if (!coupon || (coupon as any).percentOff !== 100) {
@@ -2167,7 +2374,7 @@ export const grantZeroCostAccessByCode = mutation({
     await ctx.db.insert("intakePaymentAttempts", {
       customerEmail: email || identity.email || "",
       customerName: identity.name || email || "",
-      membershipPlan: args.membershipPlan,
+      membershipPlan: planKey,
       stripeSessionId: pseudoSessionId,
       stripeCustomerId: undefined,
       amount: 0,
@@ -2185,6 +2392,7 @@ export const grantZeroCostAccessByCode = mutation({
       couponId: (coupon as any)._id,
       customerEmail: email || identity.email || "",
       stripeSessionId: pseudoSessionId,
+      membershipPlan: planKey,
       amountDiscounted: 0,
       usedAt: now,
     });
@@ -2197,7 +2405,7 @@ export const grantZeroCostAccessByCode = mutation({
           intakeCompleted: true,
           paymentCompleted: true,
           intakeCompletedAt: new Date(now).toISOString(),
-          membershipPlan: args.membershipPlan,
+          membershipPlan: planKey,
         },
       });
     } catch (_e) {}
@@ -2206,11 +2414,36 @@ export const grantZeroCostAccessByCode = mutation({
       await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
         userId: (user as any)._id,
         paymentStatus: 'paid',
-        membershipPlan: args.membershipPlan,
+        membershipPlan: planKey,
         stripeSessionId: pseudoSessionId,
         paidAt: now,
       } as any);
     } catch (_e) {}
+
+    if (planConfig?.hours) {
+      try {
+        const existingCredit = await ctx.db
+          .query("hourCredits")
+          .withIndex("byPaymentIntent", (q) => q.eq("stripePaymentIntentId", pseudoSessionId))
+          .first();
+
+        if (!existingCredit) {
+          const oneYear = 365 * 24 * 60 * 60 * 1000;
+          await ctx.db.insert("hourCredits", {
+            userId: (user as any)._id,
+            source: planKey as any,
+            hoursTotal: planConfig.hours,
+            hoursRemaining: planConfig.hours,
+            rolloverAllowed: (args.membershipPlan || '').toLowerCase() !== 'a_la_carte',
+            issuedAt: now,
+            expiresAt: now + oneYear,
+            stripePaymentIntentId: pseudoSessionId,
+          });
+        }
+      } catch (creditError) {
+        console.error("Failed to grant hour credits for zero-cost access:", creditError);
+      }
+    }
 
     return { success: true };
   },
@@ -2229,7 +2462,8 @@ export const checkUserPaymentStatus = query({
       .filter((q) => q.eq(q.field("status"), "succeeded"))
       .first();
 
-    const membershipPlan = successfulPayment?.membershipPlan || null;
+    const rawMembershipPlan = successfulPayment?.membershipPlan || null;
+    const normalizedPlan = rawMembershipPlan ? resolveMembershipPlan(rawMembershipPlan) : null;
     const discountPercent = (successfulPayment as any)?.discountPercent as number | undefined;
     const discountCode = ((successfulPayment as any)?.discountCode || "").toString().toUpperCase();
 
@@ -2237,13 +2471,12 @@ export const checkUserPaymentStatus = query({
     const discountUnlock = (discountPercent !== undefined && discountPercent >= 100) ||
       ["NP12345", "MENTO12345"].includes(discountCode);
 
-    const mentorfitUnlocked = !!successfulPayment && (
-      (membershipPlan === "premium") || discountUnlock
-    );
+    const premiumPlanUnlock = normalizedPlan ? normalizedPlan === "elite" : false;
+    const mentorfitUnlocked = !!successfulPayment && (premiumPlanUnlock || discountUnlock);
 
     return {
       hasPayment: !!successfulPayment,
-      membershipPlan,
+      membershipPlan: normalizedPlan,
       paidAt: successfulPayment?.createdAt || null,
       mentorfitUnlocked,
     } as const;
@@ -2404,6 +2637,169 @@ export const updateDiscountCodeWithPromotionId = internalMutation({
       promotionCodeId: args.promotionCodeId,
       updatedAt: Date.now(),
     });
+  },
+});
+
+export const patchDiscountCode = internalMutation({
+  args: {
+    discountCodeId: v.id("discountCodes"),
+    couponId: v.optional(v.string()),
+    promotionCodeId: v.optional(v.string()),
+    metadata: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (ctx, args) => {
+    const updates: Record<string, any> = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.couponId !== undefined) {
+      updates.couponId = args.couponId;
+    }
+    if (args.promotionCodeId !== undefined) {
+      updates.promotionCodeId = args.promotionCodeId;
+    }
+    if (args.metadata !== undefined) {
+      updates.metadata = args.metadata;
+    }
+
+    await ctx.db.patch(args.discountCodeId, updates);
+  },
+});
+
+export const syncDiscountCouponsToStudentProducts = action({
+  handler: async (ctx): Promise<{
+    success: boolean;
+    message: string;
+    results: Array<{ code: string; status: string; details?: string }>;
+  }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error("Stripe not configured");
+    }
+
+    const studentPriceIds = getStudentPriceIds();
+    const studentProductIds = await fetchProductIdsForPrices(stripeSecretKey, studentPriceIds);
+
+    if (studentProductIds.length === 0) {
+      return {
+        success: false,
+        message: "No student product IDs resolved from Stripe prices",
+        results: [],
+      };
+    }
+
+    const discounts = await ctx.runQuery(internal.payments.getAllDiscountCodes);
+    const results: Array<{ code: string; status: string; details?: string }> = [];
+
+    for (const discount of discounts) {
+      try {
+        const metadata = withAudienceMetadata(discount.metadata || undefined);
+        let needsRebuild = false;
+        let coupon: any = null;
+
+        if (discount.couponId) {
+          try {
+            const couponResp = await fetch(`https://api.stripe.com/v1/coupons/${discount.couponId}`, {
+              headers: {
+                Authorization: `Bearer ${stripeSecretKey}`,
+              },
+            });
+
+            if (couponResp.ok) {
+              coupon = await couponResp.json();
+            } else {
+              needsRebuild = true;
+            }
+          } catch (_fetchErr) {
+            needsRebuild = true;
+          }
+        } else {
+          needsRebuild = true;
+        }
+
+        if (coupon) {
+          const appliesToProducts: string[] = Array.isArray(coupon?.applies_to?.products)
+            ? coupon.applies_to.products
+            : [];
+          const productSet = new Set(appliesToProducts);
+          for (const productId of studentProductIds) {
+            if (!productSet.has(productId)) {
+              needsRebuild = true;
+              break;
+            }
+          }
+          const couponAudience = (coupon.metadata?.audience || "").toLowerCase();
+          if (couponAudience && couponAudience !== "student") {
+            needsRebuild = true;
+          }
+        }
+
+        if (!needsRebuild) {
+          if (
+            !discount.metadata ||
+            discount.metadata.audience !== "student" ||
+            discount.metadata.scope !== "student_products"
+          ) {
+            await ctx.runMutation(internal.payments.patchDiscountCode, {
+              discountCodeId: discount._id,
+              metadata,
+            });
+          }
+          results.push({ code: discount.code, status: "unchanged" });
+          continue;
+        }
+
+        if (discount.promotionCodeId) {
+          try {
+            await fetch(`https://api.stripe.com/v1/promotion_codes/${discount.promotionCodeId}`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${stripeSecretKey}`,
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: new URLSearchParams({ active: "false" }),
+            });
+          } catch (_deactivateErr) {
+            // Non-fatal; new promotion code creation may still succeed
+          }
+        }
+
+        const creationResult: any = await ctx.runAction(api.payments.createDiscountCoupon, {
+          code: discount.code,
+          percentOff: discount.percentOff,
+          duration: normalizeStripeCouponDuration(discount.duration),
+          maxRedemptions: discount.maxRedemptions || undefined,
+          redeemBy: discount.redeemBy || undefined,
+          metadata,
+          useCodeAsCouponId: false,
+        });
+
+        await ctx.runMutation(internal.payments.patchDiscountCode, {
+          discountCodeId: discount._id,
+          couponId: creationResult?.couponId,
+          promotionCodeId: creationResult?.promotionCodeId,
+          metadata,
+        });
+
+        results.push({ code: discount.code, status: "recreated" });
+      } catch (error) {
+        results.push({
+          code: discount.code,
+          status: "error",
+          details: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+
+    const errorCount = results.filter((r) => r.status === "error").length;
+    const recreatedCount = results.filter((r) => r.status === "recreated").length;
+    const unchangedCount = results.filter((r) => r.status === "unchanged").length;
+
+    return {
+      success: errorCount === 0,
+      message: `Recreated: ${recreatedCount}, Up-to-date: ${unchangedCount}, Errors: ${errorCount}`,
+      results,
+    };
   },
 });
 

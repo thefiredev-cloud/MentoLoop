@@ -154,14 +154,14 @@ export default function ProtectedIntakeStep({
         <LockedSection 
           sectionTitle="Advanced Matching Preferences"
           preview="Shared placement comfort, languages spoken, ideal preceptor qualities, and detailed matching criteria."
-          requiredTier={['premium']}
+          requiredTier={['elite', 'premium']}
           userTier={paymentStatus.membershipPlan}
         />
         
         <LockedSection 
           sectionTitle="MentorFit Learning Style Assessment"
           preview="Comprehensive 18-question assessment analyzing learning style, feedback preferences, mentoring approach, and personality traits for precise preceptor matching."
-          requiredTier={['premium']}
+          requiredTier={['elite', 'premium']}
           userTier={paymentStatus.membershipPlan}
         />
 

@@ -23,8 +23,10 @@ export default function LockedSection({
 }: LockedSectionProps) {
   const getTierIcon = (tier: string) => {
     switch (tier) {
+      case 'starter':
       case 'core': return <Lock className="h-4 w-4" />
       case 'pro': return <Crown className="h-4 w-4" />
+      case 'elite':
       case 'premium': return <Zap className="h-4 w-4" />
       default: return <Lock className="h-4 w-4" />
     }
@@ -32,28 +34,35 @@ export default function LockedSection({
 
   const getTierColor = (tier: string) => {
     switch (tier) {
+      case 'starter':
       case 'core': return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'pro': return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'elite':
       case 'premium': return 'bg-amber-100 text-amber-800 border-amber-200'
       default: return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
   const getUpgradeMessage = () => {
-    if (requiredTier.includes('core')) {
+    const normalizedRequired = requiredTier.map((tier) => tier === 'premium' ? 'elite' : tier);
+    const normalizedUser = (userTier ? (userTier === 'premium' ? 'elite' : userTier) : null);
+
+    if (normalizedRequired.includes('starter') || normalizedRequired.includes('core')) {
       return 'Complete your membership selection to unlock'
     }
-    if (requiredTier.includes('pro') && userTier === 'core') {
-      return 'Upgrade to Pro or Premium to access this section'
+    if (normalizedRequired.includes('pro') && ['starter', 'core'].includes(normalizedUser || '')) {
+      return 'Upgrade to Pro or Elite to access this section'
     }
-    if (requiredTier.includes('premium') && ['core', 'pro'].includes(userTier || '')) {
-      return 'Upgrade to Premium to access this advanced section'
+    if (normalizedRequired.includes('elite') && ['starter', 'core', 'pro'].includes(normalizedUser || '')) {
+      return 'Upgrade to Elite to access this advanced section'
     }
     return 'Payment required to access this section'
   }
 
-  const lowestTier = requiredTier.includes('core') ? 'core' : 
-                   requiredTier.includes('pro') ? 'pro' : 'premium'
+  const normalizedRequired = requiredTier.map((tier) => tier === 'premium' ? 'elite' : tier);
+  const lowestTier = normalizedRequired.includes('starter') ? 'starter' :
+                     normalizedRequired.includes('core') ? 'core' :
+                     normalizedRequired.includes('pro') ? 'pro' : 'elite'
 
   return (
     <Card className={`relative ${className}`}>

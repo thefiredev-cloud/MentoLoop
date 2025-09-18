@@ -10,6 +10,7 @@ import { AlertCircle } from 'lucide-react'
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { usePaymentProtection } from '@/lib/payment-protection'
 
 interface RoleGuardProps {
   children: React.ReactNode
@@ -30,30 +31,31 @@ export function RoleGuard({
   const pathname = usePathname()
   const setUserType = useMutation(api.users.updateUserType)
   const fixingRole = useRef(false)
+  const paymentStatus = usePaymentProtection()
 
   useEffect(() => {
-    // Auto-correct role to student if Clerk metadata indicates completed intake/payment
-    const shouldBeStudent = requiredRole === 'student'
-      && clerkUser?.publicMetadata?.intakeCompleted
-      && clerkUser?.publicMetadata?.paymentCompleted
+    // Auto-correct role to student if Clerk metadata OR Convex payment state indicates completion
+    const metadataComplete = !!(clerkUser?.publicMetadata?.intakeCompleted && clerkUser?.publicMetadata?.paymentCompleted)
+    const convexPaymentComplete = !!(paymentStatus.hasPayment && !paymentStatus.loading)
+    const shouldBeStudent = requiredRole === 'student' && (metadataComplete || convexPaymentComplete)
     if (user && shouldBeStudent && user.userType !== 'student' && !fixingRole.current) {
       fixingRole.current = true
       setUserType({ userId: user._id, userType: 'student' })
         .catch(() => {})
         .finally(() => { fixingRole.current = false })
     }
-  }, [user, requiredRole, clerkUser?.publicMetadata?.intakeCompleted, clerkUser?.publicMetadata?.paymentCompleted, setUserType])
+  }, [user, requiredRole, clerkUser?.publicMetadata?.intakeCompleted, clerkUser?.publicMetadata?.paymentCompleted, setUserType, paymentStatus.hasPayment, paymentStatus.loading])
 
   useEffect(() => {
     // Redirect only when not in the student autocorrect case
-    const shouldBeStudent = requiredRole === 'student'
-      && clerkUser?.publicMetadata?.intakeCompleted
-      && clerkUser?.publicMetadata?.paymentCompleted
+    const metadataComplete = !!(clerkUser?.publicMetadata?.intakeCompleted && clerkUser?.publicMetadata?.paymentCompleted)
+    const convexPaymentComplete = !!(paymentStatus.hasPayment && !paymentStatus.loading)
+    const shouldBeStudent = requiredRole === 'student' && (metadataComplete || convexPaymentComplete)
     if (user && requiredRole && user.userType !== requiredRole && !shouldBeStudent) {
       const defaultRoute = getDefaultDashboardRoute(user.userType as 'student' | 'preceptor' | 'admin' | 'enterprise')
       router.replace(defaultRoute)
     }
-  }, [user, requiredRole, router, clerkUser?.publicMetadata?.intakeCompleted, clerkUser?.publicMetadata?.paymentCompleted])
+  }, [user, requiredRole, router, clerkUser?.publicMetadata?.intakeCompleted, clerkUser?.publicMetadata?.paymentCompleted, paymentStatus.hasPayment, paymentStatus.loading])
 
   // Loading state
   if (!user) {
@@ -64,12 +66,23 @@ export function RoleGuard({
     )
   }
 
-  // Check if student has completed intake
+  // Check if student has completed intake (accept Convex payment as completion)
   if (requiredRole === 'student' && user.userType === 'student' && clerkUser) {
-    const intakeCompleted = clerkUser.publicMetadata?.intakeCompleted as boolean
-    const paymentCompleted = clerkUser.publicMetadata?.paymentCompleted as boolean
-    
-    if (!intakeCompleted || !paymentCompleted) {
+    const intakeCompleted = (clerkUser.publicMetadata?.intakeCompleted as boolean) || false
+    const paymentCompleted = (clerkUser.publicMetadata?.paymentCompleted as boolean) || false
+    const paymentCompleteViaConvex = paymentStatus.hasPayment
+    const isLoadingCompletion = paymentStatus.loading
+
+    // While checking Convex payment status, show a loading state to avoid false gating
+    if (isLoadingCompletion) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      )
+    }
+
+    if (!(intakeCompleted && paymentCompleted) && !paymentCompleteViaConvex) {
       return (
         <div className="flex items-center justify-center min-h-screen p-8">
           <Card className="w-full max-w-md">

@@ -51,15 +51,15 @@ test.describe('MentorFit Assessment Flow', () => {
     const lockedSection = page.locator('text=MentorFit Learning Style Assessment')
     await expect(lockedSection).toBeVisible()
     
-    const premiumRequired = page.locator('text=PREMIUM REQUIRED')
-    await expect(premiumRequired).toBeVisible()
+    const eliteRequired = page.locator('text=ELITE REQUIRED')
+    await expect(eliteRequired).toBeVisible()
   })
 
   test('should allow premium users to complete MentorFit assessment', async ({ page }) => {
     // Mock premium user authentication
     await page.evaluate(() => {
       // Set mock payment status in localStorage
-      localStorage.setItem('userMembershipPlan', 'premium')
+      localStorage.setItem('userMembershipPlan', 'elite')
     })
 
     // Navigate directly to MentorFit step (assuming user has completed previous steps)
@@ -86,7 +86,7 @@ test.describe('MentorFit Assessment Flow', () => {
   test('should validate all 15 questions are answered', async ({ page }) => {
     // Mock premium user
     await page.evaluate(() => {
-      localStorage.setItem('userMembershipPlan', 'premium')
+      localStorage.setItem('userMembershipPlan', 'elite')
     })
 
     await page.goto('/student-intake?step=6')
@@ -124,7 +124,7 @@ test.describe('MentorFit Assessment Flow', () => {
   test('should save assessment answers to backend', async ({ page }) => {
     // Mock premium user and student ID
     await page.evaluate(() => {
-      localStorage.setItem('userMembershipPlan', 'premium')
+      localStorage.setItem('userMembershipPlan', 'elite')
       localStorage.setItem('studentId', 'test_student_123')
     })
 

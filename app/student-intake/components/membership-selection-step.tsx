@@ -22,7 +22,7 @@ const MEMBERSHIP_PLANS = [
     name: 'Starter Block',
     price: 495,
     hours: 60,
-    priceId: 'price_starter', // Will be replaced with actual Stripe price ID
+    priceId: 'mentoloop_starter',
     description: 'Essential placement support for your clinical rotation',
     features: [
       'Guaranteed preceptor match',
@@ -40,7 +40,7 @@ const MEMBERSHIP_PLANS = [
     name: 'Core Block',
     price: 795,
     hours: 90,
-    priceId: 'price_core', // Will be replaced with actual Stripe price ID
+    priceId: 'mentoloop_core',
     description: 'Best value with priority matching and enhanced support',
     features: [
       'Everything in Starter',
@@ -59,7 +59,7 @@ const MEMBERSHIP_PLANS = [
     name: 'Pro Block',
     price: 1495,
     hours: 180,
-    priceId: 'price_pro', // Will be replaced with actual Stripe price ID
+    priceId: 'mentoloop_pro',
     description: 'Complete concierge service for full-semester placements',
     features: [
       'Everything in Core',
@@ -79,7 +79,7 @@ const MEMBERSHIP_PLANS = [
     name: 'Elite Block',
     price: 1895,
     hours: 240,
-    priceId: 'price_elite', // Will be replaced with actual Stripe price ID
+    priceId: 'mentoloop_elite',
     description: 'Premium concierge service with maximum hours',
     features: [
       'Everything in Pro',

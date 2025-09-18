@@ -158,7 +158,7 @@ export default function AdvancedMatchingStep({
       <LockedSection 
         sectionTitle="Advanced Matching Preferences"
         preview="Shared placement comfort, languages spoken, ideal preceptor qualities, communication styles, feedback preferences, and detailed matching criteria for precise preceptor alignment."
-        requiredTier={['premium']}
+        requiredTier={['elite', 'premium']}
         userTier={paymentStatus.membershipPlan}
       />
     )
@@ -174,7 +174,7 @@ export default function AdvancedMatchingStep({
             <div className="ml-auto flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-500" />
               <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded">
-                PREMIUM REQUIRED
+                ELITE REQUIRED
               </span>
             </div>
           </CardTitle>

@@ -20,6 +20,13 @@ import MentorFitAssessmentStep from '../components/mentorfit-assessment-step'
 import { useAction, useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
+const normalizeMembershipPlan = (plan: string | null): string => {
+  if (!plan) return 'core';
+  const normalized = plan.toLowerCase();
+  if (normalized === 'premium') return 'elite';
+  return normalized;
+};
+
 export default function StudentIntakeConfirmationPage() {
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
@@ -38,7 +45,7 @@ export default function StudentIntakeConfirmationPage() {
       sessionStorage.removeItem('studentIntakeData')
       
       // Update Clerk metadata to mark intake as complete
-      const membershipPlan = sessionStorage.getItem('selectedMembershipPlan') || 'core'
+      const membershipPlan = normalizeMembershipPlan(sessionStorage.getItem('selectedMembershipPlan'))
       
       const updateMetadata = async () => {
         try {
@@ -78,7 +85,7 @@ export default function StudentIntakeConfirmationPage() {
       if (success === 'true' && sessionId) {
         try {
           await confirmCheckout({ sessionId })
-        } catch (_e) {
+        } catch {
           // non-fatal; webhook will catch up
         }
       }
@@ -92,7 +99,7 @@ export default function StudentIntakeConfirmationPage() {
       if (success === 'true' && currentUser?._id && currentUser.userType !== 'student') {
         try {
           await setUserType({ userId: currentUser._id, userType: 'student' })
-        } catch (_e) {
+        } catch {
           // non-fatal, user can still navigate
         }
       }

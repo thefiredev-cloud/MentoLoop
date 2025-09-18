@@ -385,10 +385,21 @@ export const updateStudentPaymentStatus = internalMutation({
       .first();
     
     if (student) {
+      const allowedPlans = ['starter', 'core', 'pro', 'elite', 'premium'] as const;
+      type StudentPlan = typeof allowedPlans[number];
+      const isStudentPlan = (value: string): value is StudentPlan =>
+        allowedPlans.includes(value as StudentPlan);
+
+      const incomingPlan = (args.membershipPlan || '').toLowerCase();
+      const normalizedPlan: StudentPlan =
+        incomingPlan === 'premium'
+          ? 'elite'
+          : isStudentPlan(incomingPlan) ? (incomingPlan as StudentPlan) : 'core';
+
       // Update student record with payment information
       await ctx.db.patch(student._id, {
         paymentStatus: args.paymentStatus as "pending" | "failed" | "paid",
-        membershipPlan: args.membershipPlan as "core" | "pro" | "premium",
+        membershipPlan: normalizedPlan,
         stripeCustomerId: args.stripeCustomerId || args.stripeSessionId, // Use customer ID if provided, otherwise session ID
         status: "active" as const,
         updatedAt: Date.now(),

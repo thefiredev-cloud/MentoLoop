@@ -143,7 +143,7 @@ export default function CustomClerkPricing() {
                     </CardContent>
                     <CardFooter>
                         <Button asChild className="w-full" size="lg" variant="outline">
-                            <Link href="/student-intake">
+                            <Link href="/dashboard/billing">
                                 Add Hours
                             </Link>
                         </Button>

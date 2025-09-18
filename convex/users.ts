@@ -29,15 +29,12 @@ export const upsertFromClerk = internalMutation({
     // First try to find user by Clerk external ID
     let user = await userByExternalId(ctx, data.id);
     
-    // If not found by external ID, try to find by email
+    // If not found by external ID, try to find by email (indexed)
     if (!user && userEmail) {
-      const allUsers = await ctx.db.query("users").collect();
-      user = allUsers.find(u => u.email?.toLowerCase() === userEmail) || null;
-      
-      // If found by email but with different externalId, update it
-      if (user) {
-        // Found user by email, updating externalId
-      }
+      user = await ctx.db
+        .query("users")
+        .withIndex("byEmail", (q) => q.eq("email", userEmail))
+        .unique();
     }
     
     const userAttributes = {
@@ -131,19 +128,19 @@ export const ensureUserExists = mutation({
     // If not found by external ID, try to find by email (case-insensitive)
     if (!existingUser && userEmail) {
       console.log(`[ensureUserExists] User not found by Clerk ID, searching by email: ${userEmail}`);
-      const allUsers = await ctx.db.query("users").collect();
-      existingUser = allUsers.find(u => u.email?.toLowerCase() === userEmail) || null;
-      
-      // If found by email but with different externalId, update the externalId
+      existingUser = await ctx.db
+        .query("users")
+        .withIndex("byEmail", (q) => q.eq("email", userEmail))
+        .unique();
+
       if (existingUser) {
         console.log(`[ensureUserExists] Found user by email with mismatched Clerk ID`);
         console.log(`[ensureUserExists] Old Clerk ID: ${existingUser.externalId}`);
         console.log(`[ensureUserExists] New Clerk ID: ${clerkId}`);
-        
         await ctx.db.patch(existingUser._id, {
           externalId: clerkId,
           name: identity.name ?? existingUser.name,
-          email: userEmail, // Ensure email is always set
+          email: userEmail,
         });
         console.log(`[ensureUserExists] Updated user's Clerk ID successfully`);
       }
@@ -213,11 +210,11 @@ export const ensureUserExists = mutation({
 export const getUserByEmail = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
-    const user = await ctx.db
+    const normalized = email.toLowerCase();
+    return await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("email"), email))
-      .first();
-    return user;
+      .withIndex("byEmail", (q) => q.eq("email", normalized))
+      .unique();
   },
 });
 
@@ -416,14 +413,15 @@ export async function getCurrentUser(ctx: QueryCtx) {
   // If not found by external ID and we have an email, try to find by email
   if (!user && identity.email) {
     const userEmail = identity.email.toLowerCase();
-    const allUsers = await ctx.db.query("users").collect();
-    user = allUsers.find(u => u.email?.toLowerCase() === userEmail) || null;
-    
-    // If found by email but with different externalId, log it but still return the user
+    user = await ctx.db
+      .query("users")
+      .withIndex("byEmail", (q) => q.eq("email", userEmail))
+      .unique();
+
     if (user && user.externalId !== identity.subject) {
       console.log(`[getCurrentUser] Found user by email with mismatched externalId.`);
       console.log(`[getCurrentUser] DB externalId: ${user.externalId}, Clerk externalId: ${identity.subject}`);
-      // Note: ensureUserExists will fix this mismatch in the background
+      // ensureUserExists will fix this mismatch in the background
     }
   }
   

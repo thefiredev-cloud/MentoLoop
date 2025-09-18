@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Authenticated, Unauthenticated } from "convex/react"
 import { SignInButton } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,6 +25,7 @@ const steps = [
 ]
 
 export default function StudentIntakePage() {
+  const searchParams = useSearchParams()
   // Load saved state from sessionStorage on mount
   const [currentStep, setCurrentStep] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -107,6 +109,18 @@ export default function StudentIntakePage() {
       }
     }
   }, [currentStep])
+
+  // Allow explicit step navigation via query param (?step=1..6)
+  useEffect(() => {
+    const stepParam = searchParams?.get('step')
+    if (stepParam) {
+      const stepNum = parseInt(stepParam, 10)
+      if (!Number.isNaN(stepNum) && stepNum >= 1 && stepNum <= steps.length) {
+        setCurrentStep(stepNum)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   // Validate if a step is completed based on form data
   const validateStep = useCallback((stepNumber: number): boolean => {

@@ -1,7 +1,6 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { Protect } from '@clerk/nextjs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -186,7 +185,9 @@ function MentorFitPreview({ userType, onSkip }: { userType?: 'student' | 'precep
 
 export default function MentorFitGate({ children, userType, onSkip }: MentorFitGateProps) {
   const paymentStatus = usePaymentProtection()
-  const unlocked = paymentStatus.mentorfitUnlocked || (paymentStatus.membershipPlan === 'premium')
+  const unlocked =
+    paymentStatus.mentorfitUnlocked ||
+    ['elite', 'premium'].includes((paymentStatus.membershipPlan ?? '').toLowerCase())
 
   if (unlocked) {
     return <>{children}</>

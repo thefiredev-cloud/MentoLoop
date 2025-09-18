@@ -43,7 +43,7 @@ http.route({
         console.log("Ignored webhook event", (event as any).type);
     }
 
-    return new Response(null, { status: 200 });
+    return new Response(null, { status: 200, headers: { "cache-control": "no-store" } });
   }),
 });
 

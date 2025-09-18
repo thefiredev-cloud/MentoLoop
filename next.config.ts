@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from '@sentry/nextjs'
 import path from 'path';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
   serverExternalPackages: ['convex'],
   outputFileTracingRoot: path.join(__dirname),
+  // Expose Sentry DSN to the client without adding new Netlify vars
+  env: {
+    NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN,
+  },
   typescript: {
     // Ensure type errors fail the build for security
     ignoreBuildErrors: false,
@@ -121,5 +126,8 @@ const nextConfig: NextConfig = {
     ]
   }
 };
-
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  // Keep bundle size minimal; do not include source maps unless env configured
+  disableLogger: true,
+});

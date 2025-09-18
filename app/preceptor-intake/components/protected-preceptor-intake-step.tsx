@@ -247,7 +247,7 @@ export default function ProtectedPreceptorIntakeStep({
       <LockedSection 
         sectionTitle="MentorFit Teaching Style Assessment"
         preview="Comprehensive 18-question assessment analyzing mentoring approach, teaching style, feedback preferences, supervision methods, and personality traits for optimal student matching."
-        requiredTier={['premium']}
+        requiredTier={['elite', 'premium']}
         userTier={paymentStatus.membershipPlan}
       />
 

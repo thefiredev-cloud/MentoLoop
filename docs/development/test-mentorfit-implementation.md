@@ -46,7 +46,7 @@ Successfully implemented payment gates for MentorFit questions in both student a
 ```typescript
 // Entitlement-based gating using Convex payment status
 const { mentorfitUnlocked, membershipPlan } = usePaymentProtection();
-const unlocked = mentorfitUnlocked || membershipPlan === 'premium';
+const unlocked = mentorfitUnlocked || membershipPlan === 'elite';
 return unlocked ? children : <MentorFitPreview />;
 ```
 

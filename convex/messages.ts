@@ -226,19 +226,35 @@ export const getUserConversations = query({
     let conversations;
     
     if (user.userType === "student") {
-      conversations = await ctx.db
-        .query("conversations")
-        .withIndex("byStudentUser", (q) => q.eq("studentUserId", userId))
-        .filter((q) => args.status ? q.eq(q.field("status"), args.status) : q.neq(q.field("status"), "disabled"))
-        .order("desc")
-        .collect();
+      if (args.status) {
+        conversations = await ctx.db
+          .query("conversations")
+          .withIndex("byStudentUserAndStatus", (q) => q.eq("studentUserId", userId).eq("status", args.status!))
+          .order("desc")
+          .collect();
+      } else {
+        conversations = await ctx.db
+          .query("conversations")
+          .withIndex("byStudentUser", (q) => q.eq("studentUserId", userId))
+          .filter((q) => q.neq(q.field("status"), "disabled"))
+          .order("desc")
+          .collect();
+      }
     } else if (user.userType === "preceptor") {
-      conversations = await ctx.db
-        .query("conversations")
-        .withIndex("byPreceptorUser", (q) => q.eq("preceptorUserId", userId))
-        .filter((q) => args.status ? q.eq(q.field("status"), args.status) : q.neq(q.field("status"), "disabled"))
-        .order("desc")
-        .collect();
+      if (args.status) {
+        conversations = await ctx.db
+          .query("conversations")
+          .withIndex("byPreceptorUserAndStatus", (q) => q.eq("preceptorUserId", userId).eq("status", args.status!))
+          .order("desc")
+          .collect();
+      } else {
+        conversations = await ctx.db
+          .query("conversations")
+          .withIndex("byPreceptorUser", (q) => q.eq("preceptorUserId", userId))
+          .filter((q) => q.neq(q.field("status"), "disabled"))
+          .order("desc")
+          .collect();
+      }
     } else {
       return [];
     }
@@ -512,15 +528,13 @@ export const searchMessages = query({
     if (user.userType === "student") {
       conversations = await ctx.db
         .query("conversations")
-        .withIndex("byStudentUser", (q) => q.eq("studentUserId", userId))
-        .filter((q) => q.eq(q.field("status"), "active"))
+        .withIndex("byStudentUserAndStatus", (q) => q.eq("studentUserId", userId).eq("status", "active"))
         .order("desc")
         .collect();
     } else if (user.userType === "preceptor") {
       conversations = await ctx.db
         .query("conversations")
-        .withIndex("byPreceptorUser", (q) => q.eq("preceptorUserId", userId))
-        .filter((q) => q.eq(q.field("status"), "active"))
+        .withIndex("byPreceptorUserAndStatus", (q) => q.eq("preceptorUserId", userId).eq("status", "active"))
         .order("desc")
         .collect();
     } else {
@@ -532,19 +546,21 @@ export const searchMessages = query({
     if (conversationIds.length === 0) return [];
 
     // Search for messages containing the query text
-    const messages = await ctx.db
-      .query("messages")
-      .filter((q) => 
-        q.and(
-          q.or(...conversationIds.map(id => q.eq(q.field("conversationId"), id))),
-          q.eq(q.field("deletedAt"), undefined),
-          q.neq(q.field("senderType"), "system"),
-          // Simple text search - in production would use a proper search index
-          q.gte(q.field("content"), args.query)
-        )
-      )
-      .order("desc")
-      .take(args.limit || 20);
+    // NOTE: Without a proper full-text index, we restrict to recent messages per conversation using byConversationAndTime
+    const limitPerConversation = Math.max(1, Math.floor((args.limit || 20) / Math.max(1, conversationIds.length)));
+    const messages: any[] = [];
+    for (const convId of conversationIds) {
+      const recent = await ctx.db
+        .query("messages")
+        .withIndex("byConversationAndTime", (q) => q.eq("conversationId", convId))
+        .order("desc")
+        .take(limitPerConversation);
+      for (const m of recent) {
+        if (m.deletedAt === undefined && m.senderType !== "system" && m.content.includes(args.query)) {
+          messages.push(m);
+        }
+      }
+    }
 
     // Enrich with conversation context
     const enrichedMessages = [];
@@ -608,17 +624,19 @@ export const getRecentActivity = query({
     if (conversationIds.length === 0) return [];
 
     // Get recent messages from all conversations
-    const recentMessages = await ctx.db
-      .query("messages")
-      .filter((q) => 
-        q.and(
-          q.or(...conversationIds.map(id => q.eq(q.field("conversationId"), id))),
-          q.eq(q.field("deletedAt"), undefined),
-          q.neq(q.field("senderId"), userId) // Only messages from others
-        )
-      )
-      .order("desc")
-      .take(args.limit || 10);
+    const recentMessages: any[] = [];
+    for (const convId of conversationIds) {
+      const recent = await ctx.db
+        .query("messages")
+        .withIndex("byConversationAndTime", (q) => q.eq("conversationId", convId))
+        .order("desc")
+        .take(5);
+      for (const m of recent) {
+        if (m.deletedAt === undefined && m.senderId !== userId) {
+          recentMessages.push(m);
+        }
+      }
+    }
 
     // Group by conversation and get latest message per conversation
     const activityByConversation = new Map();

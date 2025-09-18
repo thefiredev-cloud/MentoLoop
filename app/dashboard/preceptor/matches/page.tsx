@@ -39,7 +39,7 @@ export default function PreceptorMatches() {
   const acceptedMatches = useQuery(api.matches.getAcceptedMatchesForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
-  const confirmedMatches = useQuery(api.matches.getAcceptedMatchesForPreceptor,
+  const reviewingMatches = useQuery(api.matches.getReviewingMatchesForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
   
@@ -95,7 +95,7 @@ export default function PreceptorMatches() {
 
 
   const pendingCount = pendingMatches?.length || 0
-  const reviewingCount = confirmedMatches?.length || 0
+  const reviewingCount = reviewingMatches?.length || 0
   const acceptedCount = acceptedMatches?.length || 0
 
   const renderStudentCard = (match: {
@@ -183,6 +183,18 @@ export default function PreceptorMatches() {
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
               <Eye className="h-3 w-3 mr-1" />
               Confirmed
+            </Badge>
+          )}
+          {match.status === 'active' && (
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Active Rotation
+            </Badge>
+          )}
+          {match.status === 'completed' && (
+            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+              <GraduationCap className="h-3 w-3 mr-1" />
+              Completed
             </Badge>
           )}
         </div>
@@ -390,7 +402,7 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {confirmedMatches?.map((match) => renderStudentCard(match, false))}
+              {reviewingMatches?.map((match) => renderStudentCard(match, false))}
             </div>
           )}
         </TabsContent>
