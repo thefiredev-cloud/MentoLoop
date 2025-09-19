@@ -1,5 +1,6 @@
 
 // Clerk configuration constants
+import { dark } from '@clerk/themes'
 export const CLERK_CONFIG = {
   // Sign in/up URLs (code-side configuration as recommended by Clerk)
   signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || '/sign-in',
@@ -15,15 +16,16 @@ export const CLERK_CONFIG = {
   
   // Appearance configuration
   appearance: {
+    baseTheme: dark,
     layout: {
       socialButtonsPlacement: 'bottom' as const,
       socialButtonsVariant: 'blockButton' as const,
     },
     variables: {
-      colorPrimary: '#2563eb',
-      colorBackground: '#ffffff',
-      colorText: '#000000',
-      colorTextSecondary: '#64748b',
+      colorPrimary: '#338BFF',
+      colorBackground: '#0F172A',
+      colorText: '#E5E7EB',
+      colorTextSecondary: '#9CA3AF',
       colorDanger: '#ef4444',
       colorSuccess: '#10b981',
       colorWarning: '#f59e0b',

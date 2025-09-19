@@ -389,7 +389,7 @@ export const createStudentCheckoutSession = action({
 
       // Special discount code to force one-cent price (for testing/promotions)
       const pennyEnv = process.env.STRIPE_PRICE_ID_ONECENT || process.env.STRIPE_PRICE_ID_PENNY;
-      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT"]; // MENTO12345 removed; now handled as 99.9% discount
+      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT","MENTO12345"];
       let isPennyCode = false;
       if (args.discountCode && pennyCodes.includes(args.discountCode.toUpperCase())) {
         isPennyCode = true;
@@ -515,6 +515,13 @@ export const createStudentCheckoutSession = action({
             });
             const stripeCouponId = args.discountCode.toUpperCase();
             const promotionCodeId = (couponDoc as any)?.promotionCodeId as string | undefined;
+
+            if (!isPennyCode) {
+              const metadataType = (couponDoc as any)?.metadata?.type || (couponDoc as any)?.metadata?.Type;
+              if (typeof metadataType === "string" && metadataType.toLowerCase() === "penny") {
+                isPennyCode = true;
+              }
+            }
 
             // Applying Stripe discount (skip for penny-code which uses price override)
             if (!isPennyCode) {

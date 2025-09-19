@@ -265,3 +265,24 @@ Definition of done
 - `NP12345` 100% and `MENTO12345` 99.9% pass e2e; idempotency errors eliminated.
 - `npm run type-check` and `npm run lint` clean; tests green in CI.
 - Sentry quiet for common flows; Netlify deploy green.
+
+### 2025-09-19 Update — Dark Mode + Phase 0 Results
+
+- Dark mode only: enforced via `html.dark`, dark palette in `app/globals.css`, Tailwind `darkMode: 'class'`, Sonner `theme="dark"`, charts theme mapping extended, Clerk UI set to dark.
+- Baseline checks:
+  - Type-check: clean
+  - Lint: clean
+  - Unit tests: 80 passed, 3 skipped
+  - E2E live smoke: passed via external Playwright config against `https://sandboxmentoloop.online` (artifacts in `tmp/browser-inspect/`)
+- Stripe MCP verification:
+  - Coupons: `NP12345` 100% (once), `MENTO12345` 99.9% (forever)
+  - Prices include $0.01 test price; recent PaymentIntents list empty (OK for idle)
+- Notes:
+  - Local e2e using dev server requires `NEXT_PUBLIC_CONVEX_URL`; live-run external config avoids env deps.
+  - Sentry SDK warns about `onRequestError` hook in instrumentation; add `Sentry.captureRequestError` in a follow-up.
+
+Next steps
+- Phase 1 inventory of dead features in dashboard routes and prioritize (Blockers → Core UX → Nice-to-have).
+- Phase 2 payments gating/idempotency recheck, webhook audit receipts.
+- Add Sentry breadcrumbs across checkout/intake/dashboard actions.
+- Netlify deploy/logs monitor on push.

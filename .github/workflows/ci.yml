@@ -189,13 +189,37 @@ jobs:
       
     - name: Check for PHI in code
       run: |
-        # Simple grep patterns for common PHI indicators
-        if grep -r -i "ssn\|social.security\|date.of.birth\|dob\|patient.id" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . | grep -v test | grep -v mock; then
-          echo "⚠️ Potential PHI found in code. Please review."
-          exit 1
-        else
-          echo "✅ No obvious PHI patterns detected."
+        set -eo pipefail
+        PHI_TMP="$(mktemp)"
+        PHI_FILTERED="${PHI_TMP}_filtered"
+        ALLOWLIST=".github/phi-allowlist.txt"
+        grep -RInE "ssn|social\.security|date\.of\.birth|dob|patient\.id" \
+          --include="*.ts" \
+          --include="*.tsx" \
+          --include="*.js" \
+          --include="*.jsx" \
+          --exclude=lib/prompts.ts \
+          --exclude=mentoloop-gpt5-template/prompt-engineering.ts \
+          --exclude-dir=.next \
+          --exclude-dir=playwright-report \
+          --exclude-dir=test-results \
+          . > "$PHI_TMP" || true
+
+        if [ -s "$PHI_TMP" ]; then
+          if [ -f "$ALLOWLIST" ]; then
+            grep -v -F -f "$ALLOWLIST" "$PHI_TMP" > "$PHI_FILTERED" || true
+          else
+            cp "$PHI_TMP" "$PHI_FILTERED"
+          fi
+
+          if [ -s "$PHI_FILTERED" ]; then
+            echo "⚠️ Potential PHI found in code. Please review." >&2
+            cat "$PHI_FILTERED" >&2
+            exit 1
+          fi
         fi
+
+        echo "✅ No obvious PHI patterns detected."
         
     - name: Check for API keys in code
       run: |

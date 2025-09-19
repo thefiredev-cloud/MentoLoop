@@ -1,7 +1,10 @@
 (async () => {
   const fetch = global.fetch;
   const sk = process.env.STRIPE_SECRET_KEY;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mentoloop.com';
+  const baseUrlRaw = process.env.NEXT_PUBLIC_APP_URL || 'https://mentoloop.com';
+  const baseUrl = /^https?:\/\//i.test(baseUrlRaw)
+    ? baseUrlRaw
+    : `https://${baseUrlRaw.replace(/^\/+|\/+$|\s+/g, '')}`;
   if (!sk) { console.error('Missing STRIPE_SECRET_KEY'); process.exit(1); }
 
   const headers = (idem) => ({
