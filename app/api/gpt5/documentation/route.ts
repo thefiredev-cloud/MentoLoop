@@ -7,7 +7,17 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { validateHealthcarePrompt } from "@/lib/prompts";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+let cachedOpenAI: OpenAI | null = null;
+function getOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  if (!cachedOpenAI) {
+    cachedOpenAI = new OpenAI({ apiKey });
+  }
+  return cachedOpenAI;
+}
 
 // Simple per-user rate limiting (in-memory token bucket)
 const docsRateLimiter = new Map<string, { tokens: number; ts: number }>();
@@ -38,6 +48,11 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(userId)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
 
   try {
+    const openai = getOpenAIClient();
+    if (!openai) {
+      return NextResponse.json({ error: "Model service unavailable" }, { status: 503 });
+    }
+
     const body = await req.json();
     const { sessionNotes, objectives, performance, model, temperature, maxTokens } = DocumentationSchema.parse(body);
 
