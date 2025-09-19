@@ -546,6 +546,7 @@ export default defineSchema({
     failureReason: v.optional(v.string()),
     relatedMatchId: v.optional(v.id("matches")),
     relatedUserId: v.optional(v.string()),
+    originalPayload: v.optional(v.any()),
   }).index("byRecipient", ["recipientEmail"])
     .index("byTemplate", ["templateKey"])
     .index("bySentDate", ["sentAt"])

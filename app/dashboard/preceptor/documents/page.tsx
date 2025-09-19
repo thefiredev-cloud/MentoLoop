@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,10 +25,20 @@ import {
 
 type DocumentType = "Agreement" | "Template" | "Hours Log" | "Credential" | "Evaluation" | "Other" | "All"
 
+type DocumentRecord = Doc<'documents'>
+type DocumentStats = {
+  totalDocuments: number
+  studentDocuments: number
+  templates: number
+  totalSize: number
+  storageLimit: number
+}
+
 export default function PreceptorDocuments() {
   const user = useQuery(api.users.current)
-  const documents = useQuery(api.documents.getAllDocuments) || []
-  const documentStats = useQuery(api.documents.getDocumentStats)
+  const documentsData = useQuery(api.documents.getAllDocuments) as DocumentRecord[] | undefined
+  const documentStats = useQuery(api.documents.getDocumentStats) as DocumentStats | null | undefined
+  const documents: DocumentRecord[] = documentsData ?? []
   const deleteDocument = useMutation(api.documents.deleteDocument)
   
   const [selectedType, setSelectedType] = useState<DocumentType>('All')
@@ -97,9 +107,9 @@ export default function PreceptorDocuments() {
 
   const documentTypes: DocumentType[] = ['All', 'Agreement', 'Template', 'Hours Log', 'Credential', 'Evaluation']
 
-  const filteredDocuments = selectedType === 'All' 
-    ? documents 
-    : documents.filter(doc => doc.documentType === selectedType)
+  const filteredDocuments = selectedType === 'All'
+    ? documents
+    : documents.filter((doc) => doc.documentType === selectedType)
 
   return (
     <div className="space-y-8">

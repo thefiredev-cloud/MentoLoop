@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -31,18 +31,35 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
+type MatchDoc = Doc<'matches'>
+type PreceptorDoc = Doc<'preceptors'>
+
+type StudentMatch = MatchDoc & {
+  preceptor: PreceptorDoc | null
+  compatibilityBreakdown?: Record<string, number> | null
+  matchReason?: string | null
+  tier?: { name: string; color: string; description: string } | null
+}
+
 export default function StudentMatches() {
   const router = useRouter()
   const user = useQuery(api.users.current)
-  const pendingMatches = useQuery(api.matches.getPendingMatchesForStudent,
-    user ? { studentId: user._id } : "skip"
-  )
-  const activeMatches = useQuery(api.matches.getActiveMatchesForStudent,
-    user ? { studentId: user._id } : "skip"
-  )
-  const completedMatches = useQuery(api.matches.getCompletedMatchesForStudent,
-    user ? { studentId: user._id } : "skip"
-  )
+  const pendingMatchesData = useQuery(
+    api.matches.getPendingMatchesForStudent,
+    user ? { studentId: user._id } : 'skip'
+  ) as StudentMatch[] | undefined
+  const activeMatchesData = useQuery(
+    api.matches.getActiveMatchesForStudent,
+    user ? { studentId: user._id } : 'skip'
+  ) as StudentMatch[] | undefined
+  const completedMatchesData = useQuery(
+    api.matches.getCompletedMatchesForStudent,
+    user ? { studentId: user._id } : 'skip'
+  ) as StudentMatch[] | undefined
+
+  const pendingMatches: StudentMatch[] = pendingMatchesData ?? []
+  const activeMatches: StudentMatch[] = activeMatchesData ?? []
+  const completedMatches: StudentMatch[] = completedMatchesData ?? []
 
 
   // Helper function to get MentorFit tier from score
@@ -107,21 +124,21 @@ export default function StudentMatches() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
-            Pending ({pendingMatches?.length || 0})
+            Pending ({pendingMatches.length})
           </TabsTrigger>
           <TabsTrigger value="active" className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            Active ({activeMatches?.length || 0})
+            Active ({activeMatches.length})
           </TabsTrigger>
           <TabsTrigger value="completed" className="flex items-center gap-2">
             <Award className="h-4 w-4" />
-            Completed ({completedMatches?.length || 0})
+            Completed ({completedMatches.length})
           </TabsTrigger>
         </TabsList>
 
         {/* Pending Matches */}
         <TabsContent value="pending" className="space-y-6">
-          {pendingMatches && pendingMatches.length > 0 ? (
+          {pendingMatches.length > 0 ? (
             <div className="grid gap-6">
               {pendingMatches.map((match) => {
                 const tier = getMentorFitTier(match.mentorFitScore || 0)
@@ -304,7 +321,7 @@ export default function StudentMatches() {
 
         {/* Active Matches */}
         <TabsContent value="active" className="space-y-6">
-          {(!activeMatches || activeMatches.length === 0) ? (
+          {activeMatches.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -405,7 +422,7 @@ export default function StudentMatches() {
 
         {/* Completed Matches */}
         <TabsContent value="completed" className="space-y-6">
-          {(!completedMatches || completedMatches.length === 0) ? (
+          {completedMatches.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 import MentoLoopBackground from '@/components/mentoloop-background'
 import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
 import { motion } from 'motion/react'
@@ -21,6 +22,8 @@ import {
   Sparkles,
   ArrowRight
 } from 'lucide-react'
+
+type TestimonialDoc = Doc<'testimonials'>
 
 export default function StudentsPage() {
 
@@ -71,21 +74,22 @@ export default function StudentsPage() {
   ]
 
   // Get student testimonials from database
-  const studentTestimonials = useQuery(api.testimonials.getPublicTestimonials, {
+  const studentTestimonialsData = useQuery(api.testimonials.getPublicTestimonials, {
     userType: 'student',
     limit: 3
-  })
+  }) as TestimonialDoc[] | undefined
 
-  const testimonials = studentTestimonials?.map(t => ({
-    name: t.name,
-    program: t.title,
-    rating: t.rating,
-    text: t.content
-  })) || [
-    // Fallback data if database is loading
+  const testimonialsFromDb = (studentTestimonialsData ?? []).map((testimonial) => ({
+    name: testimonial.name,
+    program: testimonial.title,
+    rating: testimonial.rating,
+    text: testimonial.content
+  }))
+
+  const testimonials = testimonialsFromDb.length > 0 ? testimonialsFromDb : [
     {
       name: "Sarah Johnson",
-      program: "FNP Student, UCLA", 
+      program: "FNP Student, UCLA",
       rating: 5,
       text: "MentoLoop found me an amazing preceptor in just one week! The process was seamless and the support team was incredible."
     }

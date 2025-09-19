@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 
 export default function SMSAnalytics() {
   return (
@@ -30,33 +31,39 @@ export default function SMSAnalytics() {
   )
 }
 
+type SmsLog = Doc<'smsLogs'>
+
 function SMSAnalyticsContent() {
   const [searchTerm, setSearchTerm] = useState('')
   
   // Get SMS logs from database
-  const smsLogs = useQuery(api.sms.getAllSMSLogs)
+  const smsLogsData = useQuery(api.sms.getAllSMSLogs) as SmsLog[] | undefined
+  const smsLogs: SmsLog[] = smsLogsData ?? []
   
   // Calculate SMS metrics
-  const totalSMS = smsLogs?.length || 0
-  const successfulSMS = smsLogs?.filter(s => s.status === 'sent').length || 0
-  const failedSMS = smsLogs?.filter(s => s.status === 'failed').length || 0
+  const totalSMS = smsLogs.length
+  const successfulSMS = smsLogs.filter((sms) => sms.status === 'sent').length
+  const failedSMS = smsLogs.filter((sms) => sms.status === 'failed').length
   // const pendingSMS = smsLogs?.filter(s => s.status === 'pending').length || 0
   
   const successRate = totalSMS > 0 ? ((successfulSMS / totalSMS) * 100).toFixed(1) : 0
   const estimatedCost = totalSMS * 0.0075 // Assuming $0.0075 per SMS
   
   // Group SMS by template
-  const templateStats = smsLogs?.reduce((acc, sms) => {
-    const template = sms.templateKey || 'unknown'
-    if (!acc[template]) {
-      acc[template] = { sent: 0, failed: 0, pending: 0, total: 0 }
-    }
-    acc[template].total++
-    if (sms.status === 'sent') acc[template].sent++
-    else if (sms.status === 'failed') acc[template].failed++
-    else if (sms.status === 'pending') acc[template].pending++
-    return acc
-  }, {} as Record<string, { sent: number, failed: number, pending: number, total: number }>) || {}
+  const templateStats = smsLogs.reduce<Record<string, { sent: number; failed: number; pending: number; total: number }>>(
+    (acc, sms) => {
+      const template = sms.templateKey || 'unknown'
+      if (!acc[template]) {
+        acc[template] = { sent: 0, failed: 0, pending: 0, total: 0 }
+      }
+      acc[template].total += 1
+      if (sms.status === 'sent') acc[template].sent += 1
+      else if (sms.status === 'failed') acc[template].failed += 1
+      else if (sms.status === 'pending') acc[template].pending += 1
+      return acc
+    },
+    {}
+  )
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
@@ -294,7 +301,7 @@ function SMSAnalyticsContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {smsLogs?.slice(0, 20).map((sms) => (
+                {smsLogs.slice(0, 20).map((sms) => (
                   <div key={sms._id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="space-y-1">
                       <div className="font-medium text-sm">
@@ -406,7 +413,10 @@ function SMSAnalyticsContent() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {smsLogs?.filter(s => s.status === 'failed').slice(0, 20).map((sms) => (
+                  {smsLogs
+                    .filter((sms) => sms.status === 'failed')
+                    .slice(0, 20)
+                    .map((sms) => (
                     <div key={sms._id} className="flex items-center justify-between p-3 border border-destructive/20 rounded-lg">
                       <div className="space-y-1">
                         <div className="font-medium text-sm">

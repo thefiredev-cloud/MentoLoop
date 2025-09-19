@@ -3,6 +3,15 @@
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
+type UserCertificate = {
+  id: string
+  courseTitle: string
+  completedDate: string
+  credits: number
+  certificateUrl?: string
+  certificateNumber?: string
+}
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -53,7 +62,7 @@ export default function CEUDashboard() {
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     searchQuery: searchQuery || undefined,
   })
-  const userCertificates = useQuery(api.ceuCourses.getUserCertificates)
+  const userCertificates = useQuery(api.ceuCourses.getUserCertificates) as UserCertificate[] | undefined
   const ceuStatsData = useQuery(api.ceuCourses.getCEUStats)
   const enrollInCourse = useMutation(api.ceuCourses.enrollInCourse)
 
@@ -134,14 +143,7 @@ export default function CEUDashboard() {
   ]
 
   // const enrollments = [] // userEnrollments || []
-  const defaultCertificates: Array<{
-    id: string
-    courseTitle: string
-    completedDate: string
-    credits: number
-    certificateUrl?: string
-    certificateNumber?: string
-  }> = [
+  const defaultCertificates: UserCertificate[] = [
     {
       id: 'cert-1',
       courseTitle: 'Pharmacology Update 2024',
@@ -159,7 +161,7 @@ export default function CEUDashboard() {
     }
   ]
 
-  const certificates = userCertificates ?? defaultCertificates
+  const certificates: UserCertificate[] = userCertificates ?? defaultCertificates
 
   const categories = [
     { value: 'all', label: 'All Courses' },

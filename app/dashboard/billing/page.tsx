@@ -49,13 +49,23 @@ export default function BillingPage() {
   return <BillingContent userType={user?.userType} />
 }
 
+type PaymentHistoryEntry = {
+  id: string
+  amount: number
+  date: string
+  status: string
+  description: string
+  invoice?: string
+  receiptUrl?: string
+}
+
 function BillingContent({ userType }: { userType?: string }) {
   const isStudent = userType === 'student'
   const router = useRouter()
   
   // Fetch real data from Convex
   const currentSubscriptionData = useQuery(api.billing.getCurrentSubscription)
-  const paymentHistoryData = useQuery(api.billing.getPaymentHistory, { limit: 10 })
+  const paymentHistoryData = useQuery(api.billing.getPaymentHistory, { limit: 10 }) as PaymentHistoryEntry[] | undefined
   const paymentMethodsData = useQuery(api.billing.getPaymentMethods)
   const downloadInvoice = useMutation(api.billing.downloadInvoice)
   const createPortal = useAction(api.payments.createBillingPortalSession)
@@ -88,7 +98,7 @@ function BillingContent({ userType }: { userType?: string }) {
   }
 
   const currentSubscription = currentSubscriptionData || defaultSubscription
-  const paymentHistory = paymentHistoryData ?? []
+  const paymentHistory: PaymentHistoryEntry[] = paymentHistoryData ?? []
   const paymentMethods: PaymentMethod[] = paymentMethodsData || []
 
   // Use real data or defaults

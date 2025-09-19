@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 import dynamic from 'next/dynamic'
 import { Skeleton } from '@/components/ui/skeleton'
 const MentoLoopBackground = dynamic(() => import('@/components/mentoloop-background'), {
@@ -28,14 +29,16 @@ import {
   ArrowRight
 } from 'lucide-react'
 
+type TestimonialDoc = Doc<'testimonials'>
+
 export default function PreceptorsPage() {
   const [showVideo, setShowVideo] = useState(false)
 
   // Get preceptor testimonials from database
-  const preceptorTestimonials = useQuery(api.testimonials.getPublicTestimonials, {
+  const preceptorTestimonialsData = useQuery(api.testimonials.getPublicTestimonials, {
     userType: 'preceptor',
     limit: 3
-  })
+  }) as TestimonialDoc[] | undefined
 
   const benefits = [
     {
@@ -83,13 +86,14 @@ export default function PreceptorsPage() {
     }
   ]
 
-  const testimonials = preceptorTestimonials?.map(t => ({
-    name: t.name,
-    role: t.title,
-    rating: t.rating,
-    text: t.content
-  })) || [
-    // Fallback data if database is loading
+  const testimonialsFromDb = (preceptorTestimonialsData ?? []).map((testimonial) => ({
+    name: testimonial.name,
+    role: testimonial.title,
+    rating: testimonial.rating,
+    text: testimonial.content
+  }))
+
+  const testimonials = testimonialsFromDb.length > 0 ? testimonialsFromDb : [
     {
       name: "Dr. Patricia Williams",
       role: "Family Nurse Practitioner",
@@ -394,7 +398,7 @@ export default function PreceptorsPage() {
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {preceptorTestimonials === undefined ? (
+            {preceptorTestimonialsData === undefined ? (
               Array.from({ length: 3 }).map((_, idx) => (
                 <Card key={idx} className="border-0 shadow-lg">
                   <CardContent className="p-6 space-y-3">

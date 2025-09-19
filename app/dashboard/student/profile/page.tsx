@@ -1,6 +1,7 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { ChangeEvent, useEffect, useState } from 'react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -16,9 +17,13 @@ import {
   GraduationCap, 
   Edit2,
   Save,
-  Camera
+  Camera,
+  Loader2
 } from 'lucide-react'
-import { useState } from 'react'
+import { toast } from 'sonner'
+
+const DEGREE_TRACK_OPTIONS = ['FNP', 'PNP', 'PMHNP', 'AGNP', 'ACNP', 'WHNP', 'NNP', 'DNP'] as const
+const PROGRAM_FORMAT_OPTIONS = ['online', 'in-person', 'hybrid'] as const
 
 export default function StudentProfilePage() {
   return (
@@ -31,26 +36,154 @@ export default function StudentProfilePage() {
 function StudentProfileContent() {
   const user = useQuery(api.users.current)
   const student = useQuery(api.students.getByUserId, user ? { userId: user._id } : 'skip')
+  const updateProfile = useMutation(api.students.updateProfileBasics)
   const [isEditing, setIsEditing] = useState(false)
-  
-  // Use student data if available, otherwise use user email
-  const firstName = student?.personalInfo?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'User'
-  const lastName = student?.personalInfo?.fullName?.split(' ').slice(1).join(' ') || ''
-  const fullName = student?.personalInfo?.fullName || `${firstName} ${lastName}`.trim()
+  const [isSaving, setIsSaving] = useState(false)
+  const [formState, setFormState] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    linkedinOrResume: '',
+    programName: '',
+    degreeTrack: '',
+    expectedGraduation: '',
+    programFormat: '',
+  })
+
+  useEffect(() => {
+    if (!student) return
+
+    const [studentFirstName = '', ...rest] = (student.personalInfo?.fullName || '').split(' ')
+    setFormState({
+      firstName: studentFirstName,
+      lastName: rest.join(' ').trim(),
+      phone: student.personalInfo?.phone ?? '',
+      linkedinOrResume: student.personalInfo?.linkedinOrResume ?? '',
+      programName: student.schoolInfo?.programName ?? '',
+      degreeTrack: student.schoolInfo?.degreeTrack ?? '',
+      expectedGraduation: student.schoolInfo?.expectedGraduation ?? '',
+      programFormat: student.schoolInfo?.programFormat ?? '',
+    })
+  }, [student])
+
+  const handleInputChange = (field: keyof typeof formState) => (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setFormState((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const derivedFirstName = formState.firstName || student?.personalInfo?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'User'
+  const derivedLastName = formState.lastName || student?.personalInfo?.fullName?.split(' ').slice(1).join(' ')?.trim() || ''
+  const displayFullName = `${derivedFirstName} ${derivedLastName}`.trim()
+
+  const handleSave = async () => {
+    if (!student) return
+
+    const trimmedFirst = formState.firstName.trim()
+    const trimmedLast = formState.lastName.trim()
+    const trimmedPhone = formState.phone.trim()
+
+    if (!trimmedFirst || !trimmedLast) {
+      toast.error('First and last name are required')
+      return
+    }
+
+    if (!trimmedPhone) {
+      toast.error('Phone number is required')
+      return
+    }
+
+    const personalUpdates: Record<string, string> = {}
+    const schoolUpdates: Record<string, string> = {}
+
+    const nextFullName = `${trimmedFirst} ${trimmedLast}`.trim()
+    if (nextFullName !== student.personalInfo.fullName) {
+      personalUpdates.fullName = nextFullName
+    }
+
+    if (trimmedPhone !== student.personalInfo.phone) {
+      personalUpdates.phone = trimmedPhone
+    }
+
+    const trimmedLinkedin = formState.linkedinOrResume.trim()
+    if (trimmedLinkedin !== (student.personalInfo.linkedinOrResume ?? '')) {
+      personalUpdates.linkedinOrResume = trimmedLinkedin
+    }
+
+    const trimmedProgramName = formState.programName.trim()
+    if (trimmedProgramName && trimmedProgramName !== student.schoolInfo.programName) {
+      schoolUpdates.programName = trimmedProgramName
+    }
+
+    const normalizedDegree = formState.degreeTrack.trim().toUpperCase()
+    if (normalizedDegree && normalizedDegree !== student.schoolInfo.degreeTrack) {
+      const validDegree = (DEGREE_TRACK_OPTIONS as readonly string[]).includes(normalizedDegree)
+      if (!validDegree) {
+        toast.error('Degree track must be one of: ' + DEGREE_TRACK_OPTIONS.join(', '))
+        return
+      }
+      schoolUpdates.degreeTrack = normalizedDegree
+    }
+
+    if (formState.expectedGraduation && formState.expectedGraduation !== student.schoolInfo.expectedGraduation) {
+      schoolUpdates.expectedGraduation = formState.expectedGraduation
+    }
+
+    const normalizedFormat = formState.programFormat.trim().toLowerCase()
+    if (normalizedFormat && normalizedFormat !== student.schoolInfo.programFormat) {
+      const validFormat = (PROGRAM_FORMAT_OPTIONS as readonly string[]).includes(normalizedFormat)
+      if (!validFormat) {
+        toast.error('Program format must be online, in-person, or hybrid')
+        return
+      }
+      schoolUpdates.programFormat = normalizedFormat
+    }
+
+    if (Object.keys(personalUpdates).length === 0 && Object.keys(schoolUpdates).length === 0) {
+      toast.info('No changes to save')
+      setIsEditing(false)
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      await updateProfile({
+        personalInfo: Object.keys(personalUpdates).length ? personalUpdates : undefined,
+        schoolInfo: Object.keys(schoolUpdates).length ? schoolUpdates : undefined,
+      })
+      toast.success('Profile updated')
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Failed to update profile', error)
+      toast.error('Failed to update profile')
+    } finally {
+      setIsSaving(false)
+    }
+  }
   
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-        <Button 
-          onClick={() => setIsEditing(!isEditing)}
-          variant={isEditing ? "default" : "outline"}
+        <Button
+          onClick={() => {
+            if (isEditing) {
+              handleSave()
+            } else {
+              setIsEditing(true)
+            }
+          }}
+          variant={isEditing ? 'default' : 'outline'}
+          disabled={isEditing && isSaving}
         >
           {isEditing ? (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
-            </>
+            isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )
           ) : (
             <>
               <Edit2 className="mr-2 h-4 w-4" />
@@ -67,7 +200,10 @@ function StudentProfileContent() {
             <div className="relative">
               <Avatar className="h-24 w-24">
                 <AvatarImage src="/placeholder-avatar.jpg" />
-                <AvatarFallback>{firstName?.[0]}{lastName?.[0]}</AvatarFallback>
+                <AvatarFallback>
+                  {derivedFirstName?.[0]?.toUpperCase() || 'U'}
+                  {derivedLastName?.[0]?.toUpperCase() || ''}
+                </AvatarFallback>
               </Avatar>
               {isEditing && (
                 <button type="button" className="absolute bottom-0 right-0 rounded-full bg-primary p-1 text-primary-foreground">
@@ -76,7 +212,7 @@ function StudentProfileContent() {
               )}
             </div>
             <div className="flex-1 space-y-1">
-              <h2 className="text-2xl font-semibold">{fullName}</h2>
+              <h2 className="text-2xl font-semibold">{displayFullName}</h2>
               <p className="text-muted-foreground">{user?.email}</p>
               <div className="flex gap-2 pt-2">
                 <Badge variant="secondary">NP Student</Badge>
@@ -102,7 +238,8 @@ function StudentProfileContent() {
                 <Label htmlFor="firstName">First Name</Label>
                 <Input 
                   id="firstName" 
-                  defaultValue={firstName}
+                  value={formState.firstName}
+                  onChange={handleInputChange('firstName')}
                   disabled={!isEditing}
                 />
               </div>
@@ -110,7 +247,8 @@ function StudentProfileContent() {
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input 
                   id="lastName" 
-                  defaultValue={lastName}
+                  value={formState.lastName}
+                  onChange={handleInputChange('lastName')}
                   disabled={!isEditing}
                 />
               </div>
@@ -120,8 +258,8 @@ function StudentProfileContent() {
               <Input 
                 id="email" 
                 type="email"
-                defaultValue={user?.email}
-                disabled={!isEditing}
+                value={user?.email ?? ''}
+                disabled
               />
             </div>
             <div className="space-y-2">
@@ -130,6 +268,8 @@ function StudentProfileContent() {
                 id="phone" 
                 type="tel"
                 placeholder="+1 (555) 123-4567"
+                value={formState.phone}
+                onChange={handleInputChange('phone')}
                 disabled={!isEditing}
               />
             </div>
@@ -159,6 +299,8 @@ function StudentProfileContent() {
               <Input 
                 id="school"
                 placeholder="Your nursing school"
+                value={formState.programName}
+                onChange={handleInputChange('programName')}
                 disabled={!isEditing}
               />
             </div>
@@ -166,7 +308,9 @@ function StudentProfileContent() {
               <Label htmlFor="program">Program Type</Label>
               <Input 
                 id="program"
-                placeholder="e.g., Family NP, Adult-Gerontology NP"
+                placeholder="e.g., FNP, PMHNP, AGNP"
+                value={formState.degreeTrack}
+                onChange={handleInputChange('degreeTrack')}
                 disabled={!isEditing}
               />
             </div>
@@ -184,6 +328,8 @@ function StudentProfileContent() {
                 <Input 
                   id="gradDate"
                   type="date"
+                  value={formState.expectedGraduation}
+                  onChange={handleInputChange('expectedGraduation')}
                   disabled={!isEditing}
                 />
               </div>

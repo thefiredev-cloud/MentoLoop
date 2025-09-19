@@ -1,7 +1,9 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useMemo, useState } from 'react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,9 +24,13 @@ import {
   Edit,
   Send,
   Award,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'sonner'
 
 interface Activity {
   date: string
@@ -34,20 +40,21 @@ interface Activity {
 
 interface StudentData {
   _id: string
+  matchId: string
   student: {
     _id: string
     fullName: string
-    email: string
-    phone: string
-    school: string
-    programName: string
-    degreeTrack: string
-    yearInProgram: string
-    expectedGraduation: string
-    gpa: number
+    email?: string
+    phone?: string
+    school?: string
+    programName?: string
+    degreeTrack?: string
+    yearInProgram?: string
+    expectedGraduation?: string
+    gpa?: number
   }
-  startDate: string
-  endDate: string
+  startDate?: string
+  endDate?: string
   totalWeeks: number
   currentWeek: number
   hoursPerWeek: number
@@ -63,11 +70,46 @@ interface StudentData {
     criticalThinking: number
   }
   recentActivities: Activity[]
-  upcomingDeadlines: Array<{
-    title: string
-    date: string
-    type: 'hours' | 'evaluation' | 'assessment' | 'assignment'
-  }>
+  upcomingDeadlines: Array<{ title: string; date: string; type: Activity['type'] }>
+}
+
+interface StudentRecord {
+  _id?: string
+  personalInfo?: {
+    fullName?: string
+    email?: string
+    phone?: string
+  }
+  schoolInfo?: {
+    programName?: string
+    degreeTrack?: string
+    expectedGraduation?: string
+  }
+  learningStyle?: {
+    programStage?: string
+  }
+  academicInfo?: {
+    cumulativeGpa?: number
+  }
+}
+
+interface ActiveMatchRecord {
+  _id: Id<'matches'>
+  student?: StudentRecord
+  studentName?: string
+  schoolName?: string
+  degreeTrack?: string
+  rotationDetails?: {
+    rotationType?: string
+    startDate?: string
+    endDate?: string
+    weeklyHours?: number
+    location?: string
+  }
+  mentorFitScore?: number
+  status?: string
+  hoursCompleted?: number
+  title?: string
 }
 
 export default function PreceptorStudents() {
@@ -75,6 +117,96 @@ export default function PreceptorStudents() {
   const _activeStudents = useQuery(api.matches.getActiveStudentsForPreceptor,
     user ? { preceptorId: user._id } : "skip"
   )
+
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
+  const [updateMessage, setUpdateMessage] = useState('')
+  const [isSendingUpdate, setIsSendingUpdate] = useState(false)
+  const getOrCreateConversation = useMutation(api.messages.getOrCreateConversation)
+  const sendMessage = useMutation(api.messages.sendMessage)
+
+  const activeMatchRecords = useMemo<ActiveMatchRecord[]>(
+    () => (Array.isArray(_activeStudents) ? (_activeStudents as ActiveMatchRecord[]) : []),
+    [_activeStudents]
+  )
+
+  const activeStudents: StudentData[] = useMemo(() => {
+    if (!activeMatchRecords.length) return []
+
+    const weeksBetween = (start?: string, end?: string) => {
+      if (!start || !end) return 8
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 8
+      const diffMs = Math.max(endDate.getTime() - startDate.getTime(), 0)
+      const weeks = Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 7))
+      return weeks > 0 ? weeks : 8
+    }
+
+    return activeMatchRecords.map((match) => {
+      const studentRecord: StudentRecord = match.student ?? {}
+      const personalInfo = studentRecord.personalInfo ?? {}
+      const schoolInfo = studentRecord.schoolInfo ?? {}
+      const rotation = match.rotationDetails ?? {}
+      const totalWeeks = weeksBetween(rotation.startDate, rotation.endDate)
+      const weeklyHours = rotation.weeklyHours ?? 32
+      const totalHours = weeklyHours * totalWeeks
+      const calculatedHoursCompleted = match.hoursCompleted ?? (match.status === 'completed' ? totalHours : Math.round(totalHours * 0.6))
+      const progress = totalHours > 0 ? Math.min(100, Math.round((calculatedHoursCompleted / totalHours) * 100)) : (match.status === 'completed' ? 100 : 0)
+      const currentWeek = totalWeeks > 0 ? Math.min(totalWeeks, Math.max(1, Math.ceil((progress / 100) * totalWeeks))) : 0
+
+      const displayName = personalInfo.fullName ?? match.studentName ?? 'Student'
+      const recentActivities: Activity[] = rotation.startDate ? [
+        {
+          date: new Date(rotation.startDate).toLocaleDateString(),
+          activity: `${rotation.rotationType ?? 'Clinical rotation'} kicked off`,
+          type: 'hours'
+        }
+      ] : []
+
+      const upcomingDeadlines = rotation.endDate ? [
+        {
+          title: 'Rotation completion',
+          date: new Date(rotation.endDate).toLocaleDateString(),
+          type: 'evaluation' as Activity['type']
+        }
+      ] : []
+
+      return {
+        _id: match._id,
+        matchId: match._id,
+        student: {
+          _id: studentRecord?._id ?? '',
+          fullName: displayName,
+          email: personalInfo.email,
+          phone: personalInfo.phone,
+          school: schoolInfo.programName ?? match.schoolName ?? 'N/A',
+          programName: schoolInfo.programName ?? match.title ?? rotation.rotationType ?? 'Clinical Rotation',
+          degreeTrack: schoolInfo.degreeTrack ?? match.degreeTrack ?? 'N/A',
+          yearInProgram: studentRecord?.learningStyle?.programStage ?? 'In program',
+          expectedGraduation: schoolInfo.expectedGraduation,
+          gpa: studentRecord?.academicInfo?.cumulativeGpa ?? 0,
+        },
+        startDate: rotation.startDate,
+        endDate: rotation.endDate,
+        totalWeeks,
+        currentWeek,
+        hoursPerWeek: weeklyHours,
+        totalHours,
+        completedHours: calculatedHoursCompleted,
+        progress,
+        currentRotation: rotation.rotationType ?? 'Clinical Rotation',
+        performance: {
+          overallRating: match.mentorFitScore ?? 4.5,
+          clinicalSkills: match.mentorFitScore ?? 4.5,
+          professionalism: match.mentorFitScore ?? 4.5,
+          communication: match.mentorFitScore ?? 4.5,
+          criticalThinking: match.mentorFitScore ?? 4.5,
+        },
+        recentActivities,
+        upcomingDeadlines,
+      }
+    })
+  }, [activeMatchRecords])
 
   // Handle loading state for both user and students data
   if (user === undefined) {
@@ -85,135 +217,21 @@ export default function PreceptorStudents() {
     return <div>Loading...</div>
   }
 
-  // Mock current students data - in real app would come from Convex with populated student data
-  const mockActiveStudents = [
-    {
-      _id: "student_1",
-      student: {
-        _id: "student_obj_1",
-        fullName: "Emily Rodriguez",
-        email: "emily.rodriguez@utexas.edu", 
-        phone: "+1 (555) 234-5678",
-        school: "University of Texas at Austin",
-        programName: "Family Nurse Practitioner",
-        degreeTrack: "FNP",
-        yearInProgram: "2nd Year",
-        expectedGraduation: "May 2025",
-        gpa: 3.89
-      },
-      startDate: "2025-01-15",
-      endDate: "2025-03-12",
-      totalWeeks: 8,
-      currentWeek: 4,
-      hoursPerWeek: 32,
-      totalHours: 256,
-      completedHours: 128,
-      progress: 50,
-      currentRotation: "Family Practice",
-      performance: {
-        overallRating: 4.5,
-        clinicalSkills: 4.3,
-        professionalism: 4.7,
-        communication: 4.4,
-        criticalThinking: 4.2
-      },
-      recentActivities: [
-        {
-          date: "2025-01-18",
-          activity: "Completed 32 hours for week 4",
-          type: "hours" as const
-        },
-        {
-          date: "2025-01-17", 
-          activity: "Mid-rotation evaluation submitted",
-          type: "evaluation" as const
-        },
-        {
-          date: "2025-01-15",
-          activity: "Clinical competency assessment passed",
-          type: "assessment" as const
-        }
-      ],
-      upcomingDeadlines: [
-        {
-          title: "Weekly hours submission",
-          date: "2025-01-25",
-          type: "hours" as const
-        },
-        {
-          title: "Final evaluation",
-          date: "2025-03-12",
-          type: "evaluation" as const
-        }
-      ]
-    },
-    {
-      _id: "student_2",
-      student: {
-        _id: "student_obj_2", 
-        fullName: "Marcus Chen",
-        email: "marcus.chen@baylor.edu",
-        phone: "+1 (555) 987-6543",
-        school: "Baylor University",
-        programName: "Adult-Gerontology Acute Care Nurse Practitioner",
-        degreeTrack: "AGACNP",
-        yearInProgram: "3rd Year", 
-        expectedGraduation: "December 2025",
-        gpa: 3.92
-      },
-      startDate: "2025-01-08",
-      endDate: "2025-03-19",
-      totalWeeks: 10,
-      currentWeek: 2,
-      hoursPerWeek: 40,
-      totalHours: 400,
-      completedHours: 80,
-      progress: 20,
-      currentRotation: "Acute Care",
-      performance: {
-        overallRating: 4.2,
-        clinicalSkills: 4.0,
-        professionalism: 4.5,
-        communication: 4.1,
-        criticalThinking: 4.3
-      },
-      recentActivities: [
-        {
-          date: "2025-01-18",
-          activity: "Completed 40 hours for week 2", 
-          type: "hours" as const
-        },
-        {
-          date: "2025-01-16",
-          activity: "Case study presentation completed",
-          type: "assignment" as const
-        },
-        {
-          date: "2025-01-14",
-          activity: "Initial assessment completed",
-          type: "assessment" as const
-        }
-      ],
-      upcomingDeadlines: [
-        {
-          title: "Weekly hours submission",
-          date: "2025-01-25",
-          type: "hours" as const
-        },
-        {
-          title: "Mid-rotation evaluation",
-          date: "2025-02-15", 
-          type: "evaluation" as const
-        }
-      ]
-    }
-  ]
+  const activeCount = activeStudents.length
+  const totalHoursSupervised = activeStudents.reduce((sum, s) => sum + s.completedHours, 0)
+  const avgPerformance = activeCount > 0
+    ? activeStudents.reduce((sum, s) => sum + s.performance.overallRating, 0) / activeCount
+    : 0
 
-  const activeCount = mockActiveStudents.length
-  const totalHoursSupervised = mockActiveStudents.reduce((sum, s) => sum + s.completedHours, 0)
-  const avgPerformance = mockActiveStudents.reduce((sum, s) => sum + s.performance.overallRating, 0) / mockActiveStudents.length
+  const renderStudentCard = (student: StudentData) => {
+    const startLabel = student.startDate ? new Date(student.startDate).toLocaleDateString() : 'TBD'
+    const endLabel = student.endDate ? new Date(student.endDate).toLocaleDateString() : 'TBD'
+    const emailDisplay = student.student.email ?? 'Not provided'
+    const phoneDisplay = student.student.phone ?? 'Not provided'
+    const yearDisplay = student.student.yearInProgram ?? 'In program'
+    const gpaDisplay = student.student.gpa ? student.student.gpa.toFixed(2) : 'N/A'
 
-  const renderStudentCard = (student: StudentData) => (
+    return (
     <Card key={student._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -259,7 +277,7 @@ export default function PreceptorStudents() {
               </div>
               <Progress value={student.progress} className="h-2" />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{student.startDate} - {student.endDate}</span>
+                <span>{startLabel} - {endLabel}</span>
                 <span>{student.hoursPerWeek} hrs/week</span>
               </div>
             </div>
@@ -270,15 +288,15 @@ export default function PreceptorStudents() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{student.student.email}</span>
+                <span>{emailDisplay}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{student.student.phone}</span>
+                <span>{phoneDisplay}</span>
               </div>
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                <span>{student.student.yearInProgram} • GPA: {student.student.gpa}</span>
+                <span>{yearDisplay} • GPA: {gpaDisplay}</span>
               </div>
             </div>
           </div>
@@ -315,19 +333,23 @@ export default function PreceptorStudents() {
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Recent Activity</h4>
           <div className="space-y-3">
-            {student.recentActivities.map((activity: Activity, index: number) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className={`w-2 h-2 rounded-full mt-2 ${
-                  activity.type === 'hours' ? 'bg-blue-500' :
-                  activity.type === 'evaluation' ? 'bg-green-500' :
-                  'bg-yellow-500'
-                }`}></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{activity.activity}</p>
-                  <p className="text-xs text-muted-foreground">{activity.date}</p>
+            {student.recentActivities.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No activity logged yet.</p>
+            ) : (
+              student.recentActivities.map((activity: Activity, index: number) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full mt-2 ${
+                    activity.type === 'hours' ? 'bg-blue-500' :
+                    activity.type === 'evaluation' ? 'bg-green-500' :
+                    'bg-yellow-500'
+                  }`}></div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{activity.activity}</p>
+                    <p className="text-xs text-muted-foreground">{activity.date}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -356,7 +378,8 @@ export default function PreceptorStudents() {
         </div>
       </CardContent>
     </Card>
-  )
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -434,14 +457,108 @@ export default function PreceptorStudents() {
                   <FileText className="h-4 w-4 mr-2" />
                   Export Reports
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Update
-                </Button>
+                <Dialog
+                  open={isUpdateDialogOpen}
+                  onOpenChange={(open) => {
+                    if (!open && !isSendingUpdate) {
+                      setIsUpdateDialogOpen(false)
+                      setUpdateMessage('')
+                    } else if (open && activeMatchRecords.length > 0) {
+                      setIsUpdateDialogOpen(true)
+                    }
+                  }}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={activeMatchRecords.length === 0}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Update
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Send update to active students</DialogTitle>
+                      <DialogDescription>
+                        This message will be sent to {activeMatchRecords.length}{' '}
+                        student{activeMatchRecords.length === 1 ? '' : 's'} currently assigned to you.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <Textarea
+                        value={updateMessage}
+                        onChange={(event) => setUpdateMessage(event.target.value)}
+                        placeholder="Share rotation updates, reminders, or guidance..."
+                        rows={6}
+                        maxLength={5000}
+                        disabled={isSendingUpdate}
+                      />
+                      <p className="text-xs text-muted-foreground text-right">
+                        {updateMessage.length}/5000
+                      </p>
+                    </div>
+                    <DialogFooter className="gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          if (isSendingUpdate) return
+                          setIsUpdateDialogOpen(false)
+                          setUpdateMessage('')
+                        }}
+                        disabled={isSendingUpdate}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={async () => {
+                          const trimmed = updateMessage.trim()
+                          if (!trimmed) {
+                            toast.error('Please enter a message before sending.')
+                            return
+                          }
+                          if (!activeMatchRecords.length) {
+                            toast.info('No active students to message right now.')
+                            setIsUpdateDialogOpen(false)
+                            return
+                          }
+                          setIsSendingUpdate(true)
+                          try {
+                            for (const match of activeMatchRecords) {
+                              const conversationId = await getOrCreateConversation({ matchId: match._id })
+                              await sendMessage({ conversationId, content: trimmed, messageType: 'text' })
+                            }
+                            toast.success(`Update sent to ${activeMatchRecords.length} student${activeMatchRecords.length === 1 ? '' : 's'}.`)
+                            setUpdateMessage('')
+                            setIsUpdateDialogOpen(false)
+                          } catch (error) {
+                            console.error('Failed to send update', error)
+                            toast.error('Failed to send update. Please try again.')
+                          } finally {
+                            setIsSendingUpdate(false)
+                          }
+                        }}
+                        disabled={isSendingUpdate || updateMessage.trim().length === 0}
+                      >
+                        {isSendingUpdate ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          'Send Update'
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
             
-            {mockActiveStudents.map(student => renderStudentCard(student))}
+            {activeStudents.map(student => renderStudentCard(student))}
           </div>
         )}
       </div>

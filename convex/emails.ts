@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { action, internalAction, internalMutation, query } from "./_generated/server";
+import { action, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { Doc } from "./_generated/dataModel";
 
 // Email template definitions based on Build.txt
 const EMAIL_TEMPLATES = {
@@ -198,6 +199,13 @@ export const logEmailSend = internalMutation({
     subject: v.string(),
     status: v.union(v.literal("sent"), v.literal("failed")),
     failureReason: v.optional(v.string()),
+    originalPayload: v.optional(v.object({
+      to: v.string(),
+      templateKey: v.string(),
+      variables: v.record(v.string(), v.string()),
+      fromName: v.optional(v.string()),
+      replyTo: v.optional(v.string()),
+    })),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("emailLogs", {
@@ -208,6 +216,25 @@ export const logEmailSend = internalMutation({
       status: args.status,
       sentAt: Date.now(),
       failureReason: args.failureReason,
+      originalPayload: args.originalPayload,
+    });
+  },
+});
+
+export const markEmailLogPending = internalMutation({
+  args: {
+    emailLogId: v.id("emailLogs"),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.get(args.emailLogId);
+    if (!existing) {
+      throw new Error("Email log not found");
+    }
+
+    await ctx.db.patch(args.emailLogId, {
+      status: "pending",
+      failureReason: undefined,
+      sentAt: Date.now(),
     });
   },
 });
@@ -299,6 +326,13 @@ export const sendEmail = action({
         recipientType: args.templateKey.includes("STUDENT") ? "student" : "preceptor",
         subject,
         status: "sent",
+        originalPayload: {
+          to: args.to,
+          templateKey: args.templateKey,
+          variables: args.variables,
+          fromName: args.fromName,
+          replyTo: args.replyTo,
+        },
       });
       return { success: true, message: "Email sent successfully" };
     } catch (error) {
@@ -312,6 +346,13 @@ export const sendEmail = action({
         subject,
         status: "failed",
         failureReason: error instanceof Error ? error.message : "Unknown error",
+        originalPayload: {
+          to: args.to,
+          templateKey: args.templateKey,
+          variables: args.variables,
+          fromName: args.fromName,
+          replyTo: args.replyTo,
+        },
       });
       
       throw new Error("Failed to send email");
@@ -603,6 +644,15 @@ export const getAllEmailLogs = query({
   },
 });
 
+export const getEmailLogById = internalQuery({
+  args: {
+    emailLogId: v.id("emailLogs"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.emailLogId);
+  },
+});
+
 // Get email logs for debugging
 export const getEmailLogs = query({
   args: {
@@ -626,6 +676,36 @@ export const getEmailLogs = query({
       : await query.take(50);
     
     return logs;
+  },
+});
+
+type EmailLogDoc = Doc<'emailLogs'>
+
+type RetryEmailResult = {
+  success: true
+  payload: unknown
+}
+
+export const retryEmailLog = action({
+  args: {
+    emailLogId: v.id("emailLogs"),
+  },
+  handler: async (ctx, args): Promise<RetryEmailResult> => {
+    const emailLog = await ctx.runQuery(internal.emails.getEmailLogById, {
+      emailLogId: args.emailLogId,
+    }) as EmailLogDoc | null;
+    if (!emailLog) {
+      throw new Error("Email log not found");
+    }
+
+    await ctx.runMutation(internal.emails.markEmailLogPending, {
+      emailLogId: args.emailLogId,
+    });
+
+    return {
+      success: true,
+      payload: emailLog.originalPayload ?? null,
+    };
   },
 });
 
@@ -711,11 +791,18 @@ export const sendEmailInternal = internalAction({
       // Log the email attempt
       await ctx.runMutation(internal.emails.logEmailSend, {
         recipientEmail: args.to,
-        recipientType: args.to.includes('student') ? 'student' : 'preceptor',
+        recipientType: args.templateKey.includes('STUDENT') ? 'student' : 'preceptor',
         templateKey: args.templateKey,
         subject,
         status: success ? "sent" : "failed",
         failureReason: success ? undefined : `HTTP ${response.status}: ${statusText}`,
+        originalPayload: {
+          to: args.to,
+          templateKey: args.templateKey,
+          variables: args.variables,
+          fromName: args.fromName,
+          replyTo: args.replyTo,
+        },
       });
 
       if (!success) {

@@ -24,8 +24,17 @@ import {
 } from 'lucide-react'
 import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 
 type CSVCell = string | number | boolean | null | object | undefined
+
+type PaymentAttempt = Doc<'paymentAttempts'>
+type IntakePayment = Doc<'intakePaymentAttempts'>
+type PreceptorEarning = Doc<'preceptorEarnings'>
+type PreceptorEarningWithNames = PreceptorEarning & {
+  preceptorName?: string
+  studentName?: string
+}
 
 export default function FinancialManagement() {
   return (
@@ -44,20 +53,24 @@ function FinancialManagementContent() {
   const intakePayments = useQuery(api.intakePayments.getAllIntakePayments)
   const pendingEarnings = useQuery(api.preceptors.getAllPreceptorEarnings, { status: 'pending' })
   const payEarning = useAction(api.payments.payPreceptorEarning)
+
+  const paymentAttemptList: PaymentAttempt[] = paymentAttempts ?? []
+  const successfulPaymentAttempts = paymentAttemptList.filter((attempt) => attempt.status === 'succeeded')
+  const intakePaymentList: IntakePayment[] = intakePayments ?? []
+  const pendingEarningList: PreceptorEarningWithNames[] = pendingEarnings ?? []
   
   // Calculate financial metrics
-  const totalRevenue = paymentAttempts?.filter(p => p.status === 'succeeded')
-    .reduce((sum, p) => sum + p.amount, 0) || 0
+  const totalRevenue = successfulPaymentAttempts.reduce((sum, payment) => sum + payment.amount, 0)
   
-  const totalIntakeRevenue = intakePayments?.filter(p => p.status === 'succeeded')
-    .reduce((sum, p) => sum + p.amount, 0) || 0
+  const totalIntakeRevenue = intakePaymentList
+    .filter((payment) => payment.status === 'succeeded')
+    .reduce((sum, payment) => sum + payment.amount, 0)
   
-  const failedTransactions = paymentAttempts?.filter(p => p.status === 'failed').length || 0
-  const pendingTransactions = paymentAttempts?.filter(p => p.status === 'pending').length || 0
+  const failedTransactions = paymentAttemptList.filter((payment) => payment.status === 'failed').length
+  const pendingTransactions = paymentAttemptList.filter((payment) => payment.status === 'pending').length
   
-  const averageTransaction = totalRevenue > 0 && paymentAttempts?.filter(p => p.status === 'succeeded').length 
-    ? totalRevenue / paymentAttempts.filter(p => p.status === 'succeeded').length 
-    : 0
+  const successfulCount = successfulPaymentAttempts.length
+  const averageTransaction = successfulCount > 0 ? totalRevenue / successfulCount : 0
 
   const formatCurrency = (cents: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -104,15 +117,15 @@ function FinancialManagementContent() {
     URL.revokeObjectURL(url)
   }
 
-  const filteredTransactions = (paymentAttempts || []).filter(p => {
+  const filteredTransactions = paymentAttemptList.filter((payment) => {
     if (!searchTerm) return true
     const term = searchTerm.toLowerCase()
     return (
-      String(p.stripeSessionId).toLowerCase().includes(term) ||
-      String(p.status).toLowerCase().includes(term) ||
-      String(p.amount).toLowerCase().includes(term)
+      String(payment.stripeSessionId).toLowerCase().includes(term) ||
+      String(payment.status).toLowerCase().includes(term) ||
+      String(payment.amount).toLowerCase().includes(term)
     )
-  }).filter(p => statusFilter === 'all' ? true : p.status === statusFilter)
+  }).filter((payment) => (statusFilter === 'all' ? true : payment.status === statusFilter))
 
   return (
     <div className="container mx-auto py-6">
@@ -158,8 +171,9 @@ function FinancialManagementContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {paymentAttempts?.length ? 
-                ((paymentAttempts.filter(p => p.status === 'succeeded').length / paymentAttempts.length) * 100).toFixed(1) : 0}%
+              {paymentAttemptList.length
+                ? ((successfulCount / paymentAttemptList.length) * 100).toFixed(1)
+                : 0}%
             </div>
             <p className="text-xs text-muted-foreground">
               {failedTransactions} failed transactions
@@ -277,18 +291,27 @@ function FinancialManagementContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {(pendingEarnings || []).length === 0 && (
+                {pendingEarningList.length === 0 && (
                   <div className="text-sm text-muted-foreground">No pending payouts.</div>
                 )}
-                {(pendingEarnings || []).map((e) => (
-                  <div key={e._id} className="flex items-center justify-between p-3 border rounded">
+                {pendingEarningList.map((earning) => (
+                  <div key={earning._id} className="flex items-center justify-between p-3 border rounded">
                     <div>
-                      <div className="font-medium">{e.preceptorName}</div>
-                      <div className="text-xs text-muted-foreground">Student: {e.studentName} · {new Date(e.createdAt).toLocaleDateString()}</div>
+                      <div className="font-medium">{earning.preceptorName ?? 'Preceptor'}</div>
+                      <div className="text-xs text-muted-foreground">Student: {earning.studentName ?? 'Student'} · {new Date(earning.createdAt).toLocaleDateString()}</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="text-sm font-semibold">{formatCurrency(e.amount)}</div>
-                      <Button size="sm" onClick={async () => { try { await payEarning({ earningId: e._id }) } catch (err) { console.error(err) } }}>
+                      <div className="text-sm font-semibold">{formatCurrency(earning.amount)}</div>
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            await payEarning({ earningId: earning._id })
+                          } catch (err) {
+                            console.error(err)
+                          }
+                        }}
+                      >
                         Pay Now
                       </Button>
                     </div>
@@ -324,7 +347,7 @@ function FinancialManagementContent() {
               </div>
               
               <div className="space-y-3">
-                {intakePayments?.slice(0, 5).map((payment) => (
+                {intakePaymentList.slice(0, 5).map((payment) => (
                   <div key={payment._id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="space-y-1">
                       <div className="font-medium text-sm">
@@ -349,16 +372,16 @@ function FinancialManagementContent() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const rows = (intakePayments || []).map(p => ({
-                      customerName: p.customerName,
-                      customerEmail: p.customerEmail,
-                      membershipPlan: p.membershipPlan,
-                      amount: formatCurrency(p.amount),
-                      status: p.status,
-                      createdAt: new Date(p.createdAt).toISOString(),
-                      discountCode: p.discountCode || '',
-                      discountPercent: p.discountPercent ?? '',
-                      stripeSessionId: p.stripeSessionId,
+                    const rows = intakePaymentList.map((payment) => ({
+                      customerName: payment.customerName,
+                      customerEmail: payment.customerEmail,
+                      membershipPlan: payment.membershipPlan,
+                      amount: formatCurrency(payment.amount),
+                      status: payment.status,
+                      createdAt: new Date(payment.createdAt).toISOString(),
+                      discountCode: payment.discountCode || '',
+                      discountPercent: payment.discountPercent ?? '',
+                      stripeSessionId: payment.stripeSessionId,
                     }))
                     exportCsv(rows, 'membership_payments.csv')
                   }}
@@ -378,7 +401,10 @@ function FinancialManagementContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {paymentAttempts?.filter(p => p.matchId).slice(0, 10).map((payment) => (
+                {paymentAttemptList
+                  .filter((payment) => Boolean(payment.matchId))
+                  .slice(0, 10)
+                  .map((payment) => (
                   <div key={payment._id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="space-y-1">
                       <div className="font-medium text-sm">

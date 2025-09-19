@@ -64,7 +64,7 @@ export default function PreceptorSearchPage() {
   const [requestMessage, setRequestMessage] = useState('')
   const [preferredStartDate, setPreferredStartDate] = useState('')
 
-  const searchResults = useQuery(api.preceptors.searchPreceptors, {
+  const searchResultsData = useQuery(api.preceptors.searchPreceptors, {
     searchQuery: searchQuery.trim() || undefined,
     specialty: (selectedSpecialty || undefined) as "FNP" | "PNP" | "PMHNP" | "AGNP" | "ACNP" | "WHNP" | "NNP" | "other" | undefined,
     rotationType: (selectedRotationType || undefined) as "family-practice" | "pediatrics" | "psych-mental-health" | "womens-health" | "adult-gero" | "acute-care" | "other" | undefined,
@@ -75,7 +75,10 @@ export default function PreceptorSearchPage() {
     practiceSettings: (selectedPracticeSettings.length > 0 ? selectedPracticeSettings : undefined) as ("telehealth" | "other" | "private-practice" | "urgent-care" | "hospital" | "clinic")[] | undefined,
     currentlyAccepting: currentlyAcceptingOnly,
     limit: 20,
-  })
+  }) as PreceptorType[] | undefined
+
+  const searchResults: PreceptorType[] = searchResultsData ?? []
+  const isLoadingResults = searchResultsData === undefined
 
   const preceptorDetails = useQuery(
     api.preceptors.getPublicPreceptorDetails, 
@@ -308,26 +311,34 @@ export default function PreceptorSearchPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">
-              Search Results {searchResults && `(${searchResults.length})`}
+              Search Results ({searchResults.length})
             </h2>
           </div>
 
-          {searchResults && searchResults.length > 0 ? (
+          {searchResults.length > 0 ? (
             <div className="space-y-4">
-              {searchResults.map(preceptor => (
-                <Card 
-                  key={preceptor._id} 
-                  className={`cursor-pointer transition-colors hover:border-primary ${
-                    (selectedPreceptor as {_id?: string} | null)?._id === preceptor._id ? 'border-primary bg-primary/5' : ''
-                  }`}
-                  onClick={() => setSelectedPreceptor(preceptor as unknown as PreceptorType)}
-                >
+              {searchResults.map((preceptor) => {
+                const practiceSettings = (preceptor.practiceInfo?.practiceSettings ?? []).filter(
+                  (setting): setting is string => typeof setting === 'string'
+                )
+                const availableRotations = (preceptor.availability?.availableRotations ?? []).filter(
+                  (rotation): rotation is string => typeof rotation === 'string'
+                )
+
+                return (
+                  <Card 
+                    key={preceptor._id} 
+                    className={`cursor-pointer transition-colors hover:border-primary ${
+                      selectedPreceptor?._id === preceptor._id ? 'border-primary bg-primary/5' : ''
+                    }`}
+                    onClick={() => setSelectedPreceptor(preceptor)}
+                  >
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{preceptor.personalInfo.fullName}</h3>
-                          {preceptor.availability.currentlyAccepting ? (
+                          <h3 className="font-semibold">{preceptor.personalInfo?.fullName ?? 'Preceptor'}</h3>
+                          {preceptor.availability?.currentlyAccepting ? (
                             <Badge className="bg-green-500">
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Accepting
@@ -343,30 +354,30 @@ export default function PreceptorSearchPage() {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Building className="h-3 w-3" />
-                            {getSpecialtyLabel(preceptor.personalInfo.specialty)}
+                            {getSpecialtyLabel(preceptor.personalInfo?.specialty ?? 'other')}
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {preceptor.practiceInfo.city}, {preceptor.practiceInfo.state}
+                            {preceptor.practiceInfo?.city ?? 'City'}, {preceptor.practiceInfo?.state ?? 'State'}
                           </span>
                         </div>
 
                         <div className="text-sm">
-                          <p className="font-medium">{preceptor.practiceInfo.practiceName}</p>
+                          <p className="font-medium">{preceptor.practiceInfo?.practiceName ?? 'Practice'}</p>
                           <p className="text-muted-foreground">
-                            {preceptor.practiceInfo.practiceSettings.map(getPracticeSettingLabel).join(', ')}
+                            {practiceSettings.map(getPracticeSettingLabel).join(', ')}
                           </p>
                         </div>
 
                         <div className="flex flex-wrap gap-1">
-                          {preceptor.availability.availableRotations.slice(0, 3).map(rotation => (
+                          {availableRotations.slice(0, 3).map((rotation) => (
                             <Badge key={rotation} variant="outline" className="text-xs">
                               {getRotationTypeLabel(rotation)}
                             </Badge>
                           ))}
-                          {preceptor.availability.availableRotations.length > 3 && (
+                          {availableRotations.length > 3 && (
                             <Badge variant="outline" className="text-xs">
-                              +{preceptor.availability.availableRotations.length - 3} more
+                              +{availableRotations.length - 3} more
                             </Badge>
                           )}
                         </div>
@@ -375,9 +386,10 @@ export default function PreceptorSearchPage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                )
+              })}
             </div>
-          ) : searchResults === undefined ? (
+          ) : isLoadingResults ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="mt-4 text-muted-foreground">Searching...</p>

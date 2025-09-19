@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -30,18 +30,49 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 
+type MatchDoc = Doc<'matches'>
+type StudentDoc = Doc<'students'>
+
+type PreceptorMatch = MatchDoc & {
+  student?: StudentDoc | null
+  studentName?: string
+  degreeTrack?: string
+  schoolName?: string
+  yearInProgram?: string
+  matchScore?: number
+  matchDetails?: {
+    compatibility?: number
+    strengths?: string[]
+    concerns?: string[]
+  }
+  tier?: { name: string; color: string; description: string } | string | null
+  notes?: string
+  matchReason?: string | null
+  adminNotes?: string
+  hoursCompleted?: number
+  hoursRequired?: number
+  progressPercentage?: number
+}
+
 export default function PreceptorMatches() {
   const router = useRouter()
   const user = useQuery(api.users.current)
-  const pendingMatches = useQuery(api.matches.getPendingMatchesForPreceptor,
-    user ? { preceptorId: user._id } : "skip"
-  )
-  const acceptedMatches = useQuery(api.matches.getAcceptedMatchesForPreceptor,
-    user ? { preceptorId: user._id } : "skip"
-  )
-  const reviewingMatches = useQuery(api.matches.getReviewingMatchesForPreceptor,
-    user ? { preceptorId: user._id } : "skip"
-  )
+  const pendingMatchesData = useQuery(
+    api.matches.getPendingMatchesForPreceptor,
+    user ? { preceptorId: user._id } : 'skip'
+  ) as PreceptorMatch[] | undefined
+  const acceptedMatchesData = useQuery(
+    api.matches.getAcceptedMatchesForPreceptor,
+    user ? { preceptorId: user._id } : 'skip'
+  ) as PreceptorMatch[] | undefined
+  const reviewingMatchesData = useQuery(
+    api.matches.getReviewingMatchesForPreceptor,
+    user ? { preceptorId: user._id } : 'skip'
+  ) as PreceptorMatch[] | undefined
+
+  const pendingMatches: PreceptorMatch[] = pendingMatchesData ?? []
+  const acceptedMatches: PreceptorMatch[] = acceptedMatchesData ?? []
+  const reviewingMatches: PreceptorMatch[] = reviewingMatchesData ?? []
   
   const acceptMatch = useMutation(api.matches.acceptMatch)
   const declineMatch = useMutation(api.matches.declineMatch)
@@ -94,56 +125,11 @@ export default function PreceptorMatches() {
   }
 
 
-  const pendingCount = pendingMatches?.length || 0
-  const reviewingCount = reviewingMatches?.length || 0
-  const acceptedCount = acceptedMatches?.length || 0
+  const pendingCount = pendingMatches.length
+  const reviewingCount = reviewingMatches.length
+  const acceptedCount = acceptedMatches.length
 
-  const renderStudentCard = (match: {
-    _id: string
-    studentName?: string
-    degreeTrack?: string
-    schoolName?: string
-    yearInProgram?: string
-    matchScore?: number
-    mentorFitScore?: number
-    tier?: string | {name: string; color: string; description: string} | null
-    notes?: string
-    student?: {
-      schoolInfo?: {
-        expectedGraduation?: string
-      }
-      personalInfo?: {
-        email?: string
-        phone?: string
-      }
-      rotationNeeds?: {
-        rotationTypes?: string[]
-      }
-    } | null
-    matchDetails?: {
-      compatibility?: number
-      strengths?: string[]
-      concerns?: string[]
-    }
-    rotationDetails?: {
-      rotationType?: string
-      startDate?: string
-      endDate?: string
-      weeklyHours?: number
-      location?: string
-    }
-    hoursCompleted?: number
-    matchReason?: string | null
-    adminNotes?: string
-    updatedAt?: number
-    status?: string
-    rotationType?: string
-    startDate?: string
-    endDate?: string
-    weeklyHours?: number
-    specialty?: string
-    location?: string
-  }, showActions: boolean = true) => (
+  const renderStudentCard = (match: PreceptorMatch, showActions: boolean = true) => (
     <Card key={match._id} className="overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -384,7 +370,7 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {pendingMatches?.map((match) => renderStudentCard(match, true))}
+              {pendingMatches.map((match) => renderStudentCard(match, true))}
             </div>
           )}
         </TabsContent>
@@ -402,7 +388,7 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {reviewingMatches?.map((match) => renderStudentCard(match, false))}
+              {reviewingMatches.map((match) => renderStudentCard(match, false))}
             </div>
           )}
         </TabsContent>
@@ -420,7 +406,7 @@ export default function PreceptorMatches() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {acceptedMatches?.map((match) => (
+              {acceptedMatches.map((match) => (
                 <Card key={match._id} className="overflow-hidden">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">

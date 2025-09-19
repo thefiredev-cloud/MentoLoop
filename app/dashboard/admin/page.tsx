@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
 
 export default function AdminDashboard() {
@@ -26,13 +27,25 @@ export default function AdminDashboard() {
   )
 }
 
+type UserDoc = Doc<'users'>
+type MatchDoc = Doc<'matches'>
+type StudentDoc = Doc<'students'>
+type PreceptorDoc = Doc<'preceptors'>
+type PaymentAttempt = Doc<'paymentAttempts'>
+
+type MatchWithRelations = MatchDoc & {
+  student: StudentDoc | null
+  preceptor: PreceptorDoc | null
+  aiAnalysis?: MatchDoc['aiAnalysis']
+}
+
 function AdminDashboardContent() {
   // Get real admin analytics data
-  const allUsers = useQuery(api.users.getAllUsers)
-  const allMatches = useQuery(api.matches.getAllMatches, {})
-  const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
+  const allUsersData = useQuery(api.users.getAllUsers) as UserDoc[] | undefined
+  const allMatchesData = useQuery(api.matches.getAllMatches, {}) as MatchWithRelations[] | undefined
+  const paymentAttemptsData = useQuery(api.paymentAttempts.getAllPaymentAttempts) as PaymentAttempt[] | undefined
 
-  if (!allUsers || !allMatches || !paymentAttempts) {
+  if (!allUsersData || !allMatchesData || !paymentAttemptsData) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -42,6 +55,10 @@ function AdminDashboardContent() {
       </div>
     )
   }
+
+  const allUsers = allUsersData
+  const allMatches = allMatchesData
+  const paymentAttempts = paymentAttemptsData
 
   // Calculate overview stats from real data
   const overviewStats = {

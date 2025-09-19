@@ -4,6 +4,11 @@ import { internal } from "./_generated/api";
 import { getUserId } from "./auth";
 import { isAdminEmail } from "./users";
 
+const cleanPartial = <T extends Record<string, unknown>>(partial: Partial<T>) => {
+  const entries = Object.entries(partial).filter(([, value]) => value !== undefined);
+  return Object.fromEntries(entries) as Partial<T>;
+};
+
 // Create or update student profile
 export const createOrUpdateStudent = mutation({
   args: {
@@ -411,6 +416,91 @@ export const updateStudentPaymentStatus = internalMutation({
     }
     
     return { success: true };
+  },
+});
+
+export const updateProfileBasics = mutation({
+  args: {
+    personalInfo: v.optional(
+      v.object({
+        fullName: v.optional(v.string()),
+        email: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        preferredContact: v.optional(
+          v.union(v.literal("email"), v.literal("phone"), v.literal("text"))
+        ),
+        linkedinOrResume: v.optional(v.string()),
+      })
+    ),
+    schoolInfo: v.optional(
+      v.object({
+        programName: v.optional(v.string()),
+        degreeTrack: v.optional(
+          v.union(
+            v.literal("FNP"),
+            v.literal("PNP"),
+            v.literal("PMHNP"),
+            v.literal("AGNP"),
+            v.literal("ACNP"),
+            v.literal("WHNP"),
+            v.literal("NNP"),
+            v.literal("DNP")
+          )
+        ),
+        expectedGraduation: v.optional(v.string()),
+        programFormat: v.optional(
+          v.union(v.literal("online"), v.literal("in-person"), v.literal("hybrid"))
+        ),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserId(ctx);
+    if (!userId) {
+      throw new Error("Must be authenticated");
+    }
+
+    const student = await ctx.db
+      .query("students")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (!student) {
+      throw new Error("Student profile not found");
+    }
+
+    const updates: Record<string, unknown> = {};
+
+    if (args.personalInfo) {
+      const personalUpdates = cleanPartial<typeof student.personalInfo>(args.personalInfo);
+      if (Object.keys(personalUpdates).length > 0) {
+        updates.personalInfo = {
+          ...student.personalInfo,
+          ...personalUpdates,
+        };
+      }
+    }
+
+    if (args.schoolInfo) {
+      const schoolUpdates = cleanPartial<typeof student.schoolInfo>(args.schoolInfo);
+      if (Object.keys(schoolUpdates).length > 0) {
+        updates.schoolInfo = {
+          ...student.schoolInfo,
+          ...schoolUpdates,
+        };
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return { updated: false } as const;
+    }
+
+    await ctx.db.patch(student._id, {
+      ...updates,
+      updatedAt: Date.now(),
+    });
+
+    return { updated: true } as const;
   },
 });
 

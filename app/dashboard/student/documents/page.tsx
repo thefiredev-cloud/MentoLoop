@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
+import type { Doc, Id } from '@/convex/_generated/dataModel'
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -23,8 +23,11 @@ export default function StudentDocumentsPage() {
 
 type DocumentType = 'Agreement' | 'Template' | 'Hours Log' | 'Credential' | 'Evaluation' | 'Other'
 
+type DocumentRecord = Doc<'documents'>
+
 function StudentDocumentsContent() {
-  const docs = useQuery(api.documents.getAllDocuments)
+  const docsData = useQuery(api.documents.getAllDocuments) as DocumentRecord[] | undefined
+  const docs: DocumentRecord[] = docsData ?? []
   const upload = useMutation(api.documents.uploadDocument)
   const remove = useMutation(api.documents.deleteDocument)
 
@@ -37,7 +40,7 @@ function StudentDocumentsContent() {
   const [error, setError] = useState('')
 
   const requiredNames = useMemo(() => ['Resume/CV', 'Nursing License', 'CPR Certification'], [])
-  const uploadedCount = (docs || []).filter((d) => d.fileUrl).length
+  const uploadedCount = docs.filter((document) => Boolean(document.fileUrl)).length
   const completionPercentage = requiredNames.length ? Math.min(Math.round((uploadedCount / requiredNames.length) * 100), 100) : 0
 
   const onUpload = async () => {
@@ -143,7 +146,7 @@ function StudentDocumentsContent() {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span>
-                {(docs || []).length} uploaded{requiredNames.length > 0 && ` · Target: ${requiredNames.length}`}
+                {docs.length} uploaded{requiredNames.length > 0 && ` · Target: ${requiredNames.length}`}
               </span>
               <span className="font-medium">{completionPercentage}%</span>
             </div>
@@ -158,24 +161,24 @@ function StudentDocumentsContent() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {(docs || []).length === 0 && <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>}
-            {(docs || []).map((d) => (
-              <div key={d._id} className="flex items-center justify-between p-3 border rounded">
+            {docs.length === 0 && <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>}
+            {docs.map((document) => (
+              <div key={document._id} className="flex items-center justify-between p-3 border rounded">
                 <div>
                   <div className="font-medium">
-                    {d.name} <span className="text-xs text-muted-foreground">({d.documentType})</span>
+                    {document.name} <span className="text-xs text-muted-foreground">({document.documentType})</span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(d.uploadDate).toLocaleDateString()} · {d.fileType || ''}
+                    {new Date(document.uploadDate).toLocaleDateString()} · {document.fileType || ''}
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {d.fileUrl && (
-                    <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline">
+                  {document.fileUrl && (
+                    <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline">
                       View
                     </a>
                   )}
-                  <button onClick={() => onDelete(d._id as Id<'documents'>)} className="text-sm text-destructive">
+                  <button onClick={() => onDelete(document._id as Id<'documents'>)} className="text-sm text-destructive">
                     Delete
                   </button>
                 </div>

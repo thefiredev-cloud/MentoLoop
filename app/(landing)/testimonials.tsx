@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 
 type Testimonial = {
     name: string
@@ -97,10 +98,10 @@ export default function WallOfLoveSection() {
     const testimonialsFromDB = useQuery(api.testimonials.getPublicTestimonials, {
         featured: true,
         limit: 6
-    })
+    }) as Doc<'testimonials'>[] | undefined
     
     // Transform database testimonials to match expected format
-    const testimonials: Testimonial[] = testimonialsFromDB?.map(t => ({
+    const testimonials: Testimonial[] = testimonialsFromDB?.map((t) => ({
         name: t.name,
         role: t.title,
         image: avatarMap[t.name] || `https://randomuser.me/api/portraits/${t.userType === 'preceptor' ? 'men' : 'women'}/${Math.floor(Math.random() * 10)}.jpg`,

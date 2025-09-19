@@ -26,53 +26,16 @@ import {
 } from 'lucide-react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 
-interface Match {
-  _id: Id<'matches'>
-  studentId: Id<'students'>
-  preceptorId: Id<'preceptors'>
-  status: 'suggested' | 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'
-  mentorFitScore: number
-  paymentStatus: 'unpaid' | 'paid' | 'refunded' | 'cancelled'
-  rotationDetails: {
-    startDate: string
-    endDate: string
-    weeklyHours: number
-    rotationType: string
-    location?: string
-  }
-  aiAnalysis?: {
-    enhancedScore: number
-    analysis: string
-    confidence: string
-    recommendations: string[]
-    strengths: string[]
-    concerns: string[]
-  }
-  createdAt: number
-  updatedAt: number
-  student: {
-    _id: string
-    firstName: string
-    lastName: string
-    email: string
-    school?: string
-    personalInfo?: {
-      fullName?: string
-    }
-  } | null
-  preceptor: {
-    _id: string
-    firstName: string
-    lastName: string
-    email: string
-    specialty?: string
-    personalInfo?: {
-      fullName?: string
-    }
-  } | null
+type MatchDoc = Doc<'matches'>
+type StudentDoc = Doc<'students'>
+type PreceptorDoc = Doc<'preceptors'>
+
+type Match = MatchDoc & {
+  student: StudentDoc | null
+  preceptor: PreceptorDoc | null
 }
 
 export default function MatchManagementPage() {
@@ -103,8 +66,13 @@ export default function MatchManagementPage() {
 
   // Queries
   const matchesData = useQuery(api.matches.getAllMatches, {
-    status: statusFilter && statusFilter !== 'all' ? statusFilter as 'suggested' | 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled' : undefined,
-  })
+    status:
+      statusFilter && statusFilter !== 'all'
+        ? (statusFilter as Match['status'])
+        : undefined,
+  }) as Match[] | undefined
+
+  const matchesList: Match[] = matchesData ?? []
 
   const platformStats = useQuery(api.admin.getPlatformStats, {})
 
@@ -114,13 +82,13 @@ export default function MatchManagementPage() {
   const recomputeCompatibility = useMutation(api.mentorfit.recomputeMatchCompatibility)
 
   // Handle match selection
-  const handleViewMatch = (match: {_id: string; [key: string]: unknown}) => {
-    setSelectedMatch(match as unknown as Match)
+  const handleViewMatch = (match: Match) => {
+    setSelectedMatch(match)
     setShowMatchDetails(true)
   }
 
-  const handleOverrideScore = (match: {_id: string; mentorFitScore?: number; [key: string]: unknown}) => {
-    setSelectedMatch(match as unknown as Match)
+  const handleOverrideScore = (match: Match) => {
+    setSelectedMatch(match)
     setOverrideScore([match.mentorFitScore || 5])
     setShowOverrideDialog(true)
   }
@@ -381,20 +349,20 @@ export default function MatchManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {matchesData
-                    .filter((m) => {
+                  {matchesList
+                    .filter((match) => {
                       // text search filter
                       const term = searchTerm.trim().toLowerCase()
                       if (term) {
-                        const student = (m.student?.personalInfo?.fullName || '').toLowerCase()
-                        const preceptor = (m.preceptor?.personalInfo?.fullName || '').toLowerCase()
-                        const rotation = (m.rotationDetails.rotationType || '').toLowerCase()
+                        const student = (match.student?.personalInfo?.fullName || '').toLowerCase()
+                        const preceptor = (match.preceptor?.personalInfo?.fullName || '').toLowerCase()
+                        const rotation = (match.rotationDetails.rotationType || '').toLowerCase()
                         if (!student.includes(term) && !preceptor.includes(term) && !rotation.includes(term)) {
                           return false
                         }
                       }
                       if (!tierFilter || tierFilter === 'all') return true
-                      const s = m.mentorFitScore || 0
+                      const s = match.mentorFitScore || 0
                       if (tierFilter === 'gold') return s >= 9.0
                       if (tierFilter === 'silver') return s >= 7.5 && s < 9.0
                       if (tierFilter === 'bronze') return s < 7.5
@@ -480,25 +448,25 @@ export default function MatchManagementPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const filtered = matchesData.filter((m) => {
+                    const filtered = matchesList.filter((match) => {
                       if (!tierFilter || tierFilter === 'all') return true
-                      const s = m.mentorFitScore || 0
+                      const s = match.mentorFitScore || 0
                       if (tierFilter === 'gold') return s >= 9.0
                       if (tierFilter === 'silver') return s >= 7.5 && s < 9.0
                       if (tierFilter === 'bronze') return s < 7.5
                       return true
                     })
-                    const rows = filtered.map((m) => ({
-                      student: m.student?.personalInfo?.fullName || '',
-                      preceptor: m.preceptor?.personalInfo?.fullName || '',
-                      rotation: m.rotationDetails.rotationType,
-                      startDate: m.rotationDetails.startDate,
-                      endDate: m.rotationDetails.endDate,
-                      weeklyHours: m.rotationDetails.weeklyHours,
-                      score: m.mentorFitScore,
-                      status: m.status,
-                      paymentStatus: m.paymentStatus,
-                      createdAt: new Date(m.createdAt).toISOString(),
+                    const rows = filtered.map((match) => ({
+                      student: match.student?.personalInfo?.fullName || '',
+                      preceptor: match.preceptor?.personalInfo?.fullName || '',
+                      rotation: match.rotationDetails.rotationType,
+                      startDate: match.rotationDetails.startDate,
+                      endDate: match.rotationDetails.endDate,
+                      weeklyHours: match.rotationDetails.weeklyHours,
+                      score: match.mentorFitScore,
+                      status: match.status,
+                      paymentStatus: match.paymentStatus,
+                      createdAt: new Date(match.createdAt).toISOString(),
                     }))
                     const header = Object.keys(rows[0] || {})
                     const csv = [header.join(','), ...rows.map(r => header.map(k => JSON.stringify(r[k as keyof typeof r] ?? '')).join(','))].join('\n')

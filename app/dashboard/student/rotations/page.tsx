@@ -2,6 +2,7 @@
 
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -20,13 +21,51 @@ import {
   BookOpen
 } from 'lucide-react'
 
+type StudentDoc = Doc<'students'>
+
+type StudentRotationStats = {
+  student: StudentDoc
+  activeCount: number
+  scheduledCount: number
+  completedCount: number
+  totalHoursRequired: number
+  totalHoursCompleted: number
+  overallProgress: number
+}
+
+type StudentRotation = {
+  _id: string
+  title: string
+  preceptor: string
+  location: string
+  startDate: string
+  endDate: string
+  status: string
+  hoursCompleted: number
+  hoursRequired: number
+  rotationType: string
+  schedule: string
+  weeklyHours: number
+  mentorFitScore: number
+  createdAt: number
+  updatedAt: number
+  preceptorContact?: {
+    email?: string
+    phone?: string
+  }
+}
+
 export default function StudentRotationsPage() {
   const user = useQuery(api.users.current)
-  const student = useQuery(api.students.getCurrentStudent)
-  const rotationStats = useQuery(api.students.getStudentRotationStats)
-  const rotations = useQuery(api.matches.getStudentRotations,
-    student ? { studentId: student._id } : "skip"
-  )
+  const student = useQuery(api.students.getCurrentStudent) as StudentDoc | undefined
+  const rotationStatsData = useQuery(api.students.getStudentRotationStats) as StudentRotationStats | null | undefined
+  const rotationsData = useQuery(
+    api.matches.getStudentRotations,
+    student ? { studentId: student._id } : 'skip'
+  ) as StudentRotation[] | undefined
+
+  const rotationStats = rotationStatsData ?? null
+  const rotations: StudentRotation[] = rotationsData ?? []
 
   if (!user) {
     return <div>Loading...</div>
@@ -34,15 +73,13 @@ export default function StudentRotationsPage() {
 
   // Helper function to filter rotations by status
   const getRotationsByStatus = (status: string) => {
-    if (!rotations) return []
-    
     switch (status) {
       case 'active':
-        return rotations.filter(r => r.status === 'active')
+        return rotations.filter((rotation) => rotation.status === 'active')
       case 'scheduled':
-        return rotations.filter(r => r.status === 'confirmed' || r.status === 'pending')
+        return rotations.filter((rotation) => rotation.status === 'confirmed' || rotation.status === 'pending')
       case 'completed':
-        return rotations.filter(r => r.status === 'completed')
+        return rotations.filter((rotation) => rotation.status === 'completed')
       default:
         return rotations
     }
@@ -143,7 +180,7 @@ export default function StudentRotationsPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {rotations && rotations.length > 0 ? rotations.map((rotation) => (
+          {rotations.length > 0 ? rotations.map((rotation) => (
             <Card key={rotation._id}>
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">

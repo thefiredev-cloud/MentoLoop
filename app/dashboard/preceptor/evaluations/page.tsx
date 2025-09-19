@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,10 +25,21 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+type EvaluationRecord = Doc<'evaluations'>
+type EvaluationWithStudent = EvaluationRecord & { studentName?: string }
+type EvaluationStats = {
+  completed: number
+  pending: number
+  overdue: number
+  avgScore: number
+  totalEvaluations: number
+}
+
 export default function PreceptorEvaluations() {
   const user = useQuery(api.users.current)
-  const evaluations = useQuery(api.evaluations.getPreceptorEvaluations) || []
-  const evaluationStats = useQuery(api.evaluations.getEvaluationStats)
+  const evaluationsData = useQuery(api.evaluations.getPreceptorEvaluations) as EvaluationWithStudent[] | undefined
+  const evaluationStats = useQuery(api.evaluations.getEvaluationStats) as EvaluationStats | null | undefined
+  const evaluations: EvaluationWithStudent[] = evaluationsData ?? []
   const deleteEvaluation = useMutation(api.evaluations.deleteEvaluation)
   
   const [deletingId, setDeletingId] = useState<string | null>(null)

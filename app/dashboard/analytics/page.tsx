@@ -15,28 +15,44 @@ import {
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
+
+type UserDoc = Doc<'users'>
+type MatchDoc = Doc<'matches'>
+type StudentDoc = Doc<'students'>
+type PreceptorDoc = Doc<'preceptors'>
+type PlatformStatDoc = Doc<'platformStats'>
+
+type MatchWithRelations = MatchDoc & {
+  student: StudentDoc | null
+  preceptor: PreceptorDoc | null
+}
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30d')
   
   // Fetch analytics data from Convex
-  const users = useQuery(api.users.getAllUsers)
-  const matches = useQuery(api.matches.getAllMatches, {})
-  const platformStats = useQuery(api.platformStats.getActiveStats, {})
+  const usersData = useQuery(api.users.getAllUsers) as UserDoc[] | undefined
+  const matchesData = useQuery(api.matches.getAllMatches, {}) as MatchWithRelations[] | undefined
+  const platformStatsData = useQuery(api.platformStats.getActiveStats, {}) as PlatformStatDoc[] | undefined
+
+  const users = usersData ?? []
+  const matches = matchesData ?? []
+  const platformStats = platformStatsData ?? []
   
   // Helper function to get stat value
   const getStatValue = (metric: string, fallback: string | number) => {
-    const stat = platformStats?.find(s => s.metric === metric)
+    const stat = platformStats.find((platformStat) => platformStat.metric === metric)
     return stat ? stat.value : fallback
   }
   
   // Calculate metrics
-  const totalUsers = users?.length || 0
-  const totalStudents = users?.filter(u => u.userType === 'student').length || 0
-  const totalPreceptors = users?.filter(u => u.userType === 'preceptor').length || 0
-  const activeMatches = matches?.filter(m => m.status === 'active').length || 0
-  const pendingMatches = matches?.filter(m => m.status === 'pending').length || 0
-  const completedMatches = matches?.filter(m => m.status === 'completed').length || 0
+  const totalUsers = users.length
+  const totalStudents = users.filter((user) => user.userType === 'student').length
+  const totalPreceptors = users.filter((user) => user.userType === 'preceptor').length
+  const activeMatches = matches.filter((match) => match.status === 'active').length
+  const pendingMatches = matches.filter((match) => match.status === 'pending').length
+  const completedMatches = matches.filter((match) => match.status === 'completed').length
   
   // Get dynamic values from platform stats
   const avgResponseTime = getStatValue('avg_response_time', '2.3h')

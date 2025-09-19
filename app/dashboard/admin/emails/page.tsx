@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState, type ChangeEvent } from 'react'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,8 +18,20 @@ import {
   RefreshCw,
   MoreHorizontal
 } from 'lucide-react'
-import { useQuery } from 'convex/react'
+import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { toast } from 'sonner'
+import type { Doc } from '@/convex/_generated/dataModel'
+
+type EmailLog = Doc<'emailLogs'>
+type TemplateStats = Record<string, { sent: number; failed: number; pending: number; total: number }>
+type RetryEmailPayload = {
+  to: string
+  templateKey: string
+  variables: Record<string, string>
+  fromName?: string
+  replyTo?: string
+} | null
 
 export default function EmailAnalytics() {
   return (
@@ -31,9 +43,14 @@ export default function EmailAnalytics() {
 
 function EmailAnalyticsContent() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [templateFilter, setTemplateFilter] = useState<string>('all')
+  const [isRefreshing, setIsRefreshing] = useState(false)
   
   // Get email logs from database
-  const emailLogs = useQuery(api.emails.getAllEmailLogs)
+  const emailLogs = useQuery(api.emails.getAllEmailLogs) as EmailLog[] | undefined
+  const retryEmail = useAction(api.emails.retryEmailLog)
+  const sendEmailAction = useAction(api.emails.sendEmail)
   
   // Calculate email metrics
   const totalEmails = emailLogs?.length || 0
@@ -44,7 +61,7 @@ function EmailAnalyticsContent() {
   const successRate = totalEmails > 0 ? ((successfulEmails / totalEmails) * 100).toFixed(1) : 0
   
   // Group emails by template
-  const templateStats = emailLogs?.reduce((acc, email) => {
+  const templateStats: TemplateStats = emailLogs?.reduce((acc: TemplateStats, email) => {
     const template = email.templateKey || 'unknown'
     if (!acc[template]) {
       acc[template] = { sent: 0, failed: 0, pending: 0, total: 0 }
@@ -54,7 +71,7 @@ function EmailAnalyticsContent() {
     else if (email.status === 'failed') acc[template].failed++
     else if (email.status === 'pending') acc[template].pending++
     return acc
-  }, {} as Record<string, { sent: number, failed: number, pending: number, total: number }>) || {}
+  }, {} as TemplateStats) || {}
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
@@ -92,6 +109,28 @@ function EmailAnalyticsContent() {
     }
     return templates[templateKey] || templateKey
   }
+
+  const filteredEmailLogs = useMemo<EmailLog[]>(() => {
+    if (!emailLogs) return []
+
+    return emailLogs.filter((email: EmailLog) => {
+      const matchesSearch = searchTerm
+        ? (email.recipientEmail?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+          (getTemplateName(email.templateKey).toLowerCase()).includes(searchTerm.toLowerCase())
+        : true
+
+      const matchesStatus = statusFilter === 'all' ? true : email.status === statusFilter
+      const matchesTemplate = templateFilter === 'all' ? true : email.templateKey === templateFilter
+
+      return matchesSearch && matchesStatus && matchesTemplate
+    })
+  }, [emailLogs, searchTerm, statusFilter, templateFilter])
+
+  const templateOptions = useMemo<string[]>(() => {
+    if (!emailLogs) return []
+    const uniqueTemplates = new Set<string>(emailLogs.map((email) => email.templateKey || 'unknown'))
+    return Array.from(uniqueTemplates)
+  }, [emailLogs])
 
   return (
     <div className="container mx-auto py-6">
@@ -280,16 +319,54 @@ function EmailAnalyticsContent() {
                     <Input 
                       placeholder="Search emails..." 
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)}
                       className="pl-8 w-64"
                     />
                   </div>
-                  <Button variant="outline" size="sm">
+                  <select
+                    className="border rounded px-2 py-1 text-sm"
+                    value={statusFilter}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>) => setStatusFilter(event.target.value)}
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="sent">Sent</option>
+                    <option value="failed">Failed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <select
+                    className="border rounded px-2 py-1 text-sm"
+                    value={templateFilter}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>) => setTemplateFilter(event.target.value)}
+                  >
+                    <option value="all">All templates</option>
+                    {templateOptions.map((templateKey) => (
+                      <option key={templateKey} value={templateKey}>
+                        {getTemplateName(templateKey)}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setStatusFilter('all')
+                      setTemplateFilter('all')
+                    }}
+                  >
                     <Filter className="h-4 w-4 mr-2" />
-                    Filter
+                    Clear
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isRefreshing}
+                    onClick={() => {
+                      setIsRefreshing(true)
+                      setTimeout(() => setIsRefreshing(false), 500)
+                    }}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                     Refresh
                   </Button>
                 </div>
@@ -297,7 +374,10 @@ function EmailAnalyticsContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {emailLogs?.slice(0, 20).map((email) => (
+                {filteredEmailLogs.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No email logs match the current filters.</p>
+                )}
+                {filteredEmailLogs.slice(0, 20).map((email) => (
                   <div key={email._id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="space-y-1">
                       <div className="font-medium text-sm">
@@ -335,7 +415,13 @@ function EmailAnalyticsContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {emailLogs?.filter(e => e.status === 'failed').slice(0, 20).map((email) => (
+                {filteredEmailLogs.filter(e => e.status === 'failed').length === 0 && (
+                  <p className="text-sm text-muted-foreground">No failed deliveries under current filters.</p>
+                )}
+                {filteredEmailLogs
+                  .filter((email) => email.status === 'failed')
+                  .slice(0, 20)
+                  .map((email) => (
                   <div key={email._id} className="flex items-center justify-between p-3 border border-destructive/20 rounded-lg">
                     <div className="space-y-1">
                       <div className="font-medium text-sm">
@@ -352,7 +438,33 @@ function EmailAnalyticsContent() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">Retry</Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const result = await retryEmail({ emailLogId: email._id }) as { success: boolean; payload: RetryEmailPayload }
+
+                            if (result?.payload) {
+                              await sendEmailAction({
+                                to: result.payload.to,
+                                templateKey: result.payload.templateKey as Parameters<typeof sendEmailAction>[0]['templateKey'],
+                                variables: result.payload.variables,
+                                fromName: result.payload.fromName,
+                                replyTo: result.payload.replyTo,
+                              })
+                              toast.success('Retry sent successfully')
+                            } else {
+                              toast.success('Retry queued for delivery')
+                            }
+                          } catch (error) {
+                            console.error('Retry email failed', error)
+                            toast.error('Unable to retry email – see console for details')
+                          }
+                        }}
+                      >
+                        Retry
+                      </Button>
                       <Button variant="ghost" size="sm">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>

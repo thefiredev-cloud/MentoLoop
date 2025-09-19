@@ -10,7 +10,7 @@ import { Brain, Zap, Star, TrendingUp, CheckCircle, AlertCircle } from 'lucide-r
 import { toast } from 'sonner'
 import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 
 interface AIMatchResult {
   preceptorId: string
@@ -42,13 +42,16 @@ interface TestResults {
   totalFound: number
 }
 
+type StudentDoc = Doc<'students'>
+
 export default function AIMatchingTest() {
   const [testResults, setTestResults] = useState<TestResults | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<string>('')
 
   // Get real students from database
-  const students = useQuery(api.students.getAllStudents) || []
+  const studentsData = useQuery(api.students.getAllStudents) as StudentDoc[] | undefined
+  const students: StudentDoc[] = studentsData ?? []
   const runAIMatching = useAction(api.matches.findAIEnhancedMatches)
 
   const runAIMatchingTest = async () => {

@@ -4,14 +4,17 @@ import { Shield, Users, FileCheck, Brain, Clock, Award, Heart, Star, Target, Zap
 import { BentoGridCarousel, BentoGridItem } from '@/components/ui/bento-grid'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc } from '@/convex/_generated/dataModel'
+
+type PlatformStat = Doc<'platformStats'>
 
 export default function FeaturesOne() {
     // Get platform statistics from database
-    const platformStats = useQuery(api.platformStats.getActiveStats, {})
+    const platformStats = useQuery(api.platformStats.getActiveStats, {}) as PlatformStat[] | undefined
     
     // Helper function to get stat value
     const getStatValue = (metric: string, fallback: string | number) => {
-        const stat = platformStats?.find(s => s.metric === metric)
+        const stat = platformStats?.find((statItem: PlatformStat) => statItem.metric === metric)
         return stat ? stat.value : fallback
     }
     

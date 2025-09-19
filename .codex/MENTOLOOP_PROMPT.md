@@ -1,9 +1,9 @@
-# MentoLoop Healthcare Mentorship Platform — Codex Project Context
+# MentoLoop — Nurse practitioner preceptor–student mentorship system with AI-powered matching — Codex Project Context
 
 This file provides Codex with project-wide context, standards, and patterns to ensure output aligns with MentoLoop’s architecture, compliance, and quality requirements.
 
 ## Project Overview
-- Platform: Healthcare mentorship system with AI-powered matching
+- Platform: Nurse practitioner preceptor–student mentorship system with AI-powered matching
 - URL: sandboxmentoloop.online
 - Repository: https://github.com/Apex-ai-net/MentoLoop
 - Version: 0.9.7
@@ -184,3 +184,84 @@ export function StudentCard({ data, onUpdate }: ComponentProps) {
 ## Cursor Rules
 A stricter ruleset exists in `.cursor/rules/mentoloop.mdc` and is always applied.
 
+
+### Dashboard Stabilization Execution Plan (2025-09-18)
+
+Prepared for Codex hand-off; keep this section current as phases close.
+
+Goal
+- Stabilize dashboard features, fix dead buttons/flows, squash bugs, and get lint/types/tests clean so Codex can implement confidently.
+
+Scope snapshot
+- Dashboard routes under `app/dashboard/*` (student, admin, preceptor) have partially wired actions.
+- Payments/discounts verification: `NP12345` = 100%, `MENTO12345` = 99.9%.
+- Idempotency and checkout robustness need recheck after latest edits.
+- Lint/type/test hygiene before hand-off.
+
+Phase 0 — Baseline health (same-day)
+- Build, type-check, lint, unit + e2e smoke:
+  - `npm run type-check`, `npm run lint`, `npm run test:unit:run`, `npm run test:e2e`
+- MCP checks:
+  - Stripe: list coupons/prices, recent intents; verify `NP12345` (100%), `MENTO12345` (99.9%).
+  - Netlify: last deploy status and logs.
+  - Sentry: recent errors for dashboard routes.
+- Output: short report with failures, stack traces, and owners.
+
+Phase 1 — Inventory dead features (Day 1)
+- Crawl dashboard UI and log “no-op” UI:
+  - Buttons/menus that don’t navigate, dispatch, or call Convex.
+  - Modals/forms missing submit handlers or success toasts.
+- Prioritize by user impact (Blockers → Core UX → Nice-to-have).
+- Output: checklist per route: `action → expected → current → fix candidate`.
+
+Phase 2 — Payments and intake gating (Day 1–2)
+- Ensure discount behavior:
+  - `NP12345`: zero-total end-to-end (no charge), immediate access.
+  - `MENTO12345`: 99.9% off applied via promotion code; UI shows correct final total.
+- Verify idempotency:
+  - Customer create/update keys hash-based and vary with params; no `idempotency_error`.
+- Confirm webhook/audit:
+  - `payments`, `paymentAttempts`, `paymentsAudit` updated; receipt URL stored.
+
+Phase 3 — Wire dead features (Day 2–3)
+- Student dashboard: Messages (send, mark read), Billing (open portal, history).
+- Admin dashboard: Finance filters/CSV, matches actions, discount setup status.
+- Preceptor dashboard: Matches list/actions and navigation from notifications.
+- Each wire-up: optimistic UI, success/error toast, and e2e happy-path.
+
+Phase 4 — Bug fixes + polish (Day 3–4)
+- Fix navigation loops and guards (RoleGuard/intake step protection).
+- Loading/error states, skeletons, a11y labels on forms/buttons.
+- Stabilize flaky tests with data-testids and explicit waits.
+
+Phase 5 — Hygiene (Day 4)
+- Lint/types clean; remove unused/any; minimal typings where needed.
+- Unit coverage for critical UI logic (messages, payments summary).
+- E2E coverage:
+  - Intake basic → checkout with `NP12345` and `MENTO12345`
+  - Dashboard message send/read
+  - Admin discount init (NP + MENTO) smoke
+
+Phase 6 — Observability + compliance (Day 4–5)
+- Sentry: add breadcrumbs around checkout, intake transitions, and dashboard actions.
+- Logs: ensure no PHI/PII; audit trails for payments/matches.
+- Netlify headers/security: verify security headers applied site-wide.
+
+Handover to Codex
+- Open a single tracking issue with:
+  - The prioritized checklist (Phase 1 output).
+  - Repro steps for each bug (short).
+  - Acceptance criteria per feature.
+  - Commands to run locally and in CI.
+
+MCP-assisted tasks to automate during execution
+- Stripe: verify coupons, prices, intents, and fetch receipt URLs by email/session_id.
+- Netlify: poll last deploy status and recent logs on push.
+- Sentry: list recent issues filtered by dashboard paths.
+- GitHub: list/open issues for each item in the checklist.
+
+Definition of done
+- Dashboard actions wired with feedback and no console errors.
+- `NP12345` 100% and `MENTO12345` 99.9% pass e2e; idempotency errors eliminated.
+- `npm run type-check` and `npm run lint` clean; tests green in CI.
+- Sentry quiet for common flows; Netlify deploy green.

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Doc, Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +25,60 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 
+type ClinicalHoursEntry = Doc<'clinicalHours'>
+type StudentDoc = Doc<'students'>
+
+type HoursSummary = {
+  totalHours: number
+  totalRequiredHours: number
+  remainingHours: number
+  thisWeekHours: number
+  averageWeeklyHours: number
+  isOnTrack: boolean
+  progressPercentage: number
+  hoursByRotation: Record<string, number>
+  weeklyProgress: Array<{ week: string; hours: number; target: number; percentage: number }>
+  entriesCount: number
+  pendingApprovals: number
+  credits: {
+    totalRemaining: number
+    nextExpiration: number | null
+  }
+}
+
+type WeeklyBreakdownEntry = {
+  weekStart: string
+  weekEnd: string
+  weekLabel: string
+  totalHours: number
+  approvedHours: number
+  pendingHours: number
+  entriesCount: number
+  entries: ClinicalHoursEntry[]
+}
+
+type StudentRotation = {
+  _id: Id<'matches'>
+  title: string
+  preceptor: string
+  location: string
+  startDate: string
+  endDate: string
+  status: string
+  hoursCompleted: number
+  hoursRequired: number
+  rotationType: string
+  schedule: string
+  weeklyHours: number
+  mentorFitScore: number
+  createdAt: number
+  updatedAt: number
+  preceptorContact?: {
+    email?: string
+    phone?: string
+  }
+}
+
 export default function StudentHoursPage() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [showLogForm, setShowLogForm] = useState(false)
@@ -32,13 +87,19 @@ export default function StudentHoursPage() {
   const [activities, setActivities] = useState('')
   
   const user = useQuery(api.users.current)
-  const student = useQuery(api.students.getCurrentStudent)
-  const hoursSummary = useQuery(api.clinicalHours.getStudentHoursSummary)
-  const recentHours = useQuery(api.clinicalHours.getStudentHours, { limit: 10 })
-  const weeklyBreakdown = useQuery(api.clinicalHours.getWeeklyHoursBreakdown, { weeksBack: 8 })
-  const activeRotations = useQuery(api.matches.getStudentRotations, 
-    student ? { studentId: student._id } : "skip"
-  )
+  const student = useQuery(api.students.getCurrentStudent) as StudentDoc | undefined
+  const hoursSummaryData = useQuery(api.clinicalHours.getStudentHoursSummary) as HoursSummary | null | undefined
+  const recentHoursData = useQuery(api.clinicalHours.getStudentHours, { limit: 10 }) as ClinicalHoursEntry[] | undefined
+  const weeklyBreakdownData = useQuery(api.clinicalHours.getWeeklyHoursBreakdown, { weeksBack: 8 }) as WeeklyBreakdownEntry[] | undefined
+  const activeRotationsData = useQuery(
+    api.matches.getStudentRotations,
+    student ? { studentId: student._id } : 'skip'
+  ) as StudentRotation[] | undefined
+
+  const hoursSummary = hoursSummaryData ?? null
+  const recentHours: ClinicalHoursEntry[] = recentHoursData ?? []
+  const weeklyBreakdown: WeeklyBreakdownEntry[] = weeklyBreakdownData ?? []
+  const activeRotations: StudentRotation[] = activeRotationsData ?? []
   
   const createHoursEntry = useMutation(api.clinicalHours.createHoursEntry)
 
@@ -47,7 +108,7 @@ export default function StudentHoursPage() {
   }
 
   const handleExportHours = () => {
-    if (!recentHours || recentHours.length === 0) {
+    if (recentHours.length === 0) {
       toast.info('No hours to export yet')
       return
     }
@@ -86,7 +147,7 @@ export default function StudentHoursPage() {
     }
 
     try {
-      const selectedRotationData = activeRotations?.find(r => r._id === selectedRotation)
+      const selectedRotationData = activeRotations.find((rotation) => rotation._id === selectedRotation)
       
       await createHoursEntry({
         date: date.toISOString().split('T')[0],
@@ -288,12 +349,14 @@ export default function StudentHoursPage() {
                   <SelectValue placeholder="Select rotation" />
                 </SelectTrigger>
                 <SelectContent>
-                  {activeRotations?.filter(r => r.status === 'active' || r.status === 'confirmed').map((rotation) => (
-                    <SelectItem key={rotation._id} value={rotation._id}>
-                      {rotation.title} - {rotation.preceptor}
-                    </SelectItem>
-                  ))}
-                  {(!activeRotations || activeRotations.length === 0) && (
+                  {activeRotations
+                    .filter((rotation) => rotation.status === 'active' || rotation.status === 'confirmed')
+                    .map((rotation) => (
+                      <SelectItem key={rotation._id} value={rotation._id}>
+                        {rotation.title} - {rotation.preceptor}
+                      </SelectItem>
+                    ))}
+                  {activeRotations.length === 0 && (
                     <SelectItem value="general" disabled>
                       No active rotations found
                     </SelectItem>
@@ -392,10 +455,10 @@ export default function StudentHoursPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {weeklyBreakdown && weeklyBreakdown.length > 0 ? (
+                {weeklyBreakdown.length > 0 ? (
                   <div className="grid gap-4">
                     {weeklyBreakdown.map((week, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded">
+                      <div key={`${week.weekStart}-${index}`} className="flex items-center justify-between p-3 border rounded">
                         <div>
                           <div className="font-medium">{week.weekLabel}</div>
                           <div className="text-sm text-muted-foreground">
@@ -441,14 +504,14 @@ export default function StudentHoursPage() {
                   <div>
                     <h4 className="font-medium mb-3">Progress by Rotation Type</h4>
                     <div className="space-y-2">
-                      {Object.entries(hoursSummary.hoursByRotation).map(([rotationType, hours]) => {
+                      {Object.entries(hoursSummary.hoursByRotation).map(([rotationType, rotationHours]) => {
                         const targetHours = 160; // Standard rotation hours
-                        const percentage = Math.min((hours / targetHours) * 100, 100);
+                        const percentage = Math.min((rotationHours / targetHours) * 100, 100);
                         return (
                           <div key={rotationType}>
                             <div className="flex justify-between text-sm mb-1">
                               <span className="capitalize">{rotationType.replace('-', ' ')}</span>
-                              <span>{hours}/{targetHours} hours</span>
+                              <span>{rotationHours}/{targetHours} hours</span>
                             </div>
                             <Progress value={percentage} />
                           </div>
