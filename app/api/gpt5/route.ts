@@ -21,9 +21,17 @@ function rateLimit(key: string, max = 20, windowMs = 60_000) {
   return entry.tokens <= max;
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+let cachedOpenAI: OpenAI | null = null;
+function getOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  if (!cachedOpenAI) {
+    cachedOpenAI = new OpenAI({ apiKey });
+  }
+  return cachedOpenAI;
+}
 
 // Request validation schema
 const ChatRequestSchema = z.object({
@@ -60,6 +68,11 @@ export async function POST(req: NextRequest) {
     // rate limiting by user id
     if (!rateLimit(userId)) {
       return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+    }
+
+    const openai = getOpenAIClient();
+    if (!openai) {
+      return NextResponse.json({ error: "Model service unavailable" }, { status: 503 });
     }
 
     // Prepend user context for better personalization
