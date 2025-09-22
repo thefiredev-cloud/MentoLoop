@@ -12,9 +12,12 @@ interface WebVitalsDisplayProps {
 const MetricCard = ({ metric }: { metric: WebVitalsMetric }) => {
   const getColor = (rating: WebVitalsMetric['rating']) => {
     switch (rating) {
-      case 'good': return 'text-green-600 bg-green-50 border-green-200';
-      case 'needs-improvement': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'poor': return 'text-red-600 bg-red-50 border-red-200';
+      case 'good':
+        return 'text-accent border-accent/30 bg-accent/10';
+      case 'needs-improvement':
+        return 'text-primary border-primary/30 bg-primary/10';
+      case 'poor':
+        return 'text-destructive border-destructive/40 bg-destructive/10';
     }
   };
 
@@ -104,20 +107,20 @@ export const WebVitalsDisplay = ({ className, showInProduction = false }: WebVit
       "transition-opacity duration-300",
       className
     )}>
-      <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-lg p-4">
+      <div className="bg-card/95 backdrop-blur-md border border-border rounded-lg shadow-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-sm">Web Vitals</h3>
           <button
             type="button"
             onClick={() => setIsVisible(false)}
-            className="text-gray-400 hover:text-gray-600 text-xs"
+            className="text-muted-foreground hover:text-foreground text-xs"
           >
             ✕
           </button>
         </div>
         
         {metricsArray.length === 0 ? (
-          <div className="text-xs text-gray-500">Collecting metrics...</div>
+          <div className="text-xs text-muted-foreground">Collecting metrics...</div>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-2 mb-3">
@@ -126,7 +129,7 @@ export const WebVitalsDisplay = ({ className, showInProduction = false }: WebVit
               ))}
             </div>
             
-            <div className="text-xs text-gray-600 border-t pt-2">
+            <div className="text-xs text-muted-foreground border-t border-border/60 pt-2">
               <div className="flex justify-between">
                 <span>Good: {summary.good}</span>
                 <span>Needs work: {summary.needsImprovement}</span>
@@ -136,7 +139,7 @@ export const WebVitalsDisplay = ({ className, showInProduction = false }: WebVit
           </>
         )}
         
-        <div className="text-xs text-gray-400 mt-2">
+        <div className="text-xs text-muted-foreground/70 mt-2">
           Press Ctrl+Shift+V to toggle
         </div>
       </div>
@@ -159,14 +162,14 @@ export const PerformanceBudget = ({ budgets, metrics }: PerformanceBudgetProps) 
   if (violations.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] bg-red-50 border border-red-200 rounded-lg p-3 max-w-sm">
-      <h4 className="font-semibold text-red-800 text-sm mb-2">Performance Budget Violations</h4>
+    <div className="fixed top-4 right-4 z-[9999] bg-destructive/10 border border-destructive/30 rounded-lg p-3 max-w-sm">
+      <h4 className="font-semibold text-destructive text-sm mb-2">Performance Budget Violations</h4>
       {violations.map(([metric, budget]) => {
         const current = metrics.get(metric);
         if (!current) return null;
         
         return (
-          <div key={metric} className="text-xs text-red-700">
+          <div key={metric} className="text-xs text-destructive">
             {metric}: {Math.round(current.value)}ms exceeds budget of {budget}ms
           </div>
         );

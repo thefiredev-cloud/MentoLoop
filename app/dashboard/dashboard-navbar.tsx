@@ -67,8 +67,8 @@ export const DashboardNavbar = () => {
                       href={item.href}
                       className={cn(
                         "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
-                        "hover:bg-gray-100",
-                        pathname === item.href && "bg-gray-100 text-primary"
+                        "hover:bg-muted/30",
+                        pathname === item.href && "bg-muted/40 text-primary"
                       )}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.name}</span>
@@ -80,7 +80,7 @@ export const DashboardNavbar = () => {
             <div className="md:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                  <Button variant="ghost" size="sm" className="hover:bg-muted/30">
                     Quick Links
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
@@ -119,7 +119,7 @@ export const DashboardNavbar = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="hover:bg-gray-100"
+                className="hover:bg-muted/30"
                 asChild>
                 <Link href="/dashboard/admin">
                   <Settings className="h-5 w-5" />

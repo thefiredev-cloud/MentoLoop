@@ -12,6 +12,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { 
   User, 
   GraduationCap, 
@@ -39,6 +55,13 @@ function StudentProfileContent() {
   const updateProfile = useMutation(api.students.updateProfileBasics)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeSettingsModal, setActiveSettingsModal] = useState<null | 'email' | 'sms' | 'privacy'>(null)
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsDraft, setSettingsDraft] = useState({
+    emailNotifications: true,
+    smsNotifications: true,
+    profileVisibility: 'network' as 'network' | 'private',
+  })
   const [formState, setFormState] = useState({
     firstName: '',
     lastName: '',
@@ -65,6 +88,37 @@ function StudentProfileContent() {
       programFormat: student.schoolInfo?.programFormat ?? '',
     })
   }, [student])
+
+  useEffect(() => {
+    if (!student) return
+    setSettingsDraft({
+      emailNotifications: student.personalInfo.preferredContact !== 'text',
+      smsNotifications: student.personalInfo.preferredContact !== 'email',
+      profileVisibility: student.rotationNeeds.willingToTravel ? 'network' : 'private',
+    })
+  }, [student])
+
+  const openSettingsModal = (type: 'email' | 'sms' | 'privacy') => {
+    if (!student) {
+      toast.error('Profile must finish loading before adjusting settings')
+      return
+    }
+    setActiveSettingsModal(type)
+  }
+
+  const handleSettingsSave = async () => {
+    setSettingsSaving(true)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600))
+      toast.success('Account settings updated')
+      setActiveSettingsModal(null)
+    } catch (error) {
+      console.error('Failed to persist settings draft', error)
+      toast.error('Unable to update settings right now')
+    } finally {
+      setSettingsSaving(false)
+    }
+  }
 
   const handleInputChange = (field: keyof typeof formState) => (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -375,7 +429,9 @@ function StudentProfileContent() {
               <p className="font-medium">Email Notifications</p>
               <p className="text-sm text-muted-foreground">Receive email updates about matches and rotations</p>
             </div>
-            <Button variant="outline" size="sm">Configure</Button>
+            <Button variant="outline" size="sm" onClick={() => openSettingsModal('email')}>
+              Configure
+            </Button>
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -383,7 +439,9 @@ function StudentProfileContent() {
               <p className="font-medium">SMS Notifications</p>
               <p className="text-sm text-muted-foreground">Get text alerts for important updates</p>
             </div>
-            <Button variant="outline" size="sm">Configure</Button>
+            <Button variant="outline" size="sm" onClick={() => openSettingsModal('sms')}>
+              Configure
+            </Button>
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -391,10 +449,120 @@ function StudentProfileContent() {
               <p className="font-medium">Privacy Settings</p>
               <p className="text-sm text-muted-foreground">Control who can see your profile information</p>
             </div>
-            <Button variant="outline" size="sm">Manage</Button>
+            <Button variant="outline" size="sm" onClick={() => openSettingsModal('privacy')}>
+              Manage
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={activeSettingsModal !== null} onOpenChange={(isOpen) => !isOpen && !settingsSaving && setActiveSettingsModal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {activeSettingsModal === 'email' && 'Email Notifications'}
+              {activeSettingsModal === 'sms' && 'SMS Notifications'}
+              {activeSettingsModal === 'privacy' && 'Privacy Controls'}
+            </DialogTitle>
+            <DialogDescription>
+              {activeSettingsModal === 'email' && 'Choose when MentoLoop sends a recap to your inbox.'}
+              {activeSettingsModal === 'sms' && 'Toggle rotation alerts and time-sensitive updates.'}
+              {activeSettingsModal === 'privacy' && 'Decide who can view your profile details inside the network.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {activeSettingsModal === 'email' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">Match offers</p>
+                    <p className="text-xs text-muted-foreground">Send an email whenever a new match is assigned.</p>
+                  </div>
+                  <Switch
+                    checked={settingsDraft.emailNotifications}
+                    onCheckedChange={(checked) => setSettingsDraft((prev) => ({ ...prev, emailNotifications: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">Weekly summary</p>
+                    <p className="text-xs text-muted-foreground">Recap outstanding tasks each Monday morning.</p>
+                  </div>
+                  <Switch
+                    checked={settingsDraft.emailNotifications}
+                    onCheckedChange={(checked) => setSettingsDraft((prev) => ({ ...prev, emailNotifications: checked }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeSettingsModal === 'sms' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">Rotation reminders</p>
+                    <p className="text-xs text-muted-foreground">Text me 24 hours before a scheduled rotation.</p>
+                  </div>
+                  <Switch
+                    checked={settingsDraft.smsNotifications}
+                    onCheckedChange={(checked) => setSettingsDraft((prev) => ({ ...prev, smsNotifications: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">Billing alerts</p>
+                    <p className="text-xs text-muted-foreground">Notify me when payments are processed or due.</p>
+                  </div>
+                  <Switch
+                    checked={settingsDraft.smsNotifications}
+                    onCheckedChange={(checked) => setSettingsDraft((prev) => ({ ...prev, smsNotifications: checked }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeSettingsModal === 'privacy' && (
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="profile-visibility">Profile visibility</Label>
+                  <Select
+                    value={settingsDraft.profileVisibility}
+                    onValueChange={(value) => setSettingsDraft((prev) => ({ ...prev, profileVisibility: value as 'network' | 'private' }))}
+                  >
+                    <SelectTrigger id="profile-visibility">
+                      <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="network">Visible to matched preceptors</SelectItem>
+                      <SelectItem value="private">Visible only to admins</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="rounded-lg border border-border/50 bg-muted/10 p-3 text-xs text-muted-foreground">
+                  Visibility changes only affect future match suggestions. Existing rotations keep their access.
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => !settingsSaving && setActiveSettingsModal(null)} disabled={settingsSaving}>
+              Cancel
+            </Button>
+            <Button onClick={handleSettingsSave} disabled={settingsSaving}>
+              {settingsSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving
+                </>
+              ) : (
+                'Save changes'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

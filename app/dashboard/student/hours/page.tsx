@@ -177,7 +177,7 @@ export default function StudentHoursPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-500">Approved</Badge>
+        return <Badge className="bg-accent text-accent-foreground">Approved</Badge>
       case 'submitted':
         return <Badge variant="secondary">Pending</Badge>
       case 'draft':
@@ -185,7 +185,7 @@ export default function StudentHoursPage() {
       case 'rejected':
         return <Badge variant="destructive">Rejected</Badge>
       case 'needs-revision':
-        return <Badge className="bg-yellow-500">Needs Revision</Badge>
+        return <Badge className="bg-primary/15 text-primary">Needs Revision</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -250,7 +250,7 @@ export default function StudentHoursPage() {
             <div className="text-2xl font-bold">
               {hoursSummary?.totalHours || 0}h
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="w-full bg-muted/30 rounded-full h-2 mt-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full" 
                 style={{ width: `${progressPercentage}%` }}

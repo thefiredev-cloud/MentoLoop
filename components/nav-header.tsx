@@ -78,7 +78,7 @@ export const NavHeader = memo(function NavHeader() {
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            className="glass-navbar-enhanced sticky top-0 z-50 w-full border-b border-white/10"
+            className="glass-navbar-enhanced sticky top-0 z-50 w-full border-b border-border/40"
             onMouseMove={handleMouseMove}>
             <nav className="flex h-14 items-center px-4 lg:px-6">
                 <div className="flex flex-1 items-center justify-between">
@@ -138,7 +138,7 @@ export const NavHeader = memo(function NavHeader() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="hover:bg-white/10 transition-all duration-300">
+                                    className="hover:bg-foreground/10 transition-all duration-300">
                                     Sign In
                                 </Button>
                             </SignInButton>

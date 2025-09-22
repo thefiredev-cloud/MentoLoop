@@ -29,27 +29,27 @@ export default function StudentsPage() {
 
   const benefits = [
     {
-      icon: <Shield className="w-8 h-8 text-blue-600" />,
+      icon: <Shield className="w-8 h-8 text-primary" />,
       title: "Guaranteed Match",
       description: "Guaranteed Match or your money back."
     },
     {
-      icon: <DollarSign className="w-8 h-8 text-blue-600" />,
+      icon: <DollarSign className="w-8 h-8 text-primary" />,
       title: "Lower Cost",
       description: "Lower cost per hour than traditional hourly marketplaces."
     },
     {
-      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      icon: <Clock className="w-8 h-8 text-primary" />,
       title: "Priority Matching",
       description: "Priority matching options for faster placement."
     },
     {
-      icon: <Award className="w-8 h-8 text-blue-600" />,
+      icon: <Award className="w-8 h-8 text-primary" />,
       title: "Bank Unused Hours",
       description: "Bank unused hours within the semester."
     },
     {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
+      icon: <Users className="w-8 h-8 text-primary" />,
       title: "Dedicated Support",
       description: "Dedicated support throughout your rotation."
     }
@@ -127,7 +127,7 @@ export default function StudentsPage() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl"
+              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-primary/25 to-accent/15 rounded-full blur-3xl"
             />
             <motion.div
               animate={{
@@ -139,7 +139,7 @@ export default function StudentsPage() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-full blur-3xl"
+              className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-primary/20 to-accent/15 rounded-full blur-3xl"
             />
           </div>
 
@@ -160,22 +160,22 @@ export default function StudentsPage() {
                     href="/get-started/student"
                     className="group hover:bg-foreground/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-foreground/20 backdrop-blur-md">
                     <div className="relative flex items-center justify-center">
-                      <GraduationCap className="w-4 h-4 text-blue-400 animate-pulse" />
+                      <GraduationCap className="w-4 h-4 text-primary animate-pulse" />
                     </div>
-                    <span className="font-medium text-white">For Future NPs</span>
-                    <ArrowRight className="w-4 h-4 text-white/70 group-hover:translate-x-1 transition-transform" />
+                    <span className="font-medium text-foreground">For Future NPs</span>
+                    <ArrowRight className="w-4 h-4 text-foreground/70 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </motion.div>
                 
                 <div className="mt-8">
                   <AnimatedText
                     text="Find Your Perfect"
-                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white text-shadow-strong"
+                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground text-shadow-strong"
                     type="word"
                     delay={0.3}
                   />
                   <h1 className="mx-auto mt-2 max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-shadow-strong">
-                    <GradientText gradient="from-white via-blue-200 to-cyan-200">
+                    <GradientText gradient="from-foreground via-primary/70 to-accent/40">
                       NP Preceptor
                     </GradientText>
                   </h1>
@@ -185,17 +185,17 @@ export default function StudentsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8, duration: 0.6 }}
-                  className="text-white/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
+                  className="text-foreground/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
                 >
-                  <GlowingText className="text-white">
+                  <GlowingText className="text-foreground">
                     Fast. Fair. Guaranteed.
                   </GlowingText>
                 </motion.p>
-                <p className="text-white/80 mx-auto my-4 max-w-2xl text-balance text-lg">
+                <p className="text-foreground/80 mx-auto my-4 max-w-2xl text-balance text-lg">
                   Clinical placements shouldn&apos;t be stressful. With MentoLoop, you get matched to 
                   vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
                 </p>
-                <p className="text-white/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
+                <p className="text-foreground/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
                   Join thousands of NP students who found their perfect clinical placement through our platform.
                 </p>
 
@@ -210,8 +210,8 @@ export default function StudentsPage() {
                     size="lg"
                     className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
                     <Link href="/sign-up/student">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-blue-700" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-primary" />
                       <span className="relative text-nowrap font-semibold">Get Matched Today</span>
                     </Link>
                   </Button>
@@ -221,18 +221,18 @@ export default function StudentsPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.4, duration: 0.6 }}
-                  className="flex items-center justify-center gap-8 text-sm text-white/90"
+                  className="flex items-center justify-center gap-8 text-sm text-foreground/90"
                 >
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>No upfront fees</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>95% success rate</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>1,000+ preceptors</span>
                   </div>
                 </motion.div>
@@ -282,8 +282,8 @@ export default function StudentsPage() {
           <div className="space-y-8">
             {process.map((item, index) => (
               <div key={index} className="flex gap-6 items-start">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-white">{item.step}</span>
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl font-bold text-primary-foreground">{item.step}</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-xl mb-2 text-foreground">{item.title}</h3>
@@ -294,11 +294,11 @@ export default function StudentsPage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button
-              size="lg"
-              asChild
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
-            >
+              <Button
+                size="lg"
+                asChild
+                className="bg-primary hover:bg-primary/85 text-primary-foreground px-8 py-6 text-lg"
+              >
               <Link href="/sign-up/student">
                 Start Your Journey
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -322,28 +322,28 @@ export default function StudentsPage() {
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
                 <h3 className="font-bold text-xl mb-2 text-foreground">Starter Block</h3>
-                <p className="text-3xl font-bold text-blue-600 mb-1">$495</p>
+                <p className="text-3xl font-bold text-primary mb-1">$495</p>
                 <p className="text-sm text-muted-foreground">60 hours</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
                 <h3 className="font-bold text-xl mb-2 text-foreground">Core Block</h3>
-                <p className="text-3xl font-bold text-blue-600 mb-1">$795</p>
+                <p className="text-3xl font-bold text-primary mb-1">$795</p>
                 <p className="text-sm text-muted-foreground">90 hours</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
                 <h3 className="font-bold text-xl mb-2 text-foreground">Pro Block</h3>
-                <p className="text-3xl font-bold text-blue-600 mb-1">$1,495</p>
+                <p className="text-3xl font-bold text-primary mb-1">$1,495</p>
                 <p className="text-sm text-muted-foreground">180 hours</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
                 <h3 className="font-bold text-xl mb-2 text-foreground">Elite Block</h3>
-                <p className="text-3xl font-bold text-blue-600 mb-1">$1,895</p>
+                <p className="text-3xl font-bold text-primary mb-1">$1,895</p>
                 <p className="text-sm text-muted-foreground">240 hours</p>
               </CardContent>
             </Card>
@@ -352,7 +352,7 @@ export default function StudentsPage() {
           <Card className="border-0 shadow-lg max-w-md mx-auto mb-8">
             <CardContent className="p-6 text-center">
               <h3 className="font-bold text-xl mb-2 text-foreground">A La Carte Add-On</h3>
-              <p className="text-3xl font-bold text-blue-600 mb-1">$10/hr</p>
+              <p className="text-3xl font-bold text-primary mb-1">$10/hr</p>
               <p className="text-sm text-muted-foreground">Flexible extras (30hr blocks)</p>
             </CardContent>
           </Card>
@@ -392,24 +392,24 @@ export default function StudentsPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 px-6 bg-blue-600">
+      <section className="py-20 px-6 bg-primary/20">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <p className="text-5xl font-bold text-white mb-2">5,000+</p>
-              <p className="text-blue-100">Students Matched</p>
+              <p className="text-5xl font-bold text-foreground mb-2">5,000+</p>
+              <p className="text-foreground/70">Students Matched</p>
             </div>
             <div>
-              <p className="text-5xl font-bold text-white mb-2">1,000+</p>
-              <p className="text-blue-100">Verified Preceptors</p>
+              <p className="text-5xl font-bold text-foreground mb-2">1,000+</p>
+              <p className="text-foreground/70">Verified Preceptors</p>
             </div>
             <div>
-              <p className="text-5xl font-bold text-white mb-2">95%</p>
-              <p className="text-blue-100">Success Rate</p>
+              <p className="text-5xl font-bold text-foreground mb-2">95%</p>
+              <p className="text-foreground/70">Success Rate</p>
             </div>
             <div>
-              <p className="text-5xl font-bold text-white mb-2">1-3</p>
-              <p className="text-blue-100">Weeks to Match</p>
+              <p className="text-5xl font-bold text-foreground mb-2">1-3</p>
+              <p className="text-foreground/70">Weeks to Match</p>
             </div>
           </div>
         </div>
@@ -459,7 +459,7 @@ export default function StudentsPage() {
             <Button 
               size="lg" 
               asChild
-              className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg"
+              className="bg-primary hover:bg-primary/85 text-primary-foreground px-8 py-6 text-lg"
             >
               <Link href="/sign-up/student">
                 Sign up as a Student

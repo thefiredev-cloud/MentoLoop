@@ -286,8 +286,8 @@ export default function StudentIntakePage() {
                       <div 
                         className={`absolute top-5 left-1/2 w-full h-0.5 ${
                           completedSteps.includes(step.id) 
-                            ? 'bg-green-500' 
-                            : 'bg-gray-200'
+                            ? 'bg-accent'
+                            : 'bg-muted/30'
                         }`}
                         style={{ width: 'calc(100% - 2rem)', left: '60%' }}
                       />
@@ -297,12 +297,12 @@ export default function StudentIntakePage() {
                         flex items-center justify-center w-10 h-10 rounded-full border-2 mb-2 
                         transition-all duration-300 z-10 bg-background
                         ${isCompleted
-                          ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/30' 
+                          ? 'bg-accent border-accent text-accent-foreground shadow-lg shadow-accent/30' 
                           : isCurrent
                           ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-110'
                           : isAccessible
                           ? 'border-muted-foreground text-muted-foreground hover:border-primary hover:shadow-md cursor-pointer'
-                          : 'border-gray-300 text-gray-300 cursor-not-allowed opacity-50'
+                          : 'border-border/60 text-muted-foreground/50 cursor-not-allowed opacity-50'
                         }
                       `}
                       onClick={() => {

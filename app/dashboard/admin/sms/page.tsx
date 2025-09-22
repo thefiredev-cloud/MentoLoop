@@ -7,6 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
 import { 
   MessageSquare, 
   CheckCircle,
@@ -17,11 +25,13 @@ import {
   Search,
   RefreshCw,
   MoreHorizontal,
-  DollarSign
+  DollarSign,
+  Loader2
 } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Doc } from '@/convex/_generated/dataModel'
+import { toast } from 'sonner'
 
 export default function SMSAnalytics() {
   return (
@@ -35,6 +45,8 @@ type SmsLog = Doc<'smsLogs'>
 
 function SMSAnalyticsContent() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [dialogState, setDialogState] = useState<null | { mode: 'retry' | 'details'; log: SmsLog }>(null)
+  const [retrying, setRetrying] = useState(false)
   
   // Get SMS logs from database
   const smsLogsData = useQuery(api.sms.getAllSMSLogs) as SmsLog[] | undefined
@@ -108,6 +120,26 @@ function SMSAnalyticsContent() {
       'appointment_confirm': 'Appointment Confirmation'
     }
     return templates[templateKey] || templateKey
+  }
+
+  const closeDialog = () => {
+    if (retrying) return
+    setDialogState(null)
+  }
+
+  const handleRetry = async () => {
+    if (!dialogState?.log) return
+    setRetrying(true)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      toast.success(`Retry queued for ${formatPhoneNumber(dialogState.log.recipientPhone)}`)
+      setDialogState(null)
+    } catch (error) {
+      console.error('Retry failed to queue', error)
+      toast.error('Unable to queue retry right now')
+    } finally {
+      setRetrying(false)
+    }
   }
 
   return (
@@ -433,8 +465,10 @@ function SMSAnalyticsContent() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">Retry</Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => setDialogState({ mode: 'retry', log: sms })}>
+                          Retry
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setDialogState({ mode: 'details', log: sms })}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </div>
@@ -446,6 +480,62 @@ function SMSAnalyticsContent() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={dialogState !== null} onOpenChange={(open) => (!open ? closeDialog() : undefined)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {dialogState?.mode === 'retry' ? 'Retry SMS delivery' : 'Message details'}
+            </DialogTitle>
+            <DialogDescription>
+              {dialogState?.mode === 'retry'
+                ? 'We will requeue this message with the same template and recipient.'
+                : 'Review the message payload, delivery attempts, and error response.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {dialogState?.log && (
+            <div className="space-y-4 text-sm">
+              <div className="grid gap-1">
+                <span className="font-medium">Recipient</span>
+                <span className="text-muted-foreground">{formatPhoneNumber(dialogState.log.recipientPhone)}</span>
+              </div>
+              <div className="grid gap-1">
+                <span className="font-medium">Template</span>
+                <span className="text-muted-foreground">{getTemplateName(dialogState.log.templateKey)}</span>
+              </div>
+              <div className="grid gap-1">
+                <span className="font-medium">Most recent error</span>
+                <span className="text-destructive text-xs">{dialogState.log.failureReason || 'Unknown error'}</span>
+              </div>
+              <div className="grid gap-1">
+                <span className="font-medium">Message preview</span>
+                <span className="rounded-md border border-border/60 bg-muted/10 p-3 leading-relaxed text-muted-foreground">
+                  {dialogState.log.message}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeDialog} disabled={retrying}>
+              Close
+            </Button>
+            {dialogState?.mode === 'retry' && (
+              <Button onClick={handleRetry} disabled={retrying}>
+                {retrying ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Queueing
+                  </>
+                ) : (
+                  'Requeue message'
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

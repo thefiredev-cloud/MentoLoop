@@ -389,7 +389,7 @@ export const createStudentCheckoutSession = action({
 
       // Special discount code to force one-cent price (for testing/promotions)
       const pennyEnv = process.env.STRIPE_PRICE_ID_ONECENT || process.env.STRIPE_PRICE_ID_PENNY;
-      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT","MENTO12345"];
+      const pennyCodes = ["ONECENT","PENNY","PENNY1","ONE_CENT"];
       let isPennyCode = false;
       if (args.discountCode && pennyCodes.includes(args.discountCode.toUpperCase())) {
         isPennyCode = true;
@@ -2220,6 +2220,54 @@ export const initializeNPDiscountCode = action({
     } catch (error) {
       // Failed to initialize NP discount code
       throw new Error(`Failed to initialize discount code: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  },
+});
+
+// Initialize the MENTO12345 discount code (99.9% off)
+export const initializeMentoDiscount999 = action({
+  handler: async (ctx): Promise<{
+    success: boolean;
+    message: string;
+    code?: string;
+    couponId?: string;
+    promotionCodeId?: string;
+  }> => {
+    try {
+      const code = "MENTO12345";
+      // If we previously stored a synthetic penny record, or any existing record, prefer upgrading
+      const existing: any = await ctx.runQuery(internal.payments.checkCouponExists, { code });
+      if (existing && existing.percentOff === 99.9) {
+        return {
+          success: true,
+          message: `Discount code ${code} already exists at 99.9%`,
+          code,
+          couponId: existing.couponId,
+        };
+      }
+
+      // Create a 99.9% coupon + promotion code; use random coupon id to avoid ID collisions
+      const result: any = await ctx.runAction(api.payments.createDiscountCoupon, {
+        code,
+        percentOff: 99.9,
+        duration: "once",
+        metadata: {
+          description: "99.9% off for special promotion",
+          type: "mento_999",
+          createdBy: "system",
+        },
+        useCodeAsCouponId: false,
+      });
+
+      return {
+        success: true,
+        message: `Successfully created discount code ${code} with 99.9% off`,
+        code,
+        couponId: result?.couponId,
+        promotionCodeId: result?.promotionCodeId,
+      };
+    } catch (error) {
+      throw new Error(`Failed to initialize ${"MENTO12345"}: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   },
 });

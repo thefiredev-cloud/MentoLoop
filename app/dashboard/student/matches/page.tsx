@@ -64,9 +64,9 @@ export default function StudentMatches() {
 
   // Helper function to get MentorFit tier from score
   const getMentorFitTier = (score: number) => {
-    if (score >= 9.0) return { name: 'Gold', color: 'bg-yellow-500', textColor: 'text-yellow-700' }
-    if (score >= 7.5) return { name: 'Silver', color: 'bg-gray-400', textColor: 'text-gray-700' }
-    return { name: 'Bronze', color: 'bg-amber-600', textColor: 'text-amber-700' }
+    if (score >= 9.0) return { name: 'Gold', color: 'bg-primary/15', textColor: 'text-primary' }
+    if (score >= 7.5) return { name: 'Silver', color: 'bg-muted/30', textColor: 'text-muted-foreground' }
+    return { name: 'Bronze', color: 'bg-secondary/20', textColor: 'text-secondary-foreground' }
   }
 
   const acceptMatch = useMutation(api.matches.acceptMatch)
@@ -146,16 +146,16 @@ export default function StudentMatches() {
                   
                 return (
                   <Card key={match._id} className="overflow-hidden">
-                      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
                         <div className="flex items-start justify-between">
                           <div className="space-y-2">
                             <div className="flex items-center gap-3">
                               <CardTitle className="text-xl">
                                 {preceptor?.personalInfo?.fullName || 'Preceptor Name'}
                               </CardTitle>
-                              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                                {preceptor?.personalInfo?.specialty || 'Specialty'}
-                              </Badge>
+                            <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30">
+                              {preceptor?.personalInfo?.specialty || 'Specialty'}
+                            </Badge>
                               <Badge className={`${tier.color} text-white`}>
                                 {tier.name} Match
                               </Badge>
@@ -223,7 +223,7 @@ export default function StudentMatches() {
                     {/* MentorFit Explanation */}
                     <div className="bg-muted/50 rounded-lg p-4">
                       <div className="flex items-start gap-3">
-                        <Heart className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                        <Heart className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
                         <div>
                           <h4 className="font-semibold text-sm mb-1">Why this is a great match:</h4>
                           <p className="text-sm text-muted-foreground">{match.matchReason || 'Great compatibility based on learning preferences and clinical goals'}</p>
@@ -272,7 +272,7 @@ export default function StudentMatches() {
                     <div className="flex flex-wrap gap-3 pt-4 border-t">
                       <Button 
                         onClick={() => handleAcceptMatch(match._id)}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground"
                       >
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         Accept Match
@@ -343,17 +343,17 @@ export default function StudentMatches() {
                 
                 return (
                   <Card key={match._id} className="overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+                    <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
                             <CardTitle className="text-xl">
                               {preceptor?.personalInfo?.fullName || 'Preceptor Name'}
                             </CardTitle>
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                            <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30">
                               {preceptor?.personalInfo?.specialty || 'Specialty'}
                             </Badge>
-                            <Badge className="bg-green-600 text-white">
+                            <Badge className="bg-accent text-accent-foreground">
                               Active
                             </Badge>
                           </div>
@@ -398,7 +398,7 @@ export default function StudentMatches() {
                       <div className="flex flex-wrap gap-3 pt-4 border-t">
                         <Button 
                           onClick={() => handleStartConversation(match._id)}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-primary hover:bg-primary/85 text-primary-foreground"
                         >
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Message Preceptor
@@ -439,14 +439,14 @@ export default function StudentMatches() {
                 
                 return (
                   <Card key={match._id} className="overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
+                    <CardHeader className="bg-gradient-to-r from-muted/10 to-muted/20">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
                             <CardTitle className="text-xl">
                               {preceptor?.personalInfo?.fullName || 'Preceptor Name'}
                             </CardTitle>
-                            <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                            <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30">
                               {preceptor?.personalInfo?.specialty || 'Specialty'}
                             </Badge>
                             <Badge variant="secondary">

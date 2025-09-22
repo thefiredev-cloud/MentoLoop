@@ -649,9 +649,63 @@ const chartConfig = {
 
 function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
   const isMobile = useIsMobile()
+  const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [draft, setDraft] = React.useState({
+    header: item.header,
+    type: item.type,
+    status: item.status,
+    target: item.target,
+    limit: item.limit,
+    reviewer: item.reviewer,
+  })
+  const formId = React.useMemo(() => `drawer-section-${item.id}`, [item.id])
+
+  React.useEffect(() => {
+    if (!drawerOpen) {
+      setDraft({
+        header: item.header,
+        type: item.type,
+        status: item.status,
+        target: item.target,
+        limit: item.limit,
+        reviewer: item.reviewer,
+      })
+    }
+  }, [drawerOpen, item])
+
+  const hasChanges = React.useMemo(() => {
+    return (
+      draft.header !== item.header ||
+      draft.type !== item.type ||
+      draft.status !== item.status ||
+      draft.target !== item.target ||
+      draft.limit !== item.limit ||
+      draft.reviewer !== item.reviewer
+    )
+  }, [draft, item])
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!hasChanges) {
+      toast.info('No changes detected')
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 700))
+      toast.success('Section updates saved')
+      setDrawerOpen(false)
+    } catch (error) {
+      console.error('Failed to submit updates', error)
+      toast.error('Unable to save changes')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>
+    <Drawer direction={isMobile ? "bottom" : "right"} open={drawerOpen} onOpenChange={setDrawerOpen}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
           {item.header}
@@ -722,15 +776,19 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               <Separator />
             </>
           )}
-          <form className="flex flex-col gap-4">
+          <form id={formId} className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-3">
               <Label htmlFor="header">Header</Label>
-              <Input id="header" defaultValue={item.header} />
+              <Input
+                id="header"
+                value={draft.header}
+                onChange={(event) => setDraft((prev) => ({ ...prev, header: event.target.value }))}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="type">Type</Label>
-                <Select defaultValue={item.type}>
+                <Select value={draft.type} onValueChange={(value) => setDraft((prev) => ({ ...prev, type: value }))}>
                   <SelectTrigger id="type" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
@@ -756,7 +814,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               </div>
               <div className="flex flex-col gap-3">
                 <Label htmlFor="status">Status</Label>
-                <Select defaultValue={item.status}>
+                <Select value={draft.status} onValueChange={(value) => setDraft((prev) => ({ ...prev, status: value }))}>
                   <SelectTrigger id="status" className="w-full">
                     <SelectValue placeholder="Select a status" />
                   </SelectTrigger>
@@ -771,16 +829,24 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="target">Target</Label>
-                <Input id="target" defaultValue={item.target} />
+                <Input
+                  id="target"
+                  value={draft.target}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, target: event.target.value }))}
+                />
               </div>
               <div className="flex flex-col gap-3">
                 <Label htmlFor="limit">Limit</Label>
-                <Input id="limit" defaultValue={item.limit} />
+                <Input
+                  id="limit"
+                  value={draft.limit}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, limit: event.target.value }))}
+                />
               </div>
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor="reviewer">Reviewer</Label>
-              <Select defaultValue={item.reviewer}>
+              <Select value={draft.reviewer} onValueChange={(value) => setDraft((prev) => ({ ...prev, reviewer: value }))}>
                 <SelectTrigger id="reviewer" className="w-full">
                   <SelectValue placeholder="Select a reviewer" />
                 </SelectTrigger>
@@ -796,9 +862,20 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           </form>
         </div>
         <DrawerFooter>
-          <Button>Submit</Button>
+          <Button type="submit" form={formId} disabled={!hasChanges || isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <IconLoader className="mr-2 h-4 w-4 animate-spin" />
+                Saving
+              </>
+            ) : (
+              'Save changes'
+            )}
+          </Button>
           <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
+            <Button variant="outline" onClick={() => setDrawerOpen(false)} disabled={isSubmitting}>
+              Done
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

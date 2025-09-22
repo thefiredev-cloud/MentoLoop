@@ -372,9 +372,9 @@ export function Chatbot() {
                                   code: ({className, children}: { className?: string; children: React.ReactNode }) => {
                                     const isInline = !className
                                     return isInline ? (
-                                      <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs">{children}</code>
+                                      <code className="px-1 py-0.5 rounded bg-muted text-muted-foreground text-xs">{children}</code>
                                     ) : (
-                                      <pre className="p-2 rounded bg-gray-100 dark:bg-gray-800 overflow-x-auto">
+                                      <pre className="p-2 rounded bg-muted text-muted-foreground overflow-x-auto">
                                         <code className="text-xs">{children}</code>
                                       </pre>
                                     )

@@ -32,6 +32,85 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 
+// Types and default data
+type DayAvailability = {
+  available: boolean
+  startTime: string
+  endTime: string
+  maxStudents: number
+  currentStudents: number
+  notes: string
+}
+
+type AvailabilityMap = {
+  monday: DayAvailability
+  tuesday: DayAvailability
+  wednesday: DayAvailability
+  thursday: DayAvailability
+  friday: DayAvailability
+  saturday: DayAvailability
+  sunday: DayAvailability
+}
+
+const DEFAULT_AVAILABILITY: AvailabilityMap = {
+  monday: {
+    available: true,
+    startTime: "08:00",
+    endTime: "17:00",
+    maxStudents: 2,
+    currentStudents: 1,
+    notes: "Family practice clinic hours"
+  },
+  tuesday: {
+    available: true,
+    startTime: "08:00",
+    endTime: "17:00",
+    maxStudents: 2,
+    currentStudents: 2,
+    notes: "Family practice clinic hours"
+  },
+  wednesday: {
+    available: true,
+    startTime: "08:00",
+    endTime: "17:00",
+    maxStudents: 2,
+    currentStudents: 1,
+    notes: "Family practice clinic hours"
+  },
+  thursday: {
+    available: true,
+    startTime: "08:00",
+    endTime: "17:00",
+    maxStudents: 2,
+    currentStudents: 1,
+    notes: "Family practice clinic hours"
+  },
+  friday: {
+    available: false,
+    startTime: "08:00",
+    endTime: "17:00",
+    maxStudents: 0,
+    currentStudents: 0,
+    notes: "Administrative day - no students"
+  },
+  saturday: {
+    available: false,
+    startTime: "",
+    endTime: "",
+    maxStudents: 0,
+    currentStudents: 0,
+    notes: ""
+  },
+  sunday: {
+    available: false,
+    startTime: "",
+    endTime: "",
+    maxStudents: 0,
+    currentStudents: 0,
+    notes: ""
+  }
+}
+
 export default function PreceptorSchedule() {
   const user = useQuery(api.users.current)
   const _preceptor = useQuery(api.preceptors.getByUserId, 
@@ -39,69 +118,10 @@ export default function PreceptorSchedule() {
   )
 
   const [editingAvailability, setEditingAvailability] = useState(false)
+  const [availability, setAvailability] = useState<AvailabilityMap>(DEFAULT_AVAILABILITY)
 
   if (!user) {
     return <div>Loading...</div>
-  }
-
-  // Mock schedule data - in real app would come from Convex
-  const mockAvailability = {
-    monday: {
-      available: true,
-      startTime: "08:00",
-      endTime: "17:00",
-      maxStudents: 2,
-      currentStudents: 1,
-      notes: "Family practice clinic hours"
-    },
-    tuesday: {
-      available: true,
-      startTime: "08:00", 
-      endTime: "17:00",
-      maxStudents: 2,
-      currentStudents: 2,
-      notes: "Family practice clinic hours"
-    },
-    wednesday: {
-      available: true,
-      startTime: "08:00",
-      endTime: "17:00", 
-      maxStudents: 2,
-      currentStudents: 1,
-      notes: "Family practice clinic hours"
-    },
-    thursday: {
-      available: true,
-      startTime: "08:00",
-      endTime: "17:00",
-      maxStudents: 2,
-      currentStudents: 1,
-      notes: "Family practice clinic hours"
-    },
-    friday: {
-      available: false,
-      startTime: "08:00",
-      endTime: "17:00",
-      maxStudents: 0,
-      currentStudents: 0,
-      notes: "Administrative day - no students"
-    },
-    saturday: {
-      available: false,
-      startTime: "",
-      endTime: "",
-      maxStudents: 0,
-      currentStudents: 0,
-      notes: ""
-    },
-    sunday: {
-      available: false,
-      startTime: "",
-      endTime: "",
-      maxStudents: 0,
-      currentStudents: 0,
-      notes: ""
-    }
   }
 
   const mockUpcomingRotations = [
@@ -142,7 +162,7 @@ export default function PreceptorSchedule() {
     }
   ]
 
-  const daysOfWeek = [
+  const daysOfWeek: Array<{ key: keyof AvailabilityMap; label: string }> = [
     { key: 'monday', label: 'Monday' },
     { key: 'tuesday', label: 'Tuesday' },
     { key: 'wednesday', label: 'Wednesday' },
@@ -158,22 +178,36 @@ export default function PreceptorSchedule() {
     setEditingAvailability(false)
   }
 
-  const renderAvailabilityCard = (day: { key: string; label: string }) => {
-    const availability = mockAvailability[day.key as keyof typeof mockAvailability]
+  const updateDay = <K extends keyof AvailabilityMap, F extends keyof DayAvailability>(
+    dayKey: K,
+    field: F,
+    value: DayAvailability[F],
+  ) => {
+    setAvailability(prev => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        [field]: value,
+      },
+    }))
+  }
+
+  const renderAvailabilityCard = (day: { key: keyof AvailabilityMap; label: string }) => {
+    const dayAvailability = availability[day.key]
     
     return (
-      <Card key={day.key} className={`${!availability.available ? 'opacity-60' : ''}`}>
+      <Card key={day.key} className={`${!dayAvailability.available ? 'opacity-60' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">{day.label}</CardTitle>
             <div className="flex items-center gap-2">
-              {availability.available ? (
-                <Badge variant="default" className="bg-green-500">
+              {dayAvailability.available ? (
+                <Badge className="bg-accent text-accent-foreground">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Available
                 </Badge>
               ) : (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="text-muted-foreground">
                   <X className="h-3 w-3 mr-1" />
                   Unavailable
                 </Badge>
@@ -183,35 +217,93 @@ export default function PreceptorSchedule() {
         </CardHeader>
         
         <CardContent className="pt-0">
-          {availability.available ? (
+          {editingAvailability ? (
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{availability.startTime} - {availability.endTime}</span>
+                  <Label htmlFor={`available-${day.key}`}>Available</Label>
+                  <Switch
+                    id={`available-${day.key}`}
+                    checked={dayAvailability.available}
+                    onCheckedChange={(checked) => updateDay(day.key, 'available', checked)}
+                  />
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>Students: {availability.currentStudents}/{availability.maxStudents}</span>
+
+              {dayAvailability.available ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`start-${day.key}`}>Start</Label>
+                    <Input
+                      id={`start-${day.key}`}
+                      type="time"
+                      value={dayAvailability.startTime}
+                      onChange={(e) => updateDay(day.key, 'startTime', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`end-${day.key}`}>End</Label>
+                    <Input
+                      id={`end-${day.key}`}
+                      type="time"
+                      value={dayAvailability.endTime}
+                      onChange={(e) => updateDay(day.key, 'endTime', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`max-${day.key}`}>Max Students</Label>
+                    <Input
+                      id={`max-${day.key}`}
+                      type="number"
+                      min={0}
+                      value={dayAvailability.maxStudents}
+                      onChange={(e) => updateDay(day.key, 'maxStudents', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label htmlFor={`notes-${day.key}`}>Notes</Label>
+                    <Textarea
+                      id={`notes-${day.key}`}
+                      value={dayAvailability.notes}
+                      onChange={(e) => updateDay(day.key, 'notes', e.target.value)}
+                    />
+                  </div>
                 </div>
-                {availability.currentStudents >= availability.maxStudents && (
-                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                    Full
-                  </Badge>
-                )}
-              </div>
-              
-              {availability.notes && (
-                <p className="text-xs text-muted-foreground">{availability.notes}</p>
+              ) : (
+                <div className="flex items-center justify-center py-4">
+                  <p className="text-sm text-muted-foreground">Not available this day</p>
+                </div>
               )}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-4">
-              <p className="text-sm text-muted-foreground">No availability set</p>
-            </div>
+            dayAvailability.available ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{dayAvailability.startTime} - {dayAvailability.endTime}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>Students: {dayAvailability.currentStudents}/{dayAvailability.maxStudents}</span>
+                  </div>
+                  {dayAvailability.currentStudents >= dayAvailability.maxStudents && (
+                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive">
+                      Full
+                    </Badge>
+                  )}
+                </div>
+                {dayAvailability.notes && (
+                  <p className="text-xs text-muted-foreground">{dayAvailability.notes}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-4">
+                <p className="text-sm text-muted-foreground">No availability set</p>
+              </div>
+            )
           )}
         </CardContent>
       </Card>
@@ -239,7 +331,7 @@ export default function PreceptorSchedule() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Object.values(mockAvailability).filter(day => day.available).length}
+              {Object.values(availability).filter(day => day.available).length}
             </div>
             <p className="text-xs text-muted-foreground">Per week</p>
           </CardContent>
@@ -263,7 +355,7 @@ export default function PreceptorSchedule() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Object.values(mockAvailability).reduce((sum, day) => sum + day.currentStudents, 0)}
+              {Object.values(availability).reduce((sum, day) => sum + day.currentStudents, 0)}
             </div>
             <p className="text-xs text-muted-foreground">Active preceptees</p>
           </CardContent>
@@ -276,8 +368,8 @@ export default function PreceptorSchedule() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round((Object.values(mockAvailability).reduce((sum, day) => sum + day.currentStudents, 0) / 
-                Object.values(mockAvailability).reduce((sum, day) => sum + day.maxStudents, 0)) * 100)}%
+              {Math.round((Object.values(availability).reduce((sum, day) => sum + day.currentStudents, 0) / 
+                Object.values(availability).reduce((sum, day) => sum + day.maxStudents, 0)) * 100)}%
             </div>
             <p className="text-xs text-muted-foreground">Utilization</p>
           </CardContent>
@@ -323,7 +415,7 @@ export default function PreceptorSchedule() {
           </div>
 
           {editingAvailability && (
-            <Card className="border-blue-200 bg-blue-50/50">
+            <Card className="border border-primary/30 bg-primary/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />
@@ -439,8 +531,10 @@ export default function PreceptorSchedule() {
                       <CardTitle className="text-lg">{rotation.student.name}</CardTitle>
                       <CardDescription>{rotation.student.program} • {rotation.specialty}</CardDescription>
                     </div>
-                    <Badge variant={rotation.status === 'confirmed' ? 'default' : 'outline'}
-                           className={rotation.status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}>
+                    <Badge
+                      variant={rotation.status === 'confirmed' ? 'default' : 'outline'}
+                      className={rotation.status === 'confirmed' ? 'bg-accent text-accent-foreground' : 'bg-muted/20 text-muted-foreground'}
+                    >
                       {rotation.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                     </Badge>
                   </div>
@@ -526,7 +620,7 @@ export default function PreceptorSchedule() {
                       <CardTitle className="text-lg">{request.reason}</CardTitle>
                       <CardDescription>{request.startDate} - {request.endDate}</CardDescription>
                     </div>
-                    <Badge variant="default" className="bg-green-500">
+                    <Badge className="bg-accent text-accent-foreground">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Approved
                     </Badge>
@@ -534,8 +628,8 @@ export default function PreceptorSchedule() {
                 </CardHeader>
                 <CardContent>
                   {request.impactedStudents > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-amber-600">
-                      <AlertCircle className="h-4 w-4" />
+                    <div className="flex items-center gap-2 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4 text-destructive" />
                       <span>{request.impactedStudents} students will be affected</span>
                     </div>
                   )}

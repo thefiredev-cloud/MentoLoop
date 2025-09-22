@@ -314,8 +314,8 @@ export default function MentorFitAssessmentStep({
                     index === currentQuestion
                       ? 'bg-primary'
                       : isQuestionAnswered(ASSESSMENT_QUESTIONS[index].id)
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
+                      ? 'bg-accent'
+                      : 'bg-muted/30'
                   }`}
                   onClick={() => setCurrentQuestion(index)}
                 />

@@ -20,27 +20,27 @@ export default function StudentLandingPage() {
 
   const benefits = [
     {
-      icon: <Shield className="w-8 h-8 text-blue-600" />,
+      icon: <Shield className="w-8 h-8 text-primary" />,
       title: "Guaranteed Match or your money back",
       description: "We guarantee a preceptor match or provide a full refund."
     },
     {
-      icon: <DollarSign className="w-8 h-8 text-blue-600" />,
+      icon: <DollarSign className="w-8 h-8 text-primary" />,
       title: "Lower cost per hour than traditional hourly marketplaces",
       description: "Our block pricing offers better value than pay-per-hour services."
     },
     {
-      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      icon: <Clock className="w-8 h-8 text-primary" />,
       title: "Priority matching options for faster placement",
       description: "Get matched faster with our priority placement options."
     },
     {
-      icon: <Award className="w-8 h-8 text-blue-600" />,
+      icon: <Award className="w-8 h-8 text-primary" />,
       title: "Bank unused hours within the semester",
       description: "Unused hours don't expire - use them when you need them."
     },
     {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
+      icon: <Users className="w-8 h-8 text-primary" />,
       title: "Dedicated support throughout your rotation",
       description: "Get ongoing support from our dedicated student success team."
     }
@@ -125,7 +125,7 @@ export default function StudentLandingPage() {
               <Button
                 size="lg"
                 asChild
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
+                className="bg-primary hover:bg-primary/85 text-primary-foreground px-8 py-6 text-lg"
               >
                 <Link href="/sign-up/student">
                   Get Matched Today
@@ -147,8 +147,8 @@ export default function StudentLandingPage() {
           <div className="space-y-8">
             {process.map((item, index) => (
               <div key={index} className="flex gap-6 items-start">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-white">{item.step}</span>
+              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl font-bold text-primary-foreground">{item.step}</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-xl mb-2 text-foreground">{item.title}</h3>
@@ -175,7 +175,7 @@ export default function StudentLandingPage() {
                     {benefit.icon}
                   </div>
                   <h3 className="font-semibold text-lg mb-2 text-foreground text-center">
-                    <CheckCircle className="inline w-5 h-5 text-green-600 mr-2" />
+                    <CheckCircle className="inline w-5 h-5 text-accent mr-2" />
                     {benefit.title}
                   </h3>
                   <p className="text-muted-foreground text-center text-sm">
@@ -203,7 +203,7 @@ export default function StudentLandingPage() {
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-6 text-center">
                   <h3 className="font-bold text-lg mb-2 text-foreground">{plan.name}</h3>
-                  <p className="text-3xl font-bold text-blue-600 mb-1">{plan.price}</p>
+                  <p className="text-3xl font-bold text-primary mb-1">{plan.price}</p>
                   <p className="text-sm text-muted-foreground mb-2">{plan.hours}</p>
                   <p className="text-xs text-muted-foreground">{plan.description}</p>
                 </CardContent>
@@ -214,7 +214,7 @@ export default function StudentLandingPage() {
           <Card className="border-2 border-dashed border-blue-300 max-w-md mx-auto mb-8">
             <CardContent className="p-6 text-center">
               <h3 className="font-bold text-lg mb-2 text-foreground">A La Carte Add-On</h3>
-              <p className="text-2xl font-bold text-blue-600 mb-1">$10/hr</p>
+              <p className="text-2xl font-bold text-primary mb-1">$10/hr</p>
               <p className="text-sm text-muted-foreground">flexible extras (30hr blocks)</p>
               <p className="text-xs text-muted-foreground mt-1">aligns with institutional intervals</p>
             </CardContent>
@@ -278,7 +278,7 @@ export default function StudentLandingPage() {
             <Button 
               size="lg" 
               asChild
-              className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg"
+              className="bg-primary hover:bg-primary/85 text-primary-foreground px-8 py-6 text-lg"
             >
               <Link href="/sign-up/student">
                 Sign up as a Student

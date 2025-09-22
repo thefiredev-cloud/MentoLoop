@@ -20,7 +20,7 @@ export default function HelpCenter() {
       id: 'getting-started',
       title: 'Getting Started',
       icon: BookOpen,
-      color: 'bg-blue-500',
+      color: 'bg-primary/20',
       items: [
         {
           title: 'Getting Started with MentoLoop',
@@ -56,7 +56,7 @@ After submission, you'll receive a confirmation and unlock matching access.`
       id: 'matching-process',
       title: 'Matching Process',
       icon: UserCheck,
-      color: 'bg-green-500',
+      color: 'bg-accent/20',
       items: [
         {
           title: 'How Our Matching System Works',
@@ -84,7 +84,7 @@ After submission, you'll receive a confirmation and unlock matching access.`
       id: 'payments-billing',
       title: 'Payments & Billing',
       icon: CreditCard,
-      color: 'bg-purple-500',
+      color: 'bg-secondary/20',
       items: [
         {
           title: 'Understanding Our Pricing',
@@ -108,7 +108,7 @@ After submission, you'll receive a confirmation and unlock matching access.`
       id: 'account-management',
       title: 'Account Management',
       icon: Settings,
-      color: 'bg-orange-500',
+      color: 'bg-primary/30',
       items: [
         {
           title: 'Understanding Your Profile',
@@ -136,7 +136,7 @@ After submission, you'll receive a confirmation and unlock matching access.`
       id: 'safety-security',
       title: 'Safety & Security',
       icon: Shield,
-      color: 'bg-red-500',
+      color: 'bg-destructive/20',
       items: [
         {
           title: 'Our Verification Process',
@@ -164,7 +164,7 @@ After submission, you'll receive a confirmation and unlock matching access.`
       id: 'troubleshooting',
       title: 'Troubleshooting',
       icon: Search,
-      color: 'bg-gray-500',
+      color: 'bg-muted/30',
       items: [
         {
           title: 'I Haven\'t Received Any Matches',

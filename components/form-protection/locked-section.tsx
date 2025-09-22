@@ -35,11 +35,15 @@ export default function LockedSection({
   const getTierColor = (tier: string) => {
     switch (tier) {
       case 'starter':
-      case 'core': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'pro': return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'core':
+        return 'bg-primary/10 text-primary border-primary/30'
+      case 'pro':
+        return 'bg-secondary/10 text-secondary-foreground border-secondary/30'
       case 'elite':
-      case 'premium': return 'bg-amber-100 text-amber-800 border-amber-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'premium':
+        return 'bg-accent/10 text-accent border-accent/30'
+      default:
+        return 'bg-muted/20 text-muted-foreground border-border/40'
     }
   }
 
@@ -111,16 +115,16 @@ export default function LockedSection({
         {/* Mock form fields to show structure */}
         <div className="space-y-3">
           <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-10 bg-gray-100 rounded"></div>
+            <div className="h-4 bg-muted/40 rounded w-1/4"></div>
+            <div className="h-10 bg-muted/20 rounded"></div>
           </div>
           <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-10 bg-gray-100 rounded"></div>
+            <div className="h-4 bg-muted/40 rounded w-1/3"></div>
+            <div className="h-10 bg-muted/20 rounded"></div>
           </div>
           <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-1/5"></div>
-            <div className="h-10 bg-gray-100 rounded"></div>
+            <div className="h-4 bg-muted/40 rounded w-1/5"></div>
+            <div className="h-10 bg-muted/20 rounded"></div>
           </div>
         </div>
       </CardContent>

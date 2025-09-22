@@ -60,7 +60,7 @@ export const Table = ({ className }: { className?: string }) => {
             <table
                 className="w-max table-auto border-collapse lg:w-full"
                 data-rounded="medium">
-                <thead className="bg-gray-950/5">
+                <thead className="bg-muted/20">
                     <tr className="*:border *:p-3 *:text-left *:text-sm *:font-medium">
                         <th className="rounded-l-[--card-radius]">#</th>
                         <th>Date</th>
@@ -77,7 +77,16 @@ export const Table = ({ className }: { className?: string }) => {
                             <td>{customer.id}</td>
                             <td>{customer.date}</td>
                             <td>
-                                <span className={cn('rounded-full px-2 py-1 text-xs', customer.statusVariant == 'success' && 'bg-lime-500/15 text-lime-800', customer.statusVariant == 'danger' && 'bg-red-500/15 text-red-800', customer.statusVariant == 'warning' && 'bg-yellow-500/15 text-yellow-800')}>{customer.status}</span>
+                                <span
+                                    className={cn(
+                                        'rounded-full px-2 py-1 text-xs',
+                                        customer.statusVariant == 'success' && 'bg-accent/15 text-accent',
+                                        customer.statusVariant == 'danger' && 'bg-destructive/15 text-destructive',
+                                        customer.statusVariant == 'warning' && 'bg-primary/15 text-primary'
+                                    )}
+                                >
+                                    {customer.status}
+                                </span>
                             </td>
                             <td>
                                 <div className="text-title flex items-center gap-2">

@@ -42,27 +42,27 @@ export default function PreceptorsPage() {
 
   const benefits = [
     {
-      icon: <DollarSign className="w-8 h-8 text-green-600" />,
+      icon: <DollarSign className="w-8 h-8 text-accent" />,
       title: "Earn Honorariums",
       description: "Earn honorariums per rotation (simple 1099 reporting)."
     },
     {
-      icon: <Clock className="w-8 h-8 text-green-600" />,
+      icon: <Clock className="w-8 h-8 text-accent" />,
       title: "Set Your Own Availability",
       description: "Set your own availability — take students only when you want."
     },
     {
-      icon: <Shield className="w-8 h-8 text-green-600" />,
+      icon: <Shield className="w-8 h-8 text-accent" />,
       title: "Vetted Students",
       description: "Students are vetted before being matched."
     },
     {
-      icon: <Award className="w-8 h-8 text-green-600" />,
+      icon: <Award className="w-8 h-8 text-accent" />,
       title: "No Admin Burden",
       description: "No admin burden — we handle contracts, scheduling, and tracking."
     },
     {
-      icon: <Star className="w-8 h-8 text-green-600" />,
+      icon: <Star className="w-8 h-8 text-accent" />,
       title: "Recognition Badges",
       description: "Recognition through MentorFit™ badges (Bronze, Silver, Gold)."
     }
@@ -128,7 +128,7 @@ export default function PreceptorsPage() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full blur-3xl"
+              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-accent/20 to-primary/10 rounded-full blur-3xl"
             />
             <motion.div
               animate={{
@@ -140,7 +140,7 @@ export default function PreceptorsPage() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-teal-500/20 to-green-500/20 rounded-full blur-3xl"
+              className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-accent/20 to-primary/15 rounded-full blur-3xl"
             />
           </div>
 
@@ -161,22 +161,22 @@ export default function PreceptorsPage() {
                     href="/sign-up/preceptor"
                     className="group hover:bg-foreground/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-foreground/20 backdrop-blur-md">
                     <div className="relative flex items-center justify-center">
-                      <Heart className="w-4 h-4 text-red-400 animate-pulse" />
+                      <Heart className="w-4 h-4 text-destructive animate-pulse" />
                     </div>
-                    <span className="font-medium text-white">Shape the Future of Healthcare</span>
-                    <ArrowRight className="w-4 h-4 text-white/70 group-hover:translate-x-1 transition-transform" />
+                    <span className="font-medium text-foreground">Shape the Future of Healthcare</span>
+                    <ArrowRight className="w-4 h-4 text-foreground/70 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </motion.div>
                 
                 <div className="mt-8">
                   <AnimatedText
                     text="Mentor the Next"
-                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white text-shadow-strong"
+                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground text-shadow-strong"
                     type="word"
                     delay={0.3}
                   />
                   <h1 className="mx-auto mt-2 max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-shadow-strong">
-                    <GradientText gradient="from-white via-green-200 to-emerald-200">
+                    <GradientText gradient="from-foreground via-accent/70 to-accent/40">
                       Generation of NPs
                     </GradientText>
                   </h1>
@@ -186,17 +186,17 @@ export default function PreceptorsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8, duration: 0.6 }}
-                  className="text-white/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
+                  className="text-foreground/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
                 >
-                  <GlowingText className="text-white">
+                  <GlowingText className="text-foreground">
                     On Your Terms. Your Schedule. Your Way.
                   </GlowingText>
                 </motion.p>
-                <p className="text-white/80 mx-auto my-4 max-w-2xl text-balance text-lg">
+                <p className="text-foreground/80 mx-auto my-4 max-w-2xl text-balance text-lg">
                   MentoLoop makes precepting easy, rewarding, and flexible. Earn honorariums, 
                   gain recognition, and help shape the future of healthcare — without the paperwork hassle.
                 </p>
-                <p className="text-white/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
+                <p className="text-foreground/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
                   Join our network of 1,000+ healthcare professionals making a difference every day.
                 </p>
 
@@ -211,8 +211,8 @@ export default function PreceptorsPage() {
                     size="lg"
                     className="group relative bg-card text-accent hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
                     <Link href="/sign-up/preceptor">
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <Stethoscope className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-green-700" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-primary/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <Stethoscope className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-accent" />
                       <span className="relative text-nowrap font-semibold">Become a Preceptor</span>
                     </Link>
                   </Button>
@@ -220,7 +220,7 @@ export default function PreceptorsPage() {
                     size="lg"
                     variant="outline"
                     onClick={() => setShowVideo(true)}
-                    className="group border border-foreground/30 text-white bg-foreground/10 hover:bg-foreground/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-foreground/50 px-8 py-6 text-lg">
+                    className="group border border-foreground/30 text-foreground bg-foreground/10 hover:bg-foreground/20 hover:text-foreground backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-foreground/50 px-8 py-6 text-lg">
                     <span className="text-nowrap font-semibold">Learn More</span>
                   </Button>
                 </motion.div>
@@ -229,18 +229,18 @@ export default function PreceptorsPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.4, duration: 0.6 }}
-                  className="flex items-center justify-center gap-8 text-sm text-white/90"
+                  className="flex items-center justify-center gap-8 text-sm text-foreground/90"
                 >
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>Quick approval</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>Competitive pay</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>Full support</span>
                   </div>
                 </motion.div>
@@ -293,28 +293,28 @@ export default function PreceptorsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <Award className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <Award className="w-12 h-12 text-accent mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2 text-foreground">MentorFit™ Badges</h3>
                 <p className="text-sm text-muted-foreground">Service milestone recognition</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <Users className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <Users className="w-12 h-12 text-accent mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2 text-foreground">LoopExchange™</h3>
                 <p className="text-sm text-muted-foreground">Peer community & discussion forum</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <Star className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <Star className="w-12 h-12 text-accent mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2 text-foreground">CEU Workshops</h3>
                 <p className="text-sm text-muted-foreground">Exclusive events for preceptors</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <DollarSign className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <DollarSign className="w-12 h-12 text-accent mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2 text-foreground">Referral Rewards</h3>
                 <p className="text-sm text-muted-foreground">For helping grow the network</p>
               </CardContent>
@@ -333,8 +333,8 @@ export default function PreceptorsPage() {
           <div className="space-y-8">
             {process.map((item, index) => (
               <div key={index} className="flex gap-6 items-start">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-white">{item.step}</span>
+                <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl font-bold text-accent-foreground">{item.step}</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-xl mb-2 text-foreground">{item.title}</h3>
@@ -345,11 +345,11 @@ export default function PreceptorsPage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button
-              size="lg"
-              asChild
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg"
-            >
+              <Button
+                size="lg"
+                asChild
+                className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg"
+              >
               <Link href="/sign-up/preceptor">
                 Apply Now
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -374,7 +374,7 @@ export default function PreceptorsPage() {
               <div className="space-y-3">
                 {requirements.map((req, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                     <span className="text-muted-foreground">{req}</span>
                   </div>
                 ))}
@@ -422,7 +422,7 @@ export default function PreceptorsPage() {
                   <CardContent className="p-6">
                     <div className="flex mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                        <Star key={i} className="w-5 h-5 fill-chart-5 text-chart-5" />
                       ))}
                     </div>
                     <p className="text-muted-foreground mb-4 italic">&quot;{testimonial.text}&quot;</p>
@@ -439,24 +439,24 @@ export default function PreceptorsPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 px-6 bg-green-600">
+      <section className="py-20 px-6 bg-primary/20">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <p className="text-5xl font-bold text-white mb-2">1,000+</p>
-              <p className="text-green-100">Active Preceptors</p>
+              <p className="text-5xl font-bold text-foreground mb-2">1,000+</p>
+              <p className="text-foreground/70">Active Preceptors</p>
             </div>
             <div>
-              <p className="text-5xl font-bold text-white mb-2">$800</p>
-              <p className="text-green-100">Average Monthly Earnings</p>
+              <p className="text-5xl font-bold text-foreground mb-2">$800</p>
+              <p className="text-foreground/70">Average Monthly Earnings</p>
             </div>
             <div>
-              <p className="text-5xl font-bold text-white mb-2">98%</p>
-              <p className="text-green-100">Satisfaction Rate</p>
+              <p className="text-5xl font-bold text-foreground mb-2">98%</p>
+              <p className="text-foreground/70">Satisfaction Rate</p>
             </div>
             <div>
-              <p className="text-5xl font-bold text-white mb-2">24-48hr</p>
-              <p className="text-green-100">Approval Time</p>
+              <p className="text-5xl font-bold text-foreground mb-2">24-48hr</p>
+              <p className="text-foreground/70">Approval Time</p>
             </div>
           </div>
         </div>
@@ -477,7 +477,7 @@ export default function PreceptorsPage() {
             <Button 
               size="lg" 
               asChild
-              className="bg-green-600 hover:bg-green-700 px-8 py-6 text-lg"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg"
             >
               <Link href="/sign-up/preceptor">
                 Sign Up as a Preceptor
@@ -505,7 +505,7 @@ export default function PreceptorsPage() {
       {/* Video Modal */}
       {showVideo && (
         <div 
-          className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-background/80 flex items-center justify-center p-4 z-50"
           onClick={() => setShowVideo(false)}
         >
           <div
