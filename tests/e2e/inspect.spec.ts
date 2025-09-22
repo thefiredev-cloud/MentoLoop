@@ -1,6 +1,7 @@
 import { test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { getE2EBaseUrl } from '../utils/base-url'
 
 test('Inspect live homepage, screenshot, and console logs', async ({ page }) => {
   const outDir = path.join(process.cwd(), 'tmp', 'browser-inspect')
@@ -21,7 +22,8 @@ test('Inspect live homepage, screenshot, and console logs', async ({ page }) => 
     logLines.push(`[requestfailed] ${request.method()} ${request.url()} ${failure ? failure.errorText : ''}`)
   })
 
-  await page.goto('https://sandboxmentoloop.online', { waitUntil: 'networkidle', timeout: 120000 })
+  const baseUrl = getE2EBaseUrl()
+  await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 120000 })
   await page.waitForTimeout(2000)
 
   const screenshotPath = path.join(outDir, 'homepage.png')
@@ -35,5 +37,4 @@ test('Inspect live homepage, screenshot, and console logs', async ({ page }) => 
   console.log('--- Console log preview (first 50 lines) ---')
   console.log(logLines.slice(0, 50).join('\n'))
 })
-
 

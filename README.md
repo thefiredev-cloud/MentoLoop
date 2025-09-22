@@ -89,6 +89,48 @@ Deployed via GitHub → Netlify. Preview environment available. Documentation li
 - **GitHub Actions** - CI pipeline defined in `.github/workflows/ci.yml`
 - **Environment Management** - All secrets set in Netlify; Convex deployment configured
 
+## Operations Quick Reference
+
+### Environment Variables
+All secrets are managed in Netlify (production) and Convex. The following variables are required for production builds:
+
+| Key | Description | Source |
+| --- | --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for browser SDK | Clerk dashboard |
+| `CLERK_SECRET_KEY` | Clerk server API key | Clerk dashboard |
+| `NEXT_PUBLIC_CLERK_FRONTEND_API_URL` | Clerk JWT template issuer URL | Clerk JWT template |
+| `STRIPE_SECRET_KEY` | Stripe secret API key | Stripe dashboard |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Stripe webhook endpoint |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for Checkout | Stripe dashboard |
+| `SENTRY_DSN` | Server-side Sentry DSN | Sentry project settings |
+| `NEXT_PUBLIC_SENTRY_DSN` | **Automatically injected** by Next config (`SENTRY_DSN`) | Do not set manually |
+| `SENDGRID_API_KEY` | SendGrid API key for transactional mail | SendGrid dashboard |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | Twilio SMS credentials | Twilio console |
+| `NEXT_PUBLIC_CONVEX_URL` | Convex deploy URL | Convex dashboard |
+
+> ℹ️ `NEXT_PUBLIC_SENTRY_DSN` is mapped from `SENTRY_DSN` in `next.config.ts`, so only set the server-side value in Netlify.
+
+### Deployment (GitHub → Netlify)
+1. Merge to `main`. Netlify triggers an automated build using the connected GitHub repo.
+2. Netlify installs dependencies, runs `npm run lint`, `npm run type-check`, and `npm run test:unit:run` via the CI pipeline.
+3. Netlify builds the Next.js app and deploys the standalone output. Convex deploys separately via `npm run build:production` when needed.
+4. Smoke-check the deployment:
+   - Visit `https://sandboxmentoloop.online`
+   - Confirm Sign-in flow (Clerk test mode), student dashboard, and admin `/dashboard/admin/audit` load
+   - Hit the health check endpoint (see below)
+
+### Health Checks
+- `GET /api/health` — returns JSON with environment presence, external service reachability, and response time. Response headers enforce `cache-control: no-store` for observability tooling.
+- Netlify can be configured with an uptime monitor hitting this endpoint. Expect HTTP `200` with `"status": "ok"`.
+
+### Sentry Release Flow
+1. Ensure `SENTRY_DSN` is set in Netlify; `NEXT_PUBLIC_SENTRY_DSN` is auto-provided to the client bundle.
+2. `instrumentation.ts` and `instrumentation.client.ts` register Sentry on both server and client at runtime.
+3. During deployment, provide `SENTRY_RELEASE` and `SENTRY_ENVIRONMENT` (optional) to tag releases.
+4. After deploy, run `npx sentry-cli releases new <version>` and `npx sentry-cli releases deploys <version> new -e production` if source maps are uploaded.
+5. Confirm events in Sentry before marking deployment complete.
+
+
 ## Getting Started
 
 ### Prerequisites

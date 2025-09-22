@@ -620,6 +620,20 @@ export const getAllMatches = query({
     )),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .first();
+
+    if (!currentUser || currentUser.userType !== "admin") {
+      throw new Error("Admin access required");
+    }
+
     let query = ctx.db.query("matches");
     
     if (args.status) {

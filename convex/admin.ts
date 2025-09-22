@@ -31,6 +31,89 @@ export const getAuditLogsForEntity = query({
   },
 });
 
+// Aggregated payment observability for admin dashboards
+export const getRecentPaymentEvents = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("byExternalId", (q) => q.eq("externalId", identity.subject))
+      .first();
+
+    if (!currentUser || currentUser.userType !== "admin") {
+      throw new Error("Admin access required");
+    }
+
+    const limit = Math.max(1, Math.min(args.limit ?? 100, 200));
+
+    const webhookEventsDocs = await ctx.db
+      .query("webhookEvents")
+      .order("desc")
+      .take(limit);
+
+    const paymentsAuditDocs = await ctx.db
+      .query("paymentsAudit")
+      .order("desc")
+      .take(limit);
+
+    const paymentAttemptsDocs = await ctx.db
+      .query("paymentAttempts")
+      .order("desc")
+      .take(limit);
+
+    const intakePaymentDocs = await ctx.db
+      .query("intakePaymentAttempts")
+      .order("desc")
+      .take(limit);
+
+    return {
+      webhookEvents: webhookEventsDocs.map((event) => ({
+        id: event._id,
+        provider: event.provider,
+        eventId: event.eventId,
+        processedAt: event.processedAt,
+        createdAt: event._creationTime,
+      })),
+      paymentsAudit: paymentsAuditDocs.map((audit) => ({
+        id: audit._id,
+        action: audit.action,
+        stripeObject: audit.stripeObject,
+        stripeId: audit.stripeId,
+        details: audit.details ?? {},
+        createdAt: audit.createdAt ?? audit._creationTime,
+      })),
+      paymentAttempts: paymentAttemptsDocs.map((attempt) => ({
+        id: attempt._id,
+        stripeSessionId: attempt.stripeSessionId,
+        amount: attempt.amount,
+        currency: attempt.currency ?? "usd",
+        status: attempt.status,
+        failureReason: attempt.failureReason,
+        paidAt: attempt.paidAt,
+        createdAt: attempt.createdAt ?? attempt._creationTime,
+      })),
+      intakePaymentAttempts: intakePaymentDocs.map((attempt) => ({
+        id: attempt._id,
+        customerEmail: attempt.customerEmail,
+        membershipPlan: attempt.membershipPlan,
+        stripeSessionId: attempt.stripeSessionId,
+        amount: attempt.amount,
+        currency: attempt.currency ?? "usd",
+        status: attempt.status,
+        discountCode: attempt.discountCode,
+        receiptUrl: attempt.receiptUrl,
+        paidAt: attempt.paidAt,
+        createdAt: attempt.createdAt ?? attempt._creationTime,
+      })),
+    };
+  },
+});
+
 // Search and filter users (admin only)
 export const searchUsers = query({
   args: {

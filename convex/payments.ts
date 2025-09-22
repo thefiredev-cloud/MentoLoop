@@ -1167,6 +1167,8 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       status: "succeeded",
       discountCode: typeof session.metadata?.discountCode === 'string' ? session.metadata.discountCode : undefined,
       discountPercent: session.metadata?.discountPercent ? Number(session.metadata.discountPercent) : undefined,
+      currency: (session.currency || session.metadata?.currency) as string | undefined,
+      stripeCustomerId: stripeCustomerId || undefined,
     });
     
 
@@ -1176,6 +1178,70 @@ async function handleStudentIntakePaymentCompleted(ctx: any, session: any) {
       user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
     } catch (error) {
       // Failed to find user by email
+    }
+
+    let receiptUrl: string | undefined;
+    let paidAt: number | undefined;
+    let confirmedCurrency: string | undefined = session.currency as string | undefined;
+    let confirmedAmount: number | undefined = session.amount_total as number | undefined;
+
+    try {
+      const paymentIntentId = session.payment_intent as string | undefined;
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (paymentIntentId && stripeSecretKey) {
+        const resp = await fetch(`https://api.stripe.com/v1/payment_intents/${paymentIntentId}`, {
+          headers: {
+            Authorization: `Bearer ${stripeSecretKey}`,
+          },
+        });
+        if (resp.ok) {
+          const paymentIntent = await resp.json();
+          receiptUrl = paymentIntent?.charges?.data?.[0]?.receipt_url || undefined;
+          confirmedCurrency = (paymentIntent?.currency || confirmedCurrency || 'usd') as string;
+          confirmedAmount = (paymentIntent?.amount_received ?? paymentIntent?.amount ?? confirmedAmount) as number | undefined;
+          if (paymentIntent?.created) {
+            paidAt = Number(paymentIntent.created) * 1000;
+          }
+        }
+      }
+    } catch (_paymentIntentError) {
+      // Non-blocking: continue with available data
+    }
+
+    try {
+      await ctx.runMutation(internal.payments.updateIntakePaymentAttemptDetails, {
+        stripeSessionId: session.id,
+        updates: {
+          currency: confirmedCurrency,
+          stripeCustomerId: stripeCustomerId || undefined,
+          receiptUrl,
+          paidAt: paidAt ?? Date.now(),
+          amount: confirmedAmount,
+          status: "succeeded",
+        },
+      });
+    } catch (updateError) {
+      console.error('Failed to update intake payment attempt details:', updateError);
+    }
+
+    // Record audit trail for admin visibility (non-blocking)
+    try {
+      await ctx.runMutation(internal.payments.insertPaymentsAudit, {
+        action: "intake_checkout_completed",
+        stripeObject: "checkout_session",
+        stripeId: session.id,
+        details: {
+          customerEmail,
+          membershipPlan: membershipPlan || 'core',
+          amount: confirmedAmount ?? session.amount_total,
+          currency: confirmedCurrency ?? session.currency,
+          discountCode: session.metadata?.discountCode,
+          receiptUrl,
+        },
+        createdAt: Date.now(),
+      });
+    } catch (_auditError) {
+      // Audit logging best-effort only
     }
     
     if (user) {
@@ -1410,6 +1476,10 @@ export const logIntakePaymentAttempt = internalMutation({
     status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
     discountCode: v.optional(v.string()),
     discountPercent: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    stripeCustomerId: v.optional(v.string()),
+    receiptUrl: v.optional(v.string()),
+    paidAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const planKey = resolveMembershipPlan(args.membershipPlan);
@@ -1425,7 +1495,12 @@ export const logIntakePaymentAttempt = internalMutation({
       status: args.status,
       discountCode: args.discountCode,
       discountPercent: args.discountPercent,
+      currency: args.currency,
+      stripeCustomerId: args.stripeCustomerId,
+      receiptUrl: args.receiptUrl,
+      paidAt: args.paidAt ?? (args.status === "succeeded" ? Date.now() : undefined),
       createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
 
     // Grant hour credits if succeeded
@@ -1455,6 +1530,35 @@ export const logIntakePaymentAttempt = internalMutation({
     }
 
     return insertedId;
+  },
+});
+
+// Internal mutation to patch existing intake payment attempts by Stripe session id
+export const updateIntakePaymentAttemptDetails = internalMutation({
+  args: {
+    stripeSessionId: v.string(),
+    updates: v.object({
+      status: v.optional(v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed"))),
+      failureReason: v.optional(v.string()),
+      amount: v.optional(v.number()),
+      currency: v.optional(v.string()),
+      stripeCustomerId: v.optional(v.string()),
+      receiptUrl: v.optional(v.string()),
+      paidAt: v.optional(v.number()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const attempt = await ctx.db
+      .query("intakePaymentAttempts")
+      .withIndex("byStripeSessionId", (q) => q.eq("stripeSessionId", args.stripeSessionId))
+      .first();
+
+    if (attempt) {
+      await ctx.db.patch(attempt._id, {
+        ...args.updates,
+        updatedAt: Date.now(),
+      } as any);
+    }
   },
 });
 

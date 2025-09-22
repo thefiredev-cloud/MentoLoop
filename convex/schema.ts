@@ -65,6 +65,7 @@ export default defineSchema({
       failureReason: v.optional(v.string()),
       discountCode: v.optional(v.string()), // Discount code used
       discountPercent: v.optional(v.number()), // Percentage discounted
+      receiptUrl: v.optional(v.string()),
       paidAt: v.optional(v.number()),
       createdAt: v.number(),
       updatedAt: v.optional(v.number()),

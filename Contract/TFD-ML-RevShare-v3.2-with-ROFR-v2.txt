@@ -1,0 +1,691 @@
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+
+Effective: [___________, 2025] | Version: v3.2 (2025‑09‑17) | Doc ID: TFD‑ML‑RevShare‑v3.2 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 1 of 12 | Last edited: 2025‑09‑17 | Initials: TO ______ / EB ______ 
+
+SOFTWARE DEVELOPMENT AND REVENUE 
+SHARING AGREEMENT (v3.2) 
+
+This Software Development and Revenue Sharing Agreement (the “Agreement”) is entered into as of 
+________________, 2025 (the “Effective Date”), by and between TheFireDev LLC, a California limited 
+liability company (“Developer”), with its principal place of business as set forth in Exhibit C; and 
+Mentoloop, LLC, a Texas limited liability company (“Company”), with its principal place of business as set 
+forth in Exhibit C. 
+
+RECITALS 
+
+WHEREAS, Developer has designed, developed, deployed, and continues to refine a healthcare clinical 
+placement platform for Company, including (without limitation) the site located at 
+sandboxmentoloop.online and its successor primary domain mentoloop.com (together, the “Platform”); 
+
+WHEREAS, the Platform incorporates advanced technologies including AI‑powered matching, real‑time 
+database architecture, authentication, billing, and third‑party integrations, and is configured to support 
+Company’s HIPAA compliance obligations; and Company shall remain solely responsible for all 
+legal/regulatory compliance (including HIPAA), Business Associate Agreements, and operational 
+safeguards; 
+
+WHEREAS, the parties desire to document compensation for work performed to date and to establish a 
+limited‑term revenue sharing arrangement while Company scales the Platform; and 
+
+NOW, THEREFORE, in consideration of the mutual covenants herein, the parties agree as follows: 
+
+1. COMPLETED WORK; VERSION 1.0 SCOPE 
+
+1.1 Acknowledgment. Company acknowledges delivery of a functional Platform including source code, 
+
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+configuration, and related materials. The Platform includes, without limitation: Next.js 15 application, 
+Convex database, Clerk authentication, AI integrations (OpenAI and Google Gemini), SendGrid/Twilio, 
+and associated front‑ and back‑end components. 
+
+1.2 Version 1.0 Hardening & Acceptance. Developer will perform reasonable stabilization to reach 
+Version 1.0 (“v1.0”) as defined in Exhibit D. Upon the earlier of (a) Company’s written acceptance that 
+v1.0 criteria are met; or (b) five (5) business days after production deployment that materially satisfies 
+Exhibit D with no Sev‑1 defects blocking core flows, the work is deemed Accepted. After Acceptance, 
+Developer has no ongoing obligation to provide development, maintenance, or support unless 
+separately agreed in writing. 
+
+1.3 Domain Transfers. Upon receipt of the §2.1 Initial Payment, Developer shall cooperate to transfer 
+sandboxmentoloop.online to Company’s registrar of choice and complete DNS cutover for 
+mentoloop.com as the primary domain (details in Exhibit D). Company will bear registrar/DNS fees. 
+
+1.4 Background IP. As between the parties, Developer retains all right, title, and interest in Developer’s 
+pre‑existing tools, libraries, templates, frameworks, know‑how, and generic components (“Background 
+IP”). Subject to §2.1 payment, Developer grants Company a perpetual, worldwide, irrevocable, 
+royalty‑free license to use Background IP solely as incorporated into or necessary to operate the 
+Platform. 
+
+1.5 Third‑Party Services & Open Source. Company shall maintain its own accounts and licenses 
+(including OpenAI, Google, Stripe, Clerk, Convex, SendGrid, Twilio, hosting, and observability) and 
+comply with applicable third‑party terms and open‑source licenses. Developer makes no warranty 
+regarding third‑party services. 
+
+1.6 Payment Processing (Stripe / Clerk Billing). 
+
+(a) Accounts & Control. Company will operate payment processing under a Company‑owned Stripe 
+account and/or Clerk Billing linked to Company’s Stripe. All products, prices, refunds, chargebacks, tax 
+settings, payout schedules, and platform/Connect settings (if used) are Company‑controlled. 
+
+(b) No Funds Handling by Developer. Developer does not accept, hold, process, or settle end‑user 
+payments, is not a merchant of record, and is not responsible for Stripe balances, payouts, reserves, 
+chargebacks, or card‑network fines. 
+
+(c) PCI & Data Handling. The Platform shall use Stripe‑hosted Checkout/Elements or Clerk‑hosted 
+components such that card data is not handled by Developer systems. Company is responsible for its 
+PCI‑DSS obligations (e.g., SAQ‑A) and for ensuring no PHI is transmitted to Stripe except as consistent 
+with Company’s compliance program. 
+
+(d) Webhooks. Company will provide secrets and endpoints for production webhooks. The Platform will 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 2 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+verify signatures and handle at minimum: checkout.session.completed, 
+payment_intent.succeeded, charge.refunded, and charge.dispute.created (see 
+Exhibit F). Company is responsible for operational response to disputes and refunds. 
+
+(e) Taxes & Receipts. Company is solely responsible for tax collection/remittance (e.g., Stripe Tax if 
+enabled), invoicing, and customer receipts. 
+
+(f) Handover. Prior to v1.0 Acceptance, Developer will document Stripe/Clerk keys, environment 
+variables, and webhook endpoints and confirm a successful live‑mode test transaction. 
+
+2. COMPENSATION 
+
+2.1 Initial Payment (Revised). Within five (5) business days of execution, Company shall pay Developer a 
+one‑time payment of US $40,000.00 by wire/ACH. This recognizes work performed since July 1, 2025 
+and is non‑refundable. Late amounts accrue interest at 1.0% per month or the maximum lawful rate, 
+whichever is lower, until paid. 
+
+2.2 Revenue Share (Tiers). For five (5) years from the Effective Date, Company shall pay Developer a 
+percentage of Gross Revenue (defined in §2.3) on an annual basis, paid quarterly per §2.4: 
+
+●  Up to and including $1,000,000 annual Gross Revenue: 40% 
+
+●  Over $1,000,000 and up to and including $3,000,000: 25% 
+●  Over $3,000,000: 15% 
+
+2.3 Gross Revenue; Anti‑Avoidance. “Gross Revenue” means all revenue collected by Company or its 
+Affiliates, successors, assigns, licensees, resellers, or white‑label partners from any source directly or 
+indirectly related to the Platform or any successor, rebrand, derivative work, or substantially similar 
+offering, including subscription fees, transaction fees, licensing, partnership revenues, data 
+access/monetization, and advertising, excluding only (a) taxes collected/remitted; and (b) 
+refunds/chargebacks. Company shall not structure arrangements with the primary purpose to reduce 
+amounts payable hereunder; intercompany/affiliate transactions must be arm’s‑length at fair‑market 
+value. 
+
+2.4 Statements; Payment Mechanics. Revenue‑share amounts shall be calculated and paid quarterly 
+within thirty (30) days after each calendar quarter. Quarterly payments are calculated on a cumulative 
+YTD basis with a Q4 true‑up to reflect tier thresholds; prior payments are credited. Each payment shall 
+include a written statement showing Gross Revenue and applicable tier. On request, Company will 
+provide links/read‑only access to Stripe (or Clerk/Stripe) dashboards and accounting reports reasonably 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 3 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+necessary to validate statements. All payments via ACH/wire to Developer’s account in Exhibit A. Late 
+payments accrue interest per §2.1. 
+
+2.5 Cap and Company Buy‑Out. Revenue‑share obligations continue until the earlier of: (a) five (5) years 
+from the Effective Date; or (b) the date cumulative revenue‑share payments to Developer equal US 
+$600,000 (the “Cap”). Company may at any time buy out the remaining obligation by paying the 
+difference between the Cap and all revenue‑share paid to date (the “Buy‑Out Amount”). Conditions 
+precedent: (i) Company has paid all accrued amounts (including interest); (ii) Company is not in uncured 
+material breach; and (iii) Company (and any acquirer/assignee) acknowledges compliance with §§2.4–3 
+through the buy‑out closing. Upon Developer’s receipt of the Cap or Buy‑Out Amount, §§2.2–3 and §5.2 
+terminate; accrued but unpaid amounts remain due. 
+
+3. REPORTING AND AUDIT RIGHTS 
+
+3.1 Reporting & Access. Company shall maintain accurate and complete books/records relating to Gross 
+Revenue and retain them for seven (7) years. Within thirty (30) days after each quarter, Company will 
+provide the statement described in §2.4 and, upon reasonable request, read‑only access to payment 
+processor dashboards (e.g., Stripe), subscription analytics, and accounting reports sufficient to validate 
+Gross Revenue. 
+
+3.2 Audit. No more than once per calendar year, upon fifteen (15) business days’ notice, Developer may 
+audit records relevant to Gross Revenue during normal business hours. If an audit reveals an 
+underpayment exceeding five percent (5%) for any audited period, Company shall promptly pay the 
+shortfall, interest per §2.1, and Developer’s reasonable audit costs. 
+
+4. INTELLECTUAL PROPERTY 
+
+4.1 Ownership of Deliverables. Upon receipt of the §2.1 Initial Payment, Company owns all intellectual 
+property rights in the Platform deliverables as provided by Developer, excluding the Background IP 
+licensed under §1.4. Ownership remains subject to Developer’s revenue‑share, audit, and portfolio 
+rights. 
+
+4.2 Developer Portfolio Rights. Developer may reference the Platform in its portfolio, marketing 
+materials, and professional representations, and may use non‑confidential descriptions and screenshots 
+for such purposes. 
+
+4.3 Limited Moral Rights Waiver. To the limited extent necessary for Company to use, modify, and 
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 4 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+distribute the Platform, Developer waives moral rights; nothing limits Developer’s §4.2 portfolio rights. 
+
+5. SUCCESSOR & ACQUISITION PROVISIONS 
+
+5.1 Binding on Successors; Assignment. This Agreement binds and benefits the parties and their 
+successors/permitted assigns. Company may not assign without Developer’s prior written consent, 
+except in a merger, acquisition, or sale of substantially all assets, provided the acquirer expressly 
+assumes all obligations, including revenue‑share and audit rights. 
+
+5.2 Acceleration on Change of Control. Upon any Change of Control (more than 50% ownership change 
+or sale of substantially all assets), at Developer’s option: (a) the revenue‑share continues on existing 
+terms; or (b) Company shall pay a lump sum equal to 2.5× the Reference Annual Revenue Share (the 
+greater of: last full quarter’s revenue‑share × 4; or average monthly revenue‑share over the last six (6) 
+months × 12). The lump sum is due at closing and must be funded from proceeds or placed in escrow for 
+Developer’s benefit. 
+
+5.3 Right of First Refusal on Platform Disposition. 
+
+(a) Triggered Transactions. For so long as any obligations under §§2.2–3 or §5.2 remain in effect, 
+Company shall not consummate any Disposition of the Platform or any material portion of the Platform 
+IP to a third party, other than a Permitted Transfer, unless it has first complied with this §5.3. 
+“Disposition” includes any sale, assignment, exclusive license, transfer, or other conveyance of ownership 
+or exclusive exploitation rights. 
+
+(b) Notice of Bona Fide Offer. If Company receives a bona fide written third‑party offer to effect a 
+Disposition that Company desires to accept (the “Offer”), Company shall deliver to Developer a notice 
+setting forth the identity of the offeror and all material terms including price and any non‑cash 
+consideration, escrow/holdbacks, assumed liabilities, and closing conditions, together with a redacted 
+term sheet or draft agreement sufficient to evaluate the Offer. 
+
+(c) Exercise. Developer shall have thirty (30) days after receipt of such notice (the “ROFR Period”) to elect 
+to purchase or license on the same terms by written notice to Company. If the Offer includes non‑cash 
+consideration, Developer may elect to pay the cash equivalent of such consideration at fair market value. 
+Closing shall occur within forty‑five (45) days after exercise, subject to customary definitive agreements. 
+
+(d) Failure to Exercise. If Developer does not timely exercise, Company may consummate the Disposition 
+with the identified offeror on terms no more favorable to such offeror than those set forth in the notice 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 5 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+and with a closing within one hundred twenty (120) days; otherwise, the Disposition shall again be 
+subject to this §5.3. 
+
+(e) Permitted Transfers. The foregoing shall not apply to (i) internal reorganizations or transfers for bona 
+fide financing purposes in which, after the transaction, Company (or its successor) remains obligated 
+under this Agreement; (ii) liens or security interests granted in the ordinary course; (iii) non‑exclusive 
+licenses in the ordinary course; or (iv) a Change of Control transaction, provided that at closing Company 
+complies with §5.2 or, if §2.5 has been satisfied prior to closing, the acquirer assumes any surviving 
+obligations under §§2.3 and 3 through closing. 
+
+(f) Confidentiality; No‑Shop. During the ROFR Period, each party shall keep Offer terms confidential, and 
+Company shall not solicit or shop alternative offers. 
+
+(g) Sunset. This §5.3 terminates upon Company’s satisfaction of §2.5 (Cap or Buy‑Out). 
+
+(h) Packaged Deals. If an Offer is bundled with other assets or businesses, the parties shall in good faith 
+allocate a price to the Platform and related Platform IP. If they cannot agree within ten (10) days, the 
+allocation shall be determined by an independent valuation firm mutually selected (or, failing 
+agreement, appointed by AAA) and split equally. Developer may exercise this §5.3 with respect to the 
+Platform at the allocated price. 
+
+5.4 (Optional) Right of First Offer on Post‑Acceptance Engineering. 
+
+For twelve (12) months following v1.0 Acceptance, before engaging any third‑party to perform material 
+feature development, refactoring, or re‑platforming work on the Platform reasonably estimated to 
+exceed forty (40) engineer hours or US $25,000 in fees, Company shall first offer such work to Developer 
+including a reasonable statement of scope. Developer shall have ten (10) business days to submit a 
+good‑faith proposal. If the parties do not execute a statement of work within fifteen (15) business days 
+after Developer’s proposal, Company may engage a third‑party on terms not materially less favorable to 
+Company than those offered to Developer. 
+
+6. REPRESENTATIONS; INDEMNITIES; LIMITATIONS 
+
+6.1 Developer Representations. Developer has full right and authority to enter into this Agreement and, 
+to Developer’s knowledge, the deliverables as provided do not infringe third‑party IP rights. 
+
+6.2 Company Representations. Company has full right and authority to enter into this Agreement and 
+will operate the Platform in good faith to maximize revenue potential and comply with applicable laws 
+and third‑party terms. 
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 6 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+6.3 Disclaimers. EXCEPT AS EXPRESSLY STATED, THE PLATFORM AND DELIVERABLES ARE PROVIDED “AS 
+IS,” WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING 
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, OR NON‑INFRINGEMENT. DEVELOPER 
+DOES NOT WARRANT LEGAL OR REGULATORY COMPLIANCE (INCLUDING HIPAA/PCI); SUCH COMPLIANCE 
+IS COMPANY’S RESPONSIBILITY. 
+
+6.4 Indemnities. (a) By Developer (IP‑Only). Developer will defend and indemnify Company from 
+third‑party claims alleging that the deliverables as provided and used as intended without modification 
+infringe such party’s IP rights; Developer may procure the right to continue use, replace, or modify the 
+deliverables to be non‑infringing. (b) By Company. Company will defend and indemnify Developer from 
+claims arising from Company’s operation/configuration of the Platform, handling of data, regulatory 
+compliance (including HIPAA/PCI), or use of third‑party services, except to the extent finally determined 
+to be caused by Developer’s willful misconduct. 
+
+6.5 Limitation of Liability. NEITHER PARTY WILL BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, 
+CONSEQUENTIAL, OR PUNITIVE DAMAGES. EXCEPT FOR PAYMENT AND INDEMNITY OBLIGATIONS, EACH 
+PARTY’S TOTAL LIABILITY SHALL NOT EXCEED THE GREATER OF: (i) AMOUNTS PAID OR PAYABLE TO 
+DEVELOPER HEREUNDER IN THE TWELVE (12) MONTHS PRECEDING THE EVENT; OR (ii) US $25,000. 
+These limits apply to the maximum extent permitted by law. 
+
+7. TERM; TERMINATION 
+
+7.1 Term. The revenue‑sharing provisions remain in effect for five (5) years from the Effective Date, 
+unless earlier terminated pursuant to §2.5 or §5.2. 
+
+7.2 Survival. Accrued but unpaid revenue‑share amounts, audit rights, and provisions that by their 
+nature should survive will survive termination/expiration. 
+
+7.3 No Circumvention / Shutdown. Company will not discontinue the Platform or route revenue through 
+an Affiliate, licensee, reseller, rebrand, or substantially similar service for the purpose of avoiding or 
+reducing amounts payable to Developer. 
+
+8. GENERAL 
+
+8.1 Governing Law; Venue. California law governs; venue/seat for arbitration and any permitted court 
+proceedings is Los Angeles County, California. 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 7 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+8.2 Dispute Resolution; Arbitration. Parties shall first attempt to resolve disputes in good faith within 
+thirty (30) days. Unresolved disputes shall be submitted to binding AAA arbitration under the 
+Commercial Rules, before a single arbitrator in Los Angeles County, California. The arbitration is 
+confidential; the award may be entered in any court of competent jurisdiction. 
+
+8.3 Independent Contractor. The parties are independent contractors; nothing creates a partnership, 
+joint venture, or employment relationship. 
+
+8.4 Confidentiality. Each party shall protect the other’s non‑public information with at least reasonable 
+care and use it only to perform under this Agreement. §4.2 applies to non‑confidential uses only. 
+
+8.5 Fees. The prevailing party in any action to enforce this Agreement is entitled to reasonable attorneys’ 
+fees and costs. 
+
+8.6 Force Majeure. Neither party is liable for delays/failures due to causes beyond its reasonable control. 
+
+8.7 Notices. Notices must be in writing and delivered by email with confirmation of receipt or by 
+certified mail to the contacts in Exhibit C (as updated by notice). Email notice is effective upon 
+acknowledged receipt. 
+
+8.8 Non‑Disparagement (Carve‑Outs). Each party agrees not to make disparaging statements about the 
+other party or the Platform that could harm business relationships or reputation; nothing prohibits 
+truthful statements in legal proceedings, governmental inquiries, compelled testimony, or confidential 
+communications with investors, lenders, or professional advisors. 
+
+8.9 Counterparts; E‑Signatures. This Agreement may be executed in counterparts, including by 
+electronic signature, each deemed an original. 
+
+8.10 Entire Agreement; Amendment; Severability. This is the entire agreement regarding its subject 
+matter and supersedes prior or contemporaneous understandings. Amendments require a signed writing 
+of both parties. If any provision is held invalid/unenforceable, the remainder remains in full force and 
+effect. 
+
+8.11 Definitions. “Affiliate” means any entity that directly or indirectly controls, is controlled by, or is 
+under common control with a party, where “control” means ownership of more than fifty percent (50%) 
+of voting interests or power to direct management/policies. 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 8 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+SIGNATURES 
+
+THEFIREDEV LLC 
+
+By: _________________________________ 
+ Name: Tanner Osterkamp 
+ Title: Managing Member 
+ Date: _______________________________ 
+
+MENTOLOOP, LLC 
+
+By: _________________________________ 
+ Name: Edwin Batista 
+ Title: _______________________________ 
+ Date: _______________________________ 
+
+EXHIBIT A — Wiring Instructions (TheFireDev LLC) 
+
+Remit all payments by ACH or domestic wire using the following details. Include the Agreement Doc ID 
+and invoice/reference in the memo. 
+
+ACH (USD) 
+ Beneficiary: TheFireDev LLC 
+ Bank Name: [Bank Name] 
+ Routing (ACH): [XXXXXXXXX] 
+ Account Number: [XXXXXXXXXXXX] 
+ Account Type: [Checking/Savings] 
+ Payment Reference: TFD‑ML‑RevShare‑v3.2 / Invoice # / Company Name 
+
+Domestic Wire (USD) 
+ Beneficiary: TheFireDev LLC 
+ Bank Name: [Bank Name] 
+ Routing (WIRE/ABA): [XXXXXXXXX] 
+ Account Number: [XXXXXXXXXXXX] 
+ SWIFT/BIC (if applicable): [XXXXXXXX] 
+ Bank Address: [Bank Street, City, State ZIP] 
+ Payment Reference: TFD‑ML‑RevShare‑v3.2 / Invoice # / Company Name 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 9 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+ Remittance Advice Email: tanner@thefiredev.com 
+
+EXHIBIT B — Revenue Share Examples & True‑Up 
+
+Updated for §2.2 (40% / 25% / 15% tiers) and §2.5 Cap/Buy‑Out (Cap: $600,000; 5‑year term). 
+
+Scenario 1 — $600,000 Annual Gross Revenue. 
+
+40% × $600,000 = $240,000 total for the year. Illustrative equal quarters: ~$60,000/quarter, with minor 
+year‑end true‑up. 
+
+Scenario 2 — $1,800,000 Annual Gross Revenue. 
+
+(40% × $1,000,000) + (25% × $800,000) = $400,000 + $200,000 = $600,000. Cap is reached during the 
+year; quarterly payments stop in the quarter when cumulative YTD payments hit $600,000. No further 
+revenue‑share is owed thereafter. 
+
+Scenario 3 — $3,500,000 Annual Gross Revenue. 
+
+Without the Cap: (40% × $1,000,000) + (25% × $2,000,000) + (15% × $500,000) = $975,000. With the 
+Cap: payments cease once cumulative payments equal $600,000 (reached before year‑end). 
+
+Refunds/Chargebacks Example. 
+
+If $25,000 in refunds post in Q3, Gross Revenue is reduced accordingly and any overpayment is credited 
+in the next statement. If the Cap has already been reached, statements should still reflect netting, but no 
+additional payment is due. 
+
+Affiliate/White‑Label Example. 
+
+Revenue collected by a rebranded affiliate (e.g., a partner school) counts toward Gross Revenue; 
+arm’s‑length pricing is required (§2.3). 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 10 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+Buy‑Out Example. 
+
+If cumulative revenue‑share paid to date is $180,000, the Buy‑Out Amount is $420,000 (Cap $600,000 
+minus $180,000), subject to §2.5 conditions precedent. Upon payment, §§2.2–3 and §5.2 terminate. 
+
+Change of Control Note. 
+
+If the Cap or Buy‑Out has been satisfied prior to a Change of Control, §5.2 acceleration 
+no longer applies per §2.5. 
+
+EXHIBIT C — Notices & Contacts 
+
+TheFireDev LLC (Developer) 
+ Attn: Legal 
+ 36 Imperatrice 
+ Dana Point, CA 92629 
+ United States 
+ Email: tanner@thefiredev.com 
+ Phone: 714‑403‑6569 
+
+Mentoloop, LLC (Company) 
+ Attn: Legal 
+ [Street Address] 
+ [City, State ZIP] 
+ United States 
+ Email: legal@mentoloop.com 
+ Phone: [###‑###‑####] 
+
+EXHIBIT D — v1.0 Acceptance Criteria & Domain Transfers 
+
+D.1 Acceptance Criteria (core flows must function without Sev‑1 defects): 
+
+1.  User onboarding & auth (Clerk) for students and preceptors; role‑based routing. 
+
+2.  Payments: Production‑mode Stripe Checkout/Elements or Clerk Billing integrated; at least one 
+
+successful live transaction; graceful failure messaging; refund flow verified. 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 11 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+3.  Student intake: form completion, eligibility checks, and record creation in Convex; payment 
+
+gating where required. 
+
+4.  Matching engine: AI‑assisted matching producing candidate preceptors; basic admin override 
+
+tools. 
+
+5.  Messaging/notifications: email (SendGrid) and SMS (Twilio) templates configured and sending 
+
+for key events (intake confirmation, match status, admin notes). 
+
+6.  Admin dashboard: search, filter, and basic reporting; logs/metrics accessible to Company. 
+
+7.  Hosting/observability: production deploy on Company‑controlled accounts; environment 
+
+variables configured; uptime/health checks. 
+
+8.  Security: reasonable defaults; access controls by role; secrets managed in platform env; no card 
+
+data stored on the Platform. 
+
+9.  Handover: GitHub access; documentation for environment variables; payment runbook; readme 
+
+for deploy. 
+
+D.2 Domain Transfers. On receipt of §2.1 payment, Developer will: (i) transfer 
+sandboxmentoloop.online to a Company‑controlled registrar account; (ii) configure mentoloop.com as 
+the primary domain with DNS cutover, SSL, and redirects; (iii) update environment variables for new 
+domain. Registrar and DNS fees are Company’s responsibility. 
+
+D.3 Post‑Acceptance. After v1.0 Acceptance, further feature work or support is outside scope and 
+requires a separate written agreement (time‑and‑materials or fixed bid). 
+
+EXHIBIT E — Non‑Binding Effort Estimate (Context Only) 
+
+E.1 Basis. Commit history across Company‑visible repositories (including Apex‑ai‑net/MentoLoop and 
+Apex‑ai‑net/MentoLoop‑waitlist) since July 1, 2025, plus major features delivered. 
+
+E.2 Estimate. Approx. 500–700 engineer hours cumulative through the Effective Date, based on ~200+ 
+code commits, typical 2.5–3.0 hours per substantive commit, and time on integration/debugging. 
+
+E.3 Notes. This estimate is informational only and does not limit or expand payment obligations. The 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 12 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+§2.1 deposit reflects a portion of this effort; the revenue‑share and Cap provide the remaining recovery 
+mechanism. 
+
+EXHIBIT F — Stripe / Clerk Billing Production Checklist & 
+Webhooks 
+
+F.1 Accounts & Keys. 
+
+●  Stripe account under Company (production). 
+
+● 
+
+If using Clerk Billing, connect Stripe to Clerk; confirm products/prices. 
+
+●  Generate and securely store: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET. 
+
+●  Environment variables added to Netlify/Vercel and Convex. 
+
+F.2 Webhooks (min. events handled by Platform). 
+
+●  checkout.session.completed → provision/activate access. 
+
+●  payment_intent.succeeded → confirm payment records. 
+
+●  charge.refunded → update entitlement/reports. 
+
+●  charge.dispute.created → flag account; notify admin. 
+
+F.3 Verification & Logging. 
+
+●  Verify signatures (Stripe‑SDK). 
+
+●  Persist webhook payload ids; idempotency enforced. 
+
+●  Admin panel shows last 100 webhook events with status. 
+
+F.4 Test → Live Readiness. 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 13 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+DRAFT — Privileged & Confidential — For Discussion Only 
+TheFireDev LLC × Mentoloop, LLC — Software Development & Revenue Sharing Agreement 
+Effective: [___________, 2025]  |  Version: v2.5 (2025-09-15)  |  Doc ID: TFD-ML-RevShare-v2 
+
+●  Test cards succeed/fail as expected. 
+
+●  Taxes (if any) configured; receipt emails enabled. 
+
+●  At least one live $1.00 (or minimum) transaction completed and reconciled. 
+
+●  Refund tested in live (if policy allows) or test mode with clear runbook. 
+
+F.5 Responsibilities. 
+
+●  Company handles refunds, disputes, and responses to card networks. 
+
+●  Developer provides runbooks and ensures technical handling of events until v1.0 Acceptance. 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 12 of 12 | Last edited: 2025‑09‑17 | Initials: TO ______ / EB ______ 
+
+© 2025 TheFireDev LLC. Proprietary & Confidential. 
+
+Page 14 of 14  |  Last edited: 2025-09-15  |  Initials: TO ______  /  EB ______ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+

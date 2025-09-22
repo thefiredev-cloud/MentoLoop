@@ -1,0 +1,7 @@
+{
+  "payment_intent": "pi_3SABFPB1lwwjVYGv1sGjpXKI",
+  "refund_id": "re_3SABFPB1lwwjVYGv1GSM9S7b",
+  "amount_cents": 50,
+  "status": "succeeded",
+  "createdAt": "2025-09-22T15:17:29.554Z"
+}

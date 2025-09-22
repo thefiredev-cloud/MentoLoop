@@ -100,31 +100,47 @@ export function getClerkDomain(): string {
 
 // Helper to get OAuth redirect URLs for current environment
 export function getOAuthRedirectUrls(): string[] {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const netlifyUrl = 'https://bejewelled-cassata-453411.netlify.app'
-  const customDomain = 'https://sandboxmentoloop.online'
-  
-  // Include all possible redirect URLs
-  const urls = [
-    `${appUrl}/sso-callback/google`,
-    `${appUrl}/sign-in`,
-    `${appUrl}/sign-up`,
-    `${appUrl}/dashboard`,
-  ]
-  
-  // Add production URLs if in production
-  if (process.env.NODE_ENV === 'production') {
-    urls.push(
-      `${customDomain}/sso-callback/google`,
-      `${customDomain}/sign-in`,
-      `${customDomain}/sign-up`,
-      `${customDomain}/dashboard`,
-      `${netlifyUrl}/sso-callback/google`,
-      `${netlifyUrl}/sign-in`,
-      `${netlifyUrl}/sign-up`,
-      `${netlifyUrl}/dashboard`
-    )
+  const normalizeUrl = (url: string | undefined): string | null => {
+    if (!url) return null
+    const trimmed = url.trim().replace(/\/$/, '')
+    if (!trimmed) return null
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`.replace(/\/$/, '')
+    }
+    return trimmed
   }
-  
-  return [...new Set(urls)] // Remove duplicates
+
+  const defaultAppUrl = 'http://localhost:3000'
+  const primaryAppUrl = normalizeUrl(process.env.NEXT_PUBLIC_APP_URL) || defaultAppUrl
+  const defaultNetlifyUrl = 'https://bejewelled-cassata-453411.netlify.app'
+  const candidateFallbackUrls = [
+    process.env.NEXT_PUBLIC_FALLBACK_APP_URL,
+    process.env.NEXT_PUBLIC_SANDBOX_APP_URL,
+    process.env.NETLIFY_LIVE_URL,
+    process.env.DEPLOY_PRIME_URL,
+    process.env.URL,
+    process.env.NETLIFY_SITE_URL,
+    process.env.NETLIFY_VCS_URL,
+    defaultNetlifyUrl,
+  ]
+
+  const basePaths = ['/sso-callback/google', '/sign-in', '/sign-up', '/dashboard']
+  const urls = new Set<string>()
+
+  basePaths.forEach((path) => {
+    urls.add(`${primaryAppUrl}${path}`)
+  })
+
+  if (process.env.NODE_ENV === 'production') {
+    candidateFallbackUrls
+      .map((url) => normalizeUrl(url))
+      .filter((url): url is string => Boolean(url))
+      .forEach((url) => {
+        basePaths.forEach((path) => {
+          urls.add(`${url}${path}`)
+        })
+      })
+  }
+
+  return Array.from(urls)
 }

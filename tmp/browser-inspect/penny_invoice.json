@@ -1,0 +1,9 @@
+{
+  "customer": "cus_T63uBAiWRMUUVz",
+  "invoice": "in_1S9rmjB1lwwjVYGv5DXfT0q0",
+  "hosted_invoice_url": "https://invoice.stripe.com/i/acct_1S1xOxB1lwwjVYGv/test_YWNjdF8xUzF4T3hCMWx3d2pWWUd2LF9UNjN1blVINmtJZGNWaGw1VnNJREtwbDFnYkdnVnU0LDE0OTAxOTMxOA0200ekTkMMt5?s=ap",
+  "invoice_pdf": "https://pay.stripe.com/invoice/acct_1S1xOxB1lwwjVYGv/test_YWNjdF8xUzF4T3hCMWx3d2pWWUd2LF9UNjN1blVINmtJZGNWaGw1VnNJREtwbDFnYkdnVnU0LDE0OTAxOTMxOA0200ekTkMMt5/pdf?s=ap",
+  "amount": 1,
+  "currency": "usd",
+  "createdAt": 1758479565703
+}

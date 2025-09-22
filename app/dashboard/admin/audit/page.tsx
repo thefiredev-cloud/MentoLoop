@@ -1,28 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { 
-  Shield, 
-  Activity,
-  User,
-  Lock,
-  Key,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Search,
-  Filter,
-  Download,
-  FileText,
-  Database,
-  Settings
-} from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { api } from '@/convex/_generated/api'
+import { useQuery } from 'convex/react'
+import { Activity, AlertTriangle, CheckCircle, DollarSign } from 'lucide-react'
 
 export default function AuditLogs() {
   return (
@@ -33,370 +18,340 @@ export default function AuditLogs() {
 }
 
 function AuditLogsContent() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const data = useQuery(api.admin.getRecentPaymentEvents, { limit: 100 })
 
-  // Mock audit log data - in production this would come from database
-  const auditLogs = [
-    {
-      id: '1',
-      timestamp: Date.now() - 1000 * 60 * 5,
-      user: 'john.admin@example.com',
-      action: 'USER_LOGIN',
-      resource: 'Authentication',
-      status: 'success',
-      ip: '192.168.1.1',
-      details: 'Admin login successful'
-    },
-    {
-      id: '2', 
-      timestamp: Date.now() - 1000 * 60 * 15,
-      user: 'sarah.support@example.com',
-      action: 'USER_UPDATE',
-      resource: 'User Profile',
-      status: 'success',
-      ip: '192.168.1.2',
-      details: 'Updated user role to preceptor'
-    },
-    {
-      id: '3',
-      timestamp: Date.now() - 1000 * 60 * 30,
-      user: 'john.admin@example.com',
-      action: 'MATCH_CREATE',
-      resource: 'Matches',
-      status: 'success',
-      ip: '192.168.1.1',
-      details: 'Created new match between student and preceptor'
-    },
-    {
-      id: '4',
-      timestamp: Date.now() - 1000 * 60 * 45,
-      user: 'system',
-      action: 'PAYMENT_PROCESS',
-      resource: 'Payments',
-      status: 'failed',
-      ip: 'N/A',
-      details: 'Payment processing failed - insufficient funds'
-    },
-    {
-      id: '5',
-      timestamp: Date.now() - 1000 * 60 * 60,
-      user: 'john.admin@example.com',
-      action: 'SETTINGS_UPDATE',
-      resource: 'System Settings',
-      status: 'success',
-      ip: '192.168.1.1',
-      details: 'Updated email notification settings'
-    }
-  ]
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
+  if (data === undefined) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="space-y-3 text-center">
+          <div className="text-muted-foreground">Loading payment observability…</div>
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      </div>
+    )
   }
 
-  const getActionIcon = (action: string) => {
-    switch (action) {
-      case 'USER_LOGIN':
-      case 'USER_LOGOUT':
-        return <Key className="h-4 w-4" />
-      case 'USER_UPDATE':
-      case 'USER_CREATE':
-        return <User className="h-4 w-4" />
-      case 'SETTINGS_UPDATE':
-        return <Settings className="h-4 w-4" />
-      case 'PAYMENT_PROCESS':
-        return <Database className="h-4 w-4" />
-      case 'MATCH_CREATE':
-      case 'MATCH_UPDATE':
-        return <Activity className="h-4 w-4" />
-      default:
-        return <FileText className="h-4 w-4" />
-    }
+  if (!data) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Card className="max-w-lg">
+          <CardHeader>
+            <CardTitle>No payment activity yet</CardTitle>
+          </CardHeader>
+          <CardContent className="text-muted-foreground">
+            Webhooks, payment attempts, and audit entries will appear here as soon as Stripe activity begins.
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Success</Badge>
-      case 'failed':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>
-      case 'warning':
-        return <Badge variant="secondary"><AlertTriangle className="h-3 w-3 mr-1" />Warning</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
+  const webhookEvents = data.webhookEvents ?? []
+  const paymentsAudit = data.paymentsAudit ?? []
+  const paymentAttempts = data.paymentAttempts ?? []
+  const intakePaymentAttempts = data.intakePaymentAttempts ?? []
 
-  const getActionName = (action: string) => {
-    const actionMap: Record<string, string> = {
-      'USER_LOGIN': 'User Login',
-      'USER_LOGOUT': 'User Logout',
-      'USER_CREATE': 'User Created',
-      'USER_UPDATE': 'User Updated',
-      'USER_DELETE': 'User Deleted',
-      'MATCH_CREATE': 'Match Created',
-      'MATCH_UPDATE': 'Match Updated',
-      'MATCH_DELETE': 'Match Deleted',
-      'PAYMENT_PROCESS': 'Payment Processed',
-      'PAYMENT_REFUND': 'Payment Refunded',
-      'SETTINGS_UPDATE': 'Settings Updated',
-      'EMAIL_SENT': 'Email Sent',
-      'SMS_SENT': 'SMS Sent'
-    }
-    return actionMap[action] || action
-  }
+  const processedWebhook = webhookEvents.filter((event) => event.processedAt && event.processedAt > 0).length
+  const failedWebhook = webhookEvents.length - processedWebhook
+
+  const paymentSucceeded =
+    paymentAttempts.filter((attempt) => attempt.status === 'succeeded').length +
+    intakePaymentAttempts.filter((attempt) => attempt.status === 'succeeded').length
+
+  const paymentFailed =
+    paymentAttempts.filter((attempt) => attempt.status === 'failed').length +
+    intakePaymentAttempts.filter((attempt) => attempt.status === 'failed').length
+
+  const intakeRevenue = intakePaymentAttempts
+    .filter((attempt) => attempt.status === 'succeeded')
+    .reduce((sum, attempt) => sum + (attempt.amount ?? 0), 0)
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Audit Logs</h1>
+    <div className="container mx-auto py-6 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Payments Observability</h1>
         <p className="text-muted-foreground">
-          Track system activity, security events, and user actions
+          Real-time insight into Stripe webhook traffic, payment attempts, and audit history
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+            <CardTitle className="text-sm font-medium">Webhook Events</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">
-              Last 24 hours
-            </p>
+            <div className="text-2xl font-bold">{webhookEvents.length}</div>
+            <p className="text-xs text-muted-foreground">{processedWebhook} processed · {failedWebhook} pending</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Security Events</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Successful Payments</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">
-              3 require attention
-            </p>
+            <div className="text-2xl font-bold">{paymentSucceeded}</div>
+            <p className="text-xs text-muted-foreground">Across matches and intake</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed Actions</CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Failed Attempts</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-destructive">
-              Review required
-            </p>
+            <div className="text-2xl font-bold">{paymentFailed}</div>
+            <p className="text-xs text-muted-foreground">Requires follow-up</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Intake Revenue (test mode)</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-muted-foreground">
-              In last hour
-            </p>
+            <div className="text-2xl font-bold">{formatCurrency(intakeRevenue)}</div>
+            <p className="text-xs text-muted-foreground">Succeeded checkout sessions</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Events</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="users">User Actions</TabsTrigger>
-          <TabsTrigger value="system">System Events</TabsTrigger>
-          <TabsTrigger value="errors">Errors</TabsTrigger>
+      <Tabs defaultValue="webhooks" className="space-y-4">
+        <TabsList className="flex flex-wrap">
+          <TabsTrigger value="webhooks">Webhook Events ({webhookEvents.length})</TabsTrigger>
+          <TabsTrigger value="audit">Payments Audit ({paymentsAudit.length})</TabsTrigger>
+          <TabsTrigger value="match-payments">Match Payments ({paymentAttempts.length})</TabsTrigger>
+          <TabsTrigger value="intake">Intake Payments ({intakePaymentAttempts.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="webhooks">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Audit Log</span>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      placeholder="Search logs..." 
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8 w-64"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+              <CardTitle className="text-base">Stripe Webhook Deliveries</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {webhookEvents.length === 0 ? (
+                <EmptyState message="No webhooks received yet." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Event ID</TableHead>
+                        <TableHead>Provider</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Processed</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {webhookEvents.map((event) => (
+                        <TableRow key={String(event.id)}>
+                          <TableCell className="font-mono text-xs">{String(event.eventId)}</TableCell>
+                          <TableCell>{event.provider}</TableCell>
+                          <TableCell>{renderWebhookStatus(event.processedAt)}</TableCell>
+                          <TableCell>{formatDate(event.createdAt)}</TableCell>
+                          <TableCell>{event.processedAt ? formatDate(event.processedAt) : '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {auditLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        {getActionIcon(log.action)}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{getActionName(log.action)}</span>
-                          {getStatusBadge(log.status)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          User: {log.user} • IP: {log.ip}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {log.details}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatDate(log.timestamp)}
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm">View</Button>
-                  </div>
-                ))}
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="security" className="space-y-4">
+        <TabsContent value="audit">
           <Card>
             <CardHeader>
-              <CardTitle>Security Events</CardTitle>
+              <CardTitle className="text-base">Payments Audit Trail</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 border border-yellow-200 bg-yellow-50 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-4 w-4 text-yellow-600 mt-1" />
-                    <div className="space-y-1">
-                      <div className="font-medium text-sm">Multiple Failed Login Attempts</div>
-                      <div className="text-xs text-muted-foreground">
-                        5 failed attempts from IP: 203.0.113.42
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        10 minutes ago
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm">Investigate</Button>
+              {paymentsAudit.length === 0 ? (
+                <EmptyState message="No audit entries recorded yet." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Stripe Object</TableHead>
+                        <TableHead>Identifier</TableHead>
+                        <TableHead>Details</TableHead>
+                        <TableHead>Recorded</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentsAudit.map((entry) => (
+                        <TableRow key={String(entry.id)}>
+                          <TableCell>{entry.action}</TableCell>
+                          <TableCell>{entry.stripeObject}</TableCell>
+                          <TableCell className="font-mono text-xs">{entry.stripeId}</TableCell>
+                          <TableCell className="max-w-[320px] truncate text-xs">
+                            {Object.keys(entry.details || {}).length === 0
+                              ? '—'
+                              : JSON.stringify(entry.details)}
+                          </TableCell>
+                          <TableCell>{formatDate(entry.createdAt)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Lock className="h-4 w-4 mt-1" />
-                    <div className="space-y-1">
-                      <div className="font-medium text-sm">Password Changed</div>
-                      <div className="text-xs text-muted-foreground">
-                        User: student@example.com
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        2 hours ago
-                      </div>
-                    </div>
-                  </div>
-                  <Badge className="bg-green-500">Normal</Badge>
+        <TabsContent value="match-payments">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Match Payment Attempts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {paymentAttempts.length === 0 ? (
+                <EmptyState message="No match payment attempts captured yet." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Session</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Failure Reason</TableHead>
+                        <TableHead>Recorded</TableHead>
+                        <TableHead>Paid</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentAttempts.map((attempt) => (
+                        <TableRow key={String(attempt.id)}>
+                          <TableCell className="font-mono text-xs">{attempt.stripeSessionId}</TableCell>
+                          <TableCell>{renderPaymentStatus(attempt.status)}</TableCell>
+                          <TableCell>{formatCurrency(attempt.amount)}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {attempt.failureReason ?? '—'}
+                          </TableCell>
+                          <TableCell>{formatDate(attempt.createdAt)}</TableCell>
+                          <TableCell>{attempt.paidAt ? formatDate(attempt.paidAt) : '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
+        <TabsContent value="intake">
           <Card>
             <CardHeader>
-              <CardTitle>User Activity</CardTitle>
+              <CardTitle className="text-base">Intake Checkout Sessions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {auditLogs.filter(log => log.action.startsWith('USER_')).map((log) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <User className="h-4 w-4 mt-1" />
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">{getActionName(log.action)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {log.user} • {log.details}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatDate(log.timestamp)}
-                        </div>
-                      </div>
-                    </div>
-                    {getStatusBadge(log.status)}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="system" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>System Events</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                System event logs will be displayed here
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="errors" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Error Logs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {auditLogs.filter(log => log.status === 'failed').map((log) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 border border-destructive/20 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-destructive mt-1" />
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">{getActionName(log.action)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {log.details}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatDate(log.timestamp)}
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">Debug</Button>
-                  </div>
-                ))}
-              </div>
+              {intakePaymentAttempts.length === 0 ? (
+                <EmptyState message="Students have not completed checkout yet." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Plan</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Receipt</TableHead>
+                        <TableHead>Recorded</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {intakePaymentAttempts.map((attempt) => (
+                        <TableRow key={String(attempt.id)}>
+                          <TableCell className="font-mono text-xs">{attempt.customerEmail}</TableCell>
+                          <TableCell>{attempt.membershipPlan}</TableCell>
+                          <TableCell>{renderPaymentStatus(attempt.status)}</TableCell>
+                          <TableCell>{formatCurrency(attempt.amount)}</TableCell>
+                          <TableCell>
+                            {attempt.receiptUrl ? (
+                              <a
+                                href={attempt.receiptUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary underline"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Pending</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{formatDate(attempt.createdAt)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
   )
+}
+
+function formatDate(timestamp?: number) {
+  if (!timestamp) return '—'
+  try {
+    return new Date(timestamp).toLocaleString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return '—'
+  }
+}
+
+function formatCurrency(amount?: number) {
+  if (!amount) return '$0.00'
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount / 100)
+}
+
+function renderWebhookStatus(processedAt?: number) {
+  if (processedAt && processedAt > 0) {
+    return <Badge className="bg-green-500 hover:bg-green-500">Processed</Badge>
+  }
+  return <Badge variant="secondary">Pending</Badge>
+}
+
+function renderPaymentStatus(status: string) {
+  switch (status) {
+    case 'succeeded':
+      return <Badge className="bg-green-500 hover:bg-green-500">Succeeded</Badge>
+    case 'failed':
+      return <Badge variant="destructive">Failed</Badge>
+    case 'pending':
+      return <Badge variant="secondary">Pending</Badge>
+    case 'refunded':
+      return <Badge variant="outline">Refunded</Badge>
+    case 'partially_refunded':
+      return <Badge variant="outline">Partially Refunded</Badge>
+    default:
+      return <Badge variant="secondary">{status}</Badge>
+  }
+}
+
+function EmptyState({ message }: { message: string }) {
+  return <p className="text-sm text-muted-foreground text-center py-6">{message}</p>
 }

@@ -15,6 +15,15 @@ import { CheckCircle, Star, Zap, Plus, Sparkles, Calendar, CreditCard as CreditC
 import { cn } from '@/lib/utils'
 import { TermsPrivacyModal } from '@/components/ui/terms-privacy-modal'
 
+declare global {
+  interface Window {
+    __MENTOLOOP_TEST_CHECKOUT__?: {
+      sessionUrl?: string
+      sessionId?: string
+    }
+  }
+}
+
 interface PaymentAgreementStepProps {
   data: Record<string, unknown>
   updateFormData: (section: string, data: Record<string, unknown>) => void
@@ -246,6 +255,35 @@ export default function PaymentAgreementStep({
         throw new Error('Missing user information. Please ensure you are signed in properly.')
       }
 
+      const redirectToCheckout = (sessionId: string, sessionUrl: string) => {
+        updateFormData('paymentAgreement', {
+          ...(data.paymentAgreement as Record<string, unknown> || {}),
+          sessionId,
+          status: 'redirecting'
+        })
+
+        sessionStorage.setItem('selectedMembershipPlan', block.id)
+        sessionStorage.setItem('membershipDetails', JSON.stringify({
+          plan: block.id,
+          planName: block.name,
+          price: calculateTotal(),
+          hours: block.hours + addOnHours
+        }))
+        sessionStorage.setItem('returningFromStripe', 'true')
+
+        window.location.href = sessionUrl
+      }
+
+      const testCheckoutOverride = typeof window !== 'undefined'
+        ? window.__MENTOLOOP_TEST_CHECKOUT__
+        : undefined
+
+      if (testCheckoutOverride?.sessionUrl) {
+        const overrideSessionId = testCheckoutOverride.sessionId || 'test_session'
+        redirectToCheckout(overrideSessionId, testCheckoutOverride.sessionUrl)
+        return
+      }
+
       // Create Stripe checkout session with discount code if valid and installment options
       const session = await createStudentCheckoutSession({
         priceId: block.priceId,
@@ -274,27 +312,7 @@ export default function PaymentAgreementStep({
       })
 
       if (session.url) {
-        // Store session info for tracking
-        updateFormData('paymentAgreement', {
-          ...(data.paymentAgreement as Record<string, unknown> || {}),
-          sessionId: session.sessionId,
-          status: 'redirecting'
-        })
-        
-        // Store membership plan for confirmation page
-        sessionStorage.setItem('selectedMembershipPlan', block.id)
-        sessionStorage.setItem('membershipDetails', JSON.stringify({
-          plan: block.id,
-          planName: block.name,
-          price: calculateTotal(),
-          hours: block.hours + addOnHours
-        }))
-
-        // Save a flag indicating we're going to Stripe
-        sessionStorage.setItem('returningFromStripe', 'true')
-
-        // Redirect to Stripe checkout
-        window.location.href = session.url
+        redirectToCheckout(session.sessionId, session.url)
       } else {
         throw new Error('No checkout session URL returned')
       }
@@ -360,6 +378,7 @@ export default function PaymentAgreementStep({
                 ? getPlanColor(block.color)
                 : "hover:border-primary/50 bg-card"
             )}
+            data-testid={`membership-card-${block.id}`}
             onClick={() => handleSelectBlock(block.id)}
           >
             {block.recommended && (
@@ -409,6 +428,7 @@ export default function PaymentAgreementStep({
                   e.stopPropagation()
                   handleSelectBlock(block.id)
                 }}
+                data-testid={`select-plan-${block.id}`}
               >
                 {selectedBlock === block.id ? 'Selected' : 'Select'}
               </Button>
@@ -762,6 +782,7 @@ export default function PaymentAgreementStep({
                     checked={agreedToTerms}
                     onCheckedChange={handleTermsChange}
                     className="mt-1"
+                    data-testid="terms-checkbox"
                   />
                   <div className="space-y-2">
                     <label
@@ -883,6 +904,7 @@ export default function PaymentAgreementStep({
           size="lg"
           className="px-8"
           disabled={!selectedBlock || !agreedToTerms || loading}
+          data-testid="proceed-to-payment"
         >
           {loading ? 'Processing...' : 'Proceed to Payment'}
         </Button>

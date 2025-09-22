@@ -5,6 +5,9 @@
   const baseUrl = /^https?:\/\//i.test(baseUrlRaw)
     ? baseUrlRaw
     : `https://${baseUrlRaw.replace(/^\/+|\/+$|\s+/g, '')}`;
+  const emailDomainRaw = process.env.EMAIL_DOMAIN || process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com';
+  const emailDomain = emailDomainRaw.trim().replace(/^@/, '');
+  const safeEmailDomain = emailDomain || 'mentoloop.com';
   if (!sk) { console.error('Missing STRIPE_SECRET_KEY'); process.exit(1); }
 
   const headers = (idem) => ({
@@ -59,7 +62,7 @@
       'discounts[0][promotion_code]': promoId,
       success_url: `${baseUrl}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/student-intake`,
-      customer_email: `qa-np12345-${Date.now()}@sandboxmentoloop.online`,
+      customer_email: `qa-np12345-${Date.now()}@${safeEmailDomain}`,
       'metadata[membershipPlan]': 'pro',
       'metadata[studentName]': 'QA NP12345',
     });

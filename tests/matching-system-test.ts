@@ -6,11 +6,15 @@
  */
 
 import { test, expect } from '@playwright/test'
+import { getE2EBaseUrl } from './utils/base-url'
+
+const baseUrl = getE2EBaseUrl()
+const buildUrl = (path: string): string => `${baseUrl}${path}`
 
 test.describe('Student-Preceptor Matching System', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
-    await page.goto('https://sandboxmentoloop.online')
+    await page.goto(baseUrl)
   })
 
   test('should display landing page with matching features', async ({ page }) => {
@@ -61,7 +65,7 @@ test.describe('Student-Preceptor Matching System', () => {
     test('should access student matches dashboard', async ({ page }) => {
       // This would require authentication
       // For now, we'll test the sign-in redirect
-      await page.goto('https://sandboxmentoloop.online/dashboard/student/matches')
+      await page.goto(buildUrl('/dashboard/student/matches'))
       
       // Should redirect to sign-in
       await expect(page).toHaveURL(/sign-in/)
@@ -70,7 +74,7 @@ test.describe('Student-Preceptor Matching System', () => {
     test('should access preceptor matches dashboard', async ({ page }) => {
       // This would require authentication
       // For now, we'll test the sign-in redirect
-      await page.goto('https://sandboxmentoloop.online/dashboard/preceptor/matches')
+      await page.goto(buildUrl('/dashboard/preceptor/matches'))
       
       // Should redirect to sign-in
       await expect(page).toHaveURL(/sign-in/)
@@ -79,17 +83,17 @@ test.describe('Student-Preceptor Matching System', () => {
 
   test.describe('API Endpoint Verification', () => {
     test('should have working authentication endpoint', async ({ request }) => {
-      const response = await request.get('https://sandboxmentoloop.online/sign-in')
+      const response = await request.get(buildUrl('/sign-in'))
       expect(response.status()).toBe(200)
     })
 
     test('should have working student page', async ({ request }) => {
-      const response = await request.get('https://sandboxmentoloop.online/students')
+      const response = await request.get(buildUrl('/students'))
       expect(response.status()).toBe(200)
     })
 
     test('should have working preceptor page', async ({ request }) => {
-      const response = await request.get('https://sandboxmentoloop.online/preceptors')
+      const response = await request.get(buildUrl('/preceptors'))
       expect(response.status()).toBe(200)
     })
   })
@@ -164,7 +168,7 @@ test.describe('Match Workflow Integration', () => {
 test.describe('Performance Metrics', () => {
   test('landing page should load quickly', async ({ page }) => {
     const startTime = Date.now()
-    await page.goto('https://sandboxmentoloop.online')
+    await page.goto(baseUrl)
     await page.waitForLoadState('networkidle')
     const loadTime = Date.now() - startTime
     
