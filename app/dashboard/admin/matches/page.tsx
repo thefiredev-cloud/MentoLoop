@@ -176,7 +176,7 @@ export default function MatchManagementPage() {
   const getMentorFitTierBadge = (score: number | undefined) => {
     const s = typeof score === 'number' ? score : 0
     if (s >= 9.0) return <Badge className="bg-yellow-500 text-yellow-900">Gold</Badge>
-    if (s >= 7.5) return <Badge className="bg-gray-300 text-gray-800">Silver</Badge>
+    if (s >= 7.5) return <Badge className="bg-muted/30 text-foreground">Silver</Badge>
     return <Badge className="bg-amber-600 text-white">Bronze</Badge>
   }
 
@@ -528,7 +528,7 @@ export default function MatchManagementPage() {
               {selectedMatch.aiAnalysis && (
                 <div>
                   <h3 className="font-semibold mb-2">AI Analysis</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <div className="bg-muted/20 p-4 rounded-lg space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Enhanced Score: {selectedMatch.aiAnalysis.enhancedScore}/10</span>
                       <Badge variant={selectedMatch.aiAnalysis.confidence === 'high' ? 'default' : 'secondary'}>

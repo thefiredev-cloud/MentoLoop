@@ -107,16 +107,16 @@ export default function StudentLandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20">
+      <section className="bg-gradient-to-b from-primary/20 to-background py-20">
         <div className="container mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Find Your NP Preceptor. Fast. Fair. Guaranteed.
             </h1>
             
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
               Clinical placements shouldn&apos;t be stressful. With Mentoloop, you get matched to 
               vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
             </p>
@@ -140,7 +140,7 @@ export default function StudentLandingPage() {
       {/* How It Works Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-5xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-12">
             How It Works
           </h2>
           
@@ -151,8 +151,8 @@ export default function StudentLandingPage() {
                   <span className="text-xl font-bold text-white">{item.step}</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-xl mb-2 text-gray-900">{item.title}</h3>
-                  <p className="text-gray-600">{item.description}</p>
+                  <h3 className="font-semibold text-xl mb-2 text-foreground">{item.title}</h3>
+                  <p className="text-muted-foreground">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -161,9 +161,9 @@ export default function StudentLandingPage() {
       </section>
 
       {/* Why Students Choose MentoLoop Section */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-12">
             Why Students Choose MentoLoop
           </h2>
           
@@ -174,11 +174,11 @@ export default function StudentLandingPage() {
                   <div className="flex justify-center mb-4">
                     {benefit.icon}
                   </div>
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900 text-center">
+                  <h3 className="font-semibold text-lg mb-2 text-foreground text-center">
                     <CheckCircle className="inline w-5 h-5 text-green-600 mr-2" />
                     {benefit.title}
                   </h3>
-                  <p className="text-gray-600 text-center text-sm">
+                  <p className="text-muted-foreground text-center text-sm">
                     {benefit.description}
                   </p>
                 </CardContent>
@@ -191,10 +191,10 @@ export default function StudentLandingPage() {
       {/* Membership & Pricing Snapshot */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-4">
             Membership & Pricing Snapshot
           </h2>
-          <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-12">
             Choose the block that fits your needs
           </p>
           
@@ -202,10 +202,10 @@ export default function StudentLandingPage() {
             {pricingPlans.map((plan, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <h3 className="font-bold text-lg mb-2 text-gray-900">{plan.name}</h3>
+                  <h3 className="font-bold text-lg mb-2 text-foreground">{plan.name}</h3>
                   <p className="text-3xl font-bold text-blue-600 mb-1">{plan.price}</p>
-                  <p className="text-sm text-gray-600 mb-2">{plan.hours}</p>
-                  <p className="text-xs text-gray-500">{plan.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{plan.hours}</p>
+                  <p className="text-xs text-muted-foreground">{plan.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -213,26 +213,26 @@ export default function StudentLandingPage() {
           
           <Card className="border-2 border-dashed border-blue-300 max-w-md mx-auto mb-8">
             <CardContent className="p-6 text-center">
-              <h3 className="font-bold text-lg mb-2 text-gray-900">A La Carte Add-On</h3>
+              <h3 className="font-bold text-lg mb-2 text-foreground">A La Carte Add-On</h3>
               <p className="text-2xl font-bold text-blue-600 mb-1">$10/hr</p>
-              <p className="text-sm text-gray-600">flexible extras (30hr blocks)</p>
-              <p className="text-xs text-gray-500 mt-1">aligns with institutional intervals</p>
+              <p className="text-sm text-muted-foreground">flexible extras (30hr blocks)</p>
+              <p className="text-xs text-muted-foreground mt-1">aligns with institutional intervals</p>
             </CardContent>
           </Card>
           
-          <p className="text-center text-gray-600">
+          <p className="text-center text-muted-foreground">
             Installment plans and student discounts available.
           </p>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-muted/20">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-4">
             FAQ (Preview)
           </h2>
-          <p className="text-lg text-gray-600 text-center mb-12">
+          <p className="text-lg text-muted-foreground text-center mb-12">
             Quick answers to common questions
           </p>
           
@@ -245,16 +245,16 @@ export default function StudentLandingPage() {
                     className="w-full text-left flex justify-between items-center"
                     onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
                   >
-                    <h3 className="font-semibold text-lg text-gray-900">
+                    <h3 className="font-semibold text-lg text-foreground">
                       Q: {faq.question}
                     </h3>
-                    <Plus className={`w-5 h-5 text-gray-400 transition-transform ${
+                    <Plus className={`w-5 h-5 text-muted-foreground transition-transform ${
                       expandedFAQ === index ? 'rotate-45' : ''
                     }`} />
                   </button>
                   {expandedFAQ === index && (
                     <div className="mt-4 pt-4 border-t">
-                      <p className="text-gray-600">A: {faq.answer}</p>
+                      <p className="text-muted-foreground">A: {faq.answer}</p>
                     </div>
                   )}
                 </CardContent>
@@ -265,12 +265,12 @@ export default function StudentLandingPage() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white to-blue-50">
+      <section className="py-20 px-6 bg-gradient-to-b from-background to-primary/20">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl font-bold text-foreground mb-6">
             Ready to Find Your Perfect Preceptor?
           </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of NP students who have successfully found their clinical placements through MentoLoop
           </p>
           
@@ -287,7 +287,7 @@ export default function StudentLandingPage() {
             </Button>
           </div>
 
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             No credit card required • Cancel anytime • 100% satisfaction guarantee
           </p>
         </div>

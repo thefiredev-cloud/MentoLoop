@@ -418,7 +418,7 @@ export default function UserManagementPage() {
               {userDetails.profileData && (
                 <div>
                   <h3 className="font-semibold mb-2">Profile Data</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-muted/20 p-4 rounded-lg">
                     <pre className="text-xs overflow-auto">
                       {JSON.stringify(userDetails.profileData, null, 2)}
                     </pre>

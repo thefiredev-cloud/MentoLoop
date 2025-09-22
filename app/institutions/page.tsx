@@ -115,7 +115,7 @@ export default function InstitutionsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero Section with Animated Background */}
       <section className="relative overflow-hidden">
         <MentoLoopBackground className="min-h-fit" showIcons={false}>
@@ -174,7 +174,7 @@ export default function InstitutionsPage() {
                 >
                   <Link
                     href="/sign-up/institution"
-                    className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
+                    className="group hover:bg-foreground/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-foreground/20 backdrop-blur-md">
                     <div className="relative flex items-center justify-center">
                       <Award className="w-4 h-4 text-yellow-400 animate-pulse" />
                     </div>
@@ -225,16 +225,16 @@ export default function InstitutionsPage() {
                   <Button
                     size="lg"
                     onClick={() => setShowForm(true)}
-                    className="group relative bg-white text-purple-700 hover:bg-white/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
+                    className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <Briefcase className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-purple-700" />
+                    <Briefcase className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-primary" />
                     <span className="relative text-nowrap font-semibold">Schedule Enterprise Demo</span>
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
                     asChild
-                    className="group border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-white/50 px-8 py-6 text-lg">
+                    className="group border border-foreground/30 text-white bg-foreground/10 hover:bg-foreground/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-foreground/50 px-8 py-6 text-lg">
                     <Link href="/contact">
                       <span className="text-nowrap font-semibold">Download Whitepaper</span>
                     </Link>
@@ -269,10 +269,10 @@ export default function InstitutionsPage() {
       {/* What You Get Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-7xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-4">
             Enterprise-Grade Features
           </h2>
-          <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-16">
+          <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-16">
             Comprehensive solutions designed for healthcare institutions at scale
           </p>
           
@@ -285,10 +285,10 @@ export default function InstitutionsPage() {
                       {benefit.icon}
                     </div>
                   </div>
-                  <h3 className="font-bold text-xl mb-3 text-gray-900 text-center">
+                  <h3 className="font-bold text-xl mb-3 text-foreground text-center">
                     {benefit.title}
                   </h3>
-                  <p className="text-gray-600 text-center leading-relaxed">
+                  <p className="text-muted-foreground text-center leading-relaxed">
                     {benefit.description}
                   </p>
                 </CardContent>
@@ -301,7 +301,7 @@ export default function InstitutionsPage() {
       {/* Platform Capabilities */}
       <section className="py-20 px-6 bg-gradient-to-b from-purple-50 to-white">
         <div className="container mx-auto max-w-5xl">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
             Platform Capabilities
           </h2>
           
@@ -313,7 +313,7 @@ export default function InstitutionsPage() {
                     <div className="p-1 bg-purple-100 rounded-full flex-shrink-0">
                       <CheckCircle className="w-6 h-6 text-purple-600" />
                     </div>
-                    <span className="text-lg text-gray-700 font-medium">{feature}</span>
+                    <span className="text-lg text-foreground font-medium">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -325,7 +325,7 @@ export default function InstitutionsPage() {
       {/* How It Works */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-5xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-12">
             How It Works
           </h2>
           
@@ -334,8 +334,8 @@ export default function InstitutionsPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-xl font-bold text-blue-600">1</span>
               </div>
-              <h3 className="font-semibold text-xl mb-2 text-gray-900">Enroll Students</h3>
-              <p className="text-gray-600">
+              <h3 className="font-semibold text-xl mb-2 text-foreground">Enroll Students</h3>
+              <p className="text-muted-foreground">
                 Add your nursing students to the platform with our bulk enrollment tools
               </p>
             </div>
@@ -344,8 +344,8 @@ export default function InstitutionsPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-xl font-bold text-blue-600">2</span>
               </div>
-              <h3 className="font-semibold text-xl mb-2 text-gray-900">Match with Preceptors</h3>
-              <p className="text-gray-600">
+              <h3 className="font-semibold text-xl mb-2 text-foreground">Match with Preceptors</h3>
+              <p className="text-muted-foreground">
                 Our system matches students with qualified preceptors based on their needs
               </p>
             </div>
@@ -354,8 +354,8 @@ export default function InstitutionsPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-xl font-bold text-blue-600">3</span>
               </div>
-              <h3 className="font-semibold text-xl mb-2 text-gray-900">Track Progress</h3>
-              <p className="text-gray-600">
+              <h3 className="font-semibold text-xl mb-2 text-foreground">Track Progress</h3>
+              <p className="text-muted-foreground">
                 Monitor clinical hours, evaluations, and student progress in real-time
               </p>
             </div>
@@ -371,13 +371,13 @@ export default function InstitutionsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl bg-white rounded-2xl p-8 shadow-xl"
+            className="w-full max-w-2xl bg-card rounded-2xl p-8 shadow-xl"
           >
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
                 Partnership Consultation
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Let&apos;s discuss how MentoLoop can help your institution
               </p>
             </div>
@@ -385,7 +385,7 @@ export default function InstitutionsPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="institutionName" className="text-gray-700">
+                  <Label htmlFor="institutionName" className="text-foreground">
                     Institution Name
                   </Label>
                   <Input
@@ -398,7 +398,7 @@ export default function InstitutionsPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="numberOfStudents" className="text-gray-700">
+                  <Label htmlFor="numberOfStudents" className="text-foreground">
                     Number of Students
                   </Label>
                   <Input
@@ -414,7 +414,7 @@ export default function InstitutionsPage() {
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="contactName" className="text-gray-700">
+                  <Label htmlFor="contactName" className="text-foreground">
                     Your Name
                   </Label>
                   <Input
@@ -427,7 +427,7 @@ export default function InstitutionsPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="title" className="text-gray-700">
+                  <Label htmlFor="title" className="text-foreground">
                     Title
                   </Label>
                   <Input
@@ -443,7 +443,7 @@ export default function InstitutionsPage() {
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="email" className="text-gray-700">
+                  <Label htmlFor="email" className="text-foreground">
                     Email Address
                   </Label>
                   <Input
@@ -457,7 +457,7 @@ export default function InstitutionsPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone" className="text-gray-700">
+                  <Label htmlFor="phone" className="text-foreground">
                     Phone Number
                   </Label>
                   <Input
@@ -471,7 +471,7 @@ export default function InstitutionsPage() {
               </div>
               
               <div>
-                <Label htmlFor="message" className="text-gray-700">
+                <Label htmlFor="message" className="text-foreground">
                   Message (Optional)
                 </Label>
                 <Textarea
@@ -532,12 +532,12 @@ export default function InstitutionsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white to-purple-50">
+      <section className="py-20 px-6 bg-gradient-to-b from-background to-primary/20">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl font-bold text-foreground mb-6">
             Ready to Transform Your Program?
           </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join leading healthcare institutions using MentoLoop to deliver exceptional clinical education
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -559,7 +559,7 @@ export default function InstitutionsPage() {
               </Link>
             </Button>
           </div>
-          <p className="mt-6 text-sm text-gray-500">
+          <p className="mt-6 text-sm text-muted-foreground">
             Custom pricing • Dedicated support • Implementation assistance
           </p>
         </div>

@@ -72,22 +72,22 @@ export default function GetStartedPreceptorPage() {
 
   const benefits = [
     {
-      icon: <DollarSign className="w-6 h-6 text-green-600" />,
+      icon: <DollarSign className="w-6 h-6 text-accent" />,
       title: "$500-1,200/month",
       description: "Competitive honorariums based on specialty and location"
     },
     {
-      icon: <Award className="w-6 h-6 text-green-600" />,
+      icon: <Award className="w-6 h-6 text-accent" />,
       title: "CEU Credits",
       description: "Earn continuing education credits while precepting"
     },
     {
-      icon: <Shield className="w-6 h-6 text-green-600" />,
+      icon: <Shield className="w-6 h-6 text-accent" />,
       title: "Full Support",
       description: "We handle paperwork, contracts, and administrative tasks"
     },
     {
-      icon: <Clock className="w-6 h-6 text-green-600" />,
+      icon: <Clock className="w-6 h-6 text-accent" />,
       title: "Flexible Schedule",
       description: "Set your own availability and choose students that fit"
     }
@@ -113,28 +113,28 @@ export default function GetStartedPreceptorPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-12">
+    <div className="min-h-screen bg-gradient-to-b from-accent/20 to-background py-12">
       <div className="container mx-auto max-w-5xl px-6">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-green-100 rounded-full">
-              <Stethoscope className="w-10 h-10 text-green-600" />
+            <div className="p-3 bg-accent/20 rounded-full">
+              <Stethoscope className="w-10 h-10 text-accent" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Get Started as a Preceptor
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Join our network of healthcare professionals making a difference. 
             Here&apos;s everything you need to know about becoming a MentoLoop preceptor.
           </p>
         </div>
 
         {/* Alert */}
-        <Alert className="mb-8 border-green-200 bg-green-50">
-          <Info className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
+        <Alert className="mb-8 border-accent/40 bg-accent/10">
+          <Info className="h-4 w-4 text-accent" />
+          <AlertDescription className="text-accent">
             <strong>Limited Time Bonus:</strong> New preceptors who complete their first 
             student rotation receive a $200 welcome bonus!
           </AlertDescription>
@@ -148,13 +148,13 @@ export default function GetStartedPreceptorPage() {
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex gap-3 p-4 bg-gray-50 rounded-lg">
+                <div key={index} className="flex gap-3 p-4 bg-muted/20 rounded-lg">
                   <div className="flex-shrink-0">
                     {benefit.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{benefit.title}</h3>
-                    <p className="text-sm text-gray-600">{benefit.description}</p>
+                    <h3 className="font-semibold text-foreground">{benefit.title}</h3>
+                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
                   </div>
                 </div>
               ))}
@@ -174,8 +174,8 @@ export default function GetStartedPreceptorPage() {
                   key={index}
                   className={`flex gap-4 p-4 rounded-lg cursor-pointer transition-all ${
                     activeStep === index 
-                      ? 'bg-green-50 border-2 border-green-200' 
-                      : 'hover:bg-gray-50'
+                      ? 'bg-accent/10 border-2 border-accent/40' 
+                      : 'hover:bg-muted/20'
                   }`}
                   onClick={() => setActiveStep(index)}
                 >
@@ -183,7 +183,7 @@ export default function GetStartedPreceptorPage() {
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       activeStep === index 
                         ? 'bg-green-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
+                        : 'bg-muted/20 text-muted-foreground'
                     }`}>
                       {step.number}
                     </div>
@@ -191,13 +191,13 @@ export default function GetStartedPreceptorPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {step.icon}
-                      <h3 className="font-semibold text-gray-900">{step.title}</h3>
-                      <span className="text-sm text-gray-500 ml-auto">
+                      <h3 className="font-semibold text-foreground">{step.title}</h3>
+                      <span className="text-sm text-muted-foreground ml-auto">
                         <Clock className="w-4 h-4 inline mr-1" />
                         {step.time}
                       </span>
                     </div>
-                    <p className="text-gray-600">{step.description}</p>
+                    <p className="text-muted-foreground">{step.description}</p>
                   </div>
                 </div>
               ))}
@@ -217,14 +217,14 @@ export default function GetStartedPreceptorPage() {
             <CardTitle className="text-2xl">What You&apos;ll Need to Apply</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Before you begin your application, please have the following ready:
             </p>
             <div className="space-y-3">
               {requirements.map((req, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">{req}</span>
+                  <CheckCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                  <span className="text-foreground">{req}</span>
                 </div>
               ))}
             </div>
@@ -249,26 +249,26 @@ export default function GetStartedPreceptorPage() {
               <div className="p-4 border rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold">Primary Care (FNP, AGNP)</h3>
-                  <span className="text-xl font-bold text-green-600">$500-800/mo</span>
+                  <span className="text-xl font-bold text-accent">$500-800/mo</span>
                 </div>
-                <p className="text-sm text-gray-600">Standard rotations, 3-4 days/week</p>
+                <p className="text-sm text-muted-foreground">Standard rotations, 3-4 days/week</p>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold">Specialty Care (PMHNP, PNP)</h3>
-                  <span className="text-xl font-bold text-green-600">$600-1,000/mo</span>
+                  <span className="text-xl font-bold text-accent">$600-1,000/mo</span>
                 </div>
-                <p className="text-sm text-gray-600">Higher demand specialties</p>
+                <p className="text-sm text-muted-foreground">Higher demand specialties</p>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold">Acute/Emergency Care</h3>
-                  <span className="text-xl font-bold text-green-600">$700-1,200/mo</span>
+                  <span className="text-xl font-bold text-accent">$700-1,200/mo</span>
                 </div>
-                <p className="text-sm text-gray-600">Critical care settings</p>
+                <p className="text-sm text-muted-foreground">Critical care settings</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 text-center mt-4">
+            <p className="text-sm text-muted-foreground text-center mt-4">
               * Plus potential bonuses for rural areas and high-need specialties
             </p>
           </CardContent>
@@ -283,8 +283,8 @@ export default function GetStartedPreceptorPage() {
             <div className="space-y-4">
               {faqs.map((faq, index) => (
                 <div key={index} className="border-b pb-4 last:border-0">
-                  <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
-                  <p className="text-gray-600">{faq.answer}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
+                  <p className="text-muted-foreground">{faq.answer}</p>
                 </div>
               ))}
             </div>
@@ -292,11 +292,11 @@ export default function GetStartedPreceptorPage() {
         </Card>
 
         {/* CTA Section */}
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <div className="bg-card rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Ready to Start Making a Difference?
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Join 1,000+ preceptors already mentoring through MentoLoop
           </p>
           
@@ -323,13 +323,13 @@ export default function GetStartedPreceptorPage() {
             </Button>
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-gray-600">
+          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+              <CheckCircle className="w-4 h-4 text-accent" />
               <span>Quick 24-48hr approval</span>
             </div>
             <div className="flex items-center gap-1">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+              <CheckCircle className="w-4 h-4 text-accent" />
               <span>No fees to join</span>
             </div>
           </div>
@@ -337,13 +337,13 @@ export default function GetStartedPreceptorPage() {
 
         {/* Help Link */}
         <div className="text-center mt-8">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Have more questions? Visit our{' '}
-            <Link href="/help" className="text-green-600 hover:underline">
+            <Link href="/help" className="text-accent hover:underline">
               Help Center
             </Link>
             {' '}or{' '}
-            <Link href="/contact" className="text-green-600 hover:underline">
+            <Link href="/contact" className="text-accent hover:underline">
               contact our team
             </Link>
           </p>

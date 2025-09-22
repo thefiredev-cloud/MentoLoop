@@ -87,28 +87,28 @@ export default function GetStartedStudentPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
+    <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background py-12">
       <div className="container mx-auto max-w-5xl px-6">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-100 rounded-full">
+            <div className="p-3 bg-primary/20 rounded-full">
               <GraduationCap className="w-10 h-10 text-blue-600" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Get Started as a Student
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             You&apos;re just a few steps away from finding your perfect preceptor match. 
             Here&apos;s everything you need to know before signing up.
           </p>
         </div>
 
         {/* Alert */}
-        <Alert className="mb-8 border-blue-200 bg-blue-50">
+        <Alert className="mb-8 bg-border/?? bg-primary/10">
           <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
+          <AlertDescription className="text-primary">
             <strong>Early Bird Special:</strong> Sign up 45+ days before your rotation 
             starts and save 20% on all membership plans!
           </AlertDescription>
@@ -126,8 +126,8 @@ export default function GetStartedStudentPage() {
                   key={index}
                   className={`flex gap-4 p-4 rounded-lg cursor-pointer transition-all ${
                     activeStep === index 
-                      ? 'bg-blue-50 border-2 border-blue-200' 
-                      : 'hover:bg-gray-50'
+                      ? 'bg-primary/10 border-2 border-primary/50' 
+                      : 'hover:bg-muted/20'
                   }`}
                   onClick={() => setActiveStep(index)}
                 >
@@ -135,7 +135,7 @@ export default function GetStartedStudentPage() {
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       activeStep === index 
                         ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
+                        : 'bg-muted/20 text-muted-foreground'
                     }`}>
                       {step.number}
                     </div>
@@ -143,20 +143,20 @@ export default function GetStartedStudentPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {step.icon}
-                      <h3 className="font-semibold text-gray-900">{step.title}</h3>
-                      <span className="text-sm text-gray-500 ml-auto">
+                      <h3 className="font-semibold text-foreground">{step.title}</h3>
+                      <span className="text-sm text-muted-foreground ml-auto">
                         <Clock className="w-4 h-4 inline mr-1" />
                         {step.time}
                       </span>
                     </div>
-                    <p className="text-gray-600">{step.description}</p>
+                    <p className="text-muted-foreground">{step.description}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 p-4 bg-green-50 rounded-lg">
-              <p className="text-green-800 text-center font-medium">
+            <div className="mt-6 p-4 bg-accent/10 rounded-lg">
+              <p className="text-accent text-center font-medium">
                 Total time to complete: ~25 minutes + matching period
               </p>
             </div>
@@ -169,14 +169,14 @@ export default function GetStartedStudentPage() {
             <CardTitle className="text-2xl">What You&apos;ll Need</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Before you begin, make sure you have the following information ready:
             </p>
             <div className="space-y-3">
               {requirements.map((req, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">{req}</span>
+                  <span className="text-foreground">{req}</span>
                 </div>
               ))}
             </div>
@@ -192,24 +192,24 @@ export default function GetStartedStudentPage() {
             <div className="grid md:grid-cols-3 gap-4">
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Basic</h3>
-                <p className="text-2xl font-bold text-gray-900 mb-2">$499</p>
-                <p className="text-sm text-gray-600">Single rotation match</p>
+                <p className="text-2xl font-bold text-foreground mb-2">$499</p>
+                <p className="text-sm text-muted-foreground">Single rotation match</p>
               </div>
               <div className="p-4 border-2 border-blue-500 rounded-lg relative">
-                <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary/100 text-white text-xs px-2 py-1 rounded">
                   MOST POPULAR
                 </span>
                 <h3 className="font-semibold mb-2">Premium</h3>
-                <p className="text-2xl font-bold text-gray-900 mb-2">$899</p>
-                <p className="text-sm text-gray-600">Full year access, unlimited matches</p>
+                <p className="text-2xl font-bold text-foreground mb-2">$899</p>
+                <p className="text-sm text-muted-foreground">Full year access, unlimited matches</p>
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Elite</h3>
-                <p className="text-2xl font-bold text-gray-900 mb-2">$1,299</p>
-                <p className="text-sm text-gray-600">Priority matching + extras</p>
+                <p className="text-2xl font-bold text-foreground mb-2">$1,299</p>
+                <p className="text-sm text-muted-foreground">Priority matching + extras</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 text-center mt-4">
+            <p className="text-sm text-muted-foreground text-center mt-4">
               * Final pricing shown during checkout. Discounts automatically applied.
             </p>
           </CardContent>
@@ -224,8 +224,8 @@ export default function GetStartedStudentPage() {
             <div className="space-y-4">
               {faqs.map((faq, index) => (
                 <div key={index} className="border-b pb-4 last:border-0">
-                  <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
-                  <p className="text-gray-600">{faq.answer}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
+                  <p className="text-muted-foreground">{faq.answer}</p>
                 </div>
               ))}
             </div>
@@ -233,11 +233,11 @@ export default function GetStartedStudentPage() {
         </Card>
 
         {/* CTA Section */}
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <div className="bg-card rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Ready to Begin?
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Join thousands of NP students who&apos;ve successfully found their clinical placements
           </p>
           
@@ -264,7 +264,7 @@ export default function GetStartedStudentPage() {
             </Button>
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-gray-600">
+          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span>No credit card required to start</span>
@@ -278,7 +278,7 @@ export default function GetStartedStudentPage() {
 
         {/* Help Link */}
         <div className="text-center mt-8">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Have more questions? Visit our{' '}
             <Link href="/help" className="text-blue-600 hover:underline">
               Help Center

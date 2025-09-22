@@ -517,7 +517,7 @@ export default function PaymentAgreementStep({
                   "border-2 rounded-lg p-4 cursor-pointer transition-all",
                   paymentOption === 'full' 
                     ? "border-primary bg-primary/5" 
-                    : "border-gray-200 hover:border-primary/50"
+                    : "border-border hover:border-primary/50"
                 )}
                 onClick={() => setPaymentOption('full')}
               >
@@ -526,7 +526,7 @@ export default function PaymentAgreementStep({
                     "w-5 h-5 rounded-full border-2 mt-1",
                     paymentOption === 'full' 
                       ? "border-primary bg-primary" 
-                      : "border-gray-300"
+                      : "border-border"
                   )}>
                     {paymentOption === 'full' && (
                       <CheckCircle className="w-3 h-3 text-white" />
@@ -559,7 +559,7 @@ export default function PaymentAgreementStep({
                   "border-2 rounded-lg p-4 cursor-pointer transition-all",
                   paymentOption === 'installments' 
                     ? "border-primary bg-primary/5" 
-                    : "border-gray-200 hover:border-primary/50"
+                    : "border-border hover:border-primary/50"
                 )}
                 onClick={() => setPaymentOption('installments')}
               >
@@ -568,7 +568,7 @@ export default function PaymentAgreementStep({
                     "w-5 h-5 rounded-full border-2 mt-1",
                     paymentOption === 'installments' 
                       ? "border-primary bg-primary" 
-                      : "border-gray-300"
+                      : "border-border"
                   )}>
                     {paymentOption === 'installments' && (
                       <CheckCircle className="w-3 h-3 text-white" />

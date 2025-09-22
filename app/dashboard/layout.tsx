@@ -47,8 +47,8 @@ export default function DashboardLayout({
           </div>
         </SidebarProvider>
         {/* Footer */}
-        <div className="w-full border-t border-gray-200 bg-white">
-          <div className="container max-w-7xl mx-auto p-4 text-xs text-gray-500">
+        <div className="w-full border-t border-border bg-card">
+          <div className="container max-w-7xl mx-auto p-4 text-xs text-muted-foreground">
             © MentoLoop. Need help? Call 512-710-3320
           </div>
         </div>

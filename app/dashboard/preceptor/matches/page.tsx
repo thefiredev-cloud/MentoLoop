@@ -146,7 +146,7 @@ export default function PreceptorMatches() {
             <div className="flex items-center gap-4">
               <Badge variant="outline" className={`${
                 (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Silver' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Silver' ? 'bg-muted/20 text-muted-foreground border-border' :
                 (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Bronze' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                 'bg-green-50 text-green-700 border-green-200'
               }`}>
@@ -249,7 +249,7 @@ export default function PreceptorMatches() {
         {/* Student Message */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Student&apos;s Message</h4>
-          <p className="text-sm leading-relaxed bg-gray-50 p-4 rounded-lg">
+          <p className="text-sm leading-relaxed bg-muted/20 p-4 rounded-lg">
             {match.adminNotes || "The student has not provided a personal message with this match request."}
           </p>
         </div>

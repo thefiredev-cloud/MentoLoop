@@ -13,16 +13,16 @@ export default function PreceptorSignUpPage() {
   }, [])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-accent/20 to-accent/40">
       <div className="text-center mb-8 absolute top-12 left-0 right-0">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Preceptor Account</h1>
-        <p className="text-gray-600">Join our network of healthcare professionals mentoring the next generation</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Preceptor Account</h1>
+        <p className="text-muted-foreground">Join our network of healthcare professionals mentoring the next generation</p>
       </div>
       <SignUp 
         appearance={{
           elements: {
             rootBox: "mx-auto",
-            card: "bg-white shadow-xl",
+            card: "bg-card shadow-xl",
             headerTitle: "hidden",
             headerSubtitle: "hidden",
           }

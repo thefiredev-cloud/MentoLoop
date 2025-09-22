@@ -18,9 +18,9 @@ export default function SignUpPage() {
       title: 'I\'m a Student',
       description: 'Looking for clinical placements and preceptor matches',
       icon: GraduationCap,
-      color: 'bg-blue-500',
-      lightColor: 'bg-blue-100',
-      textColor: 'text-blue-600',
+      color: 'bg-primary',
+      lightColor: 'bg-primary/20',
+      textColor: 'text-primary',
       signupUrl: '/sign-up/student'
     },
     {
@@ -28,9 +28,9 @@ export default function SignUpPage() {
       title: 'I\'m a Preceptor',
       description: 'Healthcare professional ready to mentor students',
       icon: Stethoscope,
-      color: 'bg-green-500',
-      lightColor: 'bg-green-100',
-      textColor: 'text-green-600',
+      color: 'bg-accent',
+      lightColor: 'bg-accent/20',
+      textColor: 'text-accent',
       signupUrl: '/sign-up/preceptor'
     },
     {
@@ -38,9 +38,9 @@ export default function SignUpPage() {
       title: 'I\'m an Institution',
       description: 'School or clinic managing multiple students/preceptors',
       icon: Building2,
-      color: 'bg-purple-500',
-      lightColor: 'bg-purple-100',
-      textColor: 'text-purple-600',
+      color: 'bg-secondary',
+      lightColor: 'bg-secondary/20',
+      textColor: 'text-secondary',
       signupUrl: '/sign-up/institution'
     }
   ]
@@ -48,7 +48,7 @@ export default function SignUpPage() {
   // If no role selected, show role selection
   if (!selectedRole) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/30 p-4">
         <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-3xl font-bold">Join MentoLoop</CardTitle>
@@ -101,7 +101,7 @@ export default function SignUpPage() {
         appearance={{
           elements: {
             rootBox: "mx-auto",
-            card: "bg-white shadow-xl",
+            card: "bg-card shadow-xl",
           }
         }}
         fallbackRedirectUrl="/dashboard"

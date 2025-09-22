@@ -15,7 +15,7 @@ export default function CallToAction() {
                             <Button
                                 asChild
                                 size="lg"
-                                className="bg-white text-mentoloop-blue hover:bg-white/90 shadow-lg">
+                                className="bg-card text-primary hover:bg-card/90 shadow-lg">
                                 <Link href="/student-intake">
                                     <span>Find My Preceptor</span>
                                 </Link>
@@ -25,7 +25,7 @@ export default function CallToAction() {
                                 asChild
                                 size="lg"
                                 variant="outline"
-                                className="border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm">
+                                className="border border-foreground/30 text-white bg-foreground/10 hover:bg-foreground/20 hover:text-white backdrop-blur-sm">
                                 <Link href="/preceptor-intake">
                                     <span>Become a Preceptor</span>
                                 </Link>

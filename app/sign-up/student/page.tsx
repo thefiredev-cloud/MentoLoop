@@ -13,16 +13,16 @@ export default function StudentSignUpPage() {
   }, [])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/30">
       <div className="text-center mb-8 absolute top-12 left-0 right-0">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Student Account</h1>
-        <p className="text-gray-600">Join MentoLoop to find your perfect preceptor match</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Student Account</h1>
+        <p className="text-muted-foreground">Join MentoLoop to find your perfect preceptor match</p>
       </div>
       <SignUp 
         appearance={{
           elements: {
             rootBox: "mx-auto",
-            card: "bg-white shadow-xl",
+            card: "bg-card shadow-xl",
             headerTitle: "hidden",
             headerSubtitle: "hidden",
           }

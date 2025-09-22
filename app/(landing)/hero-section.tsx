@@ -55,7 +55,7 @@ export default function HeroSection() {
                                 >
                                     <Link
                                         href="/resources"
-                                        className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
+                                        className="group hover:bg-foreground/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-foreground/20 backdrop-blur-md">
                                         <div className="relative flex items-center justify-center">
                                             <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
                                         </div>
@@ -107,10 +107,10 @@ export default function HeroSection() {
                                     <Button
                                         asChild
                                         size="lg"
-                                        className="group relative bg-white text-blue-700 hover:bg-white/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden">
+                                        className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden">
                                         <Link href="/sign-up/student">
                                             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                            <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform text-blue-700" />
+                                            <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform text-primary" />
                                             <span className="relative text-nowrap font-semibold">Find My Preceptor</span>
                                         </Link>
                                     </Button>
@@ -118,7 +118,7 @@ export default function HeroSection() {
                                         asChild
                                         size="lg"
                                         variant="outline"
-                                        className="group border-white text-white bg-white/10 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-white/50">
+                                        className="group border border-foreground/30 text-white bg-foreground/10 hover:bg-foreground/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-foreground/50">
                                         <Link href="/sign-up/preceptor">
                                             <Shield className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                                             <span className="text-nowrap font-semibold">Become a Preceptor</span>

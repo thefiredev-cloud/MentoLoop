@@ -111,7 +111,7 @@ export default function StudentsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero Section with Animated Background */}
       <section className="relative overflow-hidden">
         <MentoLoopBackground className="min-h-fit" showIcons={false}>
@@ -158,7 +158,7 @@ export default function StudentsPage() {
                 >
                   <Link
                     href="/get-started/student"
-                    className="group hover:bg-white/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-white/20 backdrop-blur-md">
+                    className="group hover:bg-foreground/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-foreground/20 backdrop-blur-md">
                     <div className="relative flex items-center justify-center">
                       <GraduationCap className="w-4 h-4 text-blue-400 animate-pulse" />
                     </div>
@@ -208,7 +208,7 @@ export default function StudentsPage() {
                   <Button
                     asChild
                     size="lg"
-                    className="group relative bg-white text-blue-700 hover:bg-white/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
+                    className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
                     <Link href="/sign-up/student">
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-blue-700" />
@@ -245,10 +245,10 @@ export default function StudentsPage() {
       {/* Benefits Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-4">
             Why Students Choose MentoLoop
           </h2>
-          <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-16">
+          <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-16">
             We&apos;ve helped thousands of NP students find their perfect clinical placements
           </p>
           
@@ -259,10 +259,10 @@ export default function StudentsPage() {
                   <div className="flex justify-center mb-4">
                     {benefit.icon}
                   </div>
-                  <h3 className="font-semibold text-xl mb-2 text-gray-900 text-center">
+                  <h3 className="font-semibold text-xl mb-2 text-foreground text-center">
                     {benefit.title}
                   </h3>
-                  <p className="text-gray-600 text-center">
+                  <p className="text-muted-foreground text-center">
                     {benefit.description}
                   </p>
                 </CardContent>
@@ -273,9 +273,9 @@ export default function StudentsPage() {
       </section>
 
       {/* Process Section */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-muted/20">
         <div className="container mx-auto max-w-5xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-12">
             How It Works
           </h2>
           
@@ -286,8 +286,8 @@ export default function StudentsPage() {
                   <span className="text-xl font-bold text-white">{item.step}</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-xl mb-2 text-gray-900">{item.title}</h3>
-                  <p className="text-gray-600">{item.description}</p>
+                  <h3 className="font-semibold text-xl mb-2 text-foreground">{item.title}</h3>
+                  <p className="text-muted-foreground">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -309,55 +309,55 @@ export default function StudentsPage() {
       </section>
 
       {/* Pricing Snapshot Section */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-4">
             Membership & Pricing Snapshot
           </h2>
-          <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-12">
             Transparent pricing with flexible options
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-gray-900">Starter Block</h3>
+                <h3 className="font-bold text-xl mb-2 text-foreground">Starter Block</h3>
                 <p className="text-3xl font-bold text-blue-600 mb-1">$495</p>
-                <p className="text-sm text-gray-600">60 hours</p>
+                <p className="text-sm text-muted-foreground">60 hours</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-gray-900">Core Block</h3>
+                <h3 className="font-bold text-xl mb-2 text-foreground">Core Block</h3>
                 <p className="text-3xl font-bold text-blue-600 mb-1">$795</p>
-                <p className="text-sm text-gray-600">90 hours</p>
+                <p className="text-sm text-muted-foreground">90 hours</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-gray-900">Pro Block</h3>
+                <h3 className="font-bold text-xl mb-2 text-foreground">Pro Block</h3>
                 <p className="text-3xl font-bold text-blue-600 mb-1">$1,495</p>
-                <p className="text-sm text-gray-600">180 hours</p>
+                <p className="text-sm text-muted-foreground">180 hours</p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-gray-900">Elite Block</h3>
+                <h3 className="font-bold text-xl mb-2 text-foreground">Elite Block</h3>
                 <p className="text-3xl font-bold text-blue-600 mb-1">$1,895</p>
-                <p className="text-sm text-gray-600">240 hours</p>
+                <p className="text-sm text-muted-foreground">240 hours</p>
               </CardContent>
             </Card>
           </div>
           
           <Card className="border-0 shadow-lg max-w-md mx-auto mb-8">
             <CardContent className="p-6 text-center">
-              <h3 className="font-bold text-xl mb-2 text-gray-900">A La Carte Add-On</h3>
+              <h3 className="font-bold text-xl mb-2 text-foreground">A La Carte Add-On</h3>
               <p className="text-3xl font-bold text-blue-600 mb-1">$10/hr</p>
-              <p className="text-sm text-gray-600">Flexible extras (30hr blocks)</p>
+              <p className="text-sm text-muted-foreground">Flexible extras (30hr blocks)</p>
             </CardContent>
           </Card>
           
-          <p className="text-center text-gray-600">
+          <p className="text-center text-muted-foreground">
             Installment plans and student discounts available.
           </p>
         </div>
@@ -366,7 +366,7 @@ export default function StudentsPage() {
       {/* Testimonials Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-12">
             What Students Say
           </h2>
           
@@ -379,10 +379,10 @@ export default function StudentsPage() {
                       <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-gray-600 mb-4 italic">&quot;{testimonial.text}&quot;</p>
+                  <p className="text-muted-foreground mb-4 italic">&quot;{testimonial.text}&quot;</p>
                   <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.program}</p>
+                    <p className="font-semibold text-foreground">{testimonial.name}</p>
+                    <p className="text-sm text-muted-foreground">{testimonial.program}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -418,7 +418,7 @@ export default function StudentsPage() {
       {/* FAQs Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-4xl font-bold text-center text-foreground mb-12">
             Frequently Asked Questions
           </h2>
           
@@ -426,10 +426,10 @@ export default function StudentsPage() {
             {faqs.map((faq, index) => (
               <Card key={index}>
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  <h3 className="font-semibold text-lg mb-2 text-foreground">
                     {faq.question}
                   </h3>
-                  <p className="text-gray-600">{faq.answer}</p>
+                  <p className="text-muted-foreground">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}
@@ -446,12 +446,12 @@ export default function StudentsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white to-blue-50">
+      <section className="py-20 px-6 bg-gradient-to-b from-background to-primary/20">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl font-bold text-foreground mb-6">
             Ready to Find Your Perfect Preceptor?
           </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of NP students who have successfully found their clinical placements through MentoLoop
           </p>
           
@@ -470,7 +470,7 @@ export default function StudentsPage() {
               size="lg" 
               variant="outline" 
               asChild
-              className="border-gray-300 hover:bg-white px-8 py-6 text-lg"
+              className="border-border hover:bg-foreground/10 px-8 py-6 text-lg"
             >
               <Link href="/contact">
                 Talk to an Advisor
@@ -478,7 +478,7 @@ export default function StudentsPage() {
             </Button>
           </div>
 
-          <p className="mt-6 text-sm text-gray-500">
+          <p className="mt-6 text-sm text-muted-foreground">
             No credit card required • Cancel anytime • 100% satisfaction guarantee
           </p>
         </div>

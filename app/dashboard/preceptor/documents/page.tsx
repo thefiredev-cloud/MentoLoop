@@ -63,7 +63,7 @@ export default function PreceptorDocuments() {
       case 'png':
         return <Image className="h-5 w-5 text-purple-500" aria-label="Image file" />
       default:
-        return <FileText className="h-5 w-5 text-gray-500" />
+        return <FileText className="h-5 w-5 text-muted-foreground" />
     }
   }
 
@@ -80,7 +80,7 @@ export default function PreceptorDocuments() {
       case 'Evaluation':
         return 'bg-orange-50 text-orange-700 border-orange-200'
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
+        return 'bg-muted/20 text-muted-foreground border-border'
     }
   }
 

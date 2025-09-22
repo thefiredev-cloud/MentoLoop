@@ -13,16 +13,16 @@ export default function InstitutionSignUpPage() {
   }, [])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/20 to-accent/30">
       <div className="text-center mb-8 absolute top-12 left-0 right-0">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Institution Account</h1>
-        <p className="text-gray-600">Manage your students and preceptors in one centralized platform</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Institution Account</h1>
+        <p className="text-muted-foreground">Manage your students and preceptors in one centralized platform</p>
       </div>
       <SignUp 
         appearance={{
           elements: {
             rootBox: "mx-auto",
-            card: "bg-white shadow-xl",
+            card: "bg-card shadow-xl",
             headerTitle: "hidden",
             headerSubtitle: "hidden",
           }
