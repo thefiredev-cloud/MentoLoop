@@ -114,7 +114,7 @@ export default function StudentsPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section with Animated Background */}
       <section className="relative overflow-hidden">
-        <MentoLoopBackground className="min-h-fit" showIcons={false}>
+        <MentoLoopBackground className="min-h-fit" showIcons={false} variant="full">
           {/* Floating 3D Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
