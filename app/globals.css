@@ -3,6 +3,7 @@
 
 
 :root {
+  color-scheme: dark;
   --radius: 0.625rem;
   --background: 221 50% 9%;
   --foreground: 220 13% 91%;
@@ -37,6 +38,7 @@
   --sidebar-border: 215 28% 17%;
   --sidebar-ring: 214 100% 60%;
 
+
   --shadow-color: oklch(0 0 0);
   --shadow-2xs: 0 1px 2px 0px rgb(from var(--shadow-color) r g b / 0.03);
   --shadow-xs: 0 1px 3px 0px rgb(from var(--shadow-color) r g b / 0.05);
@@ -46,6 +48,48 @@
   --shadow-lg: 0 10px 15px -3px rgb(from var(--shadow-color) r g b / 0.1), 0 4px 6px -2px rgb(from var(--shadow-color) r g b / 0.05);
   --shadow-xl: 0 20px 25px -5px rgb(from var(--shadow-color) r g b / 0.1), 0 10px 10px -5px rgb(from var(--shadow-color) r g b / 0.04);
   --shadow-2xl: 0 25px 50px -12px rgb(from var(--shadow-color) r g b / 0.25);
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+.light {
+  color-scheme: light;
+  --background: 0 0% 100%;
+  --foreground: 222 14% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 14% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 14% 12%;
+  --primary: 214 100% 43%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 72% 56%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 215 23% 90%;
+  --muted-foreground: 222 10% 40%;
+  --accent: 158 64% 52%;
+  --accent-foreground: 222 14% 12%;
+  --destructive: 16 94% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 84%;
+  --input: 214 32% 84%;
+  --ring: 214 100% 43%;
+  --chart-1: 214 100% 43%;
+  --chart-2: 215 72% 56%;
+  --chart-3: 158 64% 52%;
+  --chart-4: 16 94% 52%;
+  --chart-5: 48 100% 66%;
+  --sidebar: 215 72% 94%;
+  --sidebar-foreground: 222 14% 12%;
+  --sidebar-primary: 214 100% 43%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 158 64% 90%;
+  --sidebar-accent-foreground: 222 14% 12%;
+  --sidebar-border: 214 32% 84%;
+  --sidebar-ring: 214 100% 43%;
+  
+  --shadow-color: oklch(0 0 0);
 }
 
 
@@ -150,6 +194,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
   html {
     scroll-behavior: smooth;
