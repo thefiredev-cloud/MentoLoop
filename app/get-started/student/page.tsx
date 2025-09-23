@@ -106,7 +106,7 @@ export default function GetStartedStudentPage() {
         </div>
 
         {/* Alert */}
-        <Alert className="mb-8 bg-border/?? bg-primary/10">
+        <Alert className="mb-8 bg-primary/10">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-primary">
             <strong>Early Bird Special:</strong> Sign up 45+ days before your rotation 

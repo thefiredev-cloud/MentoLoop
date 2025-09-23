@@ -9,6 +9,7 @@ import type { Doc } from '@/convex/_generated/dataModel'
 import MentoLoopBackground from '@/components/mentoloop-background'
 import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
 import { motion } from 'motion/react'
+import { useState } from 'react'
 import { 
   GraduationCap, 
   Clock, 
@@ -20,12 +21,15 @@ import {
   Star,
   Award,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Plus
 } from 'lucide-react'
 
 type TestimonialDoc = Doc<'testimonials'>
 
 export default function StudentsPage() {
+
+  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
 
   const benefits = [
     {
@@ -209,7 +213,7 @@ export default function StudentsPage() {
                     asChild
                     size="lg"
                     className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
-                    <Link href="/sign-up/student">
+                    <Link href="/get-started/student">
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-primary" />
                       <span className="relative text-nowrap font-semibold">Get Matched Today</span>
@@ -294,12 +298,12 @@ export default function StudentsPage() {
           </div>
 
           <div className="text-center mt-12">
-              <Button
+            <Button
                 size="lg"
                 asChild
                 className="bg-primary hover:bg-primary/85 text-primary-foreground px-8 py-6 text-lg"
               >
-              <Link href="/sign-up/student">
+            <Link href="/get-started/student">
                 Start Your Journey
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Link>
@@ -424,12 +428,23 @@ export default function StudentsPage() {
           
           <div className="space-y-6">
             {faqs.map((faq, index) => (
-              <Card key={index}>
+              <Card key={index} className="border-0 shadow-lg">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-2 text-foreground">
-                    {faq.question}
-                  </h3>
-                  <p className="text-muted-foreground">{faq.answer}</p>
+                  <button
+                    type="button"
+                    className="w-full text-left flex justify-between items-center"
+                    onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
+                  >
+                    <h3 className="font-semibold text-lg text-foreground">
+                      {faq.question}
+                    </h3>
+                    <Plus className={`w-5 h-5 text-muted-foreground transition-transform ${expandedFAQ === index ? 'rotate-45' : ''}`} />
+                  </button>
+                  {expandedFAQ === index && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-muted-foreground">{faq.answer}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -461,7 +476,7 @@ export default function StudentsPage() {
               asChild
               className="bg-primary hover:bg-primary/85 text-primary-foreground px-8 py-6 text-lg"
             >
-              <Link href="/sign-up/student">
+              <Link href="/get-started/student">
                 Sign up as a Student
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Link>
