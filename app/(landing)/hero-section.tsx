@@ -11,7 +11,7 @@ import { motion } from 'motion/react'
 export default function HeroSection() {
     return (
         <section className="relative overflow-hidden">
-                <MentoLoopBackground className="min-h-fit" showIcons={false}>
+                <MentoLoopBackground className="min-h-fit" showIcons={false} variant="full">
                     {/* Floating 3D Elements */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <motion.div
