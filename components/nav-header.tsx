@@ -88,9 +88,7 @@ export const NavHeader = memo(function NavHeader() {
                         href="/"
                         aria-label="home"
                         className="group flex items-center gap-2 relative">
-                        <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent group-hover:from-accent group-hover:to-primary transition-colors duration-300">
-                          MentoLoop
-                        </span>
+                        <span className="text-lg font-semibold text-foreground">MentoLoop</span>
                     </Link>
 
                     {/* Desktop Navigation with Magnetic Effect */}
