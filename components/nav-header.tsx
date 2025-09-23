@@ -11,7 +11,7 @@ import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 
 import { CustomSignupModal } from '@/components/custom-signup-modal'
-import { Logo, LogoIcon } from '@/components/logo'
+import { Logo } from '@/components/logo'
 
 // Move static data outside component to prevent recreation
 const menuItems = [
@@ -88,10 +88,7 @@ export const NavHeader = memo(function NavHeader() {
                         href="/"
                         aria-label="home"
                         className="group flex items-center gap-2 relative">
-                        <LogoIcon className="h-5 w-5 text-foreground" />
-                        <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent group-hover:from-accent group-hover:to-primary transition-all duration-300">
-                          MentoLoop
-                        </span>
+                        <Logo className="h-6 md:h-7 w-auto text-foreground" />
                     </Link>
 
                     {/* Desktop Navigation with Magnetic Effect */}
