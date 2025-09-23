@@ -33,11 +33,11 @@ export const metadata: Metadata = {
   authors: [{ name: "MentoLoop" }],
   creator: "MentoLoop",
   publisher: "MentoLoop",
-  metadataBase: new URL('https://mentoloop.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://mentoloop.com'),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://mentoloop.com",
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://mentoloop.com',
     title: "MentoLoop - Nurse Practitioner Platform",
     description: "Connect nurse practitioner students with experienced preceptors for personalized mentorship and clinical rotations",
     siteName: "MentoLoop",
@@ -68,7 +68,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased overscroll-none`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overscroll-none bg-background text-foreground`}
       >
         <ClerkProvider
             appearance={CLERK_CONFIG.appearance}
