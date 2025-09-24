@@ -261,7 +261,7 @@ export default function StudentIntakePage() {
       </div>
 
       {/* Progress Indicator */}
-      <Card className="mb-8 shadow-lg border-2">
+      <Card className="mb-8 dashboard-card">
         <CardContent className="pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold bg-primary/10 px-3 py-1 rounded-full">
@@ -271,7 +271,7 @@ export default function StudentIntakePage() {
               {Math.round(progress)}% Complete
             </span>
           </div>
-          <Progress value={progress} className="mb-6 h-3" />
+          <Progress value={progress} className="mb-6 h-2" />
           
           <div className="flex justify-between items-start">
             {steps.map((step, index) => {
@@ -285,25 +285,25 @@ export default function StudentIntakePage() {
                 <div key={step.id} className="flex flex-col items-center flex-1 relative">
                   {index < steps.length - 1 && (
                     <div 
-                      className={`absolute top-5 left-1/2 w-full h-0.5 ${
-                        completedSteps.includes(step.id) 
+                      className={`absolute top-5 left-1/2 -translate-x-1/2 h-0.5 ${
+                        completedSteps.includes(step.id)
                           ? 'bg-accent'
-                          : 'bg-muted/30'
+                          : 'bg-muted'
                       }`}
-                      style={{ width: 'calc(100% - 2rem)', left: '60%' }}
+                      style={{ width: 'calc(100% - 2.5rem)' }}
                     />
                   )}
                   <div 
                     className={`
-                      flex items-center justify-center w-10 h-10 rounded-full border-2 mb-2 
-                      transition-all duration-300 z-10 bg-background
+                      flex items-center justify-center w-9 h-9 rounded-full border mb-2 
+                      transition-all duration-200 z-10
                       ${isCompleted
-                        ? 'bg-accent border-accent text-accent-foreground shadow-lg shadow-accent/30' 
+                        ? 'bg-accent border-accent text-accent-foreground'
                         : isCurrent
-                        ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-110'
+                        ? 'border-primary bg-primary text-primary-foreground'
                         : isAccessible
-                        ? 'border-muted-foreground text-muted-foreground hover:border-primary hover:shadow-md cursor-pointer'
-                        : 'border-border/60 text-muted-foreground/50 cursor-not-allowed opacity-50'
+                        ? 'border-border bg-muted/40 text-muted-foreground hover:border-primary cursor-pointer'
+                        : 'border-border text-muted-foreground/50 cursor-not-allowed opacity-50'
                       }
                     `}
                     onClick={() => {
@@ -346,8 +346,8 @@ export default function StudentIntakePage() {
       </Card>
 
       {/* Main Form */}
-      <Card className="shadow-xl border-2">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl">
@@ -378,26 +378,18 @@ export default function StudentIntakePage() {
       </Card>
 
       {/* Footer Message */}
-      <Card className="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 border-0">
-        <CardContent className="pt-6 text-center">
-          <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto">
-            &ldquo;If you&apos;ve struggled to find a preceptor - or just want a better way - you&apos;re in the right place. 
-            Let us take the stress out of your search - so you can focus on becoming the NP you&apos;re meant to be.&rdquo;
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <CheckCircle className="w-4 h-4 text-green-600" />
-            <span className="text-xs text-muted-foreground">
-              Your information is secure and will never be shared without your consent
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="mt-8 text-center">
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span>Your information is secure and will never be shared without your consent</span>
+        </div>
+      </div>
     </>
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 max-w-5xl py-8 md:py-12">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 max-w-4xl py-8 md:py-12">
         {!forceAuth && (
           <Unauthenticated>
             <Card className="max-w-md mx-auto shadow-xl border-2">

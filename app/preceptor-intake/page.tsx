@@ -75,23 +75,23 @@ export default function PreceptorIntakePage() {
         </div>
 
         {/* Progress Indicator */}
-        <Card className="mb-8">
+        <Card className="mb-8 dashboard-card">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium">Step {currentStep} of {steps.length}</span>
               <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
             </div>
-            <Progress value={progress} className="mb-6" />
+            <Progress value={progress} className="mb-6 h-2" />
             
             <div className="flex justify-between">
               {steps.map((step) => (
                 <div key={step.id} className="flex flex-col items-center">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 mb-2 ${
+                  <div className={`flex items-center justify-center w-9 h-9 rounded-full border mb-2 ${
                     step.id < currentStep 
-                      ? 'bg-primary border-primary text-primary-foreground' 
+                      ? 'bg-accent border-accent text-accent-foreground' 
                       : step.id === currentStep
-                      ? 'border-primary text-primary'
-                      : 'border-muted-foreground text-muted-foreground'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-muted/40 text-muted-foreground'
                   }`}>
                     {step.id < currentStep ? (
                       <CheckCircle className="w-5 h-5" />
@@ -111,8 +111,8 @@ export default function PreceptorIntakePage() {
         </Card>
 
         {/* Main Form */}
-        <Card>
-          <CardHeader>
+        <Card className="dashboard-card">
+          <CardHeader className="border-b bg-background/80">
             <CardTitle>Section {currentStep}: {steps[currentStep - 1].name}</CardTitle>
           </CardHeader>
           <CardContent>
