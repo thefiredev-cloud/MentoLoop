@@ -73,6 +73,7 @@ export default function StripeCheckoutStep({
       return
     }
 
+    if (isProcessing) return
     setIsProcessing(true)
     setError('')
     
@@ -80,10 +81,11 @@ export default function StripeCheckoutStep({
       // First ensure user exists in database
       await ensureUserExists()
       
+      const normalizedCode = (discountCode || '').trim().toUpperCase()
       // If using a 100% test code (e.g., NP12345), grant access without redirecting to Stripe
-      if (discountCode && discountCode.trim().toUpperCase() === 'NP12345') {
+      if (normalizedCode === 'NP12345') {
         await grantZeroCostAccessByCode({
-          code: discountCode.trim().toUpperCase(),
+          code: normalizedCode,
           membershipPlan: membership.plan,
         })
 
@@ -103,7 +105,7 @@ export default function StripeCheckoutStep({
         customerEmail: studentInfo.email,
         customerName: studentInfo.fullName,
         membershipPlan: membership.plan,
-        discountCode: discountCode || undefined,
+        discountCode: normalizedCode || undefined,
         metadata: {
           studentName: studentInfo.fullName,
           school: studentInfo.school,
@@ -148,8 +150,8 @@ export default function StripeCheckoutStep({
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Order Summary */}
-      <Card>
-        <CardHeader>
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
             Order Summary
@@ -199,8 +201,8 @@ export default function StripeCheckoutStep({
       </Card>
 
       {/* Payment Information */}
-      <Card>
-        <CardHeader>
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
             Secure Payment
@@ -229,7 +231,7 @@ export default function StripeCheckoutStep({
             </AlertDescription>
           </Alert>
 
-          <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+          <div className="bg-muted/30 border border-border/60 p-4 rounded-lg space-y-3">
             <p className="text-sm font-medium">Payment Methods Accepted:</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Badge variant="secondary" className="justify-center">Visa</Badge>
@@ -249,11 +251,17 @@ export default function StripeCheckoutStep({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          {error && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setError('')}>Dismiss</Button>
+              <Button onClick={() => void handlePayment()}>Retry</Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Security & Trust */}
-      <Card className="border-muted">
+      <Card className="dashboard-card">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Shield className="h-5 w-5 text-primary mt-1" />
@@ -293,7 +301,7 @@ export default function StripeCheckoutStep({
         </Button>
         <Button 
           onClick={handlePayment}
-          disabled={isProcessing}
+          disabled={isProcessing || !isLoaded || !isSignedIn}
           size="lg"
           className="px-8"
         >

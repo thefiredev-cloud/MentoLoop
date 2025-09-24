@@ -54,16 +54,16 @@ export default function PersonalInformationStep({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+            <User className="h-5 w-5 text-primary" />
             Personal Information
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-800">
+          <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4">
+            <p className="text-sm text-primary">
               Your account information (name, email, phone) has been automatically populated from your signup details.
             </p>
           </div>

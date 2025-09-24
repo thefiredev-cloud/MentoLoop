@@ -121,10 +121,10 @@ export default function SchoolInformationStep({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
-            <School className="h-5 w-5" />
+            <School className="h-5 w-5 text-primary" />
             School Information
           </CardTitle>
         </CardHeader>

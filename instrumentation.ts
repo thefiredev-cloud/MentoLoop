@@ -12,3 +12,19 @@ export async function register() {
 }
 
 
+// Hook to capture request errors from nested React Server Components
+// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#errors-from-nested-react-server-components
+export function onRequestError(err: unknown) {
+  try {
+    if (typeof Sentry.captureRequestError === 'function') {
+      // @ts-ignore
+      Sentry.captureRequestError(err)
+    } else {
+      Sentry.captureException(err instanceof Error ? err : new Error(String(err)))
+    }
+  } catch {
+    // no-op
+  }
+}
+
+

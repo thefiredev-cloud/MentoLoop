@@ -10,9 +10,7 @@ export async function GET() {
     const slug = 'mentoloop-heartbeat'
     let checkInId: string | undefined
     try {
-      // @ts-ignore captureCheckIn may not exist in older SDKs
       if (typeof Sentry.captureCheckIn === 'function') {
-        // @ts-ignore
         checkInId = Sentry.captureCheckIn({ monitorSlug: slug, status: 'ok' })
       } else {
         Sentry.captureMessage(`heartbeat:${slug}`)

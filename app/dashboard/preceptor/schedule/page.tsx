@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   Calendar, 
   Clock, 
@@ -119,6 +120,81 @@ export default function PreceptorSchedule() {
 
   const [editingAvailability, setEditingAvailability] = useState(false)
   const [availability, setAvailability] = useState<AvailabilityMap>(DEFAULT_AVAILABILITY)
+  const [validationErrors, setValidationErrors] = useState<Record<keyof AvailabilityMap, string>>({
+    monday: '',
+    tuesday: '',
+    wednesday: '',
+    thursday: '',
+    friday: '',
+    saturday: '',
+    sunday: '',
+  })
+  const [timezone, setTimezone] = useState<string>(
+    (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC'
+  )
+  const updateAvailability = useMutation(api.preceptors.updateAvailability)
+
+  // Helpers to compute overlap/conflicts
+  const _dateInRange = (dateStr: string, startStr: string, endStr: string) => {
+    const d = new Date(dateStr)
+    const s = new Date(startStr)
+    const e = new Date(endStr)
+    return d >= s && d <= e
+  }
+
+  const weekdayFromDate = (dateStr: string): keyof AvailabilityMap => {
+    const d = new Date(dateStr)
+    const idx = d.getDay() // 0 Sun ... 6 Sat
+    const map: Record<number, keyof AvailabilityMap> = {
+      0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'
+    }
+    return map[idx]
+  }
+
+  const computeDayConflicts = (dayKey: keyof AvailabilityMap): string[] => {
+    const msgs: string[] = []
+    const day = availability[dayKey]
+    if (!day.available) return msgs
+    if (day.currentStudents >= day.maxStudents) {
+      msgs.push('Capacity reached for this day')
+    }
+    // Time-off windows
+    for (const t of mockTimeOffRequests) {
+      // If any date in the time-off range falls on this weekday, mark as conflict
+      const start = new Date(t.startDate)
+      const end = new Date(t.endDate)
+      for (
+        let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        d <= end;
+        d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+      ) {
+        const wk = weekdayFromDate(d.toISOString().slice(0, 10))
+        if (wk === dayKey) {
+          msgs.push('Time off overlaps this weekday window')
+          break
+        }
+      }
+    }
+    // Upcoming rotations consuming capacity
+    const weekdayRotations = mockUpcomingRotations.filter(r => {
+      // quick check: if any date within rotation matches this weekday
+      const start = new Date(r.startDate)
+      const end = new Date(r.endDate)
+      for (
+        let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        d <= end;
+        d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+      ) {
+        const wk = weekdayFromDate(d.toISOString().slice(0, 10))
+        if (wk === dayKey) return true
+      }
+      return false
+    })
+    if (weekdayRotations.length > 0) {
+      msgs.push(`${weekdayRotations.length} rotation(s) span this weekday`)
+    }
+    return msgs
+  }
 
   if (!user) {
     return <div>Loading...</div>
@@ -172,10 +248,81 @@ export default function PreceptorSchedule() {
     { key: 'sunday', label: 'Sunday' }
   ]
 
+  const parseTime = (t: string): number => {
+    // returns minutes since 00:00, -1 if invalid
+    if (!t || typeof t !== 'string') return -1
+    const m = t.match(/^(\d{2}):(\d{2})$/)
+    if (!m) return -1
+    const hh = Number(m[1])
+    const mm = Number(m[2])
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return -1
+    return hh * 60 + mm
+  }
+
+  const validateAvailability = (state: AvailabilityMap): boolean => {
+    const nextErrors: Record<keyof AvailabilityMap, string> = {
+      monday: '', tuesday: '', wednesday: '', thursday: '', friday: '', saturday: '', sunday: ''
+    }
+    let ok = true
+    ;(Object.keys(state) as Array<keyof AvailabilityMap>).forEach((day: keyof AvailabilityMap) => {
+      const d = state[day]
+      nextErrors[day] = ''
+      if (!d.available) return
+      const start = parseTime(d.startTime)
+      const end = parseTime(d.endTime)
+      if (start === -1 || end === -1) {
+        ok = false
+        nextErrors[day] = 'Please enter valid start and end times (HH:MM)'
+        return
+      }
+      if (end <= start) {
+        ok = false
+        nextErrors[day] = 'End time must be after start time'
+        return
+      }
+      if (d.maxStudents < 1) {
+        ok = false
+        nextErrors[day] = 'Max students must be at least 1 when day is available'
+        return
+      }
+      if (d.currentStudents > d.maxStudents) {
+        ok = false
+        nextErrors[day] = 'Current students exceed maximum capacity'
+        return
+      }
+    })
+    setValidationErrors(nextErrors)
+    return ok
+  }
+
   const handleSaveAvailability = () => {
-    // In real app, this would update Convex
-    toast.success("Availability updated successfully!")
-    setEditingAvailability(false)
+    if (!validateAvailability(availability)) {
+      toast.error('Please fix highlighted errors before saving')
+      return
+    }
+    ;(async () => {
+      try {
+        await updateAvailability({
+          currentlyAccepting: true,
+          preferredStartDates: [],
+          timezone,
+          weeklySchedule: {
+            monday: { available: availability.monday.available, startTime: availability.monday.startTime, endTime: availability.monday.endTime, maxStudents: availability.monday.maxStudents, notes: availability.monday.notes },
+            tuesday: { available: availability.tuesday.available, startTime: availability.tuesday.startTime, endTime: availability.tuesday.endTime, maxStudents: availability.tuesday.maxStudents, notes: availability.tuesday.notes },
+            wednesday: { available: availability.wednesday.available, startTime: availability.wednesday.startTime, endTime: availability.wednesday.endTime, maxStudents: availability.wednesday.maxStudents, notes: availability.wednesday.notes },
+            thursday: { available: availability.thursday.available, startTime: availability.thursday.startTime, endTime: availability.thursday.endTime, maxStudents: availability.thursday.maxStudents, notes: availability.thursday.notes },
+            friday: { available: availability.friday.available, startTime: availability.friday.startTime, endTime: availability.friday.endTime, maxStudents: availability.friday.maxStudents, notes: availability.friday.notes },
+            saturday: { available: availability.saturday.available, startTime: availability.saturday.startTime, endTime: availability.saturday.endTime, maxStudents: availability.saturday.maxStudents, notes: availability.saturday.notes },
+            sunday: { available: availability.sunday.available, startTime: availability.sunday.startTime, endTime: availability.sunday.endTime, maxStudents: availability.sunday.maxStudents, notes: availability.sunday.notes },
+          },
+        })
+        toast.success('Availability saved')
+        setEditingAvailability(false)
+      } catch (e) {
+        console.error(e)
+        toast.error('Failed to save availability')
+      }
+    })()
   }
 
   const updateDay = <K extends keyof AvailabilityMap, F extends keyof DayAvailability>(
@@ -216,7 +363,21 @@ export default function PreceptorSchedule() {
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 space-y-3">
+          {validationErrors[day.key] && (
+            <Alert variant="destructive">
+              <AlertDescription className="text-xs">
+                {validationErrors[day.key]}
+              </AlertDescription>
+            </Alert>
+          )}
+          {computeDayConflicts(day.key).length > 0 && (
+            <Alert>
+              <AlertDescription className="text-xs">
+                {computeDayConflicts(day.key).join(' • ')}
+              </AlertDescription>
+            </Alert>
+          )}
           {editingAvailability ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -394,6 +555,20 @@ export default function PreceptorSchedule() {
         </TabsList>
 
         <TabsContent value="availability" className="space-y-6">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Label>Timezone</Label>
+            <Select value={timezone} onValueChange={setTimezone}>
+              <SelectTrigger className="w-[320px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {['UTC','America/New_York','America/Chicago','America/Denver','America/Los_Angeles'].map(tz => (
+                  <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs">Times below are interpreted as {timezone}</span>
+          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Weekly Availability</h2>
             <Button 
@@ -440,7 +615,7 @@ export default function PreceptorSchedule() {
           )}
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {daysOfWeek.map(day => renderAvailabilityCard(day))}
+            {daysOfWeek.map((day) => renderAvailabilityCard(day))}
           </div>
 
           {/* Availability Settings */}

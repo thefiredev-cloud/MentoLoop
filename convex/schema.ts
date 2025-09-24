@@ -345,6 +345,16 @@ export default defineSchema({
           v.literal("monday"), v.literal("tuesday"), v.literal("wednesday"),
           v.literal("thursday"), v.literal("friday"), v.literal("saturday"), v.literal("sunday")
         )),
+        timezone: v.optional(v.string()),
+        weeklySchedule: v.optional(v.object({
+          monday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+          tuesday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+          wednesday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+          thursday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+          friday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+          saturday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+          sunday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+        })),
       }),
       // Matching Preferences
       matchingPreferences: v.object({

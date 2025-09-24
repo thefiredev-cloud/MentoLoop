@@ -210,6 +210,7 @@ export function MessageInput({
               disabled={disabled}
               className="min-h-[40px] max-h-[120px] resize-none border-0 bg-muted/50 focus-visible:ring-1"
               rows={1}
+              aria-label="Message input"
             />
             
             {/* Character count */}

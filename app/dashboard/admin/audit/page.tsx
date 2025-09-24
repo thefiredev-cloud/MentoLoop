@@ -1,12 +1,17 @@
 'use client'
+import React from 'react'
 
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/convex/_generated/api'
 import { useQuery } from 'convex/react'
+import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { Activity, AlertTriangle, CheckCircle, DollarSign } from 'lucide-react'
 
 export default function AuditLogs() {
@@ -18,7 +23,10 @@ export default function AuditLogs() {
 }
 
 function AuditLogsContent() {
-  const data = useQuery(api.admin.getRecentPaymentEvents, { limit: 100 })
+  const [limit, setLimit] = React.useState(100)
+  const data = useQuery(api.admin.getRecentPaymentEvents, { limit })
+  const [search, setSearch] = React.useState('')
+  const [onlyUnprocessed, setOnlyUnprocessed] = React.useState(false)
 
   if (data === undefined) {
     return (
@@ -46,13 +54,52 @@ function AuditLogsContent() {
     )
   }
 
-  const webhookEvents = data.webhookEvents ?? []
-  const paymentsAudit = data.paymentsAudit ?? []
-  const paymentAttempts = data.paymentAttempts ?? []
-  const intakePaymentAttempts = data.intakePaymentAttempts ?? []
+  const webhookEvents = (data.webhookEvents ?? []).filter((e) => {
+    if (onlyUnprocessed && e.processedAt) return false
+    if (!search) return true
+    const q = search.toLowerCase()
+    return String(e.eventId).toLowerCase().includes(q) || String(e.provider).toLowerCase().includes(q)
+  })
+  const paymentsAudit = (data.paymentsAudit ?? []).filter((e) => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      String(e.action).toLowerCase().includes(q) ||
+      String(e.stripeObject).toLowerCase().includes(q) ||
+      String(e.stripeId).toLowerCase().includes(q)
+    )
+  })
+  const paymentAttempts = (data.paymentAttempts ?? []).filter((e) => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      String(e.stripeSessionId).toLowerCase().includes(q) ||
+      String(e.status).toLowerCase().includes(q)
+    )
+  })
+  const intakePaymentAttempts = (data.intakePaymentAttempts ?? []).filter((e) => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      String(e.customerEmail).toLowerCase().includes(q) ||
+      String(e.membershipPlan).toLowerCase().includes(q) ||
+      String(e.stripeSessionId).toLowerCase().includes(q)
+    )
+  })
 
   const processedWebhook = webhookEvents.filter((event) => event.processedAt && event.processedAt > 0).length
   const failedWebhook = webhookEvents.length - processedWebhook
+  const stripeDashBase = 'https://dashboard.stripe.com/test'
+  const buildStripeUrl = (kind: string | undefined, id: string | undefined): string | undefined => {
+    if (!id) return undefined
+    if (id.startsWith('evt_')) return `${stripeDashBase}/events/${id}`
+    if (id.startsWith('pi_')) return `${stripeDashBase}/payments/${id}`
+    if (id.startsWith('in_')) return `${stripeDashBase}/invoices/${id}`
+    if (id.startsWith('cs_')) return `${stripeDashBase}/checkouts/sessions/${id}`
+    if (kind === 'invoice') return `${stripeDashBase}/invoices/${id}`
+    if (kind === 'payment_intent') return `${stripeDashBase}/payments/${id}`
+    return undefined
+  }
 
   const paymentSucceeded =
     paymentAttempts.filter((attempt) => attempt.status === 'succeeded').length +
@@ -65,6 +112,34 @@ function AuditLogsContent() {
   const intakeRevenue = intakePaymentAttempts
     .filter((attempt) => attempt.status === 'succeeded')
     .reduce((sum, attempt) => sum + (attempt.amount ?? 0), 0)
+
+  const downloadCsv = (rows: Array<Record<string, string | number | boolean | null>>, filename: string) => {
+    if (!rows || rows.length === 0) return
+    const headers = Array.from(
+      rows.reduce((set, row) => {
+        Object.keys(row).forEach((k) => set.add(k))
+        return set
+      }, new Set<string>())
+    )
+    const escape = (v: unknown) => {
+      if (v === null || v === undefined) return ''
+      const s = typeof v === 'object' ? JSON.stringify(v) : String(v)
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replaceAll('"', '""') + '"' : s
+    }
+    const csv = [headers.join(',')]
+    for (const row of rows) {
+      csv.push(headers.map((h) => escape(row[h])).join(','))
+    }
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -121,6 +196,21 @@ function AuditLogsContent() {
         </Card>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Input
+            placeholder="Search id, provider, action…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-72"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch id="unprocessed" checked={onlyUnprocessed} onCheckedChange={setOnlyUnprocessed} />
+          <Label htmlFor="unprocessed" className="text-sm">Only unprocessed webhooks</Label>
+        </div>
+      </div>
+
       <Tabs defaultValue="webhooks" className="space-y-4">
         <TabsList className="flex flex-wrap">
           <TabsTrigger value="webhooks">Webhook Events ({webhookEvents.length})</TabsTrigger>
@@ -133,6 +223,14 @@ function AuditLogsContent() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Stripe Webhook Deliveries</CardTitle>
+              <div className="mt-2">
+              <Button variant="outline" size="sm" onClick={() => downloadCsv(webhookEvents as unknown as Array<Record<string, string | number | boolean | null>>, 'webhook_events.csv')}>
+                  Export CSV
+                </Button>
+              <Button className="ml-2" variant="secondary" size="sm" onClick={() => setLimit((n) => n + 100)}>
+                Load more
+              </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {webhookEvents.length === 0 ? (
@@ -152,7 +250,20 @@ function AuditLogsContent() {
                     <TableBody>
                       {webhookEvents.map((event) => (
                         <TableRow key={String(event.id)}>
-                          <TableCell className="font-mono text-xs">{String(event.eventId)}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {buildStripeUrl('event', String(event.eventId)) ? (
+                              <a
+                                href={buildStripeUrl('event', String(event.eventId))}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline text-primary"
+                              >
+                                {String(event.eventId)}
+                              </a>
+                            ) : (
+                              String(event.eventId)
+                            )}
+                          </TableCell>
                           <TableCell>{event.provider}</TableCell>
                           <TableCell>{renderWebhookStatus(event.processedAt)}</TableCell>
                           <TableCell>{formatDate(event.createdAt)}</TableCell>
@@ -171,6 +282,14 @@ function AuditLogsContent() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Payments Audit Trail</CardTitle>
+              <div className="mt-2">
+                <Button variant="outline" size="sm" onClick={() => downloadCsv(paymentsAudit as unknown as Array<Record<string, string | number | boolean | null>>, 'payments_audit.csv')}>
+                  Export CSV
+                </Button>
+                <Button className="ml-2" variant="secondary" size="sm" onClick={() => setLimit((n) => n + 100)}>
+                  Load more
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {paymentsAudit.length === 0 ? (
@@ -192,7 +311,20 @@ function AuditLogsContent() {
                         <TableRow key={String(entry.id)}>
                           <TableCell>{entry.action}</TableCell>
                           <TableCell>{entry.stripeObject}</TableCell>
-                          <TableCell className="font-mono text-xs">{entry.stripeId}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {buildStripeUrl(entry.stripeObject, entry.stripeId) ? (
+                              <a
+                                href={buildStripeUrl(entry.stripeObject, entry.stripeId)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline text-primary"
+                              >
+                                {entry.stripeId}
+                              </a>
+                            ) : (
+                              entry.stripeId
+                            )}
+                          </TableCell>
                           <TableCell className="max-w-[320px] truncate text-xs">
                             {Object.keys(entry.details || {}).length === 0
                               ? '—'
@@ -233,7 +365,34 @@ function AuditLogsContent() {
                     <TableBody>
                       {paymentAttempts.map((attempt) => (
                         <TableRow key={String(attempt.id)}>
-                          <TableCell className="font-mono text-xs">{attempt.stripeSessionId}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {buildStripeUrl('checkout_session', attempt.stripeSessionId) ? (
+                              <a
+                                href={buildStripeUrl('checkout_session', attempt.stripeSessionId)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline text-primary"
+                              >
+                                {attempt.stripeSessionId}
+                              </a>
+                            ) : (
+                              attempt.stripeSessionId
+                            )}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {buildStripeUrl('checkout_session', attempt.stripeSessionId) ? (
+                              <a
+                                href={buildStripeUrl('checkout_session', attempt.stripeSessionId)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline text-primary"
+                              >
+                                {attempt.stripeSessionId}
+                              </a>
+                            ) : (
+                              attempt.stripeSessionId
+                            )}
+                          </TableCell>
                           <TableCell>{renderPaymentStatus(attempt.status)}</TableCell>
                           <TableCell>{formatCurrency(attempt.amount)}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">

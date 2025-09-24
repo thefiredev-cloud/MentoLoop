@@ -25,6 +25,7 @@ import {
 import { useAction, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Doc } from '@/convex/_generated/dataModel'
+import { toast } from 'sonner'
 
 type CSVCell = string | number | boolean | null | object | undefined
 
@@ -47,12 +48,15 @@ export default function FinancialManagement() {
 function FinancialManagementContent() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [refunding, setRefunding] = useState<Record<string, boolean>>({})
 
   // Get real financial data
   const paymentAttempts = useQuery(api.paymentAttempts.getAllPaymentAttempts)
   const intakePayments = useQuery(api.intakePayments.getAllIntakePayments)
   const pendingEarnings = useQuery(api.preceptors.getAllPreceptorEarnings, { status: 'pending' })
   const payEarning = useAction(api.payments.payPreceptorEarning)
+  const createRefund = useAction(api.payments.createRefund)
+  const resolvePiFromSession = useAction(api.payments.resolvePaymentIntentIdFromSession)
 
   const paymentAttemptList: PaymentAttempt[] = paymentAttempts ?? []
   const successfulPaymentAttempts = paymentAttemptList.filter((attempt) => attempt.status === 'succeeded')
@@ -270,12 +274,52 @@ function FinancialManagementContent() {
                       <div className="text-xs text-muted-foreground">
                         {formatDate(payment.createdAt)}
                       </div>
+                      {/* Receipt link if we can resolve from intake attempts */}
+                      {(() => {
+                        const intake = intakePaymentList.find(i => i.stripeSessionId === payment.stripeSessionId)
+                        const url = intake?.receiptUrl
+                        return url ? (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-primary underline"
+                          >
+                            View receipt
+                          </a>
+                        ) : null
+                      })()}
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(payment.status)}
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      {payment.status === 'succeeded' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              setRefunding((r) => ({ ...r, [payment.stripeSessionId]: true }))
+                              // Resolve PaymentIntent from session
+                              const resolved = await resolvePiFromSession({ sessionId: payment.stripeSessionId })
+                              if (!resolved?.paymentIntentId) {
+                                toast.error('No payment_intent found for session')
+                                setRefunding((r) => ({ ...r, [payment.stripeSessionId]: false }))
+                                return
+                              }
+                              await createRefund({ paymentIntentId: resolved.paymentIntentId })
+                              toast.success('Refund created')
+                            } catch (e) {
+                              console.error(e)
+                              toast.error('Refund failed')
+                            } finally {
+                              setRefunding((r) => ({ ...r, [payment.stripeSessionId]: false }))
+                            }
+                          }}
+                          disabled={!!refunding[payment.stripeSessionId]}
+                        >
+                          {refunding[payment.stripeSessionId] ? 'Refunding…' : 'Refund'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -359,10 +403,47 @@ function FinancialManagementContent() {
                       <div className="text-xs text-muted-foreground">
                         {formatDate(payment.createdAt)}
                       </div>
+                      {payment.receiptUrl && (
+                        <a
+                          href={payment.receiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-primary underline"
+                        >
+                          View receipt
+                        </a>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{formatCurrency(payment.amount)}</span>
                       {getStatusBadge(payment.status)}
+                      {payment.status === 'succeeded' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              setRefunding((r) => ({ ...r, [payment.stripeSessionId]: true }))
+                              const resolved = await resolvePiFromSession({ sessionId: payment.stripeSessionId })
+                              if (!resolved?.paymentIntentId) {
+                                toast.error('No payment_intent found for session')
+                                setRefunding((r) => ({ ...r, [payment.stripeSessionId]: false }))
+                                return
+                              }
+                              await createRefund({ paymentIntentId: resolved.paymentIntentId })
+                              toast.success('Refund created')
+                            } catch (e) {
+                              console.error(e)
+                              toast.error('Refund failed')
+                            } finally {
+                              setRefunding((r) => ({ ...r, [payment.stripeSessionId]: false }))
+                            }
+                          }}
+                          disabled={!!refunding[payment.stripeSessionId]}
+                        >
+                          {refunding[payment.stripeSessionId] ? 'Refunding…' : 'Refund'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -157,34 +157,34 @@ export default function MatchingPreferencesStep({
   if (!canAccessSection) {
     return (
       <div className="space-y-6">
-        <Card className="border-2 border-amber-500/20 bg-gradient-to-br from-amber-50/50 to-orange-50/50">
-          <CardHeader className="pb-4">
+        <Card className="dashboard-card">
+          <CardHeader className="pb-4 border-b bg-background/80">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <div className="p-3 rounded-xl bg-amber-500/10">
-                  <Lock className="h-6 w-6 text-amber-600" />
+                <div className="p-3 rounded-xl bg-primary/10">
+                  <Lock className="h-6 w-6 text-primary" />
                 </div>
                 MentorFit™ Matching Preferences
               </CardTitle>
-              <Badge variant="outline" className="px-3 py-1 text-amber-600 border-amber-500">
+              <Badge variant="outline" className="px-3 py-1 text-primary border-primary/50">
                 Payment Required
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="p-4 rounded-lg bg-background/80 border border-amber-500/10">
+            <div className="p-4 rounded-lg bg-background/80 border border-border/60">
               <p className="text-base leading-relaxed">
-                Our proprietary <strong className="text-amber-600">MentorFit™</strong> assessment analyzes your learning style, 
+                Our proprietary <strong className="text-primary">MentorFit™</strong> assessment analyzes your learning style, 
                 communication preferences, and mentorship goals to match you with the perfect preceptor. 
                 This comprehensive questionnaire ensures optimal compatibility for your clinical success.
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <Card className="border-dashed border-2 border-amber-500/20 bg-background/50">
+              <Card className="dashboard-card border-dashed border-border/40 bg-background/60">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
-                    <Target className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <Target className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <h4 className="font-semibold mb-1">Practice Style Assessment</h4>
                       <p className="text-sm text-muted-foreground">
@@ -195,10 +195,10 @@ export default function MatchingPreferencesStep({
                 </CardContent>
               </Card>
 
-              <Card className="border-dashed border-2 border-amber-500/20 bg-background/50">
+              <Card className="dashboard-card border-dashed border-border/40 bg-background/60">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
-                    <Users className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <Users className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <h4 className="font-semibold mb-1">Teaching Preference Matching</h4>
                       <p className="text-sm text-muted-foreground">
@@ -209,10 +209,10 @@ export default function MatchingPreferencesStep({
                 </CardContent>
               </Card>
 
-              <Card className="border-dashed border-2 border-amber-500/20 bg-background/50">
+              <Card className="dashboard-card border-dashed border-border/40 bg-background/60">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
-                    <MessageSquare className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <MessageSquare className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <h4 className="font-semibold mb-1">Communication Alignment</h4>
                       <p className="text-sm text-muted-foreground">
@@ -223,10 +223,10 @@ export default function MatchingPreferencesStep({
                 </CardContent>
               </Card>
 
-              <Card className="border-dashed border-2 border-amber-500/20 bg-background/50">
+              <Card className="dashboard-card border-dashed border-border/40 bg-background/60">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <Clock className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <h4 className="font-semibold mb-1">Schedule Compatibility</h4>
                       <p className="text-sm text-muted-foreground">
@@ -238,10 +238,10 @@ export default function MatchingPreferencesStep({
               </Card>
             </div>
 
-            <Card className="bg-amber-500/5 border-amber-500/20">
+            <Card className="dashboard-card bg-primary/5 border-primary/20">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
-                  <Sparkles className="h-6 w-6 text-amber-600" />
+                  <Sparkles className="h-6 w-6 text-primary" />
                   <div>
                     <h4 className="font-semibold text-lg mb-1">Why This Step is Protected</h4>
                     <p className="text-sm text-muted-foreground">
@@ -287,10 +287,10 @@ export default function MatchingPreferencesStep({
   // Show form if payment completed
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-amber-500" />
+            <Sparkles className="h-5 w-5 text-primary" />
             MentorFit™ Matching Preferences
           </CardTitle>
           <p className="text-sm text-muted-foreground mt-2">
@@ -314,7 +314,7 @@ export default function MatchingPreferencesStep({
                   onValueChange={(value) => handleInputChange(fieldName, value)}
                 >
                   {question.options.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
+                    <div key={option.value} className="flex items-center space-x-2 border border-border/60 rounded-md px-3 py-2 hover:border-primary/40 transition-colors">
                       <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
                       <Label 
                         htmlFor={`${question.id}-${option.value}`}
@@ -347,7 +347,7 @@ export default function MatchingPreferencesStep({
         </CardContent>
       </Card>
 
-      <Card className="bg-primary/5 border-primary/20">
+      <Card className="dashboard-card bg-primary/5 border-primary/20">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary mt-0.5" />

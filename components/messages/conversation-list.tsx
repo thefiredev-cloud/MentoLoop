@@ -137,6 +137,7 @@ export function ConversationList({
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9 pr-9"
+            aria-label="Search conversations"
           />
           {searchQuery && (
             <Button

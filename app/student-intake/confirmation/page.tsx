@@ -32,6 +32,8 @@ export default function StudentIntakeConfirmationPage() {
   const success = searchParams.get('success')
   const sessionId = searchParams.get('session_id')
   const { userId } = useAuth()
+  const [verifying, setVerifying] = useState(false)
+  const [verifyError, setVerifyError] = useState('')
   const [showMentorFit, setShowMentorFit] = useState(true)
   const [mentorFitData, setMentorFitData] = useState({})
   const [assessmentComplete, setAssessmentComplete] = useState(false)
@@ -84,9 +86,14 @@ export default function StudentIntakeConfirmationPage() {
     const confirm = async () => {
       if (success === 'true' && sessionId) {
         try {
+          setVerifying(true)
+          setVerifyError('')
           await confirmCheckout({ sessionId })
         } catch {
           // non-fatal; webhook will catch up
+          setVerifyError('We could not verify your session immediately. Your access will be granted once Stripe confirms the payment (usually within a minute).')
+        } finally {
+          setVerifying(false)
         }
       }
     }
@@ -212,6 +219,12 @@ export default function StudentIntakeConfirmationPage() {
                 <p className="text-xs text-muted-foreground">
                   Reference ID: {sessionId}
                 </p>
+                {verifying && (
+                  <p className="text-xs text-muted-foreground mt-1">Verifying your payment…</p>
+                )}
+                {verifyError && (
+                  <p className="text-xs text-destructive mt-1">{verifyError}</p>
+                )}
               </div>
             )}
           </CardContent>

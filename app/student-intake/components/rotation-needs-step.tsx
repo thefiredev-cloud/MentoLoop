@@ -131,10 +131,10 @@ export default function RotationNeedsStep({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dashboard-card">
+        <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
-            <Stethoscope className="h-5 w-5" />
+            <Stethoscope className="h-5 w-5 text-primary" />
             Rotation Needs
           </CardTitle>
         </CardHeader>
@@ -184,7 +184,7 @@ export default function RotationNeedsStep({
             <Label>Specialty Preference(s) *</Label>
             <div className="grid md:grid-cols-2 gap-3">
               {SPECIALTY_PREFERENCES.map((specialty) => (
-                <div key={specialty.id} className="flex items-center space-x-2">
+                <div key={specialty.id} className="flex items-center space-x-2 border border-border/60 rounded-md px-3 py-2 hover:border-primary/40 transition-colors">
                   <Checkbox
                     id={specialty.id}
                     checked={formData.specialtyPreferences.includes(specialty.id)}

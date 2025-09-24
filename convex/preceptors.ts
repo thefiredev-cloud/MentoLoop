@@ -227,6 +227,16 @@ export const updateAvailability = mutation({
   args: {
     currentlyAccepting: v.boolean(),
     preferredStartDates: v.optional(v.array(v.string())),
+    timezone: v.optional(v.string()),
+    weeklySchedule: v.optional(v.object({
+      monday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+      tuesday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+      wednesday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+      thursday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+      friday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+      saturday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+      sunday: v.object({ available: v.boolean(), startTime: v.string(), endTime: v.string(), maxStudents: v.number(), notes: v.string() }),
+    })),
   },
   handler: async (ctx, args) => {
     const userId = await getUserId(ctx);
@@ -253,6 +263,12 @@ export const updateAvailability = mutation({
 
     if (args.preferredStartDates) {
       updates.availability.preferredStartDates = args.preferredStartDates;
+    }
+    if (args.timezone) {
+      updates.availability.timezone = args.timezone;
+    }
+    if (args.weeklySchedule) {
+      updates.availability.weeklySchedule = args.weeklySchedule as any;
     }
 
     await ctx.db.patch(preceptor._id, updates);

@@ -1909,6 +1909,28 @@ export const createRefund = action({
   },
 });
 
+// Resolve Stripe PaymentIntent ID from a Checkout Session ID
+export const resolvePaymentIntentIdFromSession = action({
+  args: { sessionId: v.string() },
+  handler: async (_ctx, args): Promise<{ paymentIntentId?: string }> => {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("Stripe not configured");
+    try {
+      const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}`, {
+        headers: { Authorization: `Bearer ${stripeSecretKey}` },
+      });
+      if (!resp.ok) {
+        return {};
+      }
+      const session = await resp.json();
+      const pi = (session?.payment_intent as string) || undefined;
+      return pi ? { paymentIntentId: pi } : {};
+    } catch {
+      return {};
+    }
+  },
+});
+
 // Create a Stripe Billing Portal session for the current user
 export const createBillingPortalSession = action({
   args: { returnUrl: v.string() },

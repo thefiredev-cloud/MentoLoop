@@ -11,7 +11,10 @@ test.describe('Student intake payment (test mode)', () => {
         personalInfo: {},
         schoolInfo: {},
         rotationNeeds: {},
-        paymentAgreement: {},
+        paymentAgreement: {
+          membershipBlock: 'core',
+          agreedToTerms: true,
+        },
         matchingPreferences: {},
         mentorFitAssessment: {},
       }))
