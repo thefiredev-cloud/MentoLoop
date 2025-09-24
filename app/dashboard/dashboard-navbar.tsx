@@ -47,7 +47,7 @@ export const DashboardNavbar = () => {
 
   return (
     <header 
-      className="fixed top-0 z-[60] w-full h-14 bg-background border-b shadow-sm">
+      className="fixed top-0 z-[60] w-full h-14 dashboard-header">
       <nav className="flex h-full items-center px-4 lg:px-6">
         <div className="flex flex-1 items-center justify-between">
           {/* Navigation Links */}

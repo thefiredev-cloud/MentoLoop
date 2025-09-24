@@ -107,7 +107,7 @@ function StudentDashboardContent() {
     <div className="space-y-8">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight dashboard-gradient-text">
           Welcome back, {(student?.personalInfo?.fullName?.split(' ')[0]) || (clerkUser?.firstName ?? 'Student')}!
         </h1>
         {false && (
@@ -121,7 +121,7 @@ function StudentDashboardContent() {
 
       {/* Key Metrics */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card>
+        <Card className="dashboard-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Profile Completion</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
@@ -140,7 +140,7 @@ function StudentDashboardContent() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dashboard-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Rotation</CardTitle>
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
@@ -155,7 +155,7 @@ function StudentDashboardContent() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dashboard-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Clinical Hours</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -182,7 +182,7 @@ function StudentDashboardContent() {
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Link href="/dashboard/student/search">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-blue-100 p-3 mr-4">
                   <Search className="h-6 w-6 text-blue-600" />
@@ -196,7 +196,7 @@ function StudentDashboardContent() {
           </Link>
 
           <Link href="/dashboard/student/matches">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-green-100 p-3 mr-4">
                   <Target className="h-6 w-6 text-green-600" />
@@ -215,7 +215,7 @@ function StudentDashboardContent() {
           </Link>
 
           <Link href="/dashboard/student/hours">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-purple-100 p-3 mr-4">
                   <Clock className="h-6 w-6 text-purple-600" />
@@ -229,7 +229,7 @@ function StudentDashboardContent() {
           </Link>
 
           <Link href="/dashboard/student/rotations">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-orange-100 p-3 mr-4">
                   <Calendar className="h-6 w-6 text-orange-600" />
@@ -243,7 +243,7 @@ function StudentDashboardContent() {
           </Link>
 
           <Link href="/dashboard/student/documents">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-yellow-100 p-3 mr-4">
                   <FileText className="h-6 w-6 text-yellow-600" />
@@ -257,7 +257,7 @@ function StudentDashboardContent() {
           </Link>
 
           <Link href="/dashboard/messages">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-pink-100 p-3 mr-4">
                   <MessageCircle className="h-6 w-6 text-pink-600" />

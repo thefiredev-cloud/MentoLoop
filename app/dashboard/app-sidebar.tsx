@@ -364,7 +364,7 @@ export function AppSidebar({ ...props }: Omit<React.ComponentProps<typeof Sideba
   }
 
   return (
-    <Sidebar collapsible="offcanvas" className="border-r" {...props}>
+    <Sidebar collapsible="offcanvas" className="border-r sidebar-surface" {...props}>
       <SidebarHeader className="border-b px-3 py-4">
         <SidebarMenu>
           <SidebarMenuItem>

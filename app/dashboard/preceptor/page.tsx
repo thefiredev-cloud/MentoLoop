@@ -57,7 +57,7 @@ function PreceptorDashboardContent() {
     <div className="space-y-8">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight dashboard-gradient-text">
           Welcome back, {hasCompletedIntake ? preceptor.personalInfo.fullName.split(' ')[0] : 'Preceptor'}!
         </h1>
         <div className="flex items-center gap-3 mt-2">
@@ -70,7 +70,7 @@ function PreceptorDashboardContent() {
 
       {/* Key Metrics */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card>
+        <Card className="dashboard-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Students</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -83,7 +83,7 @@ function PreceptorDashboardContent() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dashboard-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Payouts</CardTitle>
           </CardHeader>
@@ -131,7 +131,7 @@ function PreceptorDashboardContent() {
 
         {/* Average Rating card removed for non-admin views */}
 
-        <Card>
+        <Card className="dashboard-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -152,7 +152,7 @@ function PreceptorDashboardContent() {
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Link href="/dashboard/preceptor/matches">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-blue-100 p-3 mr-4">
                   <Target className="h-6 w-6 text-blue-600" />
@@ -171,7 +171,7 @@ function PreceptorDashboardContent() {
           </Link>
 
           <Link href="/dashboard/preceptor/students">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-green-100 p-3 mr-4">
                   <Users className="h-6 w-6 text-green-600" />
@@ -185,7 +185,7 @@ function PreceptorDashboardContent() {
           </Link>
 
           <Link href="/dashboard/preceptor/schedule">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-purple-100 p-3 mr-4">
                   <Calendar className="h-6 w-6 text-purple-600" />
@@ -199,7 +199,7 @@ function PreceptorDashboardContent() {
           </Link>
 
           <Link href="/dashboard/preceptor/evaluations">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-orange-100 p-3 mr-4">
                   <ChartBar className="h-6 w-6 text-orange-600" />
@@ -213,7 +213,7 @@ function PreceptorDashboardContent() {
           </Link>
 
           <Link href="/dashboard/preceptor/documents">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-yellow-100 p-3 mr-4">
                   <FileText className="h-6 w-6 text-yellow-600" />
@@ -227,7 +227,7 @@ function PreceptorDashboardContent() {
           </Link>
 
           <Link href="/dashboard/messages">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
                 <div className="rounded-full bg-pink-100 p-3 mr-4">
                   <MessageSquare className="h-6 w-6 text-pink-600" />

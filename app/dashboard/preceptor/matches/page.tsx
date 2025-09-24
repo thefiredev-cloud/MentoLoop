@@ -358,14 +358,17 @@ export default function PreceptorMatches() {
 
         <TabsContent value="pending" className="space-y-6">
           {pendingCount === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Pending Matches</h3>
-                <p className="text-muted-foreground text-center max-w-md">
-                  You don&apos;t have any pending student match requests at the moment. 
-                  New matches will appear here when students request you as a preceptor.
-                </p>
+            <Card className="empty-card">
+              <CardContent className="flex flex-col items-center justify-center py-12 space-y-3 text-center">
+                <div className="h-14 w-14 rounded-full bg-primary/15 flex items-center justify-center">
+                  <AlertCircle className="h-7 w-7 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">No Pending Matches</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    New student requests will appear here as soon as they choose you for a rotation.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -377,13 +380,17 @@ export default function PreceptorMatches() {
 
         <TabsContent value="reviewing" className="space-y-6">
           {reviewingCount === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Eye className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Matches Under Review</h3>
-                <p className="text-muted-foreground text-center max-w-md">
-                  Matches you&apos;ve requested more information about will appear here.
-                </p>
+            <Card className="empty-card">
+              <CardContent className="flex flex-col items-center justify-center py-12 space-y-3 text-center">
+                <div className="h-14 w-14 rounded-full bg-accent/15 flex items-center justify-center">
+                  <Eye className="h-7 w-7 text-accent" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">No Matches Under Review</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Matches you&apos;ve asked to review or requested details for will land here.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -395,13 +402,17 @@ export default function PreceptorMatches() {
 
         <TabsContent value="accepted" className="space-y-6">
           {acceptedCount === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <CheckCircle2 className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Accepted Matches</h3>
-                <p className="text-muted-foreground text-center max-w-md">
-                  Students you&apos;ve accepted as preceptees will appear here.
-                </p>
+            <Card className="empty-card">
+              <CardContent className="flex flex-col items-center justify-center py-12 space-y-3 text-center">
+                <div className="h-14 w-14 rounded-full bg-secondary/20 flex items-center justify-center">
+                  <CheckCircle2 className="h-7 w-7 text-secondary-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">No Accepted Matches</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Once you accept a student, the rotation details will land in this section.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (

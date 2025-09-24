@@ -67,7 +67,7 @@ export function SiteHeader() {
   const hideTitle = pathname === "/dashboard/admin"
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background w-full">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b dashboard-header w-full">
       <div className="flex w-full items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-1 lg:gap-2">
           <SidebarTrigger className="-ml-1" />

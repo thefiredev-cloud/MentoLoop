@@ -21,7 +21,7 @@ export default function DashboardLayout({
       </Suspense>
       
       {/* Main Dashboard Container - Below Navbar */}
-      <div className="min-h-screen pt-14 flex flex-col">
+      <div className="min-h-screen pt-14 flex flex-col dashboard-shell">
         <SidebarProvider>
           <div className="flex flex-1 min-h-0 overflow-hidden">
             {/* Sidebar - fixed width, no z-index conflicts */}
@@ -38,7 +38,7 @@ export default function DashboardLayout({
               <SiteHeader />
               
               {/* Main Content */}
-              <main className="flex-1 overflow-y-auto bg-background">
+              <main className="flex-1 overflow-y-auto bg-background/90 dashboard-content">
                 <div className="container max-w-7xl mx-auto p-4 md:p-6 lg:p-8 mt-2">
                   {children}
                 </div>

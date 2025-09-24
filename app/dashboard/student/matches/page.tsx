@@ -302,14 +302,18 @@ export default function StudentMatches() {
                 })}
               </div>
           ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Pending Matches</h3>
-                <p className="text-muted-foreground mb-4">
-                  We&apos;re working on finding the perfect preceptor matches for you.
-                </p>
-                <Button variant="outline" asChild>
+            <Card className="empty-card">
+              <CardContent className="text-center py-12 space-y-3">
+                <div className="mx-auto h-14 w-14 rounded-full bg-primary/15 flex items-center justify-center">
+                  <Target className="h-7 w-7 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">No Pending Matches</h3>
+                  <p className="text-sm text-muted-foreground">
+                    We&apos;re working on finding the perfect preceptor matches for you.
+                  </p>
+                </div>
+                <Button asChild className="bg-primary/80 hover:bg-primary text-primary-foreground">
                   <Link href="/dashboard/student">
                     Back to Dashboard
                   </Link>
@@ -322,14 +326,18 @@ export default function StudentMatches() {
         {/* Active Matches */}
         <TabsContent value="active" className="space-y-6">
           {activeMatches.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Active Rotations</h3>
-                <p className="text-muted-foreground mb-4">
-                  Accept a pending match to start your clinical rotation.
-                </p>
-                <Button variant="outline" asChild>
+            <Card className="empty-card">
+              <CardContent className="text-center py-12 space-y-3">
+                <div className="mx-auto h-14 w-14 rounded-full bg-accent/15 flex items-center justify-center">
+                  <BookOpen className="h-7 w-7 text-accent" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">No Active Rotations</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Accept a pending match to start your clinical rotation.
+                  </p>
+                </div>
+                <Button asChild className="bg-accent/80 hover:bg-accent text-accent-foreground">
                   <Link href="#pending">
                     View Pending Matches
                   </Link>
@@ -423,13 +431,17 @@ export default function StudentMatches() {
         {/* Completed Matches */}
         <TabsContent value="completed" className="space-y-6">
           {completedMatches.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Completed Rotations</h3>
-                <p className="text-muted-foreground mb-4">
-                  Completed clinical rotations will appear here.
-                </p>
+            <Card className="empty-card">
+              <CardContent className="text-center py-12 space-y-3">
+                <div className="mx-auto h-14 w-14 rounded-full bg-secondary/20 flex items-center justify-center">
+                  <Award className="h-7 w-7 text-secondary-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">No Completed Rotations</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Completed clinical rotations will appear here once you wrap up a match.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (
