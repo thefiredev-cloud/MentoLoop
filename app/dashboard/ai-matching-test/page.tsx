@@ -99,7 +99,7 @@ export default function AIMatchingTest() {
   const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
       case 'high':
-        return <Badge className="bg-green-500">High Confidence</Badge>
+        return <Badge className="bg-success text-success-foreground">High Confidence</Badge>
       case 'medium':
         return <Badge variant="secondary">Medium Confidence</Badge>
       case 'low':
@@ -110,8 +110,8 @@ export default function AIMatchingTest() {
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-green-600'
-    if (score >= 6) return 'text-yellow-600'
+    if (score >= 8) return 'text-success'
+    if (score >= 6) return 'text-warning'
     return 'text-red-600'
   }
 
@@ -235,7 +235,7 @@ export default function AIMatchingTest() {
                                 <span className="text-sm">AI Enhanced Score:</span>
                                 <span className={`font-semibold ${getScoreColor(match.enhancedScore)}`}>
                                   {match.enhancedScore}/10 
-                                  <span className="text-green-600 ml-1">
+                                  <span className="text-success ml-1">
                                     (+{(match.enhancedScore - match.baseScore).toFixed(1)})
                                   </span>
                                 </span>
@@ -257,7 +257,7 @@ export default function AIMatchingTest() {
 
                             <div className="grid md:grid-cols-3 gap-4 text-sm">
                               <div>
-                                <h4 className="font-medium text-green-600 mb-2 flex items-center gap-1">
+                                <h4 className="font-medium text-success mb-2 flex items-center gap-1">
                                   <CheckCircle className="h-4 w-4" />
                                   Strengths
                                 </h4>
@@ -315,7 +315,7 @@ export default function AIMatchingTest() {
                     <div className="text-sm text-muted-foreground">AI Success Rate</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">+1.2</div>
+                    <div className="text-2xl font-bold text-success">+1.2</div>
                     <div className="text-sm text-muted-foreground">Avg Score Improvement</div>
                   </div>
                   <div className="text-center">
@@ -360,7 +360,7 @@ export default function AIMatchingTest() {
                     <div className="font-medium">AI Enhancement Status</div>
                     <div className="text-sm text-muted-foreground">Currently enabled for all new matches</div>
                   </div>
-                  <Badge className="bg-green-500">Active</Badge>
+                  <Badge className="bg-success text-success-foreground">Active</Badge>
                 </div>
               </CardContent>
             </Card>

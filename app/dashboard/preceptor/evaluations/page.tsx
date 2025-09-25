@@ -74,7 +74,7 @@ export default function PreceptorEvaluations() {
     
     if (status === 'completed') {
       return (
-        <Badge variant="default" className="bg-green-500">
+        <Badge className="bg-success text-success-foreground">
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Completed
         </Badge>
@@ -82,7 +82,7 @@ export default function PreceptorEvaluations() {
     }
     
     return (
-      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+      <Badge variant="outline" className="bg-warning/10 text-warning border border-warning/30">
         <Clock className="h-3 w-3 mr-1" />
         Pending
       </Badge>
@@ -115,7 +115,7 @@ export default function PreceptorEvaluations() {
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {evaluationStats?.completed || 0}
             </div>
             <p className="text-xs text-muted-foreground">This semester</p>

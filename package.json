@@ -15,7 +15,8 @@
     "test:e2e": "playwright test tests/e2e",
     "test:integration": "playwright test tests/integration",
     "test:all": "npm run test:unit:run && npm run test:e2e && npm run test:integration",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "validate": "npm run lint && npm run type-check && node scripts/check-file-length.js"
   },
   "dependencies": {
     "@clerk/backend": "^2.4.1",

@@ -89,7 +89,7 @@ export default function TestDiscountPage() {
             </Button>
 
             {promotionCodeResult && (
-              <div className={`rounded-lg p-4 ${promotionCodeResult.error ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
+              <div className={`rounded-lg p-4 ${promotionCodeResult.error ? 'bg-red-50 border border-red-200' : 'bg-success/10 border border-success/30'}`}>
                 {promotionCodeResult.error ? (
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
@@ -100,17 +100,17 @@ export default function TestDiscountPage() {
                   </div>
                 ) : (
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                    <CheckCircle className="h-5 w-5 text-success mt-0.5" />
                     <div className="text-sm w-full">
-                      <p className="font-semibold text-green-900">Success!</p>
-                      <p className="text-green-700">{promotionCodeResult.message}</p>
+                      <p className="font-semibold text-success">Success!</p>
+                      <p className="text-success/80">{promotionCodeResult.message}</p>
                       {promotionCodeResult.results && (
                         <div className="mt-3 space-y-2">
                           {promotionCodeResult.results.map((result, idx: number) => (
                             <div key={idx} className="flex justify-between items-center py-1 border-t border-green-200">
                               <span className="font-mono">{result.code}</span>
                               <span className={`text-xs px-2 py-1 rounded ${
-                                result.status === 'created' ? 'bg-green-100 text-green-700' :
+                                result.status === 'created' ? 'bg-success/10 text-success' :
                                 result.status === 'already_has_promotion_code' ? 'bg-blue-100 text-blue-700' :
                                 'bg-red-100 text-red-700'
                               }`}>
@@ -161,21 +161,21 @@ export default function TestDiscountPage() {
 
             {(validationResult || validateCode) && (
               <div className={`rounded-lg p-4 ${
-                (validationResult || validateCode)?.valid ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                (validationResult || validateCode)?.valid ? 'bg-success/10 border border-success/30' : 'bg-red-50 border border-red-200'
               }`}>
                 {(validationResult || validateCode)?.valid ? (
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                    <CheckCircle className="h-5 w-5 text-success mt-0.5" />
                     <div className="text-sm">
-                      <p className="font-semibold text-green-900">Valid Code!</p>
-                      <p className="text-green-700">
+                      <p className="font-semibold text-success">Valid Code!</p>
+                      <p className="text-success/80">
                         Code: <span className="font-mono">{(validationResult || validateCode)?.code}</span>
                       </p>
-                      <p className="text-green-700">
+                      <p className="text-success/80">
                         Discount: <span className="font-bold">{(validationResult || validateCode)?.percentOff}% OFF</span>
                       </p>
                       {(validationResult || validateCode)?.percentOff === 100 && (
-                        <p className="text-green-700 font-semibold mt-2">
+                        <p className="text-success font-semibold mt-2">
                           ✨ This is a 100% discount - completely FREE!
                         </p>
                       )}

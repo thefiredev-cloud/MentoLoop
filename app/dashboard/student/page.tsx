@@ -52,7 +52,7 @@ function StudentDashboardContent() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-600" />
+              <AlertCircle className="h-5 w-5 text-warning" />
               Complete Your Profile
             </CardTitle>
           </CardHeader>
@@ -184,8 +184,8 @@ function StudentDashboardContent() {
           <Link href="/dashboard/student/search">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-blue-100 p-3 mr-4">
-                  <Search className="h-6 w-6 text-blue-600" />
+                <div className="rounded-full bg-info/10 p-3 mr-4">
+                  <Search className="h-6 w-6 text-info" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Find Preceptors</h3>
@@ -198,8 +198,8 @@ function StudentDashboardContent() {
           <Link href="/dashboard/student/matches">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-green-100 p-3 mr-4">
-                  <Target className="h-6 w-6 text-green-600" />
+                <div className="rounded-full bg-success/10 p-3 mr-4">
+                  <Target className="h-6 w-6 text-success" />
                 </div>
                 <div>
                   <h3 className="font-semibold">My Matches</h3>
@@ -217,8 +217,8 @@ function StudentDashboardContent() {
           <Link href="/dashboard/student/hours">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-purple-100 p-3 mr-4">
-                  <Clock className="h-6 w-6 text-purple-600" />
+                <div className="rounded-full bg-accent/10 p-3 mr-4">
+                  <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Clinical Hours</h3>
@@ -231,8 +231,8 @@ function StudentDashboardContent() {
           <Link href="/dashboard/student/rotations">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-orange-100 p-3 mr-4">
-                  <Calendar className="h-6 w-6 text-orange-600" />
+                <div className="rounded-full bg-warning/10 p-3 mr-4">
+                  <Calendar className="h-6 w-6 text-warning" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Rotations</h3>
@@ -245,8 +245,8 @@ function StudentDashboardContent() {
           <Link href="/dashboard/student/documents">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-yellow-100 p-3 mr-4">
-                  <FileText className="h-6 w-6 text-yellow-600" />
+                <div className="rounded-full bg-warning/10 p-3 mr-4">
+                  <FileText className="h-6 w-6 text-warning" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Documents</h3>
@@ -259,8 +259,8 @@ function StudentDashboardContent() {
           <Link href="/dashboard/messages">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-pink-100 p-3 mr-4">
-                  <MessageCircle className="h-6 w-6 text-pink-600" />
+                <div className="rounded-full bg-accent/10 p-3 mr-4">
+                  <MessageCircle className="h-6 w-6 text-accent" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Messages</h3>

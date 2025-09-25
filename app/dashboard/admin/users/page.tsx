@@ -171,7 +171,7 @@ export default function UserManagementPage() {
     if (user.userType === 'preceptor' && user.profileData) {
       switch (user.profileData.verificationStatus) {
         case 'verified':
-          return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Verified</Badge>
+          return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Verified</Badge>
         case 'pending':
           return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
         case 'under-review':
@@ -186,7 +186,7 @@ export default function UserManagementPage() {
     if (user.userType === 'student' && user.profileData) {
       switch (user.profileData.status) {
         case 'submitted':
-          return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Complete</Badge>
+          return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Complete</Badge>
         case 'incomplete':
           return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Incomplete</Badge>
         default:
@@ -353,7 +353,7 @@ export default function UserManagementPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-green-600"
+                              className="text-success"
                               onClick={() => handleApprovePreceptor(user)}
                             >
                               <UserCheck className="h-4 w-4" />

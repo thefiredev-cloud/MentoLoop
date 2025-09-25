@@ -99,7 +99,7 @@ export default function TestCommunications() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle className="h-5 w-5 text-green-500" />
+      case 'success': return <CheckCircle className="h-5 w-5 text-success" />
       case 'error': return <XCircle className="h-5 w-5 text-red-500" />
       default: return <Send className="h-5 w-5" />
     }
@@ -108,7 +108,7 @@ export default function TestCommunications() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sending': return <Badge variant="secondary">Sending...</Badge>
-      case 'success': return <Badge className="bg-green-500">Success</Badge>
+      case 'success': return <Badge className="bg-success text-success-foreground">Success</Badge>
       case 'error': return <Badge variant="destructive">Error</Badge>
       default: return null
     }
@@ -268,7 +268,7 @@ export default function TestCommunications() {
                   <div className="font-medium">SendGrid API</div>
                   <div className="text-sm text-muted-foreground">Email service</div>
                 </div>
-                <Badge className="bg-green-500">Configured</Badge>
+                <Badge className="bg-success text-success-foreground">Configured</Badge>
               </div>
               
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -276,7 +276,7 @@ export default function TestCommunications() {
                   <div className="font-medium">Twilio API</div>
                   <div className="text-sm text-muted-foreground">SMS service</div>
                 </div>
-                <Badge className="bg-green-500">Configured</Badge>
+                <Badge className="bg-success text-success-foreground">Configured</Badge>
               </div>
               
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -284,7 +284,7 @@ export default function TestCommunications() {
                   <div className="font-medium">OpenAI API</div>
                   <div className="text-sm text-muted-foreground">AI matching</div>
                 </div>
-                <Badge className="bg-green-500">Configured</Badge>
+                <Badge className="bg-success text-success-foreground">Configured</Badge>
               </div>
               
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -292,7 +292,7 @@ export default function TestCommunications() {
                   <div className="font-medium">Stripe API</div>
                   <div className="text-sm text-muted-foreground">Payment processing</div>
                 </div>
-                <Badge className="bg-green-500">Configured</Badge>
+                <Badge className="bg-success text-success-foreground">Configured</Badge>
               </div>
             </div>
           </CardContent>

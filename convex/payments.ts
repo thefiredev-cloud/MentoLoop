@@ -332,6 +332,15 @@ export const createStudentCheckoutSession = action({
       const membershipPlanKey = resolveMembershipPlan(args.membershipPlan);
       const planConfig = MEMBERSHIP_PLAN_CONFIG[membershipPlanKey];
 
+      // Optional test-mode penny pricing override via env flag
+      const testPennyMode = process.env.NEXT_PUBLIC_PAYMENTS_TEST_PENNIES === 'true';
+      const testPriceEnvByPlan: Partial<Record<MembershipPlanKey, string | undefined>> = {
+        starter: process.env.STRIPE_TEST_PRICE_ID_STARTER,
+        core: process.env.STRIPE_TEST_PRICE_ID_CORE,
+        pro: process.env.STRIPE_TEST_PRICE_ID_PRO,
+        elite: process.env.STRIPE_TEST_PRICE_ID_ELITE,
+      };
+
       // Define old/legacy price IDs for detection and mapping
       const oldPriceIds = [
         'price_1S1ylsKVzfTBpytSRBfYbhzd',  // Old Core
@@ -367,7 +376,15 @@ export const createStudentCheckoutSession = action({
         }
       });
 
-      let stripePriceId = priceIdMap[args.priceId];
+      // Start with optional test override
+      let stripePriceId: string | undefined = undefined;
+      if (testPennyMode && testPriceEnvByPlan[membershipPlanKey]) {
+        stripePriceId = testPriceEnvByPlan[membershipPlanKey];
+      }
+      // Otherwise map provided priceId/lookup
+      if (!stripePriceId) {
+        stripePriceId = priceIdMap[args.priceId];
+      }
 
       if (!stripePriceId) {
         const lookupCandidates = Array.from(new Set([
@@ -464,28 +481,27 @@ export const createStudentCheckoutSession = action({
 
       // Configure payment based on type (full or installments)
       if (args.paymentOption === "installments" && args.installmentPlan) {
-        // For installments, we'll use Stripe's payment_intent_data with installments configuration
-        // Note: This requires setting up installment plans in Stripe Dashboard or using Payment Links
-        checkoutParams["mode"] = "payment";
-        checkoutParams["line_items[0][price]"] = stripePriceId;
+        // Subscription-based installments using pre-configured subscription prices
+        const count = args.installmentPlan;
+        const upperPlan = membershipPlanKey.toUpperCase();
+        const testKey = `STRIPE_TEST_SUB_PRICE_ID_${upperPlan}_${count}` as keyof NodeJS.ProcessEnv;
+        const liveKey = `STRIPE_SUB_PRICE_ID_${upperPlan}_${count}` as keyof NodeJS.ProcessEnv;
+        const subPriceId = (process.env[testKey] as string | undefined) || (process.env[liveKey] as string | undefined);
+        if (!subPriceId) {
+          throw new Error(`Missing subscription price for installments: set ${String(testKey)} or ${String(liveKey)}`);
+        }
+
+        checkoutParams["mode"] = "subscription";
+        checkoutParams["line_items[0][price]"] = subPriceId;
         checkoutParams["line_items[0][quantity]"] = "1";
-        checkoutParams["payment_intent_data[metadata][payment_type]"] = "installments";
-        checkoutParams["payment_intent_data[metadata][installment_plan]"] = args.installmentPlan.toString();
-        checkoutParams["payment_intent_data[metadata][installment_count]"] = args.installmentPlan.toString();
-        
-        // Add installment info to session metadata
         checkoutParams["metadata[paymentOption]"] = "installments";
-        checkoutParams["metadata[installmentPlan]"] = args.installmentPlan.toString();
-        
-        // Note: Actual installment configuration would require Stripe Payment Links or
-        // custom integration with Stripe's installment payment providers
-        // Installment payment requested
+        checkoutParams["metadata[installmentPlan]"] = count.toString();
       } else {
         // Regular one-time payment
-        checkoutParams["line_items[0][price]"] = stripePriceId;
+        checkoutParams["line_items[0][price]"] = String(stripePriceId);
         checkoutParams["line_items[0][quantity]"] = "1";
         checkoutParams["metadata[paymentOption]"] = "full";
-        // SCA hardening: use payment_method_types explicitly for card; remove unsupported automatic_payment_methods
+        // SCA hardening
         checkoutParams["payment_method_types[0]"] = "card";
         checkoutParams["payment_intent_data[setup_future_usage]"] = "off_session";
       }
@@ -547,7 +563,7 @@ export const createStudentCheckoutSession = action({
             // Add discount info to metadata for tracking
             checkoutParams["metadata[discountCode]"] = stripeCouponId;
             checkoutParams["metadata[discountPercent]"] = discountAmount.toString();
-            checkoutParams["metadata[originalPrice]"] = stripePriceId;
+            checkoutParams["metadata[originalPrice]"] = String(stripePriceId);
             
             // For 100% discounts, Stripe still requires a payment method type
             if (validation.percentOff === 100) {
@@ -814,61 +830,14 @@ export const createPaymentSession = action({
     cancelUrl: v.string(),
   },
   handler: async (ctx, args) => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    
-    if (!stripeSecretKey) {
-      throw new Error("Stripe not configured");
-    }
-
-    try {
-      // Get match details
-      const match = await ctx.runQuery(internal.matches.getMatchById, { matchId: args.matchId });
-      if (!match) {
-        throw new Error("Match not found");
-      }
-
-      // Get student and preceptor details
-      const student = await ctx.runQuery(internal.students.getStudentById, { studentId: match.studentId });
-      const preceptor = await ctx.runQuery(internal.preceptors.getPreceptorById, { preceptorId: match.preceptorId });
-      
-      if (!student || !preceptor) {
-        throw new Error("Student or preceptor not found");
-      }
-
-      // Create Stripe checkout session
-      const session = await createStripeCheckoutSession({
-        stripeSecretKey,
-        priceId: args.priceId,
-        matchId: args.matchId,
-        customerEmail: student.personalInfo?.email || "",
-        customerName: student.personalInfo?.fullName || "",
-        successUrl: args.successUrl,
-        cancelUrl: args.cancelUrl,
-        metadata: {
-          matchId: args.matchId,
-          studentId: match.studentId,
-          preceptorId: match.preceptorId,
-          rotationType: match.rotationDetails.rotationType,
-        }
-      });
-
-      // Log payment attempt
-      await ctx.runMutation(internal.payments.logPaymentAttempt, {
-        matchId: args.matchId,
-        stripeSessionId: session.id,
-        amount: 0, // Will be updated from webhook
-        status: "pending",
-      });
-
-      return {
-        sessionId: session.id,
-        url: session.url,
-      };
-
-    } catch (error) {
-      // Failed to create payment session
-      throw new Error(`Payment session creation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
+    const { PaymentCheckoutManager } = await import("./services/payments/PaymentCheckoutManager");
+    const manager = new PaymentCheckoutManager();
+    return manager.createMatchCheckout(ctx, {
+      matchId: args.matchId as any,
+      priceId: args.priceId,
+      successUrl: args.successUrl,
+      cancelUrl: args.cancelUrl,
+    });
   },
 });
 
@@ -918,91 +887,9 @@ export const handleStripeWebhook = action({
     signature: v.string(),
   },
   handler: async (ctx, args) => {
-    const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    
-    if (!stripeWebhookSecret || !stripeSecretKey) {
-      throw new Error("Stripe configuration missing");
-    }
-
-    try {
-      const verificationResult = await ctx.runAction(internal.paymentsNode.verifyStripeSignature, {
-        payload: args.payload,
-        signature: args.signature,
-        webhookSecret: stripeWebhookSecret,
-      });
-
-      if (!verificationResult.verified) {
-        throw new Error("Invalid webhook signature");
-      }
-
-      const event = JSON.parse(args.payload);
-
-      // Idempotency via internal helpers
-      const existing = await ctx.runQuery(internal.payments.getWebhookEventByProviderAndId, {
-        provider: "stripe",
-        eventId: event.id,
-      });
-      if (existing) {
-        return { received: true, duplicate: true };
-      }
-      const insertedId = await ctx.runMutation(internal.payments.insertWebhookEvent, {
-        provider: "stripe",
-        eventId: event.id,
-      });
-
-      switch (event.type) {
-        case "checkout.session.completed":
-          await handleCheckoutCompleted(ctx, event.data.object);
-          break;
-        case "invoice.created":
-        case "invoice.finalized":
-        case "invoice.payment_succeeded":
-        case "invoice.payment_failed":
-        case "invoice.marked_uncollectible":
-        case "invoice.voided":
-          await handleInvoiceEvent(ctx, event);
-          break;
-        case "customer.subscription.created":
-        case "customer.subscription.updated":
-        case "customer.subscription.deleted":
-        case "customer.subscription.paused":
-        case "customer.subscription.resumed":
-          await handleSubscriptionEvent(ctx, event);
-          break;
-        case "payment_intent.succeeded":
-          await handlePaymentSucceeded(ctx, event.data.object);
-          break;
-        case "payment_intent.requires_action":
-        case "payment_intent.processing":
-          // Record in audit for visibility; client will resolve via Checkout redirect or future off-session
-          try {
-            await ctx.runMutation(internal.payments.insertPaymentsAudit, {
-              action: `webhook_${event.type}`,
-              stripeObject: "payment_intent",
-              stripeId: event.data.object?.id || "unknown",
-              details: { status: event.data.object?.status },
-              createdAt: Date.now(),
-            });
-          } catch (_e) {}
-          break;
-        case "payment_intent.payment_failed":
-          await handlePaymentFailed(ctx, event.data.object);
-          break;
-        case "customer.created":
-          await handleCustomerCreated(ctx, event.data.object);
-          break;
-        case "customer.updated":
-          await handleCustomerUpdated(ctx, event.data.object);
-          break;
-        default:
-      }
-
-      await ctx.runMutation(internal.payments.markWebhookEventProcessed, { id: insertedId });
-      return { received: true };
-    } catch (error) {
-      throw new Error(`Webhook processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
+    const { PaymentWebhookService } = await import("./services/payments/PaymentWebhookService");
+    const service = new PaymentWebhookService();
+    return service.handle(ctx, args.payload, args.signature);
   },
 });
 
@@ -1400,6 +1287,41 @@ async function handleInvoiceEvent(ctx: any, event: any) {
       details: { status: invoice.status },
       createdAt: Date.now(),
     });
+  } catch (_e) {}
+
+  // Entitlement logic: unlock on first paid invoice for installment subscriptions; revoke on unpaid/canceled
+  try {
+    const status: string = (invoice.status || '').toString();
+    const subscriptionId: string | undefined = invoice.subscription || undefined;
+    const customerId: string | undefined = invoice.customer || undefined;
+    const paidNow = status === 'paid';
+
+    if (subscriptionId && customerId) {
+      // Find the intake payment attempt by customer email (if available) or by customer id
+      const stripeCustomerId = customerId.toString();
+
+      // Unlock on first paid invoice
+      if (paidNow) {
+        try {
+          // Lookup user by customer email if present, else by recent attempts
+          const customerEmail = invoice.customer_email || invoice.customer_details?.email || undefined;
+          if (customerEmail) {
+            const user = await ctx.runQuery(internal.users.getUserByEmail, { email: customerEmail });
+            if (user) {
+              // Mark intake/payment completed and persist linkage
+              await ctx.runMutation(internal.students.updateStudentPaymentStatus, {
+                userId: user._id,
+                paymentStatus: 'paid',
+                membershipPlan: (invoice.metadata?.membershipPlan || '').toString(),
+                stripeSessionId: (invoice.metadata?.stripeSessionId || '').toString(),
+                stripeCustomerId,
+                paidAt: Date.now(),
+              });
+            }
+          }
+        } catch (_e) {}
+      }
+    }
   } catch (_e) {}
 }
 
@@ -1854,58 +1776,9 @@ export const createRefund = action({
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ refundId: string; status: string }> => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) throw new Error("Stripe not configured");
-
-    const params = new URLSearchParams({ payment_intent: args.paymentIntentId });
-    if (args.amount && args.amount > 0) params.set("amount", String(args.amount));
-    if (args.reason) params.set("reason", args.reason);
-
-    const resp = await fetch("https://api.stripe.com/v1/refunds", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${stripeSecretKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `refund_${args.paymentIntentId}_${args.amount ?? 'full'}`,
-      },
-      body: params,
-    });
-    if (!resp.ok) {
-      const t = await resp.text();
-      throw new Error(`Stripe refund error: ${resp.status} - ${t}`);
-    }
-    const refund = await resp.json();
-
-    // Update payments table if present
-    try {
-      const payment: any = await ctx.runQuery(internal.payments.getPaymentByStripePaymentIntentId, {
-        paymentIntentId: args.paymentIntentId,
-      });
-      if (payment) {
-        const newStatus = refund.amount === payment.amount ? "refunded" : "partially_refunded";
-        await ctx.runMutation(internal.payments.patchPayment, {
-          paymentId: payment._id,
-          updates: {
-            status: newStatus,
-            refundedAmount: (payment.refundedAmount || 0) + (refund.amount || 0),
-            updatedAt: Date.now(),
-          },
-        });
-      }
-    } catch (_e) {}
-
-    // Audit
-    try {
-      await ctx.runMutation(internal.payments.insertPaymentsAudit, {
-        action: "refund_created",
-        stripeObject: "payment_intent",
-        stripeId: args.paymentIntentId,
-        details: { refundId: refund.id, amount: refund.amount },
-        createdAt: Date.now(),
-      });
-    } catch (_e) {}
-
-    return { refundId: refund.id, status: refund.status };
+    const { PaymentRefundManager } = await import("./services/payments/PaymentRefundManager");
+    const manager = new PaymentRefundManager();
+    return await manager.createRefund(ctx, args);
   },
 });
 
@@ -1913,21 +1786,9 @@ export const createRefund = action({
 export const resolvePaymentIntentIdFromSession = action({
   args: { sessionId: v.string() },
   handler: async (_ctx, args): Promise<{ paymentIntentId?: string }> => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) throw new Error("Stripe not configured");
-    try {
-      const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}`, {
-        headers: { Authorization: `Bearer ${stripeSecretKey}` },
-      });
-      if (!resp.ok) {
-        return {};
-      }
-      const session = await resp.json();
-      const pi = (session?.payment_intent as string) || undefined;
-      return pi ? { paymentIntentId: pi } : {};
-    } catch {
-      return {};
-    }
+    const { PaymentSessionResolver } = await import("./services/payments/PaymentSessionResolver");
+    const resolver = new PaymentSessionResolver();
+    return resolver.resolvePaymentIntentIdFromSession(_ctx, args.sessionId);
   },
 });
 
@@ -1935,63 +1796,9 @@ export const resolvePaymentIntentIdFromSession = action({
 export const createBillingPortalSession = action({
   args: { returnUrl: v.string() },
   handler: async (ctx, args): Promise<{ url: string }> => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) throw new Error("Stripe not configured");
-
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    // Look up the user and student to find an existing Stripe customer id
-    const user = await ctx.runQuery(internal.payments.getUserByExternalId, {
-      externalId: identity.subject,
-    });
-
-    if (!user) throw new Error("User not found");
-
-    const student = await ctx.runQuery(internal.payments.getStudentByUserId, {
-      userId: (user as any)._id,
-    });
-
-    let stripeCustomerId: string | undefined = (student as any)?.stripeCustomerId;
-
-    // If we don't have a stored customer id, try finding by email in Stripe
-    const userEmail = (user as any).email as string | undefined;
-    if (!stripeCustomerId && userEmail) {
-      try {
-        const searchResponse = await fetch(
-          `https://api.stripe.com/v1/customers/search?query=email:'${userEmail}'`,
-          { headers: { Authorization: `Bearer ${stripeSecretKey}` } }
-        );
-        if (searchResponse.ok) {
-          const data = await searchResponse.json();
-          stripeCustomerId = data?.data?.[0]?.id;
-        }
-      } catch (_e) {}
-    }
-
-    if (!stripeCustomerId) throw new Error("Stripe customer not found");
-
-    // Create Billing Portal session
-    const response = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${stripeSecretKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `portal_${stripeCustomerId}_${Date.now()}`,
-      },
-      body: new URLSearchParams({
-        customer: stripeCustomerId,
-        return_url: args.returnUrl,
-      }),
-    });
-
-    if (!response.ok) {
-      const t = await response.text();
-      throw new Error(`Stripe portal error: ${response.status} - ${t}`);
-    }
-
-    const session = await response.json();
-    return { url: session.url };
+    const { PaymentPortalManager } = await import("./services/payments/PaymentPortalManager");
+    const manager = new PaymentPortalManager();
+    return manager.createBillingPortalSession(ctx, args.returnUrl);
   },
 });
 
@@ -2643,11 +2450,14 @@ export const checkUserPaymentStatus = query({
     userEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    // Check if user has any successful intake payment
+    // Check if user has any successful intake payment (exclude refunded attempts)
     const successfulPayment = await ctx.db
       .query("intakePaymentAttempts")
       .withIndex("byCustomerEmail", (q) => q.eq("customerEmail", args.userEmail))
-      .filter((q) => q.eq(q.field("status"), "succeeded"))
+      .filter((q) => q.and(
+        q.eq(q.field("status"), "succeeded"),
+        q.or(q.eq(q.field("refunded"), undefined), q.eq(q.field("refunded"), false))
+      ))
       .first();
 
     const rawMembershipPlan = successfulPayment?.membershipPlan || null;
@@ -2688,14 +2498,18 @@ export const checkUserPaymentByUserId = query({
       return { hasPayment: false, membershipPlan: null, paidAt: null, mentorfitUnlocked: false };
     }
 
-    // Check if user has any successful intake payment
+    // Check if user has any successful intake payment (exclude refunded attempts)
     const successfulPayment = await ctx.db
       .query("intakePaymentAttempts")
       .withIndex("byCustomerEmail", (q) => q.eq("customerEmail", user.email!))
-      .filter((q) => q.eq(q.field("status"), "succeeded"))
+      .filter((q) => q.and(
+        q.eq(q.field("status"), "succeeded"),
+        q.or(q.eq(q.field("refunded"), undefined), q.eq(q.field("refunded"), false))
+      ))
       .first();
 
-    const membershipPlan = successfulPayment?.membershipPlan || null;
+    const rawMembershipPlan = successfulPayment?.membershipPlan || null;
+    const membershipPlan = rawMembershipPlan ? resolveMembershipPlan(rawMembershipPlan) : null;
     const discountPercent = (successfulPayment as any)?.discountPercent as number | undefined;
     const discountCode = ((successfulPayment as any)?.discountCode || "").toString().toUpperCase();
 
@@ -2703,7 +2517,7 @@ export const checkUserPaymentByUserId = query({
       ["NP12345", "MENTO12345"].includes(discountCode);
 
     const mentorfitUnlocked = !!successfulPayment && (
-      (membershipPlan === "premium") || discountUnlock
+      (membershipPlan === "elite") || discountUnlock
     );
 
     return {
@@ -2712,6 +2526,48 @@ export const checkUserPaymentByUserId = query({
       paidAt: successfulPayment?.createdAt || null,
       mentorfitUnlocked,
     };
+  },
+});
+
+// Mark latest intake attempt for a customer as refunded and write audit
+export const markIntakeAttemptRefunded = internalMutation({
+  args: {
+    customerEmail: v.string(),
+    reason: v.optional(v.string()),
+    invoiceId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Find latest succeeded attempt for this email (exclude already-refunded)
+    const latest = await ctx.db
+      .query("intakePaymentAttempts")
+      .withIndex("byCustomerEmail", (q) => q.eq("customerEmail", args.customerEmail))
+      .filter((q) => q.and(
+        q.eq(q.field("status"), "succeeded"),
+        q.or(q.eq(q.field("refunded"), undefined), q.eq(q.field("refunded"), false))
+      ))
+      .order("desc")
+      .first();
+
+    if (!latest) return;
+
+    await ctx.db.patch(latest._id, {
+      status: "failed",
+      refunded: true,
+      failureReason: args.reason ? `refunded:${args.reason}` : "refunded",
+      updatedAt: Date.now(),
+    } as any);
+
+    // Audit log
+    try {
+      await ctx.runMutation(internal.payments.insertPaymentsAudit, {
+        action: "credit_note_created",
+        stripeObject: "invoice",
+        stripeId: args.invoiceId || "unknown_invoice",
+        details: { amount: 1, currency: "usd", customerEmail: args.customerEmail },
+      });
+    } catch (_err) {
+      // no-op; audit best-effort
+    }
   },
 });
 

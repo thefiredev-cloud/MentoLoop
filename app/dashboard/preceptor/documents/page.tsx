@@ -57,7 +57,7 @@ export default function PreceptorDocuments() {
         return <File className="h-5 w-5 text-blue-500" />
       case 'xlsx':
       case 'xls':
-        return <FileSpreadsheet className="h-5 w-5 text-green-500" />
+        return <FileSpreadsheet className="h-5 w-5 text-success" />
       case 'jpg':
       case 'jpeg':
       case 'png':
@@ -72,7 +72,7 @@ export default function PreceptorDocuments() {
       case 'Agreement':
         return 'bg-blue-50 text-blue-700 border-blue-200'
       case 'Template':
-        return 'bg-green-50 text-green-700 border-green-200'
+        return 'bg-success/10 text-success border border-success/30'
       case 'Hours Log':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case 'Credential':

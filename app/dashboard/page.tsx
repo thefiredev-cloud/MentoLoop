@@ -108,8 +108,8 @@ export default function DashboardPage() {
 
           <Card className="cursor-pointer border-2 hover:border-primary transition-colors">
             <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
               <button 
                 type="button"
                 onClick={() => handleRoleSelection('preceptor')}
-                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                className="w-full bg-success text-success-foreground py-2 px-4 rounded-lg hover:bg-success/90 transition-colors"
               >
                 Continue as Preceptor
               </button>

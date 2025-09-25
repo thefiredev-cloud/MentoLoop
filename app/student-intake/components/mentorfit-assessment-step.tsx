@@ -376,13 +376,13 @@ export default function MentorFitAssessmentStep({
 
           {/* Completion Status */}
           {getAnsweredCount() === ASSESSMENT_QUESTIONS.length && (
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-success/10 border border-success/30">
               <CardContent className="pt-4">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <CheckCircle className="h-5 w-5 text-success" />
                   <div>
-                    <h4 className="font-semibold text-green-900">Assessment Complete!</h4>
-                    <p className="text-sm text-green-800">
+                    <h4 className="font-semibold text-success">Assessment Complete!</h4>
+                    <p className="text-sm text-success">
                       You&apos;ve answered all questions. Your MentorFit profile will help us find the perfect preceptor match for your learning style.
                     </p>
                   </div>

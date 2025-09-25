@@ -328,13 +328,13 @@ export default function PaymentAgreementStep({
   const getPlanColor = (color: string) => {
     switch (color) {
       case 'green':
-        return 'border-green-500 bg-green-50'
+        return 'border-success/40 bg-success/10'
       case 'blue':
-        return 'border-blue-500 bg-blue-50'
+        return 'border-info/40 bg-info/10'
       case 'purple':
-        return 'border-purple-500 bg-purple-50'
+        return 'border-accent/40 bg-accent/10'
       case 'gold':
-        return 'border-amber-500 bg-amber-50'
+        return 'border-warning/40 bg-warning/10'
       default:
         return ''
     }
@@ -343,13 +343,13 @@ export default function PaymentAgreementStep({
   const getIconColor = (color: string) => {
     switch (color) {
       case 'green':
-        return 'text-green-500'
+        return 'text-success'
       case 'blue':
-        return 'text-blue-500'
+        return 'text-info'
       case 'purple':
-        return 'text-purple-500'
+        return 'text-accent'
       case 'gold':
-        return 'text-amber-500'
+        return 'text-warning'
       default:
         return 'text-muted-foreground'
     }
@@ -393,10 +393,10 @@ export default function PaymentAgreementStep({
               <div className={cn(
                 "w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center",
                 "bg-gradient-to-br",
-                block.color === 'green' ? "from-green-100 to-green-200" :
-                block.color === 'blue' ? "from-blue-100 to-blue-200" :
-                block.color === 'purple' ? "from-purple-100 to-purple-200" :
-                "from-amber-100 to-amber-200"
+                block.color === 'green' ? "from-success/10 to-success/20" :
+                block.color === 'blue' ? "from-info/10 to-info/20" :
+                block.color === 'purple' ? "from-accent/10 to-accent/20" :
+                "from-warning/10 to-warning/20"
               )}>
                 <block.icon className={cn("w-10 h-10", getIconColor(block.color))} />
               </div>
@@ -636,9 +636,9 @@ export default function PaymentAgreementStep({
 
             {/* Note about installment availability */}
             {(selectedBlock === 'starter' || selectedBlock === 'core') && paymentOption === 'installments' && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-sm text-amber-800 flex items-start gap-2">
-                  <span className="text-amber-600">⚠</span>
+              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3">
+                <p className="text-sm text-warning flex items-start gap-2">
+                  <span className="text-warning">⚠</span>
                   <span>
                     Installment payments are only available for Pro and Elite blocks.
                     Please select a different plan or choose full payment.
@@ -690,7 +690,7 @@ export default function PaymentAgreementStep({
                 {validateDiscountCode && (
                   <div className="mt-2">
                     {validateDiscountCode.valid ? (
-                      <p className="text-sm text-green-600 flex items-center gap-1">
+                      <p className="text-sm text-success flex items-center gap-1">
                         <CheckCircle className="h-4 w-4" />
                         {validateDiscountCode.description || `${validateDiscountCode.percentOff}% discount applied`}
                       </p>
@@ -870,8 +870,8 @@ export default function PaymentAgreementStep({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
+                <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="w-4 h-4 text-success" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Get Matched!</p>

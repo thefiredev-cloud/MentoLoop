@@ -369,8 +369,8 @@ function BillingContent({ userType }: { userType?: string }) {
               payments.map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50">
                   <div className="flex items-center gap-4">
-                    <div className="rounded-full p-2 bg-green-100">
-                      <DollarSign className="h-4 w-4 text-green-600" />
+                    <div className="rounded-full p-2 bg-success/10">
+                      <DollarSign className="h-4 w-4 text-success" />
                     </div>
                     <div>
                       <p className="font-medium">{formatCurrency(payment.amount)}</p>
@@ -384,7 +384,7 @@ function BillingContent({ userType }: { userType?: string }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-green-600">
+                    <Badge variant="secondary" className="text-success">
                       <CheckCircle2 className="mr-1 h-3 w-3" />
                       Paid
                     </Badge>

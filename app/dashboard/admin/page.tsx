@@ -154,8 +154,8 @@ function AdminDashboardContent() {
           <Link href="/dashboard/admin/matches">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-green-100 p-3 mr-4">
-                  <Target className="h-6 w-6 text-green-600" />
+                <div className="rounded-full bg-success/10 p-3 mr-4">
+                  <Target className="h-6 w-6 text-success" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Match Management</h3>
@@ -224,15 +224,15 @@ function AdminDashboardContent() {
       </div>
 
       {/* System Health */}
-      <Card className="border-green-200 bg-green-50">
+      <Card className="border-success/30 bg-success/10">
         <CardContent className="p-6 text-center">
-          <Database className="h-12 w-12 mx-auto text-green-600 mb-4" />
+          <Database className="h-12 w-12 mx-auto text-success mb-4" />
           <h3 className="text-lg font-semibold mb-2">System Status: Healthy</h3>
           <p className="text-muted-foreground mb-4">
             All systems operational • {overviewStats.totalUsers} users • {overviewStats.activeMatches} active matches
           </p>
           <div className="flex justify-center gap-4">
-            <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-2">
+            <Badge className="bg-success hover:bg-success/90 text-success-foreground px-4 py-2">
               Database: Online
             </Badge>
             <Badge className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">

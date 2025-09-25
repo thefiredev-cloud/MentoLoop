@@ -468,8 +468,8 @@ export default function StudentHoursPage() {
                         <div className="text-right">
                           <div className="font-bold">{week.totalHours}h</div>
                           <div className={`text-sm ${
-                            week.totalHours >= 32 ? 'text-green-600' : 
-                            week.totalHours >= 20 ? 'text-yellow-600' : 'text-red-600'
+                            week.totalHours >= 32 ? 'text-success' : 
+                            week.totalHours >= 20 ? 'text-warning' : 'text-red-600'
                           }`}>
                             {week.totalHours >= 32 ? 'Complete' : 
                              week.totalHours >= 20 ? 'Partial' : 'Low'}

@@ -153,7 +153,7 @@ export default function StripeCheckoutStep({
       <Card className="dashboard-card">
         <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
+            <CheckCircle className="h-5 w-5 text-success" />
             Order Summary
           </CardTitle>
         </CardHeader>
@@ -273,15 +273,15 @@ export default function StripeCheckoutStep({
               </p>
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground pt-2">
                 <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   PCI Compliant
                 </span>
                 <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   SSL Encrypted
                 </span>
                 <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   Secure Checkout
                 </span>
               </div>

@@ -181,7 +181,7 @@ export default function LoopExchangePage() {
                 <p className="text-sm font-medium text-muted-foreground">Active Contributors</p>
                 <p className="text-2xl font-bold">3,892</p>
               </div>
-              <Users className="h-8 w-8 text-green-500" />
+              <Users className="h-8 w-8 text-success" />
             </div>
           </CardContent>
         </Card>
@@ -318,7 +318,7 @@ export default function LoopExchangePage() {
                     <div className="text-sm">
                       <span className="text-muted-foreground">{resource.size} • {resource.format}</span>
                       {resource.isPremium && (
-                        <p className="font-semibold text-green-600">${resource.price}</p>
+                        <p className="font-semibold text-success">${resource.price}</p>
                       )}
                     </div>
                     <Button size="sm" variant={resource.isPremium ? 'default' : 'outline'}>
@@ -361,7 +361,7 @@ export default function LoopExchangePage() {
                             {upload.downloads} downloads
                           </span>
                           {upload.earnings > 0 && (
-                            <span className="text-green-600 font-medium">
+                            <span className="text-success font-medium">
                               ${upload.earnings.toFixed(2)} earned
                             </span>
                           )}

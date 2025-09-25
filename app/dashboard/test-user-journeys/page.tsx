@@ -220,7 +220,7 @@ export default function TestUserJourneys() {
   const getStepIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-success" />
       case 'running':
         return <Clock className="h-4 w-4 text-blue-500 animate-spin" />
       case 'failed':
@@ -233,7 +233,7 @@ export default function TestUserJourneys() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-500">Completed</Badge>
+        return <Badge className="bg-success text-success-foreground">Completed</Badge>
       case 'running':
         return <Badge className="bg-blue-500">Running</Badge>
       case 'failed':

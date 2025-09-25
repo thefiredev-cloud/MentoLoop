@@ -175,7 +175,7 @@ export default function GetStartedStudentPage() {
             <div className="space-y-3">
               {requirements.map((req, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                   <span className="text-foreground">{req}</span>
                 </div>
               ))}
@@ -266,11 +266,11 @@ export default function GetStartedStudentPage() {
 
           <div className="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+              <CheckCircle className="w-4 h-4 text-success" />
               <span>No credit card required to start</span>
             </div>
             <div className="flex items-center gap-1">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+              <CheckCircle className="w-4 h-4 text-success" />
               <span>100% satisfaction guarantee</span>
             </div>
           </div>

@@ -135,8 +135,8 @@ export default function PreceptorMatches() {
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-full bg-info/10 flex items-center justify-center">
+                <GraduationCap className="h-6 w-6 text-info" />
               </div>
               <div>
                 <CardTitle className="text-xl">{match.studentName}</CardTitle>
@@ -144,12 +144,18 @@ export default function PreceptorMatches() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className={`${
-                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Silver' ? 'bg-muted/20 text-muted-foreground border-border' :
-                (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Bronze' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                'bg-green-50 text-green-700 border-green-200'
-              }`}>
+              <Badge
+                variant="outline"
+                className={`${
+                  (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Gold'
+                    ? 'bg-warning/10 text-warning border border-warning/30'
+                    : (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Silver'
+                      ? 'bg-muted/20 text-muted-foreground border border-border'
+                      : (typeof match.tier === 'string' ? match.tier : match.tier?.name) === 'Bronze'
+                        ? 'bg-accent/10 text-accent border border-accent/30'
+                        : 'bg-success/10 text-success border border-success/30'
+                }`}
+              >
                 <Target className="h-3 w-3 mr-1" />
                 {typeof match.tier === 'string' ? match.tier : match.tier?.name || 'High'} Match • {match.mentorFitScore}/10
               </Badge>
@@ -160,25 +166,25 @@ export default function PreceptorMatches() {
           </div>
           
           {match.status === 'pending' && (
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            <Badge variant="outline" className="bg-warning/10 text-warning border border-warning/30">
               <Clock className="h-3 w-3 mr-1" />
               Pending Response
             </Badge>
           )}
           {match.status === 'confirmed' && (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Badge variant="outline" className="bg-info/10 text-info border border-info/30">
               <Eye className="h-3 w-3 mr-1" />
               Confirmed
             </Badge>
           )}
           {match.status === 'active' && (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <Badge variant="outline" className="bg-success/10 text-success border border-success/30">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Active Rotation
             </Badge>
           )}
           {match.status === 'completed' && (
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+            <Badge variant="outline" className="bg-accent/10 text-accent border border-accent/30">
               <GraduationCap className="h-3 w-3 mr-1" />
               Completed
             </Badge>
@@ -240,7 +246,7 @@ export default function PreceptorMatches() {
         {match.matchReason && (
           <div className="space-y-3">
             <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Why This Match Works</h4>
-            <p className="text-sm leading-relaxed bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <p className="text-sm leading-relaxed bg-info/10 p-4 rounded-lg border border-info/30">
               {match.matchReason}
             </p>
           </div>
@@ -260,7 +266,7 @@ export default function PreceptorMatches() {
           <div className="grid grid-cols-2 gap-2">
             {match.student?.rotationNeeds?.rotationTypes?.map((rotation: string, index: number) => (
               <div key={index} className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="h-3 w-3 text-green-600" />
+                <CheckCircle2 className="h-3 w-3 text-success" />
                 <span className="capitalize">{rotation.replace('-', ' ')}</span>
               </div>
             )) || (
@@ -423,8 +429,8 @@ export default function PreceptorMatches() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                         <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                            <GraduationCap className="h-6 w-6 text-green-600" />
+                          <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                            <GraduationCap className="h-6 w-6 text-success" />
                           </div>
                           <div>
                             <CardTitle className="text-xl">{match.studentName}</CardTitle>
@@ -432,7 +438,7 @@ export default function PreceptorMatches() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          <Badge variant="outline" className="bg-success/10 text-success border border-success/30">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Accepted Match
                           </Badge>

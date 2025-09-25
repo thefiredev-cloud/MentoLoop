@@ -79,7 +79,7 @@ export default function WhoItsFor() {
                                 case 'green':
                                     return {
                                         gradient: 'from-green-500 to-emerald-500',
-                                        iconClass: 'text-green-600'
+                                        iconClass: 'text-success'
                                     }
                                 default:
                                     return {

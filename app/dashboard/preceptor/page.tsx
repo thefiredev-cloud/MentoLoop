@@ -62,7 +62,7 @@ function PreceptorDashboardContent() {
         </h1>
         <div className="flex items-center gap-3 mt-2">
           <p className="text-muted-foreground">Manage your student preceptees and clinical mentoring</p>
-          <span className={`text-xs px-2 py-1 rounded ${verification === 'verified' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+          <span className={`text-xs px-2 py-1 rounded border ${verification === 'verified' ? 'bg-success/10 text-success border-success/30' : 'bg-warning/10 text-warning border-warning/30'}`}>
             {verification === 'verified' ? 'Verified' : verification.replace('-', ' ')}
           </span>
         </div>
@@ -90,9 +90,9 @@ function PreceptorDashboardContent() {
           <CardContent>
             <div className="text-sm">
               Status: {payoutsEnabled ? (
-                <span className="text-green-600 font-medium">Enabled</span>
+                <span className="text-success font-medium">Enabled</span>
               ) : (
-                <span className="text-yellow-700 font-medium">{connectStatus === 'none' ? 'Not set up' : connectStatus}</span>
+                <span className="text-warning font-medium">{connectStatus === 'none' ? 'Not set up' : connectStatus}</span>
               )}
             </div>
             <div className="mt-3 flex gap-2">
@@ -154,8 +154,8 @@ function PreceptorDashboardContent() {
           <Link href="/dashboard/preceptor/matches">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-blue-100 p-3 mr-4">
-                  <Target className="h-6 w-6 text-blue-600" />
+                <div className="rounded-full bg-info/10 p-3 mr-4">
+                  <Target className="h-6 w-6 text-info" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Review Matches</h3>
@@ -173,8 +173,8 @@ function PreceptorDashboardContent() {
           <Link href="/dashboard/preceptor/students">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-green-100 p-3 mr-4">
-                  <Users className="h-6 w-6 text-green-600" />
+                <div className="rounded-full bg-success/10 p-3 mr-4">
+                  <Users className="h-6 w-6 text-success" />
                 </div>
                 <div>
                   <h3 className="font-semibold">My Students</h3>
@@ -201,8 +201,8 @@ function PreceptorDashboardContent() {
           <Link href="/dashboard/preceptor/evaluations">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-orange-100 p-3 mr-4">
-                  <ChartBar className="h-6 w-6 text-orange-600" />
+                <div className="rounded-full bg-warning/10 p-3 mr-4">
+                  <ChartBar className="h-6 w-6 text-warning" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Evaluations</h3>
@@ -215,8 +215,8 @@ function PreceptorDashboardContent() {
           <Link href="/dashboard/preceptor/documents">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-yellow-100 p-3 mr-4">
-                  <FileText className="h-6 w-6 text-yellow-600" />
+                <div className="rounded-full bg-warning/10 p-3 mr-4">
+                  <FileText className="h-6 w-6 text-warning" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Documents</h3>
@@ -229,8 +229,8 @@ function PreceptorDashboardContent() {
           <Link href="/dashboard/messages">
             <Card className="dashboard-card dashboard-card-pressable cursor-pointer">
               <CardContent className="flex items-center p-6">
-                <div className="rounded-full bg-pink-100 p-3 mr-4">
-                  <MessageSquare className="h-6 w-6 text-pink-600" />
+                <div className="rounded-full bg-accent/10 p-3 mr-4">
+                  <MessageSquare className="h-6 w-6 text-accent" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Messages</h3>
@@ -244,15 +244,15 @@ function PreceptorDashboardContent() {
 
       {/* Profile Setup CTA */}
       {!hasCompletedIntake && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-warning/30 bg-warning/10">
           <CardContent className="p-6 text-center">
-            <Stethoscope className="h-12 w-12 mx-auto text-orange-600 mb-4" />
+            <Stethoscope className="h-12 w-12 mx-auto text-warning mb-4" />
             <h3 className="text-lg font-semibold mb-2">Complete Your Profile</h3>
             <p className="text-muted-foreground mb-4">
               Finish setting up your preceptor profile to start receiving student match requests
             </p>
             <Link href="/preceptor-intake">
-              <Badge className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2">
+              <Badge className="bg-warning hover:bg-warning/90 text-warning-foreground px-4 py-2">
                 Complete Profile Setup
               </Badge>
             </Link>

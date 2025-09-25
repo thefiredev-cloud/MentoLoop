@@ -96,67 +96,15 @@ export const sendMessage = mutation({
   handler: async (ctx, args) => {
     const userId = await getUserId(ctx);
     if (!userId) throw new Error("Must be authenticated");
-
-    // Get conversation and verify access
-    const conversation = await ctx.db.get(args.conversationId);
-    if (!conversation) throw new Error("Conversation not found");
-
-    if (conversation.studentUserId !== userId && conversation.preceptorUserId !== userId) {
-      throw new Error("Unauthorized: You can only send messages in your own conversations");
-    }
-
-    if (conversation.status !== "active") {
-      throw new Error("Cannot send messages in inactive conversations");
-    }
-
-    // Determine sender type
-    const isStudent = conversation.studentUserId === userId;
-    const senderType = isStudent ? "student" : "preceptor";
-
-    // Enforce preceptor-first messaging: students cannot send the first non-system message
-    const firstNonSystem = await ctx.db
-      .query("messages")
-      .withIndex("byConversationAndTime", (q) => q.eq("conversationId", args.conversationId))
-      .filter((q) => q.neq(q.field("senderType"), "system"))
-      .order("asc")
-      .first();
-    if (!firstNonSystem && isStudent) {
-      throw new Error("Please wait for your preceptor to send the first message.");
-    }
-
-    // Validate content
-    if (!args.content.trim()) {
-      throw new Error("Message content cannot be empty");
-    }
-
-    if (args.content.length > 5000) {
-      throw new Error("Message too long (max 5000 characters)");
-    }
-
-    // Create message
-    const messageId = await ctx.db.insert("messages", {
-      conversationId: args.conversationId,
-      senderId: userId,
-      senderType,
+    const { MessageSendManager } = require("./services/messages/MessageSendManager");
+    const manager = new MessageSendManager();
+    return await manager.sendMessage(ctx, {
+      conversationId: args.conversationId as any,
+      content: args.content,
       messageType: args.messageType || "text",
-      content: args.content.trim(),
       metadata: args.metadata,
-      createdAt: Date.now(),
+      userId,
     });
-
-    // Update conversation with last message info and unread counts
-    const otherUserUnreadField = isStudent ? "preceptorUnreadCount" : "studentUnreadCount";
-    
-    await ctx.db.patch(args.conversationId, {
-      lastMessageAt: Date.now(),
-      lastMessagePreview: args.content.length > 100 ? 
-        args.content.substring(0, 100) + "..." : 
-        args.content,
-      [otherUserUnreadField]: (conversation[otherUserUnreadField] || 0) + 1,
-      updatedAt: Date.now(),
-    });
-
-    return messageId;
   },
 });
 
@@ -927,54 +875,17 @@ export const sendFileMessage = mutation({
   handler: async (ctx, args) => {
     const userId = await getUserId(ctx);
     if (!userId) throw new Error("Must be authenticated");
-
-    // Get conversation and verify access
-    const conversation = await ctx.db.get(args.conversationId);
-    if (!conversation) throw new Error("Conversation not found");
-
-    if (conversation.studentUserId !== userId && conversation.preceptorUserId !== userId) {
-      throw new Error("Unauthorized: You can only send messages in your own conversations");
-    }
-
-    if (conversation.status !== "active") {
-      throw new Error("Cannot send messages in inactive conversations");
-    }
-
-    // Determine sender type
-    const isStudent = conversation.studentUserId === userId;
-    const senderType = isStudent ? "student" : "preceptor";
-
-    // Get file URL
-    const fileUrl = await ctx.storage.getUrl(args.storageId);
-    
-    // Create file message
-    const messageId = await ctx.db.insert("messages", {
-      conversationId: args.conversationId,
-      senderId: userId,
-      senderType,
-      messageType: "file",
-      content: args.content || args.fileName,
-      metadata: {
-        fileName: args.fileName,
-        fileSize: args.fileSize,
-        fileType: args.fileType,
-        fileUrl: fileUrl || undefined,
-        storageId: args.storageId,
-      },
-      createdAt: Date.now(),
+    const { MessageSendManager } = require("./services/messages/MessageSendManager");
+    const manager = new MessageSendManager();
+    return await manager.sendFileMessage(ctx, {
+      conversationId: args.conversationId as any,
+      content: args.content,
+      fileName: args.fileName,
+      fileSize: args.fileSize,
+      fileType: args.fileType,
+      storageId: args.storageId as any,
+      userId,
     });
-
-    // Update conversation with last message info and unread counts
-    const otherUserUnreadField = isStudent ? "preceptorUnreadCount" : "studentUnreadCount";
-    
-    await ctx.db.patch(args.conversationId, {
-      lastMessageAt: Date.now(),
-      lastMessagePreview: `📎 ${args.fileName}`,
-      [otherUserUnreadField]: (conversation[otherUserUnreadField] || 0) + 1,
-      updatedAt: Date.now(),
-    });
-
-    return messageId;
   },
 });
 

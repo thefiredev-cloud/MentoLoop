@@ -129,7 +129,7 @@ export default function PreceptorLandingPage() {
               <Button
                 size="lg"
                 asChild
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg"
+                className="bg-success text-success-foreground hover:bg-success/90 px-8 py-6 text-lg"
               >
                 <Link href="/sign-up/preceptor">
                   Become a Preceptor
@@ -151,8 +151,8 @@ export default function PreceptorLandingPage() {
           <div className="space-y-8">
             {process.map((item, index) => (
               <div key={index} className="flex gap-6 items-start">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-white">{item.step}</span>
+              <div className="w-12 h-12 bg-success text-success-foreground rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl font-bold">{item.step}</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-xl mb-2 text-foreground">{item.title}</h3>
@@ -179,7 +179,7 @@ export default function PreceptorLandingPage() {
                     {benefit.icon}
                   </div>
                   <h3 className="font-semibold text-lg mb-2 text-foreground text-center">
-                    <CheckCircle className="inline w-5 h-5 text-green-600 mr-2" />
+                    <CheckCircle className="inline w-5 h-5 text-success mr-2" />
                     {benefit.title}
                   </h3>
                   <p className="text-muted-foreground text-center text-sm">
@@ -271,7 +271,7 @@ export default function PreceptorLandingPage() {
             <Button 
               size="lg" 
               asChild
-              className="bg-green-600 hover:bg-green-700 px-8 py-6 text-lg"
+              className="bg-success text-success-foreground hover:bg-success/90 px-8 py-6 text-lg"
             >
               <Link href="/sign-up/preceptor">
                 Sign Up as a Preceptor

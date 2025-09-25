@@ -57,7 +57,7 @@ export function StatsCard({
         )}
         {trend && (
           <div className={`flex items-center text-xs mt-1 ${
-            trend.isPositive ? 'text-green-600' : 'text-red-600'
+            trend.isPositive ? 'text-success' : 'text-destructive'
           }`}>
             <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
             <span className="text-muted-foreground ml-1">from last month</span>

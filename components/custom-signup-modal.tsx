@@ -57,9 +57,9 @@ export function CustomSignupModal({
       title: 'I\'m a Preceptor',
       description: 'Healthcare professional ready to mentor students',
       icon: Stethoscope,
-      color: 'bg-green-500',
-      lightColor: 'bg-green-100',
-      textColor: 'text-green-600',
+      color: 'bg-success',
+      lightColor: 'bg-success/10',
+      textColor: 'text-success',
       redirectUrl: '/preceptor-intake'
     },
     {

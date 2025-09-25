@@ -96,13 +96,13 @@ function FinancialManagementContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'succeeded':
-        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Succeeded</Badge>
+        return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Succeeded</Badge>
       case 'failed':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>
       case 'pending':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
+        return <Badge className="bg-warning/20 text-warning"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
       case 'refunded':
-        return <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" />Refunded</Badge>
+        return <Badge className="bg-info/20 text-info"><AlertCircle className="h-3 w-3 mr-1" />Refunded</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -376,17 +376,17 @@ function FinancialManagementContent() {
                 <div className="text-center p-4 border rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Core Plan</div>
                   <div className="text-2xl font-bold">{formatCurrency(39900)}</div>
-                  <div className="text-xs text-green-600">23 active</div>
+                  <div className="text-xs text-success">23 active</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Pro Plan</div>
                   <div className="text-2xl font-bold">{formatCurrency(79900)}</div>
-                  <div className="text-xs text-green-600">45 active</div>
+                  <div className="text-xs text-success">45 active</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Premium Plan</div>
                   <div className="text-2xl font-bold">{formatCurrency(119900)}</div>
-                  <div className="text-xs text-green-600">12 active</div>
+                  <div className="text-xs text-success">12 active</div>
                 </div>
               </div>
               

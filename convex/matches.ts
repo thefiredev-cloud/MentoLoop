@@ -131,121 +131,14 @@ function generateMatchReason(breakdown: any, student: any, preceptor: any): stri
 
 // Helper function to get tier from score
 function getTierFromScore(score: number): { name: string; color: string; description: string } {
-  if (score >= 8.5) {
-    return {
-      name: "Gold",
-      color: "gold",
-      description: "Exceptional compatibility"
-    };
-  } else if (score >= 7.0) {
-    return {
-      name: "Silver", 
-      color: "silver",
-      description: "Strong compatibility"
-    };
-  } else {
-    return {
-      name: "Bronze",
-      color: "bronze", 
-      description: "Good compatibility"
-    };
-  }
+  const { MatchScoringManager } = require("./services/matches/MatchScoringManager");
+  return new MatchScoringManager().getTierFromScore(score);
 }
 
 // MentorFit compatibility scoring algorithm
-function calculateMentorFitScore(
-  studentLearningStyle: any,
-  preceptorMentoringStyle: any
-): number {
-  let score = 0;
-  let maxScore = 0;
-
-  // Learning Style vs Mentoring Style
-  maxScore += 2;
-  if (
-    (studentLearningStyle.learningMethod === "hands-on" && preceptorMentoringStyle.mentoringApproach === "coach-guide") ||
-    (studentLearningStyle.learningMethod === "step-by-step" && preceptorMentoringStyle.mentoringApproach === "coach-guide") ||
-    (studentLearningStyle.learningMethod === "independent" && preceptorMentoringStyle.mentoringApproach === "expect-initiative")
-  ) {
-    score += 2;
-  } else if (
-    (studentLearningStyle.learningMethod === "hands-on" && preceptorMentoringStyle.mentoringApproach === "support-needed") ||
-    (studentLearningStyle.learningMethod === "independent" && preceptorMentoringStyle.mentoringApproach === "support-needed")
-  ) {
-    score += 1;
-  }
-
-  // Feedback Style Alignment
-  maxScore += 2;
-  if (
-    (studentLearningStyle.feedbackPreference === "real-time" && preceptorMentoringStyle.feedbackApproach === "real-time") ||
-    (studentLearningStyle.feedbackPreference === "end-of-day" && preceptorMentoringStyle.feedbackApproach === "daily-checkins") ||
-    (studentLearningStyle.feedbackPreference === "minimal" && preceptorMentoringStyle.feedbackApproach === "weekly-written")
-  ) {
-    score += 2;
-  } else if (
-    (studentLearningStyle.feedbackPreference === "real-time" && preceptorMentoringStyle.feedbackApproach === "daily-checkins") ||
-    (studentLearningStyle.feedbackPreference === "end-of-day" && preceptorMentoringStyle.feedbackApproach === "weekly-written")
-  ) {
-    score += 1;
-  }
-
-  // Autonomy and Structure Preference
-  maxScore += 2;
-  if (
-    (studentLearningStyle.structurePreference === "clear-schedules" && preceptorMentoringStyle.rotationStart === "orient-goals") ||
-    (studentLearningStyle.structurePreference === "open-ended" && preceptorMentoringStyle.rotationStart === "dive-in-learn") ||
-    (studentLearningStyle.structurePreference === "general-guidance" && preceptorMentoringStyle.rotationStart === "observe-adjust")
-  ) {
-    score += 2;
-  } else {
-    score += 1; // Partial match
-  }
-
-  // Clinical Comfort vs Autonomy Level
-  maxScore += 2;
-  if (
-    (studentLearningStyle.clinicalComfort === "very-comfortable" && preceptorMentoringStyle.autonomyLevel === "high-independence") ||
-    (studentLearningStyle.clinicalComfort === "not-comfortable" && preceptorMentoringStyle.autonomyLevel === "close-supervision") ||
-    (studentLearningStyle.clinicalComfort === "somewhat-comfortable" && preceptorMentoringStyle.autonomyLevel === "shared-decisions")
-  ) {
-    score += 2;
-  } else if (
-    (studentLearningStyle.clinicalComfort === "very-comfortable" && preceptorMentoringStyle.autonomyLevel === "shared-decisions") ||
-    (studentLearningStyle.clinicalComfort === "somewhat-comfortable" && preceptorMentoringStyle.autonomyLevel === "close-supervision")
-  ) {
-    score += 1;
-  }
-
-  // Resource Preferences
-  maxScore += 2;
-  if (
-    (studentLearningStyle.additionalResources === "yes-love" && preceptorMentoringStyle.learningMaterials === "always") ||
-    (studentLearningStyle.additionalResources === "not-necessary" && preceptorMentoringStyle.learningMaterials === "rarely") ||
-    (studentLearningStyle.additionalResources === "occasionally" && preceptorMentoringStyle.learningMaterials === "sometimes")
-  ) {
-    score += 2;
-  } else if (
-    (studentLearningStyle.additionalResources === "yes-love" && preceptorMentoringStyle.learningMaterials === "sometimes") ||
-    (studentLearningStyle.additionalResources === "occasionally" && preceptorMentoringStyle.learningMaterials === "always")
-  ) {
-    score += 1;
-  }
-
-  // Mentor Relationship Preference
-  maxScore += 2;
-  if (
-    (studentLearningStyle.mentorRelationship === "teacher-coach" && preceptorMentoringStyle.idealDynamic === "learner-teacher") ||
-    (studentLearningStyle.mentorRelationship === "collaborator" && preceptorMentoringStyle.idealDynamic === "teammates") ||
-    (studentLearningStyle.mentorRelationship === "supervisor" && preceptorMentoringStyle.idealDynamic === "supervisee-clinician")
-  ) {
-    score += 2;
-  } else {
-    score += 1; // Partial compatibility
-  }
-
-  // Convert to 0-10 scale
-  return Math.round((score / maxScore) * 10);
+function calculateMentorFitScore(studentLearningStyle: any, preceptorMentoringStyle: any): number {
+  const { MatchScoringManager } = require("./services/matches/MatchScoringManager");
+  return new MatchScoringManager().calculateMentorFitScore(studentLearningStyle, preceptorMentoringStyle);
 }
 
 // Create a new match suggestion
@@ -1314,53 +1207,8 @@ export const getMatchAnalytics = query({
     })),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query("matches");
-    
-    if (args.dateRange) {
-      query = query.filter((q) => 
-        q.and(
-          q.gte(q.field("createdAt"), args.dateRange!.start),
-          q.lte(q.field("createdAt"), args.dateRange!.end)
-        )
-      );
-    }
-    
-    const matches = await query.collect();
-    
-    const analytics = {
-      totalMatches: matches.length,
-      suggested: matches.filter(m => m.status === "suggested").length,
-      pending: matches.filter(m => m.status === "pending").length,
-      confirmed: matches.filter(m => m.status === "confirmed").length,
-      active: matches.filter(m => m.status === "active").length,
-      completed: matches.filter(m => m.status === "completed").length,
-      cancelled: matches.filter(m => m.status === "cancelled").length,
-      paid: matches.filter(m => m.paymentStatus === "paid").length,
-      unpaid: matches.filter(m => m.paymentStatus === "unpaid").length,
-      refunded: matches.filter(m => m.paymentStatus === "refunded").length,
-      averageMentorFitScore: 0,
-      successRate: 0,
-      paymentSuccessRate: 0,
-    };
-    
-    // Calculate average MentorFit score
-    if (matches.length > 0) {
-      const totalScore = matches.reduce((sum, m) => sum + (m.mentorFitScore || 0), 0);
-      analytics.averageMentorFitScore = totalScore / matches.length;
-    }
-    
-    // Calculate success rate (confirmed + active + completed / total)
-    const successfulMatches = analytics.confirmed + analytics.active + analytics.completed;
-    analytics.successRate = analytics.totalMatches > 0 
-      ? (successfulMatches / analytics.totalMatches) * 100 
-      : 0;
-      
-    // Calculate payment success rate
-    analytics.paymentSuccessRate = analytics.totalMatches > 0
-      ? (analytics.paid / analytics.totalMatches) * 100
-      : 0;
-    
-    return analytics;
+    const { MatchAnalyticsManager } = require("./services/matches/MatchAnalyticsManager");
+    return await new MatchAnalyticsManager().compute(ctx, args.dateRange || undefined);
   },
 });
 
@@ -1503,70 +1351,9 @@ export const completeRotation = mutation({
 export const findPotentialMatchesInternal = internalQuery({
   args: { studentId: v.id("students") },
   handler: async (ctx, args) => {
-    // Re-implement the logic here since we can't call the public query from internal
-    const student = await ctx.db.get(args.studentId);
-    if (!student) {
-      throw new Error("Student not found");
-    }
-
-    // Get all verified, available preceptors
-    const availablePreceptors = await ctx.db
-      .query("preceptors")
-      .withIndex("byVerificationStatus", (q) => q.eq("verificationStatus", "verified"))
-      .collect();
-
-    // Filter and score potential matches
-    const potentialMatches = [];
-
-    for (const preceptor of availablePreceptors) {
-      if (!preceptor.availability.currentlyAccepting) continue;
-
-
-      // Check specialty alignment
-      const hasMatchingRotation = preceptor.availability.availableRotations.some(rotation =>
-        student.rotationNeeds.rotationTypes.includes(rotation as any)
-      );
-
-      if (!hasMatchingRotation) continue;
-
-      // Calculate MentorFit score
-      const mentorFitScore = calculateMentorFitScore(
-        student.learningStyle,
-        preceptor.mentoringStyle
-      );
-
-      // Check geographic compatibility
-      let locationScore = 2; // Base score for available preceptor
-      
-      // Bonus for same state
-      if (student.rotationNeeds.preferredLocation && 
-          student.rotationNeeds.preferredLocation.state === preceptor.practiceInfo.state) {
-        locationScore = 2.5; // Same state preference
-      }
-      
-      // Bonus for same city/metro area
-      if (student.rotationNeeds.preferredLocation && 
-          student.rotationNeeds.preferredLocation.city === preceptor.practiceInfo.city) {
-        locationScore = 3; // Same city preference
-      } else if (student.rotationNeeds.willingToTravel) {
-        locationScore = 2; // Willing to travel
-      }
-
-      // Calculate overall compatibility score
-      const overallScore = (mentorFitScore * 0.7) + (locationScore * 0.3);
-
-      potentialMatches.push({
-        preceptor,
-        mentorFitScore,
-        locationScore,
-        overallScore,
-      });
-    }
-
-    // Sort by overall score (highest first)
-    return potentialMatches
-      .sort((a, b) => b.overallScore - a.overallScore)
-      .slice(0, 10); // Return top 10 matches
+    const { MatchSelectionManager } = require("./services/matches/MatchSelectionManager");
+    const selection = new MatchSelectionManager();
+    return await selection.findPotentialMatches(ctx, args.studentId);
   },
 });
 

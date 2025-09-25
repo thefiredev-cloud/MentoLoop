@@ -144,7 +144,7 @@ export default function MatchManagementPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Confirmed</Badge>
+        return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Confirmed</Badge>
       case 'active':
         return <Badge className="bg-blue-500"><Play className="h-3 w-3 mr-1" />Active</Badge>
       case 'completed':
@@ -163,7 +163,7 @@ export default function MatchManagementPage() {
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-green-500">Paid</Badge>
+        return <Badge className="bg-success text-success-foreground">Paid</Badge>
       case 'unpaid':
         return <Badge variant="destructive">Unpaid</Badge>
       case 'refunded':

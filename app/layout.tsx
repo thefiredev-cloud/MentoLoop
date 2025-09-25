@@ -33,11 +33,21 @@ export const metadata: Metadata = {
   authors: [{ name: "MentoLoop" }],
   creator: "MentoLoop",
   publisher: "MentoLoop",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://mentoloop.com'),
+  metadataBase: (() => {
+    const raw = process.env.NEXT_PUBLIC_APP_URL;
+    try {
+      return new URL(raw && /^https?:\/\//.test(raw) ? raw : 'https://mentoloop.com');
+    } catch {
+      return new URL('https://mentoloop.com');
+    }
+  })(),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://mentoloop.com',
+    url: (() => {
+      const raw = process.env.NEXT_PUBLIC_APP_URL;
+      return raw && /^https?:\/\//.test(raw) ? raw : 'https://mentoloop.com';
+    })(),
     title: "MentoLoop - Nurse Practitioner Platform",
     description: "Connect nurse practitioner students with experienced preceptors for personalized mentorship and clinical rotations",
     siteName: "MentoLoop",

@@ -182,7 +182,7 @@ export default function GetStartedPreceptorPage() {
                   <div className="flex-shrink-0">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       activeStep === index 
-                        ? 'bg-green-600 text-white' 
+                        ? 'bg-success text-success-foreground' 
                         : 'bg-muted/20 text-muted-foreground'
                     }`}>
                       {step.number}
@@ -203,8 +203,8 @@ export default function GetStartedPreceptorPage() {
               ))}
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-blue-800 text-center font-medium">
+            <div className="mt-6 p-4 bg-info/10 rounded-lg">
+              <p className="text-info text-center font-medium">
                 Application time: ~20 minutes • Approval: 24-48 hours
               </p>
             </div>
@@ -304,7 +304,7 @@ export default function GetStartedPreceptorPage() {
             <Button
               size="lg"
               asChild
-              className="bg-green-600 hover:bg-green-700 text-white px-8"
+              className="bg-success text-success-foreground hover:bg-success/90 px-8"
             >
               <Link href="/sign-up/preceptor">
                 Continue to Application

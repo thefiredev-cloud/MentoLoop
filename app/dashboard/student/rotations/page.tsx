@@ -88,9 +88,9 @@ export default function StudentRotationsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-blue-500">Active</Badge>
+        return <Badge className="bg-info text-info-foreground">Active</Badge>
       case 'completed':
-        return <Badge className="bg-green-500">Completed</Badge>
+        return <Badge className="bg-success text-success-foreground">Completed</Badge>
       case 'scheduled':
         return <Badge variant="outline">Scheduled</Badge>
       default:
@@ -151,8 +151,8 @@ export default function StudentRotationsPage() {
               </p>
             </div>
             <div className="space-y-2">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-success">
                   {completedCount}
                 </div>
                 <p className="text-sm text-muted-foreground">Rotations Completed</p>

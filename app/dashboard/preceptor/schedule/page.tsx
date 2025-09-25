@@ -13,104 +13,13 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Calendar, 
-  Clock, 
-  Users,
-  AlertCircle,
-  CheckCircle2,
-  Plus,
-  Edit,
-  Save,
-  X,
-  CalendarDays,
-  TimerIcon,
-  UserCheck,
-  Settings,
-  BookOpen,
-  Trash2
-} from 'lucide-react'
+import { Calendar, Clock, Users, AlertCircle, CheckCircle2, Plus, Edit, Save, X, CalendarDays, TimerIcon, UserCheck, Settings, BookOpen, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
 // Types and default data
-type DayAvailability = {
-  available: boolean
-  startTime: string
-  endTime: string
-  maxStudents: number
-  currentStudents: number
-  notes: string
-}
-
-type AvailabilityMap = {
-  monday: DayAvailability
-  tuesday: DayAvailability
-  wednesday: DayAvailability
-  thursday: DayAvailability
-  friday: DayAvailability
-  saturday: DayAvailability
-  sunday: DayAvailability
-}
-
-const DEFAULT_AVAILABILITY: AvailabilityMap = {
-  monday: {
-    available: true,
-    startTime: "08:00",
-    endTime: "17:00",
-    maxStudents: 2,
-    currentStudents: 1,
-    notes: "Family practice clinic hours"
-  },
-  tuesday: {
-    available: true,
-    startTime: "08:00",
-    endTime: "17:00",
-    maxStudents: 2,
-    currentStudents: 2,
-    notes: "Family practice clinic hours"
-  },
-  wednesday: {
-    available: true,
-    startTime: "08:00",
-    endTime: "17:00",
-    maxStudents: 2,
-    currentStudents: 1,
-    notes: "Family practice clinic hours"
-  },
-  thursday: {
-    available: true,
-    startTime: "08:00",
-    endTime: "17:00",
-    maxStudents: 2,
-    currentStudents: 1,
-    notes: "Family practice clinic hours"
-  },
-  friday: {
-    available: false,
-    startTime: "08:00",
-    endTime: "17:00",
-    maxStudents: 0,
-    currentStudents: 0,
-    notes: "Administrative day - no students"
-  },
-  saturday: {
-    available: false,
-    startTime: "",
-    endTime: "",
-    maxStudents: 0,
-    currentStudents: 0,
-    notes: ""
-  },
-  sunday: {
-    available: false,
-    startTime: "",
-    endTime: "",
-    maxStudents: 0,
-    currentStudents: 0,
-    notes: ""
-  }
-}
+import { type AvailabilityMap, DEFAULT_AVAILABILITY, weekdayFromDate } from '@/components/preceptor-schedule/types'
+import { useScheduleViewModel } from '@/components/preceptor-schedule/useScheduleViewModel'
 
 export default function PreceptorSchedule() {
   const user = useQuery(api.users.current)
@@ -142,63 +51,8 @@ export default function PreceptorSchedule() {
     return d >= s && d <= e
   }
 
-  const weekdayFromDate = (dateStr: string): keyof AvailabilityMap => {
-    const d = new Date(dateStr)
-    const idx = d.getDay() // 0 Sun ... 6 Sat
-    const map: Record<number, keyof AvailabilityMap> = {
-      0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'
-    }
-    return map[idx]
-  }
 
-  const computeDayConflicts = (dayKey: keyof AvailabilityMap): string[] => {
-    const msgs: string[] = []
-    const day = availability[dayKey]
-    if (!day.available) return msgs
-    if (day.currentStudents >= day.maxStudents) {
-      msgs.push('Capacity reached for this day')
-    }
-    // Time-off windows
-    for (const t of mockTimeOffRequests) {
-      // If any date in the time-off range falls on this weekday, mark as conflict
-      const start = new Date(t.startDate)
-      const end = new Date(t.endDate)
-      for (
-        let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-        d <= end;
-        d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
-      ) {
-        const wk = weekdayFromDate(d.toISOString().slice(0, 10))
-        if (wk === dayKey) {
-          msgs.push('Time off overlaps this weekday window')
-          break
-        }
-      }
-    }
-    // Upcoming rotations consuming capacity
-    const weekdayRotations = mockUpcomingRotations.filter(r => {
-      // quick check: if any date within rotation matches this weekday
-      const start = new Date(r.startDate)
-      const end = new Date(r.endDate)
-      for (
-        let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-        d <= end;
-        d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
-      ) {
-        const wk = weekdayFromDate(d.toISOString().slice(0, 10))
-        if (wk === dayKey) return true
-      }
-      return false
-    })
-    if (weekdayRotations.length > 0) {
-      msgs.push(`${weekdayRotations.length} rotation(s) span this weekday`)
-    }
-    return msgs
-  }
-
-  if (!user) {
-    return <div>Loading...</div>
-  }
+  // NOTE: mock data defined below before passing into view model
 
   const mockUpcomingRotations = [
     {
@@ -237,6 +91,19 @@ export default function PreceptorSchedule() {
       impactedStudents: 2
     }
   ]
+
+  const { updateDay, computeDayConflicts } = useScheduleViewModel({
+    availability,
+    setAvailability,
+    timezone,
+    mockTimeOffRequests,
+    mockUpcomingRotations,
+    weekdayFromDate,
+  })
+
+  if (!user) {
+    return <div>Loading...</div>
+  }
 
   const daysOfWeek: Array<{ key: keyof AvailabilityMap; label: string }> = [
     { key: 'monday', label: 'Monday' },
@@ -325,19 +192,7 @@ export default function PreceptorSchedule() {
     })()
   }
 
-  const updateDay = <K extends keyof AvailabilityMap, F extends keyof DayAvailability>(
-    dayKey: K,
-    field: F,
-    value: DayAvailability[F],
-  ) => {
-    setAvailability(prev => ({
-      ...prev,
-      [dayKey]: {
-        ...prev[dayKey],
-        [field]: value,
-      },
-    }))
-  }
+  
 
   const renderAvailabilityCard = (day: { key: keyof AvailabilityMap; label: string }) => {
     const dayAvailability = availability[day.key]

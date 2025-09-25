@@ -165,13 +165,20 @@ export const ensureUserExists = mutation({
           console.log(`[ensureUserExists] ${userEmail} already has admin role`);
         }
       } else if (!existingUser.userType) {
-        // If no userType is set and they're not admin, check Clerk metadata first
-        const userTypeToSet = clerkUserType || "student";
-        console.log(`[ensureUserExists] Setting userType to ${userTypeToSet} for ${userEmail}`);
-        await ctx.db.patch(existingUser._id, {
-          userType: userTypeToSet as any,
-          email: userEmail,
-        });
+        // If no userType is set and they're not admin, only set if Clerk metadata specifies
+        if (clerkUserType && ["student", "preceptor", "enterprise"].includes(clerkUserType)) {
+          console.log(`[ensureUserExists] Setting userType to ${clerkUserType} for ${userEmail} from Clerk metadata`);
+          await ctx.db.patch(existingUser._id, {
+            userType: clerkUserType as any,
+            email: userEmail,
+          });
+        } else {
+          // Leave userType undefined so app can prompt once for role selection
+          console.log(`[ensureUserExists] Leaving userType unset for ${userEmail} to prompt for role selection`);
+          if (!existingUser.email || existingUser.email !== userEmail) {
+            await ctx.db.patch(existingUser._id, { email: userEmail });
+          }
+        }
       }
       
       // Always ensure email is set
@@ -183,25 +190,25 @@ export const ensureUserExists = mutation({
     }
 
     // Create new user if doesn't exist
-    // Determine the userType: admin > Clerk metadata > default to student
-    let userType: "admin" | "student" | "preceptor" | "enterprise" = "student";
-    if (isAdmin) {
-      userType = "admin";
-    } else if (clerkUserType && ["student", "preceptor", "enterprise"].includes(clerkUserType)) {
-      userType = clerkUserType as any;
-    }
-    
-    console.log(`[ensureUserExists] Creating new user for ${userEmail} with userType: ${userType}`);
+    // Determine the userType: admin > Clerk metadata > otherwise leave undefined to trigger prompt
+    const resolvedUserType: "admin" | "student" | "preceptor" | "enterprise" | undefined =
+      isAdmin
+        ? "admin"
+        : (clerkUserType && ["student", "preceptor", "enterprise"].includes(clerkUserType)
+            ? (clerkUserType as any)
+            : undefined);
+
+    console.log(`[ensureUserExists] Creating new user for ${userEmail} with userType: ${resolvedUserType ?? "<unset>"}`);
     const userId = await ctx.db.insert("users", {
       name: identity.name ?? identity.email ?? "Unknown User",
       externalId: clerkId,
-      userType,
+      ...(resolvedUserType ? { userType: resolvedUserType } : {}),
       email: userEmail,
       permissions: isAdmin ? ["full_admin_access"] : undefined,
       createdAt: Date.now(),
     });
 
-    console.log(`[ensureUserExists] Created user successfully: ${userId}, userType: ${userType}`);
+    console.log(`[ensureUserExists] Created user successfully: ${userId}, userType: ${resolvedUserType ?? "<unset>"}`);
     return { userId, isNew: true, clerkId };
   },
 });
@@ -235,13 +242,8 @@ export const updateUserMetadata = internalMutation({
       throw new Error("User not found");
     }
 
-    // Only update userType if the user is not an admin
-    // Preserve admin status for admin emails
-    if (!isAdminEmail(user.email)) {
-      await ctx.db.patch(userId, {
-        userType: "student" as const,
-      });
-    } else {
+    // Do not force-set userType here; preserve existing or admin status
+    if (isAdminEmail(user.email)) {
       console.log(`[updateUserMetadata] Preserving admin status for ${user.email}`);
     }
 
@@ -322,9 +324,8 @@ export const ensureUserExistsWithRetry = mutation({
           const userId = await ctx.db.insert("users", {
             name: identity.name ?? identity.email ?? "Unknown User",
             externalId: identity.subject,
-            userType: isAdmin ? "admin" : "student", // Admin if email matches, otherwise student
+            ...(isAdmin ? { userType: "admin" as const, permissions: ["full_admin_access"] } : {}),
             email: identity.email ?? "",
-            permissions: isAdmin ? ["full_admin_access"] : undefined,
             createdAt: Date.now(),
           });
 

@@ -143,18 +143,18 @@ export default function DiscountSetupPage() {
           </div>
 
           {result && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-success/10 border border-success/30 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-success mt-0.5" />
                 <div>
-                  <p className="font-semibold text-green-900">
+                  <p className="font-semibold text-success">
                     Success!
                   </p>
-                  <p className="text-sm text-green-700 mt-1">
+                  <p className="text-sm text-success mt-1">
                     {result.message}
                   </p>
                   {result.couponId && (
-                    <p className="text-xs text-green-600 mt-2">
+                    <p className="text-xs text-success mt-2">
                       Stripe Coupon ID: {result.couponId}
                     </p>
                   )}

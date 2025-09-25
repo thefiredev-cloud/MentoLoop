@@ -57,8 +57,8 @@ export default function PreceptorIntakeConfirmationPage() {
       <div className="container mx-auto px-4 max-w-3xl">
         {/* Success Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+          <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-10 w-10 text-success" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Welcome to the MentoLoop Network!</h1>
           <p className="text-lg text-muted-foreground">
@@ -94,7 +94,7 @@ export default function PreceptorIntakeConfirmationPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <DollarSign className="h-5 w-5 text-primary" />
-                <Badge className="bg-green-100 text-green-800">Connected</Badge>
+                <Badge className="bg-success/10 text-success">Connected</Badge>
               </div>
               <p className="font-medium">Payment Account</p>
               <p className="text-xs text-muted-foreground mt-1">Ready to receive</p>
@@ -164,20 +164,20 @@ export default function PreceptorIntakeConfirmationPage() {
             <CardTitle>Confirmation Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <CheckCircle className="h-4 w-4" />
               <span>Application submitted successfully</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <Mail className="h-4 w-4" />
               <span>Confirmation email sent to your registered email</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <User className="h-4 w-4" />
               <span>Preceptor profile created</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <DollarSign className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <DollarSign className="h-4 w-4" />
               <span>Stripe Connect account linked</span>
             </div>
             <div className="flex items-center gap-2 text-sm">

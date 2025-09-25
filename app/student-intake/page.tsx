@@ -380,7 +380,7 @@ export default function StudentIntakePage() {
       {/* Footer Message */}
       <div className="mt-8 text-center">
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <CheckCircle className="w-4 h-4 text-green-600" />
+          <CheckCircle className="w-4 h-4 text-success" />
           <span>Your information is secure and will never be shared without your consent</span>
         </div>
       </div>

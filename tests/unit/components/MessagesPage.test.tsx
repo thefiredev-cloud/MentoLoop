@@ -56,12 +56,14 @@ import MessagesPage from '@/app/dashboard/messages/page'
 import { useQuery, useMutation } from 'convex/react'
 import { api as convexApi } from '@/convex/_generated/api'
 
+const now = Date.now()
+
 const mockConversations = [
   {
     _id: 'conv1',
     matchId: 'match1',
     lastMessage: 'Hello there!',
-    lastMessageAt: Date.now() - 3600000,
+    lastMessageAt: new Date(now).setHours(9, 30, 0, 0),
     unreadCount: 2,
     otherUser: {
       name: 'Dr. Jane Smith',
@@ -72,7 +74,7 @@ const mockConversations = [
     _id: 'conv2',
     matchId: 'match2',
     lastMessage: 'See you tomorrow',
-    lastMessageAt: Date.now() - 86400000,
+    lastMessageAt: new Date(now).setDate(new Date(now).getDate() - 1),
     unreadCount: 0,
     otherUser: {
       name: 'John Student',
@@ -87,7 +89,7 @@ const mockMessages = [
     conversationId: 'conv1',
     senderId: 'user1',
     content: 'Hello there!',
-    createdAt: Date.now() - 3600000,
+    createdAt: new Date(now).setHours(9, 30, 0, 0),
     isRead: false,
     senderName: 'Dr. Jane Smith'
   },
@@ -96,7 +98,7 @@ const mockMessages = [
     conversationId: 'conv1',
     senderId: 'user2',
     content: 'Hi, how are you?',
-    createdAt: Date.now() - 3000000,
+    createdAt: new Date(now).setHours(9, 32, 0, 0),
     isRead: true,
     senderName: 'You'
   }
@@ -227,9 +229,10 @@ describe('MessagesPage', () => {
     // Ensure a conversation is selected so messages render
     const convo = await screen.findByText('Dr. Jane Smith')
     await userEvent.click(convo)
-    // Should show at least one timestamp (AM/PM)
-    const anyTimestamp = await screen.findAllByText(/AM|PM/i)
-    expect(anyTimestamp.length).toBeGreaterThan(0)
+    const messageTimestamps = await screen.findAllByTestId('message-timestamp')
+    expect(messageTimestamps.length).toBeGreaterThan(0)
+    const conversationTimestamp = await screen.findByTestId('conversation-timestamp-conv1')
+    expect(conversationTimestamp).toBeInTheDocument()
   })
 
   it('handles message send error', async () => {

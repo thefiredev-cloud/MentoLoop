@@ -35,6 +35,26 @@ export default clerkMiddleware(async (auth, req) => {
         return NextResponse.redirect(new URL('/sign-in', req.url))
       }
     }
+
+    // Role-based redirect when landing on generic /dashboard
+    if (isDashboardRoute(req)) {
+      try {
+        const url = new URL(req.url)
+        const pathname = url.pathname
+        // Only handle the base dashboard path, not subpaths
+        if (pathname === '/dashboard') {
+          const { sessionClaims } = await auth()
+          const publicMetadata: any = (sessionClaims as any)?.publicMetadata || {}
+          const userType = publicMetadata?.userType as 'student' | 'preceptor' | 'admin' | 'enterprise' | undefined
+          if (userType === 'student' || userType === 'preceptor' || userType === 'admin' || userType === 'enterprise') {
+            const target = `/dashboard/${userType}`
+            return NextResponse.redirect(new URL(target, req.url))
+          }
+        }
+      } catch (_e) {
+        // If anything fails, fall through to app-side redirect logic
+      }
+    }
     
     return response
   } catch (error) {

@@ -339,9 +339,9 @@ export default function PreceptorStudents() {
               student.recentActivities.map((activity: Activity, index: number) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.type === 'hours' ? 'bg-blue-500' :
-                    activity.type === 'evaluation' ? 'bg-green-500' :
-                    'bg-yellow-500'
+                    activity.type === 'hours' ? 'bg-info' :
+                    activity.type === 'evaluation' ? 'bg-success' :
+                    'bg-warning'
                   }`}></div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{activity.activity}</p>

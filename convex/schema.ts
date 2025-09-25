@@ -63,6 +63,8 @@ export default defineSchema({
       currency: v.optional(v.string()),
       status: v.union(v.literal("pending"), v.literal("succeeded"), v.literal("failed")),
       failureReason: v.optional(v.string()),
+      // When true, indicates the attempt was later reversed/credited and should not grant access
+      refunded: v.optional(v.boolean()),
       discountCode: v.optional(v.string()), // Discount code used
       discountPercent: v.optional(v.number()), // Percentage discounted
       receiptUrl: v.optional(v.string()),

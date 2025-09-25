@@ -86,7 +86,7 @@ function EmailAnalyticsContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Sent</Badge>
+        return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Sent</Badge>
       case 'failed':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>
       case 'pending':
@@ -151,7 +151,7 @@ function EmailAnalyticsContent() {
           <CardContent>
             <div className="text-2xl font-bold">{totalEmails.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
+              <TrendingUp className="h-3 w-3 inline mr-1 text-success" />
               +23% from last month
             </p>
           </CardContent>
@@ -222,12 +222,12 @@ function EmailAnalyticsContent() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-sm">
-                        <span className="text-green-600">{stats.sent} sent</span>
+                        <span className="text-success">{stats.sent} sent</span>
                         {stats.failed > 0 && (
                           <span className="text-destructive ml-2">{stats.failed} failed</span>
                         )}
                         {stats.pending > 0 && (
-                          <span className="text-yellow-600 ml-2">{stats.pending} pending</span>
+                          <span className="text-warning ml-2">{stats.pending} pending</span>
                         )}
                       </div>
                       <div className="text-sm font-medium">
@@ -251,56 +251,56 @@ function EmailAnalyticsContent() {
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Student Welcome</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     Sent to new students after registration
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 245</span>
-                    <span className="text-green-600">99.2% success</span>
+                        <span className="text-success">99.2% success</span>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Match Notification</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     Notifies students and preceptors of new matches
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 189</span>
-                    <span className="text-green-600">98.4% success</span>
+                    <span className="text-success">98.4% success</span>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Payment Confirmation</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     Confirms successful payment transactions
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 156</span>
-                    <span className="text-green-600">100% success</span>
+                    <span className="text-success">100% success</span>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Rotation Reminder</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     Reminds students of upcoming rotations
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 89</span>
-                    <span className="text-green-600">97.8% success</span>
+                    <span className="text-success">97.8% success</span>
                   </div>
                 </div>
               </div>

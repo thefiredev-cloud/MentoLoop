@@ -339,7 +339,7 @@ export default function PreceptorSearchPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{preceptor.personalInfo?.fullName ?? 'Preceptor'}</h3>
                           {preceptor.availability?.currentlyAccepting ? (
-                            <Badge className="bg-green-500">
+                            <Badge className="bg-success text-success-foreground">
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Accepting
                             </Badge>
@@ -417,7 +417,7 @@ export default function PreceptorSearchPage() {
                     <CardTitle className="flex items-center gap-2">
                       {preceptorDetails?.personalInfo.fullName || selectedPreceptor?.personalInfo?.fullName}
                       {selectedPreceptor?.availability?.currentlyAccepting ? (
-                        <Badge className="bg-green-500">
+                        <Badge className="bg-success text-success-foreground">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Accepting Students
                         </Badge>

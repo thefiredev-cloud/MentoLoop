@@ -1,0 +1,16 @@
+{
+  "when": "2025-09-22T23:14:28.193Z",
+  "coupons": [
+    {
+      "id": "Ycoq7HUH",
+      "name": "Mento12345",
+      "percent_off": 99.9,
+      "duration": "forever"
+    },
+    {
+      "id": "NP12345",
+      "percent_off": 100,
+      "duration": "once"
+    }
+  ]
+}

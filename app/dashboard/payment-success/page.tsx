@@ -63,8 +63,8 @@ export default function PaymentSuccess() {
       <div className="container mx-auto px-4 max-w-3xl">
         {/* Success Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-success/10 rounded-full mb-4">
+            <CheckCircle className="h-8 w-8 text-success" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Payment Successful!</h1>
           <p className="text-muted-foreground text-lg">
@@ -88,7 +88,7 @@ export default function PaymentSuccess() {
               </div>
               <div>
                 <div className="font-medium text-muted-foreground">Status</div>
-                <Badge className="bg-green-500">Confirmed & Paid</Badge>
+                <Badge className="bg-success text-success-foreground">Confirmed & Paid</Badge>
               </div>
               <div>
                 <div className="font-medium text-muted-foreground">Start Date</div>
@@ -137,7 +137,7 @@ export default function PaymentSuccess() {
                   <Badge variant="outline" className="text-blue-600">
                     {match.aiAnalysis.confidence} confidence
                   </Badge>
-                  <Badge variant="outline" className="text-green-600">
+                  <Badge variant="outline" className="text-success">
                     Score: {match.aiAnalysis.enhancedScore}/10
                   </Badge>
                 </div>

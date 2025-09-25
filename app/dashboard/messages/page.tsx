@@ -314,10 +314,14 @@ function MessagesContent() {
                                 </p>
                               )}
                               {conversation.lastMessageAt && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <time
+                                  className="text-xs text-muted-foreground flex items-center gap-1"
+                                  dateTime={new Date(conversation.lastMessageAt).toISOString()}
+                                  data-testid={`conversation-timestamp-${conversation._id}`}
+                                >
                                   <Clock className="h-3 w-3" />
                                   {formatMessageTime(conversation.lastMessageAt)}
-                                </p>
+                                </time>
                               )}
                             </div>
                           </div>
@@ -425,9 +429,13 @@ function MessagesContent() {
                               }`}
                             >
                               <p className="text-sm">{message.content}</p>
-                              <p className="text-xs mt-1 opacity-70">
+                              <time
+                                className="text-xs mt-1 opacity-70 block"
+                                dateTime={new Date(message.createdAt).toISOString()}
+                                data-testid="message-timestamp"
+                              >
                                 {formatMessageTime(message.createdAt)}
-                              </p>
+                              </time>
                             </div>
                           )}
                         </div>

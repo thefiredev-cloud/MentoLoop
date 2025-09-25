@@ -165,7 +165,7 @@ function AuditLogsContent() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Successful Payments</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{paymentSucceeded}</div>
@@ -489,7 +489,7 @@ function formatCurrency(amount?: number) {
 
 function renderWebhookStatus(processedAt?: number) {
   if (processedAt && processedAt > 0) {
-    return <Badge className="bg-green-500 hover:bg-green-500">Processed</Badge>
+    return <Badge className="bg-success hover:bg-success/90 text-success-foreground">Processed</Badge>
   }
   return <Badge variant="secondary">Pending</Badge>
 }
@@ -497,7 +497,7 @@ function renderWebhookStatus(processedAt?: number) {
 function renderPaymentStatus(status: string) {
   switch (status) {
     case 'succeeded':
-      return <Badge className="bg-green-500 hover:bg-green-500">Succeeded</Badge>
+      return <Badge className="bg-success hover:bg-success/90 text-success-foreground">Succeeded</Badge>
     case 'failed':
       return <Badge variant="destructive">Failed</Badge>
     case 'pending':

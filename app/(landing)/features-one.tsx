@@ -111,7 +111,7 @@ export default function FeaturesOne() {
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
                     <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg opacity-20" />
-                    <FileCheck className="h-8 w-8 text-green-600 relative z-10" strokeWidth={2.5} />
+                    <FileCheck className="h-8 w-8 text-success relative z-10" strokeWidth={2.5} />
                 </div>
             ),
             gradient: "from-green-500/20 via-emerald-400/10 to-transparent"

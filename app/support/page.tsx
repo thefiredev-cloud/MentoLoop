@@ -160,7 +160,7 @@ export default function SupportPage() {
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   {channel.badge && (
-                    <Badge className="bg-green-500">
+                    <Badge className="bg-success text-success-foreground">
                       {channel.badge}
                     </Badge>
                   )}
@@ -219,7 +219,7 @@ export default function SupportPage() {
           <CardContent>
             {submitted ? (
               <div className="py-8 text-center">
-                <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Message Sent Successfully!</h3>
                 <p className="text-muted-foreground mb-4">
                   We&apos;ve received your message and will respond within 24 hours.

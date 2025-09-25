@@ -139,8 +139,8 @@ export default function StudentIntakeConfirmationPage() {
       <div className="container mx-auto px-4 max-w-3xl">
         {/* Success Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+          <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-10 w-10 text-success" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Welcome to MentoLoop!</h1>
           <p className="text-lg text-muted-foreground">
@@ -198,20 +198,20 @@ export default function StudentIntakeConfirmationPage() {
             <CardTitle>Confirmation Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <CheckCircle className="h-4 w-4" />
               <span>Payment processed successfully</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <Mail className="h-4 w-4" />
               <span>Confirmation email sent to your registered email</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <User className="h-4 w-4" />
               <span>Student profile created</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-success">
+              <Clock className="h-4 w-4" />
               <span>Matching process initiated</span>
             </div>
             {sessionId && (
@@ -266,9 +266,9 @@ export default function StudentIntakeConfirmationPage() {
 
         {/* Assessment Complete Message */}
         {assessmentComplete && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
+          <Alert className="mb-6 border-success/40 bg-success/10">
+            <CheckCircle className="h-4 w-4 text-success" />
+            <AlertDescription className="text-success">
               <strong>MentorFit™ Assessment Complete!</strong> Your responses have been saved and will be used
               to find your perfect preceptor match.
             </AlertDescription>

@@ -109,7 +109,7 @@ export default function ProtectedPreceptorIntakeStep({
             <User className="h-5 w-5" />
             Basic Preceptor Information
             <div className="ml-auto">
-              <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+              <span className="text-xs font-medium text-success bg-success/10 px-2 py-1 rounded">
                 FREE ACCESS
               </span>
             </div>

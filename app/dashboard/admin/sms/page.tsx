@@ -100,11 +100,11 @@ function SMSAnalyticsContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Delivered</Badge>
+        return <Badge className="bg-success text-success-foreground"><CheckCircle className="h-3 w-3 mr-1" />Delivered</Badge>
       case 'failed':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>
       case 'pending':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
+        return <Badge className="bg-warning/20 text-warning"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -161,7 +161,7 @@ function SMSAnalyticsContent() {
           <CardContent>
             <div className="text-2xl font-bold">{totalSMS.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
+              <TrendingUp className="h-3 w-3 inline mr-1 text-success" />
               +18% from last month
             </p>
           </CardContent>
@@ -232,12 +232,12 @@ function SMSAnalyticsContent() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-sm">
-                        <span className="text-green-600">{stats.sent} sent</span>
+                        <span className="text-success">{stats.sent} sent</span>
                         {stats.failed > 0 && (
                           <span className="text-destructive ml-2">{stats.failed} failed</span>
                         )}
                         {stats.pending > 0 && (
-                          <span className="text-yellow-600 ml-2">{stats.pending} pending</span>
+                          <span className="text-warning ml-2">{stats.pending} pending</span>
                         )}
                       </div>
                       <div className="text-sm font-medium">
@@ -374,56 +374,56 @@ function SMSAnalyticsContent() {
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Verification Code</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     6-digit verification codes for account security
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 342</span>
-                    <span className="text-green-600">99.7% success</span>
+                    <span className="text-success">99.7% success</span>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Match Alert</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     Instant notification of new preceptor matches
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 156</span>
-                    <span className="text-green-600">98.1% success</span>
+                    <span className="text-success">98.1% success</span>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Rotation Reminder</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     24-hour reminder before rotation starts
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 89</span>
-                    <span className="text-green-600">100% success</span>
+                    <span className="text-success">100% success</span>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">Payment Reminder</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <Badge className="bg-success text-success-foreground">Active</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     Reminder for pending payment completion
                   </p>
                   <div className="flex justify-between text-sm">
                     <span>Sent: 34</span>
-                    <span className="text-green-600">97.1% success</span>
+                    <span className="text-success">97.1% success</span>
                   </div>
                 </div>
               </div>
@@ -439,7 +439,7 @@ function SMSAnalyticsContent() {
             <CardContent>
               {failedSMS === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500" />
+                  <CheckCircle className="h-12 w-12 mx-auto mb-3 text-success" />
                   <p>No failed SMS deliveries</p>
                   <p className="text-sm">All messages delivered successfully</p>
                 </div>
