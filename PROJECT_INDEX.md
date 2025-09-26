@@ -20,7 +20,7 @@
 #### Landing & Marketing Pages
 - `app/(landing)/page.tsx` - Main homepage
 - `app/student-landing/page.tsx` - Student-specific landing page
-- `app/preceptor-landing/page.tsx` - Preceptor-specific landing page
+- `app/preceptors/page.tsx` - Preceptor-specific landing page
 - `app/institutions/page.tsx` - Enterprise/institution landing page
 - `app/resources/page.tsx` - Educational resources page
 - `app/contact/page.tsx` - Contact form page

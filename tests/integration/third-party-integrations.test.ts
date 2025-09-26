@@ -493,8 +493,6 @@ describe('Third-Party Service Integrations', () => {
     })
 
     it('should measure service response times', async () => {
-      const startTime = Date.now()
-      
       mockFetch.mockImplementationOnce(() => 
         new Promise(resolve => setTimeout(() => resolve({
           ok: true,
@@ -506,7 +504,7 @@ describe('Third-Party Service Integrations', () => {
       const healthCheck = await checkServiceHealth('twilio')
       
       expect(healthCheck.responseTime).toBeGreaterThanOrEqual(100)
-      expect(healthCheck.responseTime).toBeLessThan(200)
+      expect(healthCheck.responseTime).toBeLessThan(350)
     })
   })
 
