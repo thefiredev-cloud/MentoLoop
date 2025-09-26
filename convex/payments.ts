@@ -1445,7 +1445,6 @@ export const logIntakePaymentAttempt = internalMutation({
       stripeCustomerId: args.stripeCustomerId,
       receiptUrl: args.receiptUrl,
       paidAt: args.paidAt ?? (args.status === "succeeded" ? Date.now() : undefined),
-      purchasedHours: hoursPurchased,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
