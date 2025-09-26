@@ -1,32 +1,11 @@
 import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, query, mutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
+import { ConfirmCheckoutSessionManager } from "./services/payments/ConfirmCheckoutSessionManager";
+import { idempotencyKeyManager } from "./services/payments/IdempotencyKeyManager";
 
-const sanitizeSeed = (seed: string): string => seed.replace(/[^a-zA-Z0-9_-]/g, "_");
 
-const stableIdempotencyDigest = (params: Record<string, string>): string => {
-  return Object.keys(params)
-    .sort()
-    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key] ?? "")}`)
-    .join("&");
-};
-
-const hashString = (input: string): string => {
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    const chr = input.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(36);
-};
-
-const computeIdempotencyKey = (prefix: string, seed: string, params: Record<string, string>): string => {
-  const digest = hashString(stableIdempotencyDigest(params));
-  return `${prefix}_${sanitizeSeed(seed)}_${digest}`;
-};
-
-const MEMBERSHIP_PLAN_KEYS = ["starter", "core", "pro", "elite"] as const;
+const MEMBERSHIP_PLAN_KEYS = ["starter", "core", "advanced", "pro", "elite", "a_la_carte"] as const;
 type MembershipPlanKey = typeof MEMBERSHIP_PLAN_KEYS[number];
 
 interface MembershipPlanConfig {
@@ -54,6 +33,14 @@ const MEMBERSHIP_PLAN_CONFIG: Record<MembershipPlanKey, MembershipPlanConfig> = 
     lookupKeys: ["mentoloop_core", "price_core", "core"],
     aliases: ["core_block"],
   },
+  advanced: {
+    basePrice: 1195,
+    hours: 120,
+    envKey: "STRIPE_PRICE_ID_ADVANCED",
+    fallbackPriceId: undefined,
+    lookupKeys: ["mentoloop_advanced", "price_advanced", "advanced"],
+    aliases: ["advanced_block", "premium_120"],
+  },
   pro: {
     basePrice: 1495,
     hours: 180,
@@ -76,6 +63,14 @@ const MEMBERSHIP_PLAN_CONFIG: Record<MembershipPlanKey, MembershipPlanConfig> = 
       "premium",
     ],
     aliases: ["premium", "premium_block", "premium_plus"],
+  },
+  a_la_carte: {
+    basePrice: 10,
+    hours: 0,
+    envKey: "STRIPE_PRICE_ID_ALACARTE",
+    fallbackPriceId: undefined,
+    lookupKeys: ["mentoloop_alacarte", "a_la_carte"],
+    aliases: ["alacarte", "add_hours"],
   },
 };
 
@@ -217,7 +212,7 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
             headers: {
               "Authorization": `Bearer ${stripeSecretKey}`,
               "Content-Type": "application/x-www-form-urlencoded",
-              "Idempotency-Key": computeIdempotencyKey("customer_update", args.email, updateParams),
+              "Idempotency-Key": idempotencyKeyManager.compute("customer_update", args.email, updateParams),
             },
             body: new URLSearchParams(updateParams),
           }
@@ -245,7 +240,7 @@ export const createOrUpdateStripeCustomerInternal = internalAction({
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
-            "Idempotency-Key": computeIdempotencyKey("customer_create", args.email, createParams),
+            "Idempotency-Key": idempotencyKeyManager.compute("customer_create", args.email, createParams),
           },
           body: new URLSearchParams(createParams),
         });
@@ -297,6 +292,7 @@ export const createStudentCheckoutSession = action({
     discountCode: v.optional(v.string()), // Add discount code support
     paymentOption: v.optional(v.union(v.literal("full"), v.literal("installments"))),
     installmentPlan: v.optional(v.union(v.literal(3), v.literal(4))),
+    aLaCarteHours: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<{ sessionId: string; url: string; discountApplied?: boolean; finalAmount?: number }> => {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -309,9 +305,10 @@ export const createStudentCheckoutSession = action({
     const requiredEnvVars = {
       STRIPE_PRICE_ID_STARTER: process.env.STRIPE_PRICE_ID_STARTER || process.env.STRIPE_PRICE_ID_CORE,
       STRIPE_PRICE_ID_CORE: process.env.STRIPE_PRICE_ID_CORE,
+      STRIPE_PRICE_ID_ADVANCED: process.env.STRIPE_PRICE_ID_ADVANCED,
       STRIPE_PRICE_ID_PRO: process.env.STRIPE_PRICE_ID_PRO,
-      STRIPE_PRICE_ID_PREMIUM: process.env.STRIPE_PRICE_ID_PREMIUM,
       STRIPE_PRICE_ID_ELITE: process.env.STRIPE_PRICE_ID_ELITE || process.env.STRIPE_PRICE_ID_PREMIUM,
+      STRIPE_PRICE_ID_ALACARTE: process.env.STRIPE_PRICE_ID_ALACARTE,
     };
 
     const missingVars = Object.entries(requiredEnvVars)
@@ -332,13 +329,22 @@ export const createStudentCheckoutSession = action({
       const membershipPlanKey = resolveMembershipPlan(args.membershipPlan);
       const planConfig = MEMBERSHIP_PLAN_CONFIG[membershipPlanKey];
 
+      const requestedHours = membershipPlanKey === "a_la_carte" ? Math.floor(args.aLaCarteHours ?? 0) : planConfig.hours;
+      if (membershipPlanKey === "a_la_carte") {
+        if (!Number.isFinite(requestedHours) || requestedHours < 30) {
+          throw new Error("A la carte purchases require at least 30 hours");
+        }
+      }
+
       // Optional test-mode penny pricing override via env flag
       const testPennyMode = process.env.NEXT_PUBLIC_PAYMENTS_TEST_PENNIES === 'true';
       const testPriceEnvByPlan: Partial<Record<MembershipPlanKey, string | undefined>> = {
         starter: process.env.STRIPE_TEST_PRICE_ID_STARTER,
         core: process.env.STRIPE_TEST_PRICE_ID_CORE,
+        advanced: process.env.STRIPE_TEST_PRICE_ID_ADVANCED,
         pro: process.env.STRIPE_TEST_PRICE_ID_PRO,
         elite: process.env.STRIPE_TEST_PRICE_ID_ELITE,
+        a_la_carte: process.env.STRIPE_TEST_PRICE_ID_ALACARTE,
       };
 
       // Define old/legacy price IDs for detection and mapping
@@ -420,7 +426,7 @@ export const createStudentCheckoutSession = action({
               headers: {
                 "Authorization": `Bearer ${stripeSecretKey}`,
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Idempotency-Key": `product_penny_1_usd`,
+              "Idempotency-Key": idempotencyKeyManager.compute("product_penny", "1_usd", {}),
               },
               body: new URLSearchParams({
                 name: "MentoLoop Penny Charge",
@@ -435,7 +441,7 @@ export const createStudentCheckoutSession = action({
               headers: {
                 "Authorization": `Bearer ${stripeSecretKey}`,
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Idempotency-Key": `price_penny_1_usd`,
+                "Idempotency-Key": idempotencyKeyManager.compute("price_penny", "1_usd", {}),
               },
               body: new URLSearchParams({
                 product: product?.id,
@@ -499,7 +505,12 @@ export const createStudentCheckoutSession = action({
       } else {
         // Regular one-time payment
         checkoutParams["line_items[0][price]"] = String(stripePriceId);
-        checkoutParams["line_items[0][quantity]"] = "1";
+        if (membershipPlanKey === "a_la_carte") {
+          checkoutParams["line_items[0][quantity]"] = requestedHours.toString();
+          checkoutParams["metadata[aLaCarteHours]"] = requestedHours.toString();
+        } else {
+          checkoutParams["line_items[0][quantity]"] = "1";
+        }
         checkoutParams["metadata[paymentOption]"] = "full";
         // SCA hardening
         checkoutParams["payment_method_types[0]"] = "card";
@@ -607,9 +618,12 @@ export const createStudentCheckoutSession = action({
                 const couponResp = await fetch('https://api.stripe.com/v1/coupons', {
                   method: 'POST',
                   headers: {
-                    'Authorization': `Bearer ${stripeSecretKey}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Idempotency-Key': `coupon_${codeUpper}`,
+          'Authorization': `Bearer ${stripeSecretKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Idempotency-Key': idempotencyKeyManager.compute('coupon', codeUpper, {
+            percent: '100',
+            duration: 'once',
+          }),
                   },
                   body: couponParams,
                 });
@@ -630,9 +644,11 @@ export const createStudentCheckoutSession = action({
                   const promoResp = await fetch('https://api.stripe.com/v1/promotion_codes', {
                     method: 'POST',
                     headers: {
-                      'Authorization': `Bearer ${stripeSecretKey}`,
-                      'Content-Type': 'application/x-www-form-urlencoded',
-                      'Idempotency-Key': `promotion_${codeUpper}`,
+                  'Authorization': `Bearer ${stripeSecretKey}`,
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Idempotency-Key': idempotencyKeyManager.compute('promotion', codeUpper, {
+                    couponId: coupon.id,
+                  }),
                     },
                     body: promoParams,
                   });
@@ -691,7 +707,7 @@ export const createStudentCheckoutSession = action({
       
       // Build a stable idempotency key based on the final request parameters to avoid
       // Stripe idempotency errors when params change across retries or different attempts.
-      const initialIdempotencyKey = computeIdempotencyKey("intake", args.customerEmail, checkoutParams);
+      const initialIdempotencyKey = idempotencyKeyManager.compute("intake", args.customerEmail, checkoutParams);
 
       const makeRequest = async (key: string) => {
         return await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -718,7 +734,10 @@ export const createStudentCheckoutSession = action({
           shouldRetry = /idempotency/i.test(errorText);
         }
         if (shouldRetry) {
-          const retryKey = `${initialIdempotencyKey}_${Date.now()}`;
+          const retryKey = idempotencyKeyManager.compute("intake_retry", args.customerEmail, {
+            timestamp: Date.now().toString(),
+            priceId: String(stripePriceId || ''),
+          });
           response = await makeRequest(retryKey);
           if (!response.ok) {
             const retryErr = await response.text();
@@ -787,6 +806,7 @@ export const createStudentCheckoutSession = action({
         status: "pending",
         discountCode: discountApplied && args.discountCode ? args.discountCode : undefined,
         discountPercent: discountApplied ? discountAmount : undefined,
+        purchasedHours: requestedHours,
       });
 
       // Track discount usage if applied
@@ -856,7 +876,9 @@ async function createStripeCheckoutSession(params: {
     headers: {
       "Authorization": `Bearer ${params.stripeSecretKey}`,
       "Content-Type": "application/x-www-form-urlencoded",
-      "Idempotency-Key": `match_${params.matchId}_price_${params.priceId}`,
+      "Idempotency-Key": idempotencyKeyManager.compute("match", params.matchId, {
+        priceId: params.priceId,
+      }),
     },
     body: new URLSearchParams({
       "mode": "payment",
@@ -1402,10 +1424,12 @@ export const logIntakePaymentAttempt = internalMutation({
     stripeCustomerId: v.optional(v.string()),
     receiptUrl: v.optional(v.string()),
     paidAt: v.optional(v.number()),
+    purchasedHours: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const planKey = resolveMembershipPlan(args.membershipPlan);
     const planConfig = MEMBERSHIP_PLAN_CONFIG[planKey];
+    const hoursPurchased = args.purchasedHours ?? (planKey === "a_la_carte" ? 0 : planConfig?.hours ?? 0);
 
     const insertedId = await ctx.db.insert("intakePaymentAttempts", {
       customerEmail: args.customerEmail,
@@ -1421,6 +1445,7 @@ export const logIntakePaymentAttempt = internalMutation({
       stripeCustomerId: args.stripeCustomerId,
       receiptUrl: args.receiptUrl,
       paidAt: args.paidAt ?? (args.status === "succeeded" ? Date.now() : undefined),
+      purchasedHours: hoursPurchased,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -1430,7 +1455,7 @@ export const logIntakePaymentAttempt = internalMutation({
       if (args.status === "succeeded") {
         const user = await ctx.runQuery(internal.users.getUserByEmail, { email: args.customerEmail });
         if (user) {
-          const hours = planConfig?.hours ?? 0;
+          const hours = args.purchasedHours ?? planConfig?.hours ?? 0;
           if (hours > 0) {
             const now = Date.now();
             const oneYear = 365 * 24 * 60 * 60 * 1000;
@@ -1637,7 +1662,9 @@ export const createMembershipProducts = action({
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
-            "Idempotency-Key": `product_${membership.name.replace(/\s+/g, '_').toLowerCase()}`,
+          "Idempotency-Key": idempotencyKeyManager.compute("product", membership.name, {
+            description: membership.description,
+          }),
           },
           body: new URLSearchParams({
             "name": membership.name,
@@ -1659,7 +1686,10 @@ export const createMembershipProducts = action({
           headers: {
             "Authorization": `Bearer ${stripeSecretKey}`,
             "Content-Type": "application/x-www-form-urlencoded",
-            "Idempotency-Key": `price_${membership.name.replace(/\s+/g, '_').toLowerCase()}_${membership.price}`,
+          "Idempotency-Key": idempotencyKeyManager.compute("price", membership.name, {
+            amount: membership.price.toString(),
+            stripeProductId: product.id,
+          }),
           },
           body: new URLSearchParams({
             "product": product.id,
@@ -1713,7 +1743,9 @@ export const createSubscription = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
-          "Idempotency-Key": `subscription_${args.customerId}_${args.priceId}`,
+          "Idempotency-Key": idempotencyKeyManager.compute("subscription", args.customerId, {
+            priceId: args.priceId,
+          }),
         },
         body: new URLSearchParams({
           "customer": args.customerId,
@@ -1853,7 +1885,9 @@ export const createDiscountCoupon = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
-          "Idempotency-Key": `coupon_${args.code}`,
+          "Idempotency-Key": idempotencyKeyManager.compute("coupon", args.code, {
+            percent: String(args.percentOff ?? 0),
+          }),
         },
         body: couponParams,
       });
@@ -1882,7 +1916,9 @@ export const createDiscountCoupon = action({
         headers: {
           "Authorization": `Bearer ${stripeSecretKey}`,
           "Content-Type": "application/x-www-form-urlencoded",
-          "Idempotency-Key": `promotion_${args.code}`,
+          "Idempotency-Key": idempotencyKeyManager.compute("promotion", args.code, {
+            couponId: coupon.id,
+          }),
         },
         body: promoParams,
       });
@@ -3141,51 +3177,20 @@ export const updateIntakePaymentAttemptStatus = internalMutation({
 });
 
 // Public action to confirm checkout session after redirect (immediate unlock UX)
+const confirmCheckoutSessionManager: ConfirmCheckoutSessionManager = new ConfirmCheckoutSessionManager({
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  updateMutation: internal.payments.updateIntakePaymentAttemptStatus,
+});
+
 export const confirmCheckoutSession = action({
   args: {
     sessionId: v.string(),
   },
-  handler: async (ctx, args) => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      throw new Error("Stripe not configured");
+  handler: async (ctx, args): Promise<{ confirmed: boolean; source?: string }> => {
+    const result = await confirmCheckoutSessionManager.confirmSession(ctx, args.sessionId);
+    if (result.confirmed) {
+      return { confirmed: true, source: (result as any).source };
     }
-    try {
-      // Verify with Stripe that the session is complete/paid
-      const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${stripeSecretKey}`,
-        },
-      });
-      if (!resp.ok) {
-        // Even if fetch fails, optimistically mark succeeded to avoid UX block
-        await ctx.runMutation(internal.payments.updateIntakePaymentAttemptStatus, {
-          stripeSessionId: args.sessionId,
-          status: "succeeded",
-          paidAt: Date.now(),
-        } as any);
-        return { confirmed: true, source: "optimistic" } as const;
-      }
-      const session = await resp.json();
-      const isPaid = (session?.payment_status === "paid") || (session?.status === "complete");
-      if (isPaid) {
-        await ctx.runMutation(internal.payments.updateIntakePaymentAttemptStatus, {
-          stripeSessionId: args.sessionId,
-          status: "succeeded",
-          paidAt: Date.now(),
-        } as any);
-        return { confirmed: true, source: "stripe" } as const;
-      }
-      return { confirmed: false } as const;
-    } catch (_e) {
-      // On error, still try to mark as succeeded so MentorFit unlocks; webhook will reconcile
-      await ctx.runMutation(internal.payments.updateIntakePaymentAttemptStatus, {
-        stripeSessionId: args.sessionId,
-        status: "succeeded",
-        paidAt: Date.now(),
-      } as any);
-      return { confirmed: true, source: "fallback" } as const;
-    }
+    return { confirmed: false };
   },
 });

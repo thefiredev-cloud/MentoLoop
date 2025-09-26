@@ -54,13 +54,13 @@ function AuditLogsContent() {
     )
   }
 
-  const webhookEvents = (data.webhookEvents ?? []).filter((e) => {
+  const webhookEvents = (data.webhookEvents ?? []).filter((e: any) => {
     if (onlyUnprocessed && e.processedAt) return false
     if (!search) return true
     const q = search.toLowerCase()
     return String(e.eventId).toLowerCase().includes(q) || String(e.provider).toLowerCase().includes(q)
   })
-  const paymentsAudit = (data.paymentsAudit ?? []).filter((e) => {
+  const paymentsAudit = (data.paymentsAudit ?? []).filter((e: any) => {
     if (!search) return true
     const q = search.toLowerCase()
     return (
@@ -69,7 +69,7 @@ function AuditLogsContent() {
       String(e.stripeId).toLowerCase().includes(q)
     )
   })
-  const paymentAttempts = (data.paymentAttempts ?? []).filter((e) => {
+  const paymentAttempts = (data.paymentAttempts ?? []).filter((e: any) => {
     if (!search) return true
     const q = search.toLowerCase()
     return (
@@ -77,7 +77,7 @@ function AuditLogsContent() {
       String(e.status).toLowerCase().includes(q)
     )
   })
-  const intakePaymentAttempts = (data.intakePaymentAttempts ?? []).filter((e) => {
+  const intakePaymentAttempts = (data.intakePaymentAttempts ?? []).filter((e: any) => {
     if (!search) return true
     const q = search.toLowerCase()
     return (
@@ -128,7 +128,7 @@ function AuditLogsContent() {
     }
     const csv = [headers.join(',')]
     for (const row of rows) {
-      csv.push(headers.map((h) => escape(row[h])).join(','))
+      csv.push(headers.map((h) => escape(row[h as keyof typeof row])).join(','))
     }
     const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -201,12 +201,12 @@ function AuditLogsContent() {
           <Input
             placeholder="Search id, provider, action…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             className="w-72"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Switch id="unprocessed" checked={onlyUnprocessed} onCheckedChange={setOnlyUnprocessed} />
+          <Switch id="unprocessed" checked={onlyUnprocessed} onCheckedChange={(val: boolean) => setOnlyUnprocessed(val)} />
           <Label htmlFor="unprocessed" className="text-sm">Only unprocessed webhooks</Label>
         </div>
       </div>

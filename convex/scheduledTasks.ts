@@ -2,6 +2,7 @@ import { cronJobs } from "convex/server";
 import { internalAction, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { api } from "./_generated/api";
+import { idempotencyKeyManager } from "./services/payments/IdempotencyKeyManager";
 import { v } from "convex/values";
 
 const crons = cronJobs();
@@ -333,7 +334,9 @@ export const runDunningScan = internalAction({
             headers: {
               Authorization: `Bearer ${stripeSecretKey}`,
               'Content-Type': 'application/x-www-form-urlencoded',
-              'Idempotency-Key': `invoice_pay_${inv.stripeInvoiceId}`,
+              'Idempotency-Key': idempotencyKeyManager.compute('invoice_pay', inv.stripeInvoiceId, {
+                attempt: Date.now().toString(),
+              }),
             },
           })
           const ok = payResp.ok
