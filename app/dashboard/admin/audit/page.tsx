@@ -13,6 +13,15 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Activity, AlertTriangle, CheckCircle, DollarSign } from 'lucide-react'
+import type { PaymentObservabilityPayload } from './types'
+import {
+  computePaymentSummaryMetrics,
+  filterIntakePaymentAttempts,
+  filterMatchPaymentAttempts,
+  filterPaymentsAudit,
+  filterWebhookEvents,
+  getStripeUrl,
+} from './utils'
 
 export default function AuditLogs() {
   return (
@@ -24,7 +33,9 @@ export default function AuditLogs() {
 
 function AuditLogsContent() {
   const [limit, setLimit] = React.useState(100)
-  const data = useQuery(api.admin.getRecentPaymentEvents, { limit })
+  const data = useQuery(api.admin.getRecentPaymentEvents, { limit }) as
+    | PaymentObservabilityPayload
+    | undefined
   const [search, setSearch] = React.useState('')
   const [onlyUnprocessed, setOnlyUnprocessed] = React.useState(false)
 
@@ -54,64 +65,23 @@ function AuditLogsContent() {
     )
   }
 
-  const webhookEvents = (data.webhookEvents ?? []).filter((e: any) => {
-    if (onlyUnprocessed && e.processedAt) return false
-    if (!search) return true
-    const q = search.toLowerCase()
-    return String(e.eventId).toLowerCase().includes(q) || String(e.provider).toLowerCase().includes(q)
+  const webhookEvents = filterWebhookEvents(data.webhookEvents, {
+    search,
+    onlyUnprocessed,
   })
-  const paymentsAudit = (data.paymentsAudit ?? []).filter((e: any) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      String(e.action).toLowerCase().includes(q) ||
-      String(e.stripeObject).toLowerCase().includes(q) ||
-      String(e.stripeId).toLowerCase().includes(q)
-    )
+  const paymentsAudit = filterPaymentsAudit(data.paymentsAudit, search)
+  const paymentAttempts = filterMatchPaymentAttempts(data.paymentAttempts, search)
+  const intakePaymentAttempts = filterIntakePaymentAttempts(
+    data.intakePaymentAttempts,
+    search,
+  )
+
+  const metrics = computePaymentSummaryMetrics({
+    webhookEvents,
+    paymentsAudit,
+    paymentAttempts,
+    intakePaymentAttempts,
   })
-  const paymentAttempts = (data.paymentAttempts ?? []).filter((e: any) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      String(e.stripeSessionId).toLowerCase().includes(q) ||
-      String(e.status).toLowerCase().includes(q)
-    )
-  })
-  const intakePaymentAttempts = (data.intakePaymentAttempts ?? []).filter((e: any) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      String(e.customerEmail).toLowerCase().includes(q) ||
-      String(e.membershipPlan).toLowerCase().includes(q) ||
-      String(e.stripeSessionId).toLowerCase().includes(q)
-    )
-  })
-
-  const processedWebhook = webhookEvents.filter((event) => event.processedAt && event.processedAt > 0).length
-  const failedWebhook = webhookEvents.length - processedWebhook
-  const stripeDashBase = 'https://dashboard.stripe.com/test'
-  const buildStripeUrl = (kind: string | undefined, id: string | undefined): string | undefined => {
-    if (!id) return undefined
-    if (id.startsWith('evt_')) return `${stripeDashBase}/events/${id}`
-    if (id.startsWith('pi_')) return `${stripeDashBase}/payments/${id}`
-    if (id.startsWith('in_')) return `${stripeDashBase}/invoices/${id}`
-    if (id.startsWith('cs_')) return `${stripeDashBase}/checkouts/sessions/${id}`
-    if (kind === 'invoice') return `${stripeDashBase}/invoices/${id}`
-    if (kind === 'payment_intent') return `${stripeDashBase}/payments/${id}`
-    return undefined
-  }
-
-  const paymentSucceeded =
-    paymentAttempts.filter((attempt) => attempt.status === 'succeeded').length +
-    intakePaymentAttempts.filter((attempt) => attempt.status === 'succeeded').length
-
-  const paymentFailed =
-    paymentAttempts.filter((attempt) => attempt.status === 'failed').length +
-    intakePaymentAttempts.filter((attempt) => attempt.status === 'failed').length
-
-  const intakeRevenue = intakePaymentAttempts
-    .filter((attempt) => attempt.status === 'succeeded')
-    .reduce((sum, attempt) => sum + (attempt.amount ?? 0), 0)
 
   const downloadCsv = (rows: Array<Record<string, string | number | boolean | null>>, filename: string) => {
     if (!rows || rows.length === 0) return
@@ -157,8 +127,8 @@ function AuditLogsContent() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{webhookEvents.length}</div>
-            <p className="text-xs text-muted-foreground">{processedWebhook} processed · {failedWebhook} pending</p>
+            <div className="text-2xl font-bold">{metrics.webhookTotal}</div>
+            <p className="text-xs text-muted-foreground">{metrics.webhookProcessed} processed · {metrics.webhookPending} pending</p>
           </CardContent>
         </Card>
 
@@ -168,7 +138,7 @@ function AuditLogsContent() {
             <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{paymentSucceeded}</div>
+            <div className="text-2xl font-bold">{metrics.paymentsSucceeded}</div>
             <p className="text-xs text-muted-foreground">Across matches and intake</p>
           </CardContent>
         </Card>
@@ -179,7 +149,7 @@ function AuditLogsContent() {
             <AlertTriangle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{paymentFailed}</div>
+            <div className="text-2xl font-bold">{metrics.paymentsFailed}</div>
             <p className="text-xs text-muted-foreground">Requires follow-up</p>
           </CardContent>
         </Card>
@@ -190,7 +160,7 @@ function AuditLogsContent() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(intakeRevenue)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(metrics.intakeRevenueInCents)}</div>
             <p className="text-xs text-muted-foreground">Succeeded checkout sessions</p>
           </CardContent>
         </Card>
@@ -251,9 +221,9 @@ function AuditLogsContent() {
                       {webhookEvents.map((event) => (
                         <TableRow key={String(event.id)}>
                           <TableCell className="font-mono text-xs">
-                            {buildStripeUrl('event', String(event.eventId)) ? (
+                            {getStripeUrl('event', event.eventId) ? (
                               <a
-                                href={buildStripeUrl('event', String(event.eventId))}
+                                href={getStripeUrl('event', event.eventId)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="underline text-primary"
@@ -265,7 +235,7 @@ function AuditLogsContent() {
                             )}
                           </TableCell>
                           <TableCell>{event.provider}</TableCell>
-                          <TableCell>{renderWebhookStatus(event.processedAt)}</TableCell>
+                          <TableCell>{renderWebhookStatus(event.processedAt ?? undefined)}</TableCell>
                           <TableCell>{formatDate(event.createdAt)}</TableCell>
                           <TableCell>{event.processedAt ? formatDate(event.processedAt) : '—'}</TableCell>
                         </TableRow>
@@ -312,18 +282,22 @@ function AuditLogsContent() {
                           <TableCell>{entry.action}</TableCell>
                           <TableCell>{entry.stripeObject}</TableCell>
                           <TableCell className="font-mono text-xs">
-                            {buildStripeUrl(entry.stripeObject, entry.stripeId) ? (
-                              <a
-                                href={buildStripeUrl(entry.stripeObject, entry.stripeId)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="underline text-primary"
-                              >
-                                {entry.stripeId}
-                              </a>
-                            ) : (
-                              entry.stripeId
-                            )}
+                            {(() => {
+                              const stripeObject = entry.stripeObject ?? undefined
+                              const stripeId = entry.stripeId ?? undefined
+                              const stripeUrl = getStripeUrl(stripeObject, stripeId)
+                              if (!stripeUrl) return stripeId ?? '—'
+                              return (
+                                <a
+                                  href={stripeUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="underline text-primary"
+                                >
+                                  {stripeId}
+                                </a>
+                              )
+                            })()}
                           </TableCell>
                           <TableCell className="max-w-[320px] truncate text-xs">
                             {Object.keys(entry.details || {}).length === 0
@@ -366,9 +340,9 @@ function AuditLogsContent() {
                       {paymentAttempts.map((attempt) => (
                         <TableRow key={String(attempt.id)}>
                           <TableCell className="font-mono text-xs">
-                            {buildStripeUrl('checkout_session', attempt.stripeSessionId) ? (
+                            {getStripeUrl('checkout_session', attempt.stripeSessionId) ? (
                               <a
-                                href={buildStripeUrl('checkout_session', attempt.stripeSessionId)}
+                                href={getStripeUrl('checkout_session', attempt.stripeSessionId)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="underline text-primary"
@@ -380,9 +354,9 @@ function AuditLogsContent() {
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs">
-                            {buildStripeUrl('checkout_session', attempt.stripeSessionId) ? (
+                            {getStripeUrl('checkout_session', attempt.stripeSessionId) ? (
                               <a
-                                href={buildStripeUrl('checkout_session', attempt.stripeSessionId)}
+                                href={getStripeUrl('checkout_session', attempt.stripeSessionId)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="underline text-primary"
@@ -394,7 +368,7 @@ function AuditLogsContent() {
                             )}
                           </TableCell>
                           <TableCell>{renderPaymentStatus(attempt.status)}</TableCell>
-                          <TableCell>{formatCurrency(attempt.amount)}</TableCell>
+                          <TableCell>{formatCurrency(attempt.amount ?? 0)}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">
                             {attempt.failureReason ?? '—'}
                           </TableCell>

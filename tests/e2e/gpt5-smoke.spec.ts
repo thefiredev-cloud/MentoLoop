@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('API smoke: health and GPT-5 routes', () => {
-  test('health endpoint responds 200 JSON', async ({ request }) => {
+  test('health endpoint responds 200 JSON', { tag: '@live-smoke' }, async ({ request }) => {
     const res = await request.get('/api/health')
     expect(res.status()).toBe(200)
     const json = await res.json()

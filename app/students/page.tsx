@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Doc } from '@/convex/_generated/dataModel'
+import { PlanCatalog } from '@/convex/constants/planCatalog'
 import MentoLoopBackground from '@/components/mentoloop-background'
 import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
 import { motion } from 'motion/react'
@@ -30,6 +31,11 @@ type TestimonialDoc = Doc<'testimonials'>
 export default function StudentsPage() {
 
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
+
+  const catalog = useQuery(api.billing.getPlanCatalog)
+  const resolvedCatalog = catalog ?? PlanCatalog.publicSummaries()
+  const blockPlans = resolvedCatalog.filter((plan) => plan.category === 'block')
+  const addonPlan = resolvedCatalog.find((plan) => plan.key === 'a_la_carte')
 
   const benefits = [
     {
@@ -166,20 +172,20 @@ export default function StudentsPage() {
                     <div className="relative flex items-center justify-center">
                       <GraduationCap className="w-4 h-4 text-primary animate-pulse" />
                     </div>
-                    <span className="font-medium text-foreground">For Future NPs</span>
-                    <ArrowRight className="w-4 h-4 text-foreground/70 group-hover:translate-x-1 transition-transform" />
+                    <span className="font-medium text-white">For Future NPs</span>
+                    <ArrowRight className="w-4 h-4 text-white/70 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </motion.div>
                 
                 <div className="mt-8">
                   <AnimatedText
                     text="Find Your Perfect"
-                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground text-shadow-strong"
+                    className="mx-auto max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white text-shadow-strong"
                     type="word"
                     delay={0.3}
                   />
                   <h1 className="mx-auto mt-2 max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-shadow-strong">
-                    <GradientText gradient="from-foreground via-primary/70 to-accent/40">
+                    <GradientText gradient="from-white via-blue-200 to-white">
                       NP Preceptor
                     </GradientText>
                   </h1>
@@ -189,17 +195,17 @@ export default function StudentsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8, duration: 0.6 }}
-                  className="text-foreground/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
+                  className="text-white/90 mx-auto my-6 max-w-xl text-balance text-xl md:text-2xl text-shadow-strong font-medium"
                 >
-                  <GlowingText className="text-foreground">
+                  <GlowingText className="text-white">
                     Fast. Fair. Guaranteed.
                   </GlowingText>
                 </motion.p>
-                <p className="text-foreground/80 mx-auto my-4 max-w-2xl text-balance text-lg">
+                <p className="text-white/80 mx-auto my-4 max-w-2xl text-balance text-lg">
                   Clinical placements shouldn&apos;t be stressful. With MentoLoop, you get matched to 
                   vetted preceptors in your specialty — with transparent pricing, flexible options, and full support.
                 </p>
-                <p className="text-foreground/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
+                <p className="text-white/80 mx-auto my-6 mb-8 max-w-2xl text-balance text-lg">
                   Join thousands of NP students who found their perfect clinical placement through our platform.
                 </p>
 
@@ -225,7 +231,7 @@ export default function StudentsPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.4, duration: 0.6 }}
-                  className="flex items-center justify-center gap-8 text-sm text-foreground/90"
+                  className="flex items-center justify-center gap-8 text-sm text-white/90"
                 >
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-accent" />
@@ -323,43 +329,26 @@ export default function StudentsPage() {
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-foreground">Starter Block</h3>
-                <p className="text-3xl font-bold text-primary mb-1">$495</p>
-                <p className="text-sm text-muted-foreground">60 hours</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-foreground">Core Block</h3>
-                <p className="text-3xl font-bold text-primary mb-1">$795</p>
-                <p className="text-sm text-muted-foreground">90 hours</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-foreground">Pro Block</h3>
-                <p className="text-3xl font-bold text-primary mb-1">$1,495</p>
-                <p className="text-sm text-muted-foreground">180 hours</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-6 text-center">
-                <h3 className="font-bold text-xl mb-2 text-foreground">Elite Block</h3>
-                <p className="text-3xl font-bold text-primary mb-1">$1,895</p>
-                <p className="text-sm text-muted-foreground">240 hours</p>
-              </CardContent>
-            </Card>
+            {blockPlans.map((plan) => (
+              <Card key={plan.key} className="border-0 shadow-lg">
+                <CardContent className="p-6 text-center">
+                  <h3 className="font-bold text-xl mb-2 text-foreground">{plan.name}</h3>
+                  <p className="text-3xl font-bold text-primary mb-1">{plan.priceDisplay}</p>
+                  <p className="text-sm text-muted-foreground">{plan.hours ? `${plan.hours} hours` : 'Flexible hours'}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          
-          <Card className="border-0 shadow-lg max-w-md mx-auto mb-8">
-            <CardContent className="p-6 text-center">
-              <h3 className="font-bold text-xl mb-2 text-foreground">A La Carte Add-On</h3>
-              <p className="text-3xl font-bold text-primary mb-1">$10/hr</p>
-              <p className="text-sm text-muted-foreground">Flexible extras (30hr blocks)</p>
-            </CardContent>
-          </Card>
+
+          {addonPlan ? (
+            <Card className="border-0 shadow-lg max-w-md mx-auto mb-8">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-bold text-xl mb-2 text-foreground">{addonPlan.name}</h3>
+                <p className="text-3xl font-bold text-primary mb-1">{addonPlan.priceUsd === 10 ? '$10/hr' : addonPlan.priceDisplay}</p>
+                <p className="text-sm text-muted-foreground">{addonPlan.priceDetail || 'Flexible extras (30hr blocks)'}</p>
+              </CardContent>
+            </Card>
+          ) : null}
           
           <p className="text-center text-muted-foreground">
             Installment plans and student discounts available.
