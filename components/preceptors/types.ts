@@ -50,9 +50,3 @@ export interface TestimonialsState {
   readonly testimonials: readonly PreceptorTestimonial[]
 }
 
-export interface VideoDialogState {
-  readonly open: boolean
-  readonly onClose: () => void
-}
-
-

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -14,7 +14,6 @@ import ProcessSection from '@/components/preceptors/ProcessSection'
 import RequirementsSection from '@/components/preceptors/RequirementsSection'
 import TestimonialsSection from '@/components/preceptors/TestimonialsSection'
 import CtaSection from '@/components/preceptors/CtaSection'
-import VideoDialog from '@/components/preceptors/VideoDialog'
 import {
   PreceptorBenefit,
   PreceptorHeroCopy,
@@ -32,12 +31,11 @@ const MentoLoopBackground = dynamic(() => import('@/components/mentoloop-backgro
 type TestimonialDoc = Doc<'testimonials'>
 
 export default function PreceptorsPage() {
-  const [videoOpen, setVideoOpen] = useState(false)
   const testimonials = useTestimonials()
 
   const heroCopy: PreceptorHeroCopy = {
-    titleLead: 'Mentor the Next',
-    highlightedTitle: 'Generation of NPs',
+    titleLead: 'Mentor the Next Generation',
+    highlightedTitle: 'of Nurse Practitioners',
     subtitle: 'Shape the Future of Healthcare',
     description: 'On your terms. Your schedule. Your way.',
     supportingCopy:
@@ -133,56 +131,55 @@ export default function PreceptorsPage() {
         copy={heroCopy}
         highlights={heroHighlights}
         primaryCta={{ href: '/sign-up/preceptor', label: 'Become a Preceptor' }}
-        secondaryCta={{ label: 'Watch Overview', onSelect: () => setVideoOpen(true) }}
         BackgroundComponent={MentoLoopBackground}
       />
 
-      <BenefitsSection
-        heading="Why Preceptors Join MentoLoop"
-        description="Support students, grow professionally, and let us handle the administration."
-        benefits={benefits}
-      />
+      <div className="relative bg-gradient-to-b from-background via-[#0b162d]/85 to-[#123974]">
+        <BenefitsSection
+          heading="Why Preceptors Join MentoLoop"
+          description="Support students, grow professionally, and let us handle the administration."
+          benefits={benefits}
+        />
 
-      <RecognitionSection
-        heading="Recognition & Community"
-        description="Celebrate your impact and stay connected with peers who mentor alongside you."
-        items={recognitionItems}
-      />
+        <RecognitionSection
+          heading="Recognition & Community"
+          description="Celebrate your impact and stay connected with peers who mentor alongside you."
+          items={recognitionItems}
+        />
 
-      <ProcessSection
-        heading="How It Works"
-        steps={processSteps}
-        cta={{ href: '/sign-up/preceptor', label: 'Apply Now' }}
-      />
+        <ProcessSection
+          heading="How It Works"
+          steps={processSteps}
+          cta={{ href: '/sign-up/preceptor', label: 'Apply Now' }}
+        />
 
-      <RequirementsSection
-        heading="Requirements"
-        description="We partner with dedicated clinicians who provide high-quality mentorship."
-        requirements={requirements}
-        note="Need liability coverage? Our team can connect you with discounted partners."
-      />
+        <RequirementsSection
+          heading="Requirements"
+          description="We partner with dedicated clinicians who provide high-quality mentorship."
+          requirements={requirements}
+          note="Need liability coverage? Our team can connect you with discounted partners."
+        />
 
-      <TestimonialsSection
-        heading="What Preceptors Say"
-        state={testimonials}
-      />
+        <TestimonialsSection
+          heading="What Preceptors Say"
+          state={testimonials}
+        />
 
-      <CtaSection
-        heading="Ready to Make a Difference?"
-        description="Join our growing community of preceptors and help shape the next generation of nurse practitioners."
-        primaryCta={{ href: '/sign-up/preceptor', label: 'Sign Up as a Preceptor' }}
-        secondaryAction={
-          <a
-            className="rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-foreground/10"
-            href="/contact"
-          >
-            Have Questions?
-          </a>
-        }
-        subcopy="Flexible commitment • Dedicated support • Cancel anytime"
-      />
-
-      <VideoDialog open={videoOpen} onClose={() => setVideoOpen(false)} />
+        <CtaSection
+          heading="Ready to Make a Difference?"
+          description="Join our growing community of preceptors and help shape the next generation of nurse practitioners."
+          primaryCta={{ href: '/sign-up/preceptor', label: 'Sign Up as a Preceptor' }}
+          secondaryAction={
+            <a
+              className="rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-foreground/10"
+              href="/contact"
+            >
+              Have Questions?
+            </a>
+          }
+          subcopy="Flexible commitment • Dedicated support • Cancel anytime"
+        />
+      </div>
     </div>
   )
 }

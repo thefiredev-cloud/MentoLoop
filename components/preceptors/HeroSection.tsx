@@ -5,7 +5,7 @@ import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animate
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { ArrowRight, CheckCircle, Heart, Stethoscope } from 'lucide-react'
+import { ArrowRight, CheckCircle, Heart } from 'lucide-react'
 import type { PreceptorHeroCopy } from './types'
 
 type BackgroundComponentProps = {
@@ -21,10 +21,6 @@ export interface HeroSectionProps {
     readonly href: string
     readonly label: string
   }
-  readonly secondaryCta: {
-    readonly label: string
-    readonly onSelect: () => void
-  }
   readonly BackgroundComponent: ComponentType<BackgroundComponentProps>
 }
 
@@ -32,7 +28,6 @@ export default function HeroSection({
   copy,
   highlights,
   primaryCta,
-  secondaryCta,
   BackgroundComponent
 }: HeroSectionProps) {
   return (
@@ -57,7 +52,7 @@ export default function HeroSection({
                   href={primaryCta.href}
                   className="mx-auto flex w-fit items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:scale-105 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                 >
-                  <Heart className="h-4 w-4 text-destructive" />
+                  <Heart className="h-4 w-4 text-[#f87171]" />
                   {copy.subtitle}
                   <ArrowRight className="h-4 w-4 text-white/70" />
                 </Link>
@@ -103,18 +98,9 @@ export default function HeroSection({
                 >
                   <Link href={primaryCta.href}>
                     <div className="absolute inset-0 bg-gradient-to-r from-accent/25 to-primary/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    <Stethoscope className="mr-2 h-5 w-5 text-accent" />
+                    <Heart className="mr-2 h-5 w-5 text-[#f87171]" />
                     <span className="relative">{primaryCta.label}</span>
                   </Link>
-                </Button>
-
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={secondaryCta.onSelect}
-                  className="border-white/30 bg-white/10 px-8 py-5 text-lg text-white transition-colors duration-300 hover:bg-white/15 hover:text-white"
-                >
-                  {secondaryCta.label}
                 </Button>
               </motion.div>
 
