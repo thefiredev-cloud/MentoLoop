@@ -1,6 +1,15 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
+import { PlanCatalog } from "./constants/planCatalog";
+
+// Public Plan Catalog
+export const getPlanCatalog = query({
+  args: {},
+  handler: () => {
+    return PlanCatalog.publicSummaries();
+  },
+});
 
 // Get user's current subscription/membership
 export const getCurrentSubscription = query({
