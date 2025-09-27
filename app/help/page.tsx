@@ -3,6 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import MentoLoopBackground from '@/components/mentoloop-background'
+import { AnimatedText, GradientText, GlowingText } from '@/components/ui/animated-text'
+import { motion } from 'motion/react'
 import { 
   BookOpen, 
   UserCheck, 
@@ -11,7 +14,9 @@ import {
   Shield,
   Search,
   FileText,
-  HelpCircle
+  HelpCircle,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react'
 
 export default function HelpCenter() {
@@ -231,121 +236,198 @@ Contact our technical team at tech@mentoloop.com for complex technical issues.`
   ]
 
   return (
-    <div className="min-h-screen bg-background py-12">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Help Center</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Find answers to common questions and get the support you need to make the most of MentoLoop.
-          </p>
-          <div className="mt-6">
-            <Button asChild>
-              <Link href="/faq" className="inline-flex items-center gap-2">
-                <HelpCircle className="h-4 w-4" />
-                View All FAQs
-              </Link>
-            </Button>
+    <div className="min-h-screen bg-background">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <MentoLoopBackground className="min-h-fit" showIcons={false} variant="full">
+          <div className="py-16 md:py-24">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="glass-strong rounded-3xl p-8 md:p-12 shadow-2xl hover-lift transform-3d"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                  className="mx-auto w-fit"
+                >
+                  <span className="group hover:bg-foreground/10 mx-auto flex w-fit items-center justify-center gap-2 rounded-full px-4 py-2 transition-all duration-300 border border-foreground/20 backdrop-blur-md">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span className="font-medium text-foreground/90">Support & Guidance</span>
+                    <ArrowRight className="w-4 h-4 text-foreground/60 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </motion.div>
+
+                <div className="mt-6">
+                  <AnimatedText
+                    text="How can we help?"
+                    className="mx-auto max-w-3xl text-balance text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground text-shadow-strong"
+                    type="word"
+                    delay={0.2}
+                  />
+                  <h1 className="mx-auto mt-2 max-w-3xl text-balance text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-shadow-strong">
+                    <GradientText gradient="from-white via-blue-200 to-white">
+                      Help Center
+                    </GradientText>
+                  </h1>
+                </div>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="text-foreground/90 mx-auto my-6 max-w-2xl text-balance text-lg md:text-xl"
+                >
+                  <GlowingText className="text-foreground">
+                    Find fast answers and step-by-step guidance for using MentoLoop.
+                  </GlowingText>
+                </motion.p>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button asChild size="lg" className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-6 py-5">
+                    <Link href="/faq">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <HelpCircle className="w-5 h-5 mr-2 text-primary" />
+                      <span className="relative font-semibold">View All FAQs</span>
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline">
+                    <Link href="#quick-links">Browse Topics</Link>
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
           </div>
-        </div>
+        </MentoLoopBackground>
+      </section>
+
+      <div className="container mx-auto px-4 max-w-6xl">
 
         {/* Quick Links */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-12">
+        <div id="quick-links" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-16">
           {sections.map((section) => {
             const IconComponent = section.icon
             return (
-              <Card 
-                key={section.id} 
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => {
-                  const element = document.getElementById(section.id)
-                  if (element) {
-                    element.scrollIntoView({ 
-                      behavior: 'smooth',
-                      block: 'start'
-                    })
-                  }
-                }}
+              <motion.div
+                key={section.id}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-10% 0px' }}
+                transition={{ duration: 0.35 }}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg ${section.color}`}>
-                      <IconComponent className="h-5 w-5 text-white" />
+                <Card 
+                  className="cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-shadow hardware-accelerated-hover"
+                  onClick={() => {
+                    const element = document.getElementById(section.id)
+                    if (element) {
+                      element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                      })
+                    }
+                  }}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/15`}>
+                        <IconComponent className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="font-semibold tracking-tight">{section.title}</h3>
                     </div>
-                    <h3 className="font-semibold">{section.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {section.items.length} articles
-                  </p>
-                </CardContent>
-              </Card>
+                    <p className="text-sm text-muted-foreground">
+                      {section.items.length} articles
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )
           })}
         </div>
 
         {/* Detailed Sections */}
-        <div className="space-y-12">
+        <div className="space-y-16">
           {sections.map((section) => {
             const IconComponent = section.icon
             return (
-              <div key={section.id} id={section.id} className="scroll-mt-20">
+              <motion.section
+                key={section.id}
+                id={section.id}
+                className="scroll-mt-20"
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-10% 0px' }}
+                transition={{ duration: 0.4 }}
+              >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className={`p-2 rounded-lg ${section.color}`}>
+                  <div className={`p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/15`}>
                     <IconComponent className="h-6 w-6 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold">{section.title}</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">{section.title}</h2>
                 </div>
-                
+
                 <div className="grid gap-6 md:grid-cols-2">
                   {section.items.map((item, index) => (
-                    <Card key={index}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">{item.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-muted-foreground whitespace-pre-line text-sm">
-                          {item.content}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.25, delay: index * 0.03 }}
+                    >
+                      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">{item.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">
+                            {item.content}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.section>
             )
           })}
         </div>
 
         {/* Contact Section */}
-        <Card className="mt-12">
-          <CardContent className="p-8 text-center">
-            <h3 className="text-xl font-semibold mb-4">Still Need Help?</h3>
-            <p className="text-muted-foreground mb-6">
-              Can&apos;t find what you&apos;re looking for? Our support team is here to help.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild>
-                <Link href="/faq" className="inline-flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  Browse FAQs
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/contact" className="inline-flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Submit Question
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <a 
-                  href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`}
-                  className="inline-flex items-center gap-2"
-                >
-                  Email Support
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <section className="mt-16 mb-20">
+          <Card className="border-0 shadow-xl">
+            <CardContent className="p-10 text-center">
+              <h3 className="text-2xl font-semibold mb-3">Still Need Help?</h3>
+              <p className="text-muted-foreground mb-6">
+                Can&apos;t find what you&apos;re looking for? Our support team is here to help.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild>
+                  <Link href="/faq" className="inline-flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4" />
+                    Browse FAQs
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/contact" className="inline-flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Submit Question
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <a 
+                    href={`mailto:support@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'mentoloop.com'}`}
+                    className="inline-flex items-center gap-2"
+                  >
+                    Email Support
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </div>
   )
