@@ -31,6 +31,9 @@
   --warning-foreground: 22 14% 12%;
   --info: 217 91% 60%; /* blue-500 */
   --info-foreground: 0 0% 100%;
+  --surface-subtle: 215 33% 14%;
+  --surface-muted: 215 28% 17%;
+  --surface-accent: 214 58% 16%;
   --chart-1: 214 100% 60%;
   --chart-2: 216 100% 70%;
   --chart-3: 158 64% 52%;
@@ -89,6 +92,9 @@
   --warning-foreground: 22 14% 12%;
   --info: 213 94% 68%; /* blue-400 */
   --info-foreground: 0 0% 100%;
+  --surface-subtle: 215 21% 95%;
+  --surface-muted: 215 16% 90%;
+  --surface-accent: 214 57% 92%;
   --chart-1: 214 100% 43%;
   --chart-2: 215 72% 56%;
   --chart-3: 158 64% 52%;
@@ -783,6 +789,54 @@
   }
   50% {
     opacity: .5;
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.14) 0%,
+    rgba(148, 163, 184, 0.32) 50%,
+    rgba(148, 163, 184, 0.14) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.animate-shimmer::after,
+.shimmer-layer {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 35%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.12) 65%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer-layer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes shimmer-layer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }
 

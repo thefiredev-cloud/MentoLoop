@@ -7,35 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### UI Alignment
+
+- Enforced semantic color tokens across billing dashboard components; removed legacy hex colors and gradients.
+- Added token-rich variants to `Badge`, `Button`, `Alert`, and `Card` primitives plus new `DashboardCard` helpers.
+- Updated landing features carousel and animated list to consume semantic gradients via `BentoGridItem` theme prop.
+- Aligned Clerk theme variables with project tokens.
+- Introduced ESLint/CI guardrails (`check-semantic-colors`) to block fixed Tailwind hues and hex values.
+- Added Playwright coverage (`dashboard-theme.spec.ts`) ensuring key routes render semantic tokens.
+
 ### Hardening
+
 - Tests stabilized and QA prior to deploy
   - Unit/integration tests green; Playwright browsers installed
   - Messages page a11y/empty states verified; auto-selects first conversation
   - Component tests updated for new `messages` data shape; mocks aligned
   - Minor typing cleanup to reduce eslint warnings in admin finance
+
 ### Payments/Stripe
+
 - Webhook signature verification with idempotent dedupe via `webhookEvents`
 - Consistent idempotency keys for customer/session/subscription writes
 - New internal `insertPaymentRecord` mutation; actions route writes through internal mutations
+
 ### GPT‑5 Guardrails
+
 - `/api/gpt5`, `/api/gpt5/documentation`, `/api/gpt5/function` set `Cache-Control: no-store`
 - Sanitized logs to avoid PHI/PII; PHI validators preserved; per-user rate limits
+
 ### Performance
+
 - Preceptors page keeps lazy background and skeleton states; no layout jank observed
+
 ### Compliance/Security
+
 - Guarded student intake logs in production; reduced risk of PHI in server logs
 
 ## [0.9.7] - 2025-01-20
 
 ### 🎉 Initial Public Release
 
-**MentoLoop - Healthcare Mentorship Platform**
+#### MentoLoop - Healthcare Mentorship Platform
 
 A comprehensive platform designed specifically for nursing education, connecting students with experienced preceptors through AI-powered matching and real-time communication.
 
 ### ✨ Core Features Added
 
 #### 🏥 Healthcare-Focused Platform
+
 - **AI-Powered Matching**: MentorFit™ algorithm with OpenAI/Gemini enhancement for optimal student-preceptor pairing
 - **Student Management**: Complete intake workflow with MentorFit assessment and rotation tracking
 - **Preceptor Management**: Credential verification, availability management, and student evaluation tools
@@ -43,6 +62,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Real-time Messaging**: HIPAA-compliant communication with file attachments
 
 #### 🔐 Authentication & Security
+
 - **Clerk Authentication**: Complete user management with role-based access control
 - **HIPAA Compliance**: Healthcare data protection and privacy controls
 - **FERPA Compliance**: Student educational record privacy
@@ -50,6 +70,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Role-Based Access**: Student, Preceptor, Admin, and Enterprise admin roles
 
 #### 💬 Communication Features
+
 - **Real-time Messaging**: Secure communication between students and preceptors
 - **File Attachments**: Document sharing with security controls
 - **Email Automation**: SendGrid integration for notifications and workflows
@@ -57,6 +78,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Automated Communications**: Template-based messaging system
 
 #### 🤖 AI Integration
+
 - **OpenAI GPT-4**: Primary AI provider for matching algorithm enhancement
 - **Google Gemini Pro**: Alternative AI provider for redundancy
 - **MentorFit Assessment**: 10-question compatibility analysis
@@ -64,6 +86,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Real-time Optimization**: Continuous improvement of matching accuracy
 
 #### 📊 Analytics & Reporting
+
 - **Progress Tracking**: Student advancement and clinical hour completion
 - **Performance Analytics**: Matching success rates and user engagement
 - **Survey System**: Post-rotation feedback and quality improvement
@@ -71,6 +94,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Compliance Reporting**: Audit logs and regulatory compliance tracking
 
 #### 🏛️ Enterprise Features
+
 - **Multi-School Management**: Support for multiple educational institutions
 - **Enterprise Administration**: School-level user and program management
 - **Bulk Operations**: Mass student/preceptor import and management
@@ -80,6 +104,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 🛠️ Technical Architecture
 
 #### Frontend Stack
+
 - **Next.js 15**: Latest React framework with App Router and Server Components
 - **TailwindCSS v4**: Modern utility-first CSS with custom design system
 - **TypeScript**: Full type safety throughout the application
@@ -88,6 +113,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Framer Motion**: Smooth animations and micro-interactions
 
 #### Backend & Database
+
 - **Convex**: Real-time database with serverless functions
 - **Real-time Sync**: Live updates across all connected clients
 - **Serverless Functions**: Scalable backend operations
@@ -95,6 +121,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Automatic Scaling**: Cloud-native architecture
 
 #### Third-Party Integrations
+
 - **Clerk**: Authentication and user management
 - **SendGrid**: Email automation and templates
 - **Twilio**: SMS notifications and alerts
@@ -103,6 +130,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Stripe**: Payment processing for enterprise features
 
 #### Development & Testing
+
 - **Vitest**: Modern unit testing framework
 - **Playwright**: End-to-end testing for user workflows
 - **Testing Library**: Component testing utilities
@@ -113,6 +141,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 📱 Platform Support
 
 #### Web Application
+
 - **Desktop Browsers**: Chrome, Firefox, Safari, Edge
 - **Mobile Browsers**: iOS Safari, Android Chrome
 - **Responsive Design**: Mobile-first approach with PWA capabilities
@@ -120,6 +149,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Performance**: Optimized for healthcare environments
 
 #### Future Mobile App
+
 - **React Native**: Planned native mobile applications
 - **Offline Capability**: Critical features available offline
 - **Push Notifications**: Real-time alerts and updates
@@ -128,6 +158,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 🔒 Security & Compliance
 
 #### Healthcare Compliance
+
 - **HIPAA Compliance**: Protected Health Information safeguards
 - **FERPA Compliance**: Educational record privacy protection
 - **Audit Logging**: Comprehensive activity tracking
@@ -135,6 +166,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Access Controls**: Role-based permissions and authentication
 
 #### Security Measures
+
 - **Input Validation**: Protection against injection attacks
 - **Rate Limiting**: API abuse prevention
 - **Session Management**: Secure authentication tokens
@@ -144,6 +176,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 📋 Database Schema
 
 #### Core Tables
+
 - **Users**: Clerk-synced user profiles and roles
 - **Students**: Student-specific data and preferences
 - **Preceptors**: Preceptor profiles and credentials
@@ -154,6 +187,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Audit Logs**: Compliance and security tracking
 
 #### Enterprise Tables
+
 - **Enterprises**: Multi-school management
 - **Payments**: Subscription and billing tracking
 - **Settings**: System and school-specific configuration
@@ -161,6 +195,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 🚀 Performance Optimizations
 
 #### Frontend Performance
+
 - **Code Splitting**: Lazy loading of route components
 - **Image Optimization**: Next.js automatic image processing
 - **Bundle Analysis**: Size monitoring and optimization
@@ -168,6 +203,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Loading States**: Smooth user experience during async operations
 
 #### Backend Performance
+
 - **Database Indexing**: Optimized query performance
 - **Real-time Sync**: Efficient WebSocket connections
 - **Function Caching**: Convex query result optimization
@@ -176,6 +212,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 📖 Documentation
 
 #### Developer Documentation
+
 - **README.md**: Comprehensive setup and usage guide
 - **CONTRIBUTING.md**: Development guidelines and processes
 - **CODE_OF_CONDUCT.md**: Community standards and behavior
@@ -183,6 +220,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Architecture Guide**: System design and technical decisions
 
 #### User Documentation
+
 - **User Guides**: Role-specific platform usage instructions
 - **FAQ**: Common questions and troubleshooting
 - **Video Tutorials**: Step-by-step feature demonstrations
@@ -191,6 +229,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 ### 🧪 Testing Coverage
 
 #### Automated Testing
+
 - **Unit Tests**: Component and utility function testing
 - **Integration Tests**: API and database interaction testing
 - **End-to-End Tests**: Complete user workflow validation
@@ -198,6 +237,7 @@ A comprehensive platform designed specifically for nursing education, connecting
 - **Security Tests**: Vulnerability scanning and compliance checks
 
 #### Manual Testing
+
 - **User Acceptance Testing**: Healthcare professional validation
 - **Accessibility Testing**: Screen reader and keyboard navigation
 - **Cross-Browser Testing**: Compatibility across platforms
@@ -226,6 +266,7 @@ This is the initial public release. No migration required.
 ### 🎯 Next Release Preview
 
 #### Planned for v1.0.0
+
 - **Mobile Applications**: Native iOS and Android apps
 - **Advanced Analytics**: Enhanced reporting and insights
 - **LMS Integration**: Canvas, Blackboard, and Moodle connectivity
@@ -238,17 +279,20 @@ This is the initial public release. No migration required.
 ## Release Process
 
 ### Version Numbering
+
 - **Major (X.0.0)**: Breaking changes or significant new features
 - **Minor (0.X.0)**: New features and enhancements
 - **Patch (0.0.X)**: Bug fixes and minor improvements
 
 ### Release Schedule
+
 - **Major Releases**: Quarterly (Q1, Q2, Q3, Q4)
 - **Minor Releases**: Monthly
 - **Patch Releases**: As needed for critical fixes
 - **Security Releases**: Immediate for critical vulnerabilities
 
 ### Changelog Guidelines
+
 - All notable changes are documented
 - Organized by Added, Changed, Deprecated, Removed, Fixed, Security
 - Healthcare-specific impacts are highlighted
@@ -258,5 +302,3 @@ This is the initial public release. No migration required.
 ---
 
 For detailed technical documentation, see [docs.mentoloop.com](https://docs.mentoloop.com)
-
-**Built with ❤️ for healthcare education**

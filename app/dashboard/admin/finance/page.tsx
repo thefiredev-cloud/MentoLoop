@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { RoleGuard } from '@/components/role-guard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { AsyncButton } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
@@ -234,12 +234,12 @@ function FinancialManagementContent() {
                       <option value="pending">Pending</option>
                       <option value="failed">Failed</option>
                     </select>
-                    <Button variant="outline" size="sm" onClick={() => setStatusFilter('all')}>
+                    <AsyncButton variant="outline" size="sm" onClick={() => setStatusFilter('all')}>
                       <Filter className="h-4 w-4 mr-2" />
                       Reset
-                    </Button>
+                    </AsyncButton>
                   </div>
-                  <Button 
+                  <AsyncButton 
                     variant="outline" 
                     size="sm"
                     onClick={() => {
@@ -256,7 +256,7 @@ function FinancialManagementContent() {
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export
-                  </Button>
+                  </AsyncButton>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -293,9 +293,11 @@ function FinancialManagementContent() {
                     <div className="flex items-center gap-2">
                       {getStatusBadge(payment.status)}
                       {payment.status === 'succeeded' && (
-                        <Button
+                        <AsyncButton
                           variant="outline"
                           size="sm"
+                          loading={!!refunding[payment.stripeSessionId]}
+                          loadingText="Refunding…"
                           onClick={async () => {
                             try {
                               setRefunding((r) => ({ ...r, [payment.stripeSessionId]: true }))
@@ -315,10 +317,9 @@ function FinancialManagementContent() {
                               setRefunding((r) => ({ ...r, [payment.stripeSessionId]: false }))
                             }
                           }}
-                          disabled={!!refunding[payment.stripeSessionId]}
                         >
-                          {refunding[payment.stripeSessionId] ? 'Refunding…' : 'Refund'}
-                        </Button>
+                          Refund
+                        </AsyncButton>
                       )}
                     </div>
                   </div>
@@ -346,18 +347,24 @@ function FinancialManagementContent() {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-sm font-semibold">{formatCurrency(earning.amount)}</div>
-                      <Button
+                      <AsyncButton
                         size="sm"
+                        loading={!!refunding[`payout-${earning._id}`]}
+                        loadingText="Paying…"
                         onClick={async () => {
+                          setRefunding((r) => ({ ...r, [`payout-${earning._id}`]: true }))
                           try {
                             await payEarning({ earningId: earning._id })
                           } catch (err) {
                             console.error(err)
+                          } finally {
+                            setRefunding((r) => ({ ...r, [`payout-${earning._id}`]: false }))
                           }
                         }}
+                        disabled={!!refunding[`payout-${earning._id}`]}
                       >
                         Pay Now
-                      </Button>
+                      </AsyncButton>
                     </div>
                   </div>
                 ))}
@@ -418,9 +425,11 @@ function FinancialManagementContent() {
                       <span className="font-semibold">{formatCurrency(payment.amount)}</span>
                       {getStatusBadge(payment.status)}
                       {payment.status === 'succeeded' && (
-                        <Button
+                        <AsyncButton
                           variant="outline"
                           size="sm"
+                          loading={!!refunding[payment.stripeSessionId]}
+                          loadingText="Refunding…"
                           onClick={async () => {
                             try {
                               setRefunding((r) => ({ ...r, [payment.stripeSessionId]: true }))
@@ -441,15 +450,15 @@ function FinancialManagementContent() {
                           }}
                           disabled={!!refunding[payment.stripeSessionId]}
                         >
-                          {refunding[payment.stripeSessionId] ? 'Refunding…' : 'Refund'}
-                        </Button>
+                          Refund
+                        </AsyncButton>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
               <div className="flex justify-end mt-4">
-                <Button
+                <AsyncButton
                   variant="outline"
                   size="sm"
                   onClick={() => {
@@ -469,7 +478,7 @@ function FinancialManagementContent() {
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
-                </Button>
+                </AsyncButton>
               </div>
             </CardContent>
           </Card>
@@ -505,9 +514,9 @@ function FinancialManagementContent() {
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(payment.status)}
-                      <Button variant="ghost" size="sm">
+                      <AsyncButton variant="ghost" size="sm">
                         <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      </AsyncButton>
                     </div>
                   </div>
                 ))}
@@ -523,7 +532,7 @@ function FinancialManagementContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                <Button variant="outline" className="h-auto flex-col items-start p-4">
+                <AsyncButton variant="outline" className="h-auto flex-col items-start p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="h-4 w-4" />
                     <span className="font-semibold">Monthly Revenue Report</span>
@@ -531,9 +540,9 @@ function FinancialManagementContent() {
                   <span className="text-sm text-muted-foreground">
                     Detailed breakdown of revenue by source
                   </span>
-                </Button>
+                </AsyncButton>
                 
-                <Button variant="outline" className="h-auto flex-col items-start p-4">
+                <AsyncButton variant="outline" className="h-auto flex-col items-start p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="h-4 w-4" />
                     <span className="font-semibold">Customer Analytics</span>
@@ -541,9 +550,9 @@ function FinancialManagementContent() {
                   <span className="text-sm text-muted-foreground">
                     Customer lifetime value and retention metrics
                   </span>
-                </Button>
+                </AsyncButton>
                 
-                <Button variant="outline" className="h-auto flex-col items-start p-4">
+                <AsyncButton variant="outline" className="h-auto flex-col items-start p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="h-4 w-4" />
                     <span className="font-semibold">Growth Metrics</span>
@@ -551,9 +560,9 @@ function FinancialManagementContent() {
                   <span className="text-sm text-muted-foreground">
                     MRR, ARR, and growth projections
                   </span>
-                </Button>
+                </AsyncButton>
                 
-                <Button variant="outline" className="h-auto flex-col items-start p-4">
+                <AsyncButton variant="outline" className="h-auto flex-col items-start p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <CreditCard className="h-4 w-4" />
                     <span className="font-semibold">Payment Performance</span>
@@ -561,7 +570,7 @@ function FinancialManagementContent() {
                   <span className="text-sm text-muted-foreground">
                     Success rates and failure analysis
                   </span>
-                </Button>
+                </AsyncButton>
               </div>
             </CardContent>
           </Card>

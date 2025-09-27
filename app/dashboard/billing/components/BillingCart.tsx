@@ -1,6 +1,7 @@
 'use client'
 
 import { CartItem } from '../view-models/StudentBillingViewModel'
+import { AsyncButton } from '@/components/ui/button'
 
 interface Totals {
   subtotal: number
@@ -34,37 +35,39 @@ export function BillingCart({
   onPaymentPlanChange,
 }: BillingCartProps) {
   return (
-    <div className="rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-xl space-y-4">
+    <div className="rounded-2xl border border-border/70 bg-card/80 p-4 shadow-xl shadow-primary/10 backdrop-blur-xl space-y-4">
       <h2 className="text-lg font-semibold flex items-center gap-2">🧾 Billing Summary</h2>
       <div className="space-y-3 min-h-[120px]">
         {items.length === 0 ? (
           <div className="text-sm text-[#a6b3cc]">Your cart is empty. Add a block or à la carte hours.</div>
         ) : (
           items.map((item, index) => (
-            <div key={`${item.planId}-${index}`} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-xl border border-[#1d2a46] bg-[#0f2038] px-3 py-2 text-sm">
+            <div key={`${item.planId}-${index}`} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-xl border border-border/60 bg-muted/40 px-3 py-2 text-sm">
               <div>
                 <div className="font-semibold">
                   {item.kind === 'block' ? `Block: ${item.hours} hrs` : `À la carte: ${item.hours} hrs`}
                 </div>
-              <div className="text-xs text-[#a6b3cc]">${item.amount.toFixed(2)} total</div>
+              <div className="text-xs text-muted-foreground/80">${item.amount.toFixed(2)} total</div>
               </div>
-              <span className="rounded-full border border-[#1d2a46] px-2 py-1 text-xs text-[#a6b3cc] uppercase">{item.kind}</span>
-              <button
-                className="rounded-xl border border-[#ff6b6b]/40 px-3 py-1 text-xs text-[#ff6b6b] hover:border-[#ff6b6b]"
+              <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-1 text-xs text-muted-foreground/70 uppercase">{item.kind}</span>
+              <AsyncButton
+                className="rounded-xl border border-destructive/40 px-3 py-1 text-xs text-destructive hover:border-destructive/70"
                 onClick={() => onRemove(index)}
+                loadingText="Removing…"
+                variant="outline"
               >
                 Remove
-              </button>
+              </AsyncButton>
             </div>
           ))
         )}
       </div>
 
-      <div className="h-px bg-[#1d2a46]" />
+      <div className="h-px bg-border/60" />
 
       <div className="flex flex-col gap-2">
         <input
-          className="w-full rounded-xl border border-[#1d2a46] bg-[#0f2038] px-3 py-2 text-sm outline-none"
+          className="w-full rounded-xl border border-border/70 bg-muted/40 px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
           placeholder="Enter discount or gift code…"
           value={discountCode}
           onChange={(event) => onDiscountChange(event.target.value)}
@@ -72,12 +75,12 @@ export function BillingCart({
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs text-[#a6b3cc]" htmlFor="payment-plan">
+        <label className="text-xs text-muted-foreground/80" htmlFor="payment-plan">
           Payment plan
         </label>
         <select
           id="payment-plan"
-          className="w-full rounded-xl border border-[#1d2a46] bg-[#0f2038] px-3 py-2 text-sm outline-none"
+          className="w-full rounded-xl border border-border/70 bg-muted/40 px-3 py-2 text-sm text-foreground outline-none"
           value={paymentPlan}
           onChange={(event) => onPaymentPlanChange(Number(event.target.value) || 1)}
         >
@@ -87,7 +90,7 @@ export function BillingCart({
         </select>
       </div>
 
-      <div className="space-y-2 rounded-xl border border-[#1d2a46] bg-[#0f2038] p-3 text-sm">
+      <div className="space-y-2 rounded-xl border border-border/60 bg-muted/40 p-3 text-sm">
         <div className="flex items-center justify-between">
           <span>Subtotal</span>
           <strong>${totals.subtotal.toFixed(2)}</strong>
@@ -104,29 +107,32 @@ export function BillingCart({
           <span>Total</span>
           <strong>${totals.total.toFixed(2)}</strong>
         </div>
-        <div className="flex items-center justify-between text-xs text-[#a6b3cc]">
+        <div className="flex items-center justify-between text-xs text-muted-foreground/70">
           <span>Payment plan</span>
           <strong>{paymentPlan} × ${(totals.total / paymentPlan || 0).toFixed(2)}</strong>
         </div>
-        {totals.note ? <div className="text-xs text-[#a6b3cc]">{totals.note}</div> : null}
+        {totals.note ? <div className="text-xs text-muted-foreground/70">{totals.note}</div> : null}
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-[#30e3d1] bg-gradient-to-b from-[#22c1b4] to-[#1b9cd6] px-4 py-2 font-semibold text-[#05121f] shadow-lg shadow-[#2fd3c5]/20 disabled:opacity-50"
+        <AsyncButton
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-accent/30 bg-gradient-to-r from-primary via-primary/80 to-accent px-4 py-2 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:shadow-primary/30 disabled:opacity-50"
           onClick={onCheckout}
           disabled={items.length === 0}
+          loadingText="Redirecting…"
         >
           <span>💳</span>
           Purchase
-        </button>
-        <button
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#1d2a46] px-4 py-2 text-sm text-[#a6b3cc]"
+        </AsyncButton>
+        <AsyncButton
+          variant="outline"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 px-4 py-2 text-sm text-muted-foreground/70"
           onClick={onDownloadReceipt}
+          loadingText="Opening…"
         >
           <span>📄</span>
           Last receipt
-        </button>
+        </AsyncButton>
       </div>
     </div>
   )

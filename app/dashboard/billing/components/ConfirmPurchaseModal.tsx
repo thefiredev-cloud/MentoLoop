@@ -1,6 +1,7 @@
 'use client'
 
 import { CartItem } from '../view-models/StudentBillingViewModel'
+import { AsyncButton } from '@/components/ui/button'
 
 interface ConfirmPurchaseModalProps {
   open: boolean
@@ -17,41 +18,45 @@ export function ConfirmPurchaseModal({ open, items, paymentPlanLabel, onConfirm,
   }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-2xl">
-        <h3 className="text-lg font-semibold mb-2">Confirm Purchase</h3>
-        <div className="text-sm text-[#a6b3cc] space-y-1">
+      <div className="w-full max-w-lg rounded-2xl border border-border/70 bg-card/90 p-5 shadow-2xl shadow-primary/20 backdrop-blur-xl">
+        <h3 className="mb-2 text-lg font-semibold">Confirm Purchase</h3>
+        <div className="space-y-1 text-sm text-muted-foreground/80">
           {items.map((item, index) => (
             <div key={`${item.planId}-${index}`}>
               {item.kind === 'block' ? 'Block' : 'À la carte'} – {item.hours} hrs (${item.amount.toFixed(2)})
             </div>
           ))}
         </div>
-        <div className="h-px bg-[#1d2a46] my-3" />
-        <div className="flex items-center gap-2 text-xs text-[#a6b3cc]">
+        <div className="my-3 h-px bg-border/60" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
           <span>Payment plan:</span>
-          <span className="rounded-full border border-[#1d2a46] px-3 py-1 text-[#a6b3cc]">{paymentPlanLabel}</span>
+          <span className="rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-muted-foreground/80">{paymentPlanLabel}</span>
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <button
-            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-[#ff6b6b]/50 px-4 py-2 text-sm text-[#ff6b6b] hover:border-[#ff6b6b]"
+          <AsyncButton
+            variant="outline"
+            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-destructive/50 px-4 py-2 text-sm text-destructive hover:border-destructive"
             onClick={onRemove}
+            loadingText="Removing…"
           >
             <span>🗑️</span>
             Remove
-          </button>
-          <button
-            className="rounded-xl border border-[#1d2a46] px-4 py-2 text-sm text-[#a6b3cc]"
+          </AsyncButton>
+          <AsyncButton
+            variant="outline"
+            className="rounded-xl border border-border/60 px-4 py-2 text-sm text-muted-foreground/70 hover:border-primary/40"
             onClick={onCancel}
           >
             Cancel
-          </button>
-          <button
-            className="inline-flex items-center gap-2 rounded-xl border border-[#2fd38f] bg-[#13203a] px-4 py-2 font-semibold text-[#2fd38f]"
+          </AsyncButton>
+          <AsyncButton
+            className="inline-flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/15 px-4 py-2 font-semibold text-accent"
             onClick={onConfirm}
+            loadingText="Processing…"
           >
             <span>✅</span>
             Confirm
-          </button>
+          </AsyncButton>
         </div>
       </div>
     </div>

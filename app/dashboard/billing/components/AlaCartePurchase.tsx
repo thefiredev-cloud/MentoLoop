@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { AsyncButton } from '@/components/ui/button'
 
 interface AlaCartePurchaseProps {
   unitPrice: number
@@ -13,19 +14,21 @@ export function AlaCartePurchase({ unitPrice, minimumHours, defaultHours, onAdd 
   const [hours, setHours] = useState(defaultHours)
 
   return (
-    <div className="rounded-xl border border-dashed border-[#2fd3c5]/40 bg-[#111a2b] p-4 space-y-4">
+    <div className="rounded-2xl border border-dashed border-primary/30 bg-card/80 p-5 shadow-lg shadow-primary/10 backdrop-blur-lg">
       <div>
-        <div className="text-lg font-semibold">À la carte</div>
-        <div className="text-sm text-[#a6b3cc]">
+        <div className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground/90">
+          À la carte
+        </div>
+        <div className="mt-2 text-sm text-muted-foreground/80">
           Flexible purchase at ${unitPrice.toFixed(2)}/hr, minimum {minimumHours} hours.
         </div>
       </div>
       <div>
-        <div className="text-2xl font-semibold">${(hours * unitPrice).toFixed(2)}</div>
-        <div className="text-sm text-[#a6b3cc]">{hours} hours</div>
+        <div className="text-3xl font-semibold text-foreground">${(hours * unitPrice).toFixed(2)}</div>
+        <div className="text-sm text-muted-foreground/80">{hours} hours</div>
       </div>
       <div className="flex items-center gap-2">
-        <label className="flex rounded-xl border border-[#1d2a46] bg-[#0f2038]" aria-label="Adjust a la carte hours">
+        <label className="flex rounded-xl border border-border/70 bg-muted/40" aria-label="Adjust a la carte hours">
           <button
             type="button"
             className="px-3 py-2 text-lg"
@@ -50,15 +53,17 @@ export function AlaCartePurchase({ unitPrice, minimumHours, defaultHours, onAdd 
             +
           </button>
         </label>
-        <span className="rounded-full border border-[#1d2a46] px-3 py-1 text-xs text-[#a6b3cc]">Min {minimumHours} hrs</span>
+        <span className="rounded-full border border-border/70 bg-muted/50 px-3 py-1 text-xs text-muted-foreground/80">
+          Min {minimumHours} hrs
+        </span>
       </div>
-      <button
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#1d2a46] bg-[#13203a] px-4 py-2 font-semibold hover:border-[#29406d]"
+      <AsyncButton
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/15 px-4 py-2 font-semibold text-primary hover:border-primary/40 hover:bg-primary/20"
         onClick={() => onAdd(hours)}
       >
         <span>🛒</span>
         Add
-      </button>
+      </AsyncButton>
     </div>
   )
 }

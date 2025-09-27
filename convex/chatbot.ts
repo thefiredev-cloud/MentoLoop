@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
+import { PlanCatalog } from "./constants/planCatalog";
 
 // Type definitions
 interface ChatMessage {
@@ -20,6 +21,8 @@ interface ChatbotResponse {
   response: string;
   error: boolean;
 }
+
+const PLAN_SUMMARY = PlanCatalog.formatPlanSummary();
 
 const SYSTEM_PROMPT = `You are MentoBot, an intelligent and conversational AI assistant for MentoLoop. You're here to help users navigate their healthcare education journey with a friendly, professional, and engaging approach.
 
@@ -43,10 +46,8 @@ MentoLoop is a comprehensive healthcare education platform that revolutionizes h
 - **Document Hub**: Secure upload, verification, and sharing of credentials and evaluations
 - **Analytics Dashboard**: Visual insights into progress, hours completed, and performance metrics
 
-### Subscription Plans
-- **Core ($35/mo)**: Essential features for students starting their clinical journey
-- **Pro ($50/mo)**: Advanced matching, priority support, and enhanced analytics
-- **Elite ($75/mo)**: Premium features, unlimited matches, and dedicated success manager
+### Membership Plans
+${PLAN_SUMMARY}
 
 ### For Students
 I can help you with:
@@ -91,6 +92,56 @@ For complex issues or when I can't help:
 
 ## Remember
 You're not just answering questions - you're having a conversation. Build rapport, show understanding, and help users feel supported in their healthcare education journey. Each interaction should feel natural and helpful, like talking to a knowledgeable colleague who genuinely wants to help.`;
+
+const PRICING_INTENTS = [
+  "plan",
+  "pricing",
+  "cost",
+  "price",
+  "hour",
+  "subscription",
+  "membership",
+  "discount",
+  "coupon",
+  "np12345",
+  "mento12345",
+  "a la carte",
+  "add hours",
+];
+
+const normalize = (text: string): string => text.toLowerCase();
+
+const isPricingIntent = (message: string): boolean => {
+  const normalized = normalize(message);
+  return PRICING_INTENTS.some((intent) => normalized.includes(intent));
+};
+
+export const buildPricingResponse = () => {
+  const summaries = PlanCatalog.publicSummaries();
+  const headline = "Here’s our current membership catalog:";
+  const planLines = summaries
+    .filter((plan) => plan.category === "block")
+    .map(
+      (plan) =>
+        `• ${plan.name} (${plan.priceDisplay}) – ${plan.hours ? `${plan.hours} clinical hours` : "Flexible"}. ${plan.description}`,
+    );
+  const addon = summaries.find((plan) => plan.key === "a_la_carte");
+  if (addon) {
+    planLines.push(
+      `• ${addon.name} (${addon.priceUsd === 10 ? "$10/hr" : addon.priceDisplay}${
+        addon.priceDetail ? `, ${addon.priceDetail}` : ""
+      }) – ${addon.description}`,
+    );
+  }
+
+  const ctas = [
+    "Ready to move forward? Head to your dashboard or the student intake flow to confirm your block.",
+    "Need a discount? NP12345 gives 100% off intake. MENTO12345 unlocks the penny verification test path.",
+    "Have questions? I can help compare plans or route you to our team at support@mentoloop.com.",
+  ];
+
+  return [headline, ...planLines, "", ...ctas].join("\n");
+};
 
 export const sendMessage = action({
   args: {
@@ -139,6 +190,29 @@ export const sendMessage = action({
         if (contextInfo.length > 0) {
           enhancedSystemPrompt += `\n\n## Current User Context\n${contextInfo.join('\n')}\n\nUse this context to personalize your responses and provide more relevant assistance.`;
         }
+      }
+
+      if (isPricingIntent(args.message)) {
+        const pricingResponse = buildPricingResponse();
+
+        if (chatbotApi) {
+          await ctx.runMutation(chatbotApi.storeMessage, {
+            sessionId: args.sessionId,
+            role: "user",
+            content: args.message,
+          });
+
+          await ctx.runMutation(chatbotApi.storeMessage, {
+            sessionId: args.sessionId,
+            role: "assistant",
+            content: pricingResponse,
+          });
+        }
+
+        return {
+          response: pricingResponse,
+          error: false,
+        };
       }
 
       // Build messages array for OpenAI

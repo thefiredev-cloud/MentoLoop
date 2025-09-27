@@ -1,7 +1,20 @@
 'use client'
 
-import { Shield, Users, FileCheck, Brain, Clock, Award, Heart, Star, Target, Zap, BookOpen, CheckCircle } from 'lucide-react'
-import { BentoGridCarousel, BentoGridItem } from '@/components/ui/bento-grid'
+import {
+  Shield,
+  Users,
+  FileCheck,
+  Brain,
+  Clock,
+  Award,
+  Heart,
+  Star,
+  Target,
+  Zap,
+  BookOpen,
+  CheckCircle,
+} from 'lucide-react'
+import { BentoGridCarousel, BentoGridItem, type BentoGridTheme } from '@/components/ui/bento-grid'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Doc } from '@/convex/_generated/dataModel'
@@ -23,142 +36,152 @@ export default function FeaturesOne() {
     const avgPlacementTime = getStatValue('avg_placement_time', '72 hours')
     const totalMatches = getStatValue('total_matches', 'Thousands')
     // Row 1 - Moving Left (6 features) with enhanced colored icons
-    const featuresRow1 = [
+    const featuresRow1: Array<{
+        title: string
+        description: string
+        icon: React.ReactNode
+        theme: BentoGridTheme
+    }> = [
         {
             title: "Verified Preceptors",
             description: "Each preceptor is meticulously vetted with specialization in NP education.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg opacity-20" />
-                    <Shield className="h-8 w-8 text-blue-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/30 to-secondary/40" />
+                    <Shield className="h-8 w-8 text-primary relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-blue-500/20 via-blue-400/10 to-transparent"
+            theme: 'primary'
         },
         {
             title: "AI-Powered Matching",
             description: "Smart algorithm with human oversight for perfect matches.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg opacity-20" />
-                    <Brain className="h-8 w-8 text-purple-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-accent/30 via-primary/20 to-secondary/30" />
+                    <Brain className="h-8 w-8 text-accent relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-purple-500/20 via-pink-400/10 to-transparent"
+            theme: 'accent'
         },
         {
             title: "Fast Placements",
             description: `Average placement in ${avgPlacementTime} with our extensive network.`,
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg opacity-20" />
-                    <Clock className="h-8 w-8 text-orange-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-warning/30 to-warning/15" />
+                    <Clock className="h-8 w-8 text-warning relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-orange-500/20 via-amber-400/10 to-transparent"
+            theme: 'warning'
         },
         {
             title: "Excellence Guaranteed", 
             description: `${successRate}% success rate with quality assurance.`,
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg opacity-20" />
-                    <Award className="h-8 w-8 text-yellow-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-warning/25 to-accent/20" />
+                    <Award className="h-8 w-8 text-warning relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-yellow-500/20 via-yellow-400/10 to-transparent"
+            theme: 'success'
         },
         {
             title: "Mission Driven",
             description: "Committed to transforming NP education one match at a time.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-rose-500 rounded-lg opacity-20" />
-                    <Target className="h-8 w-8 text-red-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-destructive/25 to-destructive/15" />
+                    <Target className="h-8 w-8 text-destructive relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-red-500/20 via-rose-400/10 to-transparent"
+            theme: 'destructive'
         },
         {
             title: "Quality Focused",
             description: "Premium clinical experiences that exceed educational standards.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg opacity-20" />
-                    <Star className="h-8 w-8 text-indigo-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40" />
+                    <Star className="h-8 w-8 text-primary relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-indigo-500/20 via-indigo-400/10 to-transparent"
+            theme: 'secondary'
         }
     ];
 
     // Row 2 - Moving Right (6 features) with enhanced colored icons
-    const featuresRow2 = [
+    const featuresRow2: Array<{
+        title: string
+        description: string
+        icon: React.ReactNode
+        theme: BentoGridTheme
+    }> = [
         {
             title: "Mentorship Loop",
             description: "Sustainable ecosystem where students become future preceptors.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-lg opacity-20" />
-                    <Users className="h-8 w-8 text-teal-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-accent/30 to-accent/15" />
+                    <Users className="h-8 w-8 text-accent relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-teal-500/20 via-cyan-400/10 to-transparent"
+            theme: 'accent'
         },
         {
             title: "Seamless Support",
             description: "Full documentation assistance and ongoing guidance throughout.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg opacity-20" />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-success/25 to-success/15" />
                     <FileCheck className="h-8 w-8 text-success relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-green-500/20 via-emerald-400/10 to-transparent"
+            theme: 'success'
         },
         {
             title: "Community First",
             description: "Building lasting relationships in healthcare education.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg opacity-20" />
-                    <Heart className="h-8 w-8 text-pink-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-secondary/30 via-primary/15 to-accent/20" />
+                    <Heart className="h-8 w-8 text-secondary relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-pink-500/20 via-rose-400/10 to-transparent"
+            theme: 'secondary'
         },
         {
             title: "Evidence Based",
             description: "Grounded in best practices and educational research.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-blue-500 rounded-lg opacity-20" />
-                    <BookOpen className="h-8 w-8 text-sky-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/25 via-primary/10 to-accent/10" />
+                    <BookOpen className="h-8 w-8 text-info relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-sky-500/20 via-blue-400/10 to-transparent"
+            theme: 'info'
         },
         {
             title: "Instant Access",
             description: "Connect with preceptors through our streamlined platform.",
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-500 rounded-lg opacity-20" />
-                    <Zap className="h-8 w-8 text-violet-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-secondary/30 via-primary/30 to-accent/20" />
+                    <Zap className="h-8 w-8 text-secondary relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-violet-500/20 via-purple-400/10 to-transparent"
+            theme: 'secondary'
         },
         {
             title: "Success Stories",
             description: `${typeof totalMatches === 'number' ? totalMatches.toLocaleString() : totalMatches} successful placements and growing.`,
             icon: (
                 <div className="relative flex items-center justify-center w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-br from-lime-500 to-green-500 rounded-lg opacity-20" />
-                    <CheckCircle className="h-8 w-8 text-lime-600 relative z-10" strokeWidth={2.5} />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-success/20 to-success/10" />
+                    <CheckCircle className="h-8 w-8 text-success relative z-10" strokeWidth={2.5} />
                 </div>
             ),
-            gradient: "from-lime-500/20 via-green-400/10 to-transparent"
+            theme: 'success'
         }
     ];
 
@@ -189,7 +212,7 @@ export default function FeaturesOne() {
                                     title={feature.title}
                                     description={feature.description}
                                     icon={feature.icon}
-                                    gradient={feature.gradient}
+                                    theme={feature.theme}
                                     carousel={true}
                                 />
                             ))}
@@ -203,7 +226,7 @@ export default function FeaturesOne() {
                                     title={feature.title}
                                     description={feature.description}
                                     icon={feature.icon}
-                                    gradient={feature.gradient}
+                                    theme={feature.theme}
                                     carousel={true}
                                 />
                             ))}

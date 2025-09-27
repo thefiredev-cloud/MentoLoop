@@ -3,6 +3,7 @@
 import { type Icon } from "@tabler/icons-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useOptimistic, useTransition } from "react"
+import { motion } from "motion/react"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -43,14 +44,20 @@ export function NavMain({
             
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton 
-                  tooltip={item.title}
-                  isActive={isActive}
-                  onClick={() => handleNavigation(item.url)}
+                <motion.div
+                  whileHover={{ x: 6 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
+                  <SidebarMenuButton 
+                    tooltip={item.title}
+                    isActive={isActive}
+                    onClick={() => handleNavigation(item.url)}
+                  >
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </motion.div>
               </SidebarMenuItem>
             )
           })}

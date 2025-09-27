@@ -5,8 +5,9 @@ import { SiteHeader } from "@/app/dashboard/site-header"
 import { LoadingBar } from "@/app/dashboard/loading-bar"
 import { DashboardNavbar } from "@/app/dashboard/dashboard-navbar"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { PageTransition } from "@/components/ui/page-transition"
 // Dashboard uses a simplified footer to avoid layout overlap
-import { Suspense } from 'react'
+import { Suspense } from "react"
 
 export default function DashboardLayout({
   children,
@@ -38,10 +39,12 @@ export default function DashboardLayout({
               <SiteHeader />
               
               {/* Main Content */}
-              <main className="flex-1 overflow-y-auto bg-background/90 dashboard-content">
-                <div className="container max-w-7xl mx-auto p-4 md:p-6 lg:p-8 mt-2">
-                  {children}
-                </div>
+              <main className="flex-1 overflow-y-auto bg-background/90 dashboard-content relative">
+                <PageTransition preset="blur-fade">
+                  <div className="container max-w-7xl mx-auto p-4 md:p-6 lg:p-8 mt-2">
+                    {children}
+                  </div>
+                </PageTransition>
               </main>
             </div>
           </div>

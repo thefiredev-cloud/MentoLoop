@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Theme CSS variables', () => {
   test('primary and accent variables are set', async ({ page }) => {
-    await page.goto('/')
+    // Prefer a dashboard page where tokens are always loaded
+    await page.goto('/dashboard/student', { waitUntil: 'networkidle' })
     const primary = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())
     const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim())
     const background = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--background').trim())

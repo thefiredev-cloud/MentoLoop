@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { AsyncButton } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Brain, Star, Sparkles, ArrowRight, Lock, Users } from 'lucide-react'
 import CustomClerkPricing from '@/components/custom-clerk-pricing'
@@ -57,7 +57,7 @@ function MentorFitPreview({ userType, onSkip }: { userType?: 'student' | 'precep
           </p>
         </CardHeader>
         <CardContent>
-          <Button 
+          <AsyncButton 
             variant="default" 
             className="w-full" 
             onClick={onSkip}
@@ -65,7 +65,7 @@ function MentorFitPreview({ userType, onSkip }: { userType?: 'student' | 'precep
           >
             <ArrowRight className="h-4 w-4 mr-2" />
             Continue with Basic Matching
-          </Button>
+          </AsyncButton>
         </CardContent>
       </Card>
 
@@ -75,14 +75,14 @@ function MentorFitPreview({ userType, onSkip }: { userType?: 'student' | 'precep
           <div className="flex justify-center mb-4">
             <div className="relative">
               <Brain className="h-12 w-12 text-primary" />
-              <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1">
-                <Sparkles className="h-4 w-4 text-yellow-800" />
+              <div className="absolute -top-1 -right-1 rounded-full border border-warning/40 bg-warning/80 p-1">
+                <Sparkles className="h-4 w-4 text-warning-foreground" />
               </div>
             </div>
           </div>
           <CardTitle className="text-2xl mb-2">
             MentorFit™ Premium Assessment
-            <Badge className="ml-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900">
+            <Badge className="ml-2 bg-gradient-to-r from-warning/80 to-warning text-warning-foreground">
               Premium
             </Badge>
           </CardTitle>
@@ -94,7 +94,7 @@ function MentorFitPreview({ userType, onSkip }: { userType?: 'student' | 'precep
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
+                <Star className="h-5 w-5 text-warning" />
                 Premium Features
               </h4>
               <ul className="space-y-2 text-sm">

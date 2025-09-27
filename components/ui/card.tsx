@@ -2,12 +2,29 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+function Card({
+  className,
+  padding = "md",
+  surface = "default",
+  ...props
+}: React.ComponentProps<"div"> & {
+  padding?: "none" | "sm" | "md" | "lg"
+  surface?: "default" | "muted" | "translucent" | "gradient"
+}) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "bg-card text-card-foreground flex flex-col rounded-xl border shadow-sm transition-colors",
+        padding === "none" && "py-0",
+        padding === "sm" && "py-4 gap-4",
+        padding === "md" && "py-6 gap-6",
+        padding === "lg" && "py-8 gap-8",
+        surface === "muted" && "bg-muted",
+        surface === "translucent" && "bg-background/70 backdrop-blur-xl border-primary/20",
+        surface === "gradient" &&
+          "bg-gradient-to-br from-primary/10 via-background to-secondary/10 border-primary/30",
+        "transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-lg focus-within:-translate-y-1 focus-within:shadow-lg",
         className
       )}
       {...props}

@@ -17,6 +17,7 @@ import { BillingDataManager, type PaymentHistoryRecord } from './managers/Billin
 import { StudentBillingViewModel, type BillingPlan, type CartItem } from './view-models/StudentBillingViewModel'
 import { CheckoutCoordinator } from './coordinators/CheckoutCoordinator'
 import { toast } from 'sonner'
+import { AsyncButton } from '@/components/ui/button'
 
 const TAX_RATE = Number(process.env.NEXT_PUBLIC_TAX_RATE ?? 0.0825)
 
@@ -238,15 +239,16 @@ function BillingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0b1320] to-[#0a0f1a] text-[#e9f0ff]">
+    <div className="min-h-screen bg-gradient-to-b from-background via-surface-subtle to-background text-foreground">
       <div className="mx-auto max-w-5xl px-5 py-8">
         <header className="mb-6 flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-lg bg-gradient-to-br from-[#2fd3c5] via-[#1fa2ff] to-[#0ee] text-xl font-extrabold text-[#05121f]">
-            M
+          <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/30 via-primary/20 to-accent/30 text-xl font-extrabold text-primary-foreground shadow-lg shadow-primary/20">
+            <span className="absolute inset-0 bg-[radial-gradient(circle_at_top,_hsla(var(--primary),0.4)_0%,_transparent_60%)]" aria-hidden />
+            <span className="relative">M</span>
           </div>
-                  <div>
+          <div>
             <h1 className="text-2xl font-semibold">Billing</h1>
-            <p className="text-sm text-[#a6b3cc]">
+            <p className="text-sm text-muted-foreground/80">
               Manage hours, add more, and view your receipts — all without leaving your dashboard.
             </p>
           </div>
@@ -254,40 +256,40 @@ function BillingContent() {
 
         <div className="grid gap-5 md:grid-cols-[1.2fr_1fr]">
           <div className="space-y-5">
-            <div className="rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-xl">
+            <div className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-xl shadow-primary/10 backdrop-blur-xl">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">🕒 Current Hours</h2>
               <div className="flex flex-wrap gap-3">
-                <HoursKpiCard label="Hours in Bank" value={kpis.hoursInBank.toLocaleString()} tone="good" />
+                <HoursKpiCard label="Hours in Bank" value={kpis.hoursInBank.toLocaleString()} tone="positive" />
                 <HoursKpiCard label="Hours Used" value={kpis.hoursUsed.toLocaleString()} />
-                <HoursKpiCard label="Hours Remaining" value={kpis.hoursRemaining.toLocaleString()} tone="warn" />
+                <HoursKpiCard label="Hours Remaining" value={kpis.hoursRemaining.toLocaleString()} tone="caution" />
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center justify-center rounded-xl border border-[#1d2a46] bg-[#0f2038] px-3 py-2 text-xs text-[#a6b3cc]">
+                <span className="inline-flex items-center justify-center rounded-xl border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground/80">
                   ℹ️ These update after you complete a purchase.
                 </span>
-                <button
-                  className="inline-flex items-center gap-2 rounded-xl border border-dashed border-[#1d2a46] px-3 py-2 text-sm text-[#a6b3cc]"
+                <AsyncButton
+                  className="inline-flex items-center gap-2 rounded-xl border border-dashed border-border/60 px-3 py-2 text-sm text-muted-foreground/80 hover:border-primary/40"
                   onClick={() => window.location.reload()}
                 >
                   <span className="text-lg">↻</span>
                   Recalc
-                </button>
+                </AsyncButton>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-xl space-y-4">
+            <div className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-xl shadow-primary/10 backdrop-blur-xl space-y-4">
               <h2 className="text-lg font-semibold">➕ Add Hours (Blocks)</h2>
               <AddHoursBlocks plans={viewModel.getPlans()} onSelect={(planId) => handleAddPlan(planId)} />
-              <div className="flex flex-wrap gap-2 text-xs text-[#a6b3cc]">
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#1d2a46] bg-[#0f2038] px-3 py-1">
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground/80">
+                <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-3 py-1">
                   🎁 Apply discount at checkout
                 </span>
-                <span className="rounded-full border border-[#1d2a46] px-3 py-1">Taxes calculated at checkout</span>
-                <span className="rounded-full border border-[#1d2a46] px-3 py-1">Preceptor fees billed separately</span>
+                <span className="rounded-full border border-border/60 bg-muted/40 px-3 py-1">Taxes calculated at checkout</span>
+                <span className="rounded-full border border-border/60 bg-muted/40 px-3 py-1">Preceptor fees billed separately</span>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-xl space-y-4">
+            <div className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-xl shadow-primary/10 backdrop-blur-xl space-y-4">
               <h2 className="text-lg font-semibold">🧮 Add Hours (À la carte)</h2>
               <AlaCartePurchase
                 unitPrice={A_LA_CARTE_UNIT_PRICE}
@@ -311,25 +313,27 @@ function BillingContent() {
               onPaymentPlanChange={setPaymentPlan}
             />
 
-            <div className="rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-xl">
+            <div className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-xl shadow-primary/10 backdrop-blur-xl">
               <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">🧠 Purchase History</h2>
               <div className="max-h-64 space-y-3 overflow-y-auto pr-3">
                 <PurchaseHistory records={viewModel.formatPaymentHistory(manager.getPaymentHistory())} onDownload={handleDownloadHistoryReceipt} />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1d2a46] bg-[#111a2b] p-4 shadow-xl">
+            <div className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-xl shadow-primary/10 backdrop-blur-xl">
               <BillingHeader
                 title="Manage Billing"
                 subtitle="Update payment methods or billing details via Stripe portal."
                 actions={
-                  <button
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#1d2a46] bg-[#13203a] px-4 py-2 text-sm"
+                  <AsyncButton
+                    variant="outline"
+                    className="inline-flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-2 text-sm text-foreground/90 hover:border-primary/40"
                     onClick={handleManageBilling}
+                    loadingText="Opening portal…"
                   >
                     <span>💼</span>
                     Open Portal
-                  </button>
+                  </AsyncButton>
                 }
               />
             </div>

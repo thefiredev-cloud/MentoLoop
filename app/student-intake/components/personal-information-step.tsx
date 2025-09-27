@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Calendar } from 'lucide-react'
+import { motion } from 'motion/react'
 
 interface PersonalInformationStepProps {
   data: Record<string, unknown>
@@ -53,7 +54,12 @@ export default function PersonalInformationStep({
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+    >
       <Card className="dashboard-card">
         <CardHeader className="border-b bg-background/80">
           <CardTitle className="flex items-center gap-2">
@@ -68,7 +74,12 @@ export default function PersonalInformationStep({
             </p>
           </div>
 
-          <div className="space-y-2">
+          <motion.div
+            className="space-y-2"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+          >
             <Label htmlFor="dateOfBirth">Date of Birth *</Label>
             <div className="relative">
               <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -86,19 +97,21 @@ export default function PersonalInformationStep({
             <p className="text-xs text-muted-foreground">
               We need your date of birth for verification and to ensure you meet program requirements.
             </p>
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
 
       <div className="flex justify-end">
-        <Button
-          onClick={handleNext}
-          size="lg"
-          className="px-8"
-        >
-          Continue to School Information
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
+          <Button
+            onClick={handleNext}
+            size="lg"
+            className="px-8"
+          >
+            Continue to School Information
+          </Button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }

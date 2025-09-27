@@ -4,10 +4,13 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Authenticated, Unauthenticated } from "convex/react"
 import { SignInButton } from "@clerk/nextjs"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
+import { PageTransition } from '@/components/ui/page-transition'
+import { StaggeredList, StaggeredListItem } from '@/components/ui/staggered-list'
+import { motion } from 'motion/react'
 import PersonalInformationStep from './components/personal-information-step'
 import SchoolInformationStep from './components/school-information-step'
 import RotationNeedsStep from './components/rotation-needs-step'
@@ -241,9 +244,19 @@ export default function StudentIntakePage() {
   const CurrentStepComponent = steps[currentStep - 1].component
 
   const intakeContent = (
-    <>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      className="space-y-10"
+    >
       {/* Header */}
-      <div className="text-center mb-10 space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        className="text-center mb-10 space-y-4"
+      >
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
           <CheckCircle className="w-4 h-4" />
           Secure & Confidential
@@ -258,7 +271,7 @@ export default function StudentIntakePage() {
           Our streamlined intake process collects your information, helps you select the right 
           membership plan, and then uses our proprietary MentorFit™ assessment for optimal matching.
         </p>
-      </div>
+      </motion.div>
 
       {/* Progress Indicator */}
       <Card className="mb-8 dashboard-card">
@@ -273,7 +286,7 @@ export default function StudentIntakePage() {
           </div>
           <Progress value={progress} className="mb-6 h-2" />
           
-          <div className="flex justify-between items-start">
+          <StaggeredList className="flex justify-between items-start">
             {steps.map((step, index) => {
               const isCompleted = completedSteps.includes(step.id)
               const isCurrent = step.id === currentStep
@@ -282,109 +295,118 @@ export default function StudentIntakePage() {
               const isGatedStep = step.id === 5
               
               return (
-                <div key={step.id} className="flex flex-col items-center flex-1 relative">
-                  {index < steps.length - 1 && (
-                    <div 
-                      className={`absolute top-5 left-1/2 -translate-x-1/2 h-0.5 ${
-                        completedSteps.includes(step.id)
-                          ? 'bg-accent'
-                          : 'bg-muted'
+                <StaggeredListItem key={step.id}>
+                  <div className="flex flex-col items-center flex-1 relative">
+                    {index < steps.length - 1 && (
+                      <div 
+                        className={`absolute top-5 left-1/2 -translate-x-1/2 h-0.5 ${
+                          completedSteps.includes(step.id)
+                            ? 'bg-accent'
+                            : 'bg-muted'
+                        }`}
+                        style={{ width: 'calc(100% - 2.5rem)' }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      className={`flex items-center justify-center w-9 h-9 rounded-full border mb-2 transition-all duration-200 z-10 ${
+                        isCompleted
+                          ? 'bg-accent border-accent text-accent-foreground shadow-sm'
+                          : isCurrent
+                          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                          : isAccessible
+                          ? 'border-border bg-muted/40 text-muted-foreground hover:border-primary cursor-pointer'
+                          : 'border-border text-muted-foreground/50 cursor-not-allowed opacity-50'
                       }`}
-                      style={{ width: 'calc(100% - 2.5rem)' }}
-                    />
-                  )}
-                  <div 
-                    className={`
-                      flex items-center justify-center w-9 h-9 rounded-full border mb-2 
-                      transition-all duration-200 z-10
-                      ${isCompleted
-                        ? 'bg-accent border-accent text-accent-foreground'
-                        : isCurrent
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : isAccessible
-                        ? 'border-border bg-muted/40 text-muted-foreground hover:border-primary cursor-pointer'
-                        : 'border-border text-muted-foreground/50 cursor-not-allowed opacity-50'
-                      }
-                    `}
-                    onClick={() => {
-                      if (isAccessible && step.id !== currentStep) {
-                        setCurrentStep(step.id)
-                      }
-                    }}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle className="w-6 h-6" />
-                    ) : isPaymentStep ? (
-                      <span className="text-sm">💳</span>
-                    ) : isGatedStep ? (
-                      <span className="text-sm">🔒</span>
-                    ) : (
-                      <span className="text-sm font-bold">{step.id}</span>
-                    )}
+                      onClick={() => {
+                        if (isAccessible && step.id !== currentStep) {
+                          setCurrentStep(step.id)
+                        }
+                      }}
+                      aria-label={`Go to ${step.name}`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="w-6 h-6" />
+                      ) : isPaymentStep ? (
+                        <span className="text-sm">💳</span>
+                      ) : isGatedStep ? (
+                        <span className="text-sm">🔒</span>
+                      ) : (
+                        <span className="text-sm font-bold">{step.id}</span>
+                      )}
+                    </button>
+                    <span className={`text-xs text-center max-w-24 font-medium ${
+                      isCompleted || isCurrent 
+                        ? 'text-foreground' 
+                        : isAccessible 
+                        ? 'text-muted-foreground' 
+                        : 'text-gray-400'
+                    }`}>
+                      {step.name}
+                      {isGatedStep && !isCompleted && (
+                        <span className="block text-[10px] text-muted-foreground mt-1">
+                          (Unlocks after payment)
+                        </span>
+                      )}
+                    </span>
                   </div>
-                  <span className={`
-                    text-xs text-center max-w-24 font-medium
-                    ${isCompleted || isCurrent 
-                      ? 'text-foreground' 
-                      : isAccessible 
-                      ? 'text-muted-foreground' 
-                      : 'text-gray-400'
-                    }
-                  `}>
-                    {step.name}
-                    {isGatedStep && !isCompleted && (
-                      <span className="block text-[10px] text-muted-foreground mt-1">
-                        (Unlocks after payment)
-                      </span>
-                    )}
-                  </span>
-                </div>
+                </StaggeredListItem>
               )
             })}
-          </div>
+          </StaggeredList>
         </CardContent>
       </Card>
 
       {/* Main Form */}
-      <Card className="dashboard-card">
-        <CardHeader className="border-b bg-background/80">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">
-                Section {currentStep}: {steps[currentStep - 1].name}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                {currentStep < 4 && "Complete this section to proceed"}
-                {currentStep === 4 && "Select your membership and complete payment"}
-                {currentStep === 5 && "Complete your matching preferences"}
-              </p>
+      <motion.div
+        key={currentStep}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="shadow-xl border border-border/60 rounded-3xl overflow-hidden"
+      >
+        <Card className="border-none shadow-none">
+          <CardHeader className="bg-gradient-to-r from-primary/8 via-background to-background/70 border-b">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Mentorship Pathway</p>
+                <h2 className="text-xl font-semibold">
+                  {steps[currentStep - 1].name}
+                </h2>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 bg-background px-4 py-2 rounded-lg border">
+                <span className="text-xs text-muted-foreground">Progress</span>
+                <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
+              </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 bg-background px-4 py-2 rounded-lg border">
-              <span className="text-xs text-muted-foreground">Progress</span>
-              <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 md:p-8">
-          <CurrentStepComponent 
-            data={formData}
-            updateFormData={updateFormData}
-            onNext={nextStep}
-            onPrev={prevStep}
-            isFirstStep={currentStep === 1}
-            isLastStep={currentStep === steps.length}
-          />
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="p-6 md:p-8">
+            <CurrentStepComponent 
+              data={formData}
+              updateFormData={updateFormData}
+              onNext={nextStep}
+              onPrev={prevStep}
+              isFirstStep={currentStep === 1}
+              isLastStep={currentStep === steps.length}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Footer Message */}
-      <div className="mt-8 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+        className="mt-8 text-center"
+      >
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <CheckCircle className="w-4 h-4 text-success" />
           <span>Your information is secure and will never be shared without your consent</span>
         </div>
-      </div>
-    </>
+      </motion.div>
+    </motion.div>
   )
 
   return (
@@ -392,30 +414,36 @@ export default function StudentIntakePage() {
       <div className="container mx-auto px-4 max-w-4xl py-8 md:py-12">
         {!forceAuth && (
           <Unauthenticated>
-            <Card className="max-w-md mx-auto shadow-xl border-2">
-              <CardContent className="pt-12 pb-8 text-center space-y-6">
-                <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                  <CheckCircle className="w-10 h-10 text-primary" />
-                </div>
-                <div className="space-y-3">
-                  <h1 className="text-3xl font-bold">Sign In Required</h1>
-                  <p className="text-muted-foreground text-lg">
-                    Please sign in to complete your student intake form and start your clinical journey with MentoLoop.
-                  </p>
-                </div>
-                <SignInButton mode="modal">
-                  <Button size="lg" className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
-                    Sign In to Continue
-                  </Button>
-                </SignInButton>
-              </CardContent>
-            </Card>
+            <PageTransition preset="scale-fade">
+              <Card className="max-w-md mx-auto shadow-xl border-2">
+                <CardContent className="pt-12 pb-8 text-center space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <CheckCircle className="w-10 h-10 text-primary" />
+                  </div>
+                  <div className="space-y-3">
+                    <h1 className="text-3xl font-bold">Sign In Required</h1>
+                    <p className="text-muted-foreground text-lg">
+                      Please sign in to complete your student intake form and start your clinical journey with MentoLoop.
+                    </p>
+                  </div>
+                  <SignInButton mode="modal">
+                    <Button size="lg" className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
+                      Sign In to Continue
+                    </Button>
+                  </SignInButton>
+                </CardContent>
+              </Card>
+            </PageTransition>
           </Unauthenticated>
         )}
 
-        {forceAuth ? intakeContent : (
+        {forceAuth ? (
           <Authenticated>
-            {intakeContent}
+            <PageTransition preset="blur-fade">{intakeContent}</PageTransition>
+          </Authenticated>
+        ) : (
+          <Authenticated>
+            <PageTransition preset="blur-fade">{intakeContent}</PageTransition>
           </Authenticated>
         )}
       </div>

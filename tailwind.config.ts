@@ -66,6 +66,11 @@ const config: Config = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
+        surface: {
+          subtle: 'hsl(var(--surface-subtle))',
+          muted: 'hsl(var(--surface-muted))',
+          accent: 'hsl(var(--surface-accent))',
+        },
         info: {
           DEFAULT: 'hsl(var(--info))',
           foreground: 'hsl(var(--info-foreground))',

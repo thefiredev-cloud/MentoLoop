@@ -13,14 +13,44 @@ const badgeVariants = cva(
           "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+        accent: "border-transparent bg-accent text-accent-foreground [a&]:hover:bg-accent/90",
+        info: "border-transparent bg-info text-info-foreground [a&]:hover:bg-info/90",
+        success:
+          "border-transparent bg-success text-success-foreground [a&]:hover:bg-success/90",
+        warning:
+          "border-transparent bg-warning text-warning-foreground [a&]:hover:bg-warning/90",
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20",
+          "border-transparent bg-destructive text-destructive-foreground [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "text-foreground border-border [a&]:hover:bg-accent/10",
+        outlineSuccess:
+          "border-success/40 text-success bg-success/10",
+        outlineWarning:
+          "border-warning/40 text-warning bg-warning/10",
+        outlineInfo: "border-info/40 text-info bg-info/10",
+      },
+      emphasis: {
+        solid: "",
+        subtle: "border-transparent bg-muted text-muted-foreground",
+        gradient:
+          "border-transparent bg-gradient-to-r from-primary to-secondary text-primary-foreground",
       },
     },
+    compoundVariants: [
+      {
+        variant: "outline",
+        emphasis: "solid",
+        class: "border-border",
+      },
+      {
+        emphasis: "subtle",
+        variant: ["info", "success", "warning", "destructive"],
+        class: "bg-opacity-15",
+      },
+    ],
     defaultVariants: {
       variant: "default",
+      emphasis: "solid",
     },
   }
 )

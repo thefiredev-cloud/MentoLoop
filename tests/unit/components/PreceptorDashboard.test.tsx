@@ -70,7 +70,7 @@ describe('PreceptorDashboardPage', () => {
   it('renders loading state while user data loads', () => {
     mockUseQuery.mockReturnValue(undefined)
     render(<PreceptorDashboardPage />)
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    expect(screen.getByText('Loading your dashboard...')).toBeInTheDocument()
   })
 
   it('renders dashboard content when stats available', () => {

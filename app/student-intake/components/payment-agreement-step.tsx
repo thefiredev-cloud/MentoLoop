@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { useAction, useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useAuth, useUser } from '@clerk/nextjs'
@@ -14,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { CheckCircle, Star, Zap, Plus, Sparkles, Calendar, CreditCard as CreditCardIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TermsPrivacyModal } from '@/components/ui/terms-privacy-modal'
+import { AsyncButton } from '@/components/ui/button'
 
 declare global {
   interface Window {
@@ -421,17 +421,19 @@ export default function PaymentAgreementStep({
                 ))}
               </ul>
               
-              <Button
+              <AsyncButton
                 className="w-full mt-6"
                 variant={selectedBlock === block.id ? "default" : "outline"}
-                onClick={(e) => {
-                  e.stopPropagation()
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  event.stopPropagation()
                   handleSelectBlock(block.id)
                 }}
                 data-testid={`select-plan-${block.id}`}
+                loading={loading && selectedBlock === block.id}
+                loadingText="Selecting…"
               >
                 {selectedBlock === block.id ? 'Selected' : 'Select'}
-              </Button>
+              </AsyncButton>
             </CardContent>
           </Card>
         ))}
@@ -587,30 +589,30 @@ export default function PaymentAgreementStep({
                     {paymentOption === 'installments' && (
                       <div className="mt-3 space-y-3">
                         <div className="flex gap-2">
-                          <Button
+                          <AsyncButton
                             type="button"
                             size="sm"
                             variant={installmentPlan === 3 ? "default" : "outline"}
-                            onClick={(e) => {
-                              e.stopPropagation()
+                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                              event.stopPropagation()
                               setInstallmentPlan(3)
                             }}
                             className="flex-1"
                           >
                             3 months
-                          </Button>
-                          <Button
+                          </AsyncButton>
+                          <AsyncButton
                             type="button"
                             size="sm"
                             variant={installmentPlan === 4 ? "default" : "outline"}
-                            onClick={(e) => {
-                              e.stopPropagation()
+                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                              event.stopPropagation()
                               setInstallmentPlan(4)
                             }}
                             className="flex-1"
                           >
                             4 months
-                          </Button>
+                          </AsyncButton>
                         </div>
                         <div className="bg-background/80 rounded-lg p-3">
                           <div className="text-sm font-medium mb-1">
@@ -671,21 +673,24 @@ export default function PaymentAgreementStep({
                     }}
                     className="flex-1"
                   />
-                  <Button
+                  <AsyncButton
                     type="button"
                     variant="outline"
+                    loading={validatingDiscount}
+                    loadingText="Validating…"
                     onClick={async () => {
-                      if (discountCode) {
-                        setValidatingDiscount(true)
-                        // The validateDiscountCode query will be triggered automatically
-                        // due to the reactive query setup
+                      if (!discountCode) return
+                      setValidatingDiscount(true)
+                      try {
+                        await new Promise((resolve) => setTimeout(resolve, 250))
+                      } finally {
                         setValidatingDiscount(false)
                       }
                     }}
                     disabled={!discountCode || validatingDiscount}
                   >
-                    {validatingDiscount ? 'Validating...' : 'Apply'}
-                  </Button>
+                    Apply
+                  </AsyncButton>
                 </div>
                 {validateDiscountCode && (
                   <div className="mt-2">
@@ -892,22 +897,24 @@ export default function PaymentAgreementStep({
       )}
 
       <div className="flex justify-between pt-6">
-        <Button 
+        <AsyncButton 
           variant="outline" 
           onClick={onPrev} 
           disabled={isFirstStep || loading}
         >
           Previous
-        </Button>
-        <Button 
+        </AsyncButton>
+        <AsyncButton 
           onClick={handlePayment}
           size="lg"
           className="px-8"
-          disabled={!selectedBlock || !agreedToTerms || loading}
+          disabled={!selectedBlock || !agreedToTerms}
+          loading={loading}
+          loadingText="Processing..."
           data-testid="proceed-to-payment"
         >
-          {loading ? 'Processing...' : 'Proceed to Payment'}
-        </Button>
+          Proceed to Payment
+        </AsyncButton>
       </div>
     </div>
   )

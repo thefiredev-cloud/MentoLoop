@@ -14,6 +14,9 @@ import {
   Users,
   Plus
 } from 'lucide-react'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { PlanCatalog } from '@/convex/constants/planCatalog'
 
 export default function StudentLandingPage() {
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
@@ -64,32 +67,10 @@ export default function StudentLandingPage() {
     }
   ]
 
-  const pricingPlans = [
-    {
-      name: "Starter Block",
-      hours: "60 hours",
-      price: "$495",
-      description: "Essential placement support"
-    },
-    {
-      name: "Core Block", 
-      hours: "90 hours",
-      price: "$795",
-      description: "Best value option"
-    },
-    {
-      name: "Pro Block",
-      hours: "180 hours", 
-      price: "$1,495",
-      description: "Full-semester support"
-    },
-    {
-      name: "Elite Block",
-      hours: "240 hours",
-      price: "$1,895", 
-      description: "Maximum hours & premium service"
-    }
-  ]
+  const catalog = useQuery(api.billing.getPlanCatalog)
+  const resolvedCatalog = catalog ?? PlanCatalog.publicSummaries()
+  const pricingPlans = resolvedCatalog.filter((plan) => plan.category === 'block')
+  const addonPlan = resolvedCatalog.find((plan) => plan.key === 'a_la_carte')
 
   const faqs = [
     {
@@ -199,26 +180,25 @@ export default function StudentLandingPage() {
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {pricingPlans.map((plan, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+            {pricingPlans.map((plan) => (
+              <Card key={plan.key} className="border-0 shadow-lg">
                 <CardContent className="p-6 text-center">
-                  <h3 className="font-bold text-lg mb-2 text-foreground">{plan.name}</h3>
-                  <p className="text-3xl font-bold text-primary mb-1">{plan.price}</p>
-                  <p className="text-sm text-muted-foreground mb-2">{plan.hours}</p>
-                  <p className="text-xs text-muted-foreground">{plan.description}</p>
+                  <h3 className="font-bold text-xl mb-2 text-foreground">{plan.name}</h3>
+                  <p className="text-3xl font-bold text-primary mb-1">{plan.priceDisplay}</p>
+                  <p className="text-sm text-muted-foreground">{plan.hours ? `${plan.hours} hours` : 'Flexible hours'}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
-          
-          <Card className="border-2 border-dashed border-blue-300 max-w-md mx-auto mb-8">
+          {addonPlan ? (
+          <Card className="border-0 shadow-lg max-w-md mx-auto mb-8">
             <CardContent className="p-6 text-center">
-              <h3 className="font-bold text-lg mb-2 text-foreground">A La Carte Add-On</h3>
-              <p className="text-2xl font-bold text-primary mb-1">$10/hr</p>
-              <p className="text-sm text-muted-foreground">flexible extras (30hr blocks)</p>
-              <p className="text-xs text-muted-foreground mt-1">aligns with institutional intervals</p>
+              <h3 className="font-bold text-xl mb-2 text-foreground">{addonPlan.name}</h3>
+              <p className="text-3xl font-bold text-primary mb-1">{addonPlan.priceUsd === 10 ? '$10/hr' : addonPlan.priceDisplay}</p>
+              <p className="text-sm text-muted-foreground">{addonPlan.priceDetail || 'Flexible extras (30hr blocks)'}</p>
             </CardContent>
           </Card>
+          ) : null}
           
           <p className="text-center text-muted-foreground">
             Installment plans and student discounts available.

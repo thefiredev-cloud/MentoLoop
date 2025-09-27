@@ -18,28 +18,28 @@ let notifications = [
     time: "15m ago",
 
     icon: "💸",
-    color: "#00C9A7",
+    color: "hsl(var(--accent))",
   },
   {
     name: "User signed up",
     description: "Magic UI",
     time: "10m ago",
     icon: "👤",
-    color: "#FFB800",
+    color: "hsl(var(--warning))",
   },
   {
     name: "New message",
     description: "Magic UI",
     time: "5m ago",
     icon: "💬",
-    color: "#FF3D71",
+    color: "hsl(var(--destructive))",
   },
   {
     name: "New event",
     description: "Magic UI",
     time: "2m ago",
     icon: "🗞️",
-    color: "#1E86FF",
+    color: "hsl(var(--primary))",
   },
 ];
 

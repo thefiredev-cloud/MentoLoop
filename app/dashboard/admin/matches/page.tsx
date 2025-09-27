@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { AsyncButton } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -208,9 +208,9 @@ export default function MatchManagementPage() {
             Review, override, and manage student-preceptor matches
           </p>
         </div>
-        <Button onClick={() => setShowForceMatchDialog(true)}>
+        <AsyncButton onClick={() => setShowForceMatchDialog(true)}>
           Force Create Match
-        </Button>
+        </AsyncButton>
       </div>
 
       {/* Stats Cards */}
@@ -409,22 +409,24 @@ export default function MatchManagementPage() {
                       <TableCell>{formatTimestamp(match.createdAt)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
+                          <AsyncButton
+                            variant="outline"
                             size="sm"
                             onClick={() => handleViewMatch(match)}
                           >
                             <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
+                            View Details
+                          </AsyncButton>
+                          <AsyncButton
+                            variant="outline"
                             size="sm"
                             onClick={() => handleOverrideScore(match)}
                           >
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
+                            Override Score
+                          </AsyncButton>
+                          <AsyncButton
+                            variant="outline"
                             size="sm"
                             onClick={async () => {
                               try {
@@ -436,7 +438,8 @@ export default function MatchManagementPage() {
                             }}
                           >
                             <Brain className="h-4 w-4" />
-                          </Button>
+                            Run MentorFit Audit
+                          </AsyncButton>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -444,7 +447,7 @@ export default function MatchManagementPage() {
                 </TableBody>
               </Table>
               <div className="flex justify-end">
-                <Button
+                <AsyncButton
                   variant="outline"
                   size="sm"
                   onClick={() => {
@@ -480,7 +483,7 @@ export default function MatchManagementPage() {
                   }}
                 >
                   Export CSV
-                </Button>
+                </AsyncButton>
               </div>
             </div>
           ) : (
@@ -635,12 +638,12 @@ export default function MatchManagementPage() {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowOverrideDialog(false)}>
+              <AsyncButton variant="outline" onClick={() => setShowOverrideDialog(false)}>
                 Cancel
-              </Button>
-              <Button onClick={handleSubmitOverride} disabled={!overrideReason.trim()}>
-                Update Score
-              </Button>
+              </AsyncButton>
+              <AsyncButton onClick={handleSubmitOverride} loadingText="Saving…">
+                Save Override
+              </AsyncButton>
             </div>
           </div>
         </DialogContent>
@@ -723,15 +726,12 @@ export default function MatchManagementPage() {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowForceMatchDialog(false)}>
+              <AsyncButton variant="outline" onClick={() => setShowForceMatchDialog(false)}>
                 Cancel
-              </Button>
-              <Button 
-                onClick={handleForceMatch}
-                disabled={!forceMatchData.studentId || !forceMatchData.preceptorId || !forceMatchData.reason}
-              >
+              </AsyncButton>
+              <AsyncButton onClick={handleForceMatch} loadingText="Creating…">
                 Create Match
-              </Button>
+              </AsyncButton>
             </div>
           </div>
         </DialogContent>

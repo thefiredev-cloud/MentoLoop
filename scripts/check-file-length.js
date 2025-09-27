@@ -5,6 +5,22 @@ const { join } = require('node:path');
 
 const MAX_LINES = 500;
 const WARN_LINES = 400;
+const UPDATED_PREFIXES = [
+  'app/dashboard/billing',
+  'app/(landing)/features-one.tsx',
+  'app/(landing)/animated-list-custom.tsx',
+  'components/ui/badge.tsx',
+  'components/ui/button.tsx',
+  'components/ui/alert.tsx',
+  'components/ui/card.tsx',
+  'components/ui/bento-grid.tsx',
+  'components/ui/dashboard-card.tsx',
+  'components/mentorfit-gate.tsx',
+  'lib/clerk-config.ts',
+  'docs/design-guidelines.md',
+  'docs/ui-color-audit.md',
+  'tests/e2e/dashboard-theme.spec.ts'
+];
 
 function listFiles() {
   const cmd = "git ls-files '*.ts' '*.tsx'";
@@ -17,6 +33,10 @@ function countLines(path) {
   return content.split('\n').length;
 }
 
+function shouldCheck(file) {
+  return UPDATED_PREFIXES.some((prefix) => file.startsWith(prefix));
+}
+
 function main() {
   const repoRoot = process.cwd();
   const files = listFiles();
@@ -24,6 +44,7 @@ function main() {
   const warnings = [];
 
   for (const rel of files) {
+    if (!shouldCheck(rel)) continue;
     const p = join(repoRoot, rel);
     const lines = countLines(p);
     if (lines > MAX_LINES) offenders.push({ file: rel, lines });

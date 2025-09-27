@@ -3,10 +3,11 @@ import { action, internalAction, internalMutation, internalQuery, query, mutatio
 import { api, internal } from "./_generated/api";
 import { ConfirmCheckoutSessionManager } from "./services/payments/ConfirmCheckoutSessionManager";
 import { idempotencyKeyManager } from "./services/payments/IdempotencyKeyManager";
+import { PlanCatalog, type PlanKey } from "./constants/planCatalog";
 
 
-const MEMBERSHIP_PLAN_KEYS = ["starter", "core", "advanced", "pro", "elite", "a_la_carte"] as const;
-type MembershipPlanKey = typeof MEMBERSHIP_PLAN_KEYS[number];
+const MEMBERSHIP_PLAN_KEYS = PlanCatalog.keys();
+type MembershipPlanKey = PlanKey;
 
 interface MembershipPlanConfig {
   basePrice: number;
@@ -15,86 +16,24 @@ interface MembershipPlanConfig {
   fallbackPriceId?: string;
   lookupKeys: string[];
   aliases?: string[];
+  testEnvKey?: string;
 }
 
-const MEMBERSHIP_PLAN_CONFIG: Record<MembershipPlanKey, MembershipPlanConfig> = {
-  starter: {
-    basePrice: 495,
-    hours: 60,
-    envKey: "STRIPE_PRICE_ID_STARTER",
-    lookupKeys: ["mentoloop_starter", "price_starter", "starter"],
-    aliases: ["starter_block"],
-  },
-  core: {
-    basePrice: 795,
-    hours: 90,
-    envKey: "STRIPE_PRICE_ID_CORE",
-    fallbackPriceId: "price_1S77IeKVzfTBpytSbMSAb8PK",
-    lookupKeys: ["mentoloop_core", "price_core", "core"],
-    aliases: ["core_block"],
-  },
-  advanced: {
-    basePrice: 1195,
-    hours: 120,
-    envKey: "STRIPE_PRICE_ID_ADVANCED",
-    fallbackPriceId: undefined,
-    lookupKeys: ["mentoloop_advanced", "price_advanced", "advanced"],
-    aliases: ["advanced_block", "premium_120"],
-  },
-  pro: {
-    basePrice: 1495,
-    hours: 180,
-    envKey: "STRIPE_PRICE_ID_PRO",
-    fallbackPriceId: "price_1S77JeKVzfTBpytS1UfSG4Pl",
-    lookupKeys: ["mentoloop_pro", "price_pro", "pro"],
-    aliases: ["pro_block"],
-  },
-  elite: {
-    basePrice: 1895,
-    hours: 240,
-    envKey: "STRIPE_PRICE_ID_ELITE",
-    fallbackPriceId: "price_1S77KDKVzfTBpytSnfhEuDMi",
-    lookupKeys: [
-      "mentoloop_elite",
-      "price_elite",
-      "mentoloop_premium",
-      "price_premium",
-      "elite",
-      "premium",
-    ],
-    aliases: ["premium", "premium_block", "premium_plus"],
-  },
-  a_la_carte: {
-    basePrice: 10,
-    hours: 0,
-    envKey: "STRIPE_PRICE_ID_ALACARTE",
-    fallbackPriceId: undefined,
-    lookupKeys: ["mentoloop_alacarte", "a_la_carte"],
-    aliases: ["alacarte", "add_hours"],
-  },
-};
+const MEMBERSHIP_PLAN_CONFIG: Record<MembershipPlanKey, MembershipPlanConfig> = PlanCatalog.toMembershipConfig(
+  (plan) => ({
+    basePrice: plan.basePriceUsd,
+    hours: plan.hours ?? 0,
+    envKey: plan.stripe.envKey,
+    fallbackPriceId: plan.stripe.fallbackPriceId,
+    lookupKeys: [...plan.stripe.lookupKeys],
+    aliases: plan.aliases ? [...plan.aliases] : undefined,
+    testEnvKey: plan.stripe.testEnvKey,
+  }),
+);
 
-const MEMBERSHIP_PLAN_ALIASES: Record<string, MembershipPlanKey> = {};
-MEMBERSHIP_PLAN_KEYS.forEach((key) => {
-  const config = MEMBERSHIP_PLAN_CONFIG[key];
-  config.aliases?.forEach((alias) => {
-    MEMBERSHIP_PLAN_ALIASES[alias] = key;
-  });
-});
+const MEMBERSHIP_PLAN_ALIASES = PlanCatalog.aliasMap();
 
-const isMembershipPlanKey = (value: string): value is MembershipPlanKey =>
-  MEMBERSHIP_PLAN_KEYS.includes(value as MembershipPlanKey);
-
-const resolveMembershipPlan = (plan: string | null | undefined): MembershipPlanKey => {
-  const normalized = (plan ?? "").toLowerCase();
-  if (isMembershipPlanKey(normalized)) {
-    return normalized;
-  }
-  if (normalized && MEMBERSHIP_PLAN_ALIASES[normalized]) {
-    return MEMBERSHIP_PLAN_ALIASES[normalized];
-  }
-  return "core";
-};
+const resolveMembershipPlan = (plan: string | null | undefined): MembershipPlanKey => PlanCatalog.resolveKey(plan);
 
 const getStudentPriceIds = (): string[] => {
   const ids = new Set<string>();
@@ -338,14 +277,16 @@ export const createStudentCheckoutSession = action({
 
       // Optional test-mode penny pricing override via env flag
       const testPennyMode = process.env.NEXT_PUBLIC_PAYMENTS_TEST_PENNIES === 'true';
-      const testPriceEnvByPlan: Partial<Record<MembershipPlanKey, string | undefined>> = {
-        starter: process.env.STRIPE_TEST_PRICE_ID_STARTER,
-        core: process.env.STRIPE_TEST_PRICE_ID_CORE,
-        advanced: process.env.STRIPE_TEST_PRICE_ID_ADVANCED,
-        pro: process.env.STRIPE_TEST_PRICE_ID_PRO,
-        elite: process.env.STRIPE_TEST_PRICE_ID_ELITE,
-        a_la_carte: process.env.STRIPE_TEST_PRICE_ID_ALACARTE,
-      };
+  const testPriceEnvByPlan: Partial<Record<MembershipPlanKey, string | undefined>> = MEMBERSHIP_PLAN_KEYS.reduce(
+    (acc, key) => {
+      const config = MEMBERSHIP_PLAN_CONFIG[key];
+      if (config.testEnvKey) {
+        acc[key] = process.env[config.testEnvKey];
+      }
+      return acc;
+    },
+    {} as Partial<Record<MembershipPlanKey, string | undefined>>,
+  );
 
       // Define old/legacy price IDs for detection and mapping
       const oldPriceIds = [

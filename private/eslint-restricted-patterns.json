@@ -1,0 +1,15 @@
+[
+  {
+    "pattern": "bg-(?:red|blue|green|yellow|orange|amber|emerald|teal|cyan|sky|violet|purple|pink|rose|lime)-(?:[1-9]00)(?!/)",
+    "message": "Use semantic color tokens (bg-primary, bg-success, etc.) instead of Tailwind fixed hues."
+  },
+  {
+    "pattern": "text-(?:red|blue|green|yellow|orange|amber|emerald|teal|cyan|sky|violet|purple|pink|rose|lime)-(?:[1-9]00)(?!/)",
+    "message": "Use semantic text tokens (text-primary, text-success, etc.) instead of fixed hues."
+  },
+  {
+    "pattern": "border-(?:red|blue|green|yellow|orange|amber|emerald|teal|cyan|sky|violet|purple|pink|rose|lime)-(?:[1-9]00)(?!/)",
+    "message": "Use semantic border tokens (border-border, border-primary/20) instead of fixed hues."
+  }
+]
+
