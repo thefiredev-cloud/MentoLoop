@@ -2,9 +2,7 @@
 
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import type { Doc } from '@/convex/_generated/dataModel'
+ 
 import { Award, Clock, DollarSign, Shield, Star, Users } from 'lucide-react'
 
 import HeroSection from '@/components/preceptors/HeroSection'
@@ -12,15 +10,14 @@ import BenefitsSection from '@/components/preceptors/BenefitsSection'
 import RecognitionSection from '@/components/preceptors/RecognitionSection'
 import ProcessSection from '@/components/preceptors/ProcessSection'
 import RequirementsSection from '@/components/preceptors/RequirementsSection'
-import TestimonialsSection from '@/components/preceptors/TestimonialsSection'
+ 
 import CtaSection from '@/components/preceptors/CtaSection'
 import {
   PreceptorBenefit,
   PreceptorHeroCopy,
   PreceptorProcessStep,
   PreceptorRecognitionItem,
-  PreceptorRequirement,
-  type PreceptorTestimonial
+  PreceptorRequirement
 } from '@/components/preceptors/types'
 
 const MentoLoopBackground = dynamic(() => import('@/components/mentoloop-background'), {
@@ -28,10 +25,9 @@ const MentoLoopBackground = dynamic(() => import('@/components/mentoloop-backgro
   loading: () => <div className="min-h-fit" />
 })
 
-type TestimonialDoc = Doc<'testimonials'>
+ 
 
 export default function PreceptorsPage() {
-  const testimonials = useTestimonials()
 
   const heroCopy: PreceptorHeroCopy = {
     titleLead: 'Mentor the Next Generation',
@@ -160,11 +156,6 @@ export default function PreceptorsPage() {
           note="Need liability coverage? Our team can connect you with discounted partners."
         />
 
-        <TestimonialsSection
-          heading="What Preceptors Say"
-          state={testimonials}
-        />
-
         <CtaSection
           heading="Ready to Make a Difference?"
           description="Join our growing community of preceptors and help shape the next generation of nurse practitioners."
@@ -182,40 +173,5 @@ export default function PreceptorsPage() {
       </div>
     </div>
   )
-}
-
-function useTestimonials(): { isLoading: boolean; testimonials: readonly PreceptorTestimonial[] } {
-  const testimonials = useQuery(api.testimonials.getPublicTestimonials, {
-    userType: 'preceptor',
-    limit: 3
-  }) as TestimonialDoc[] | undefined
-
-  if (testimonials === undefined) {
-    return { isLoading: true, testimonials: [] }
-  }
-
-  if (testimonials.length === 0) {
-    return {
-      isLoading: false,
-      testimonials: [
-        {
-          name: 'Dr. Patricia Williams',
-          role: 'Family Nurse Practitioner',
-          rating: 5,
-          quote: 'MentoLoop manages the logistics so I can focus entirely on teaching and supporting students.'
-        }
-      ]
-    }
-  }
-
-  return {
-    isLoading: false,
-    testimonials: testimonials.map((testimonial) => ({
-      name: testimonial.name,
-      role: testimonial.title,
-      rating: testimonial.rating,
-      quote: testimonial.content
-    }))
-  }
 }
 
