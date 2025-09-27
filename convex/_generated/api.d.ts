@@ -16,6 +16,7 @@ import type {
 import type * as admin from "../admin.js";
 import type * as adminCleanup from "../adminCleanup.js";
 import type * as adminCleanupFinal from "../adminCleanupFinal.js";
+import type * as adminRoleManager from "../adminRoleManager.js";
 import type * as adminSetup from "../adminSetup.js";
 import type * as aiMatching from "../aiMatching.js";
 import type * as auth from "../auth.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   adminCleanup: typeof adminCleanup;
   adminCleanupFinal: typeof adminCleanupFinal;
+  adminRoleManager: typeof adminRoleManager;
   adminSetup: typeof adminSetup;
   aiMatching: typeof aiMatching;
   auth: typeof auth;

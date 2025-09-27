@@ -1,0 +1,61 @@
+_id                                | _creationTime      | email                               | externalId                         | name                | permissions           | userType    
+-----------------------------------|--------------------|-------------------------------------|------------------------------------|---------------------|-----------------------|-------------
+"j975kt0v78pwjw3qhaeaqb6kk57qt23r" | 1758218132517.486  | "eduardo.cuc@gmail.com"             | "user_32snQalvUPeti7uxYcaDBKH3xRN" | "Ed Cuc"            |                       | "student"   
+"j97ay20yytdehk62m333g7e2rd7qshnc" | 1758095715719.4192 | "contact.apexaisolutions@gmail.com" | "user_334LP0TaejYu5PeAh7segX2kjlI" | "Apex AI Solutions" |                       | "enterprise"
+"j978bvxeqb7yf6skw7whtcpk717qmfdy" | 1757926138647.602  | "17rampage.carbon@icloud.com"       | "user_32jFaZpvjUSg3zu0gGf15naB1aj" | "Edwin Batista"     |                       | "student"   
+"j97809nzk4xsg11v9r5pbp0cqd7qe4sk" | 1757718400028.7092 | "tanner@thefiredev.com"             | "user_3387bp6KJSdkU6memP7EEYsSyfc" | "Tanner Osterkamp"  |                       | "student"   
+"j977vn5knxtyzp51pt4vyz9s6s7q8797" | 1757441223505.5251 | "hornsarriba@yahoo.com"             | "user_32TOicAYvv7lETLJyZk0KT0G9eR" | "Test Student"      |                       | "student"   
+"j9782azh80e2pm5gy0xzvb17q17q0xh7" | 1757104356519.5818 | "admin@thefiredev.com"              | "user_32fhsoLue44Ziy5IEjdG4iiX1Tl" | "Tanner Osterkamp"  |                       | "student"   
+"j97fwbq1ck0qm1wyfxmeexs4sn7py98n" | 1756986215531.6633 | "edwin@mentoloop.com"               | "user_32yZFv0SeeeW0UmzhA4Q1jxytT8" | "Edwin Batista"     |                       | "student"   
+"j979prechg28ds3552t7jnv8357pxw98" | 1756934011774.0774 | "tannero20@gmail.com"               | "user_32IHz2UNV2ZODz2k5J3auaFFuAL" | "Tanner Osterkamp"  |                       | "preceptor" 
+"j9764ps5tnk0ffh9dmdw944r197pw9p7" | 1756923302430.9902 | "batista_edwin@yahoo.com"           | "user_32jgfyaUwo8kbVeW01D7vWmCwmd" | "Edwin Batista"     |                       | "student"   
+"j9724cbh2kjq3n0ya6rd0b4jwx7ptcnc" | 1756777703705.1274 | "ebslb2586@gmail.com"               | "user_32ybzedjT9I1PoPtx5gAgm0u4Ky" | "Edwin Batista"     |                       | "preceptor" 
+"j972hn39kmv8py8rvk0zx1625d7pvz3b" | 1756772459676.093  | "admin@mentoloop.com"               | "user_33GWtbTKxvtAQS7y50UUxwE3ZNS" | "Admin Team"        | ["full_admin_access"] | "admin"     
+"j97ebbrhfwqmv36wcy4whz7ybs7pvd6b" | 1756772397908.5334 | "support@mentoloop.com"             | "user_327X57MXOVFphkqBGB6qgajFFzT" | "Tanner Osterkamp"  |                       | "preceptor" 
+"j97dnf237a41rmtc6ft0tnjwy97psje0" | 1756770431186.084  |                                     | "user_327T5pDmtlcmRjGKGaKnPktJaDj" | "Ed Bat"            |                       |             
+"j970kzqfqvengftx6xmfp0y2ss7prkbr" | 1756765696995.0684 |                                     | "user_327JUzk9GOf4JVtAvFD5zWSKHhm" | "Tanner Osterkamp"  |                       |             
+"j97ba7r94925hrx5jd5nfp2mcn7ps16y" | 1756750924211.5532 |                                     | "user_326pYQB304CTQhy1D3eAvG1Rrxd" | "Edwin Batista"     |                       |             
+"j97a5v4x9wm5p536hthc6q87pn7pr7nc" | 1756729750686.116  |                                     | "user_3268dfcCyH8Cr4TEeVaIqVsZkCv" | "Edwin Batista "    |                       |             
+"j9705g0ebc51c58dk64z43k9rx7prpk2" | 1756695067989.5442 |                                     | "user_3250LFc9bMipGdOmkvPWaP6e6Aj" | "Edwin Batusta "    |                       |             
+"j979906cwnav5e2e66q7gc9jzh7pp8jz" | 1756681622981.5151 |                                     | "user_324Z5aCYDigZmIgfITGzLOw3I3o" | "Edwin Batista"     |                       |             
+"j97fr5h952tgdq14q88mr51zx97pp34j" | 1756662969183.278  |                                     | "user_323xHQkmOrk2fbs6IYKZaKdztzR" | "Tanner Osterkamp"  |                       |             
+"j97cp5d8afk9z9fq78gjq0852h7pqdgs" | 1756659805067.7493 |                                     | "user_323qrpLWyw0JoYeHKlFTlKl3O8X" | "Tanner Osterkamp"  |                       |             
+"j97fsz0rp524xr9jdvzx9mtyp97pp93g" | 1756640147384.008  |                                     | "user_323D1R9fRXa1Bt9roWkqenO4qix" | "John Smith"        |                       |             
+"j978w024g8085pctjfd4t15v717pq51b" | 1756603391783.3062 |                                     | "user_3220WXHCllBdEo1vHY5gpTI3Iad" | "Tanner Osterkamp"  |                       |             
+"j97emep480n6kzvw4kt6d4nb5h7pkdby" | 1756499315940.0452 |                                     | "user_31ybZaIsQwWDaJo19ZG6xo2Vwxh" | "Edwin Batista"     |                       |             
+"j9767tksj92vsdqv40vfm5rpjh7pkcw3" | 1756492872167.6172 |                                     | "user_31yOVjNkTgUqMduZeOWJghdltpS" | "Tanner Osterkamp"  |                       |             
+"j973ak3m4t38hmrp781prgwq1n7pjeq6" | 1756491472317.3567 |                                     | "user_31yLfr7C01heTGKJBEWdYtUtEsj" | "Tanner Osterkamp"  |                       |             
+"j97400yrsevgt6s17949r9p64n7pkbem" | 1756478916918.8398 |                                     | "user_31xwE5HZd5n4qfGtWWwGix6TCYF" | "Tanner Osterkamp"  |                       |             
+"j973y2n5hq5rgr5y3y3y03xaw57pk93q" | 1756433319388.6326 |                                     | "user_31wRnrdSIK9cXlyjtdo7QXSN1HB" | "Edwin Batista"     |                       |             
+"j97bt4czn9qnpc8atq2qd7y6xs7pj5y9" | 1756425824141.1792 |                                     | "user_31wCc3fkjKqrQoZSe84qr5cgnsN" | "Tanner Osterkamp"  |                       |             
+"j9748n9qxer19y7ndxg6c9t2ah7phxag" | 1756425269214.6638 |                                     | "user_31wBUIvoGGqH17kefLEP8z5kCW9" | "Edwin Batista"     |                       |             
+"j973qepvfzczg60fhbafkzpcyh7phwxt" | 1756425148343      |                                     | "user_31wBF8gicgQnNw5CuQskh7L7VfY" | "Tanner Osterkamp"  |                       |             
+"j97522gqhcdnpmj81pyjz0ckhx7pgg43" | 1756422186500.7012 |                                     | "user_31w5EvQn1DXavwuu51g3inXH0zV" | "Edwin Batista"     |                       |             
+"j979wfwavjv17ey4xm3ras8hen7ph1mz" | 1756421202419.1086 |                                     | "user_31w3F9jTk9p6UPOf1sLZNMd8BwT" | "Tanner Osterkamp"  |                       |             
+"j97agwmq4cn21pbbh6ax9qk1h57phcrc" | 1756419338158.918  |                                     | "user_31vzSxv0oDDxxf1QNxOMnHYEfJM" | "Edwin Batista"     |                       |             
+"j9713mcy3w28a5n8kdp6br2fnx7phhvw" | 1756417574204.2944 |                                     | "user_31vvtG9pGqpGHYZ2SPhJX1mRSpP" | "Tanner Osterkamp"  |                       |             
+"j979rn2nkfk2hyqp43wj558jtn7pgb6y" | 1756415722698.7532 |                                     | "user_31vs8hwsJjOTruK0D7LAoaslHdG" | "Tanner Osterkamp"  |                       |             
+"j9735fedh49zqsyt6nj3qfpj3d7pgaj8" | 1756415587315.4807 |                                     | "user_31vrrdwGQbI6LxkENaki4dQHQlP" | "Tanner Osterkamp"  |                       |             
+"j973rnb49q6gbmmveqqrs108q17pgk33" | 1756411306223.3901 |                                     | "user_31vjBcrMso7vHHOQyZxM5fIANZD" | "Edwin Batista"     |                       |             
+"j971gdepghwqhd1vngcfw3864h7pg5sb" | 1756411245542.1096 |                                     | "user_31vj47K6mZ7FsdDWD0XQaSoh1wY" | "Tanner Osterkamp"  |                       |             
+"j975c0a4t9e908npan21ykkxph7phztq" | 1756409445080.9963 |                                     | "user_31vfPhLZsq4PRc93RELYGU4ncrv" | "Edwin Batista"     |                       |             
+"j97afc6j27nk7kwtk54jf90fe57ph1dt" | 1756382754680.507  |                                     | "user_31unJcql0qasWAsfwnjNb9B16SY" | "Edwin Batista"     |                       |             
+"j97dadpssmez1fe3ntgfaqevz17pehym" | 1756264253672.7612 |                                     | "user_31qv7y9WZAXCV5K8LR5nYb4huCe" | "Admin Team"        |                       |             
+"j97cp92d2gjddqd36xn0whpjks7pfh9e" | 1756262328268.0518 |                                     | "user_31owpyZ6Eni2mF0ONwnB6dPnpLV" | "Edwin Batista"     |                       |             
+"j97czgyj40w6r4402j95n136n57pfr9n" | 1756260073872.8801 |                                     | "user_31qmed64loZ95FgypJtI3NyX8Dk" | "Tanner Osterkamp"  |                       |             
+"j9721m2mvc44xz1qz81wm105jn7pf8v7" | 1756258723916.5432 |                                     | "user_31qjv2LEbJBkgKlA71QvBRNQPvU" | "Tanner Osterkamp"  |                       |             
+"j974edjfgextcjan4hk9t7tsjd7pe5gq" | 1756255624580.3445 |                                     | "user_31qddTAw83Q7aVFsiHV3W8DHP3k" | "Tanner Osterkamp"  |                       |             
+"j97fqy304p29avp8x01z80ftws7pe7b7" | 1756253857199.3164 |                                     | "user_31qa3SJZt4F9jAPxMaWNhLIKf16" | "Apex AI Solutions" |                       |             
+"j97019s02ed2pskw9wjddrbfrx7pcxjd" | 1756249652425.569  |                                     | "user_31qRX28JTlG4rmBe4XwB7bG4Rgj" | "Tanner Osterkamp"  |                       |             
+"j9781san1yyezr6dwbrzn868q57pd922" | 1756246427326.187  |                                     | "user_31oFbi0DcRtKhbXk3ZKiDiE1ll2" | "Tanner Osterkamp"  |                       |             
+"j9737bpjynapmt5nb075pr33xd7pd21d" | 1756246065844.8398 |                                     | "user_31qKGK5QARMlZSiA7WsuMwnIdiW" | "Tanner Osterkamp"  |                       |             
+"j971acsax2w15nkwfnt4hdey5s7pc1a4" | 1756241798827.0369 |                                     | "user_31ptoiCGUYNlwzN792E9hTOnjUK" | "Tanner Osterkamp"  |                       |             
+"j97bbeqzrxxrqf61rg66skb5tn7pd457" | 1756240212717.6309 |                                     | "user_31q8Okm01MDvBlDcF24sFoCgFAl" | "Tanner Osterkamp"  |                       |             
+"j9715v8yybpsj82med5azh7qwn7pdak1" | 1756238984340.7168 |                                     | "user_31q1U6Oyd26OH4HfYcgHt8adeXT" | "Apex AI Solutions" |                       |             
+"j971x9ckqzdy2s72x8h257fq8s7pdd2g" | 1756238572312.272  |                                     | "user_31q54bjhPjxxYeMRLTQKvSNqTJL" | "Tanner Osterkamp"  |                       |             
+"j971tgbkag9gxg9nprsdey01jh7pd7dr" | 1756174052229.608  |                                     | "user_31nyIXZvf0n8doMYipHookuIG17" | "Edwin Batista"     |                       |             
+"j978td1wd28wrtj3x7febs986h7p5vat" | 1755897838198.331  |                                     | "user_31ewRPJvxIzHavGQgeD8YQYPXuQ" | "Tanner Osterkamp"  |                       | "admin"     
+"j97dackv5zcdcm1k00dtq1trfh7p34sz" | 1755741165106.5718 |                                     | "user_31ZoskmldOYmJwC3UuzvvqmCSoF" | "Admin Team"        |                       |             
+"j97ebhawb9gygjr15np0fjstx17p04bx" | 1755677916292.6108 |                                     | "user_31XkgRDirjn4MaQCv6pTbFT7DrE" | "Apex AI Solutions" |                       |             
+"j970wmqwwvdf92ze64emmheh317nzq87" | 1755588059273.7678 |                                     | "user_31UoYOKD8GEArzh2g3OO7MYPGve" | "XLT ai"            |                       |             
+"j975r8nxj0358x81frr9ygx6nx7nw39z" | 1755545649209.6316 | ""                                  | "user_31TQanKvQw9PKpoZE6xcnOZFxm6" | "Tanner Osterkamp"  |                       | "student"   
