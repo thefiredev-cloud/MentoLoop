@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:production": "npx convex deploy && next build",
+    "build:production": "npx convex codegen && npx convex deploy && next build",
+    "codegen": "npx convex codegen",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint && npm run lint:tokens",
+    "lint:tokens": "node scripts/check-semantic-colors.js",
     "test": "playwright test",
     "test:unit": "vitest",
     "test:unit:run": "vitest run",
