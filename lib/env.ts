@@ -55,6 +55,8 @@ const optionalEnvVars = {
   // Monitoring
   SENTRY_DSN: process.env.SENTRY_DSN,
   GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID,
+  // Marketing/Calendly
+  NEXT_PUBLIC_CALENDLY_ENTERPRISE_URL: process.env.NEXT_PUBLIC_CALENDLY_ENTERPRISE_URL,
 } as const;
 
 /**

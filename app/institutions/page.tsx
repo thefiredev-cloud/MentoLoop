@@ -16,6 +16,7 @@ import {
   Globe, Zap, Target
 } from 'lucide-react'
 import Link from 'next/link'
+import { env } from '@/lib/env'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
@@ -223,20 +224,13 @@ export default function InstitutionsPage() {
                   className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
                 >
                   <Button
-                    size="lg"
-                    onClick={() => setShowForm(true)}
-                    className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <Briefcase className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-primary" />
-                    <span className="relative text-nowrap font-semibold">Schedule Enterprise Demo</span>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
                     asChild
-                    className="group border border-foreground/30 text-white bg-foreground/10 hover:bg-foreground/20 hover:text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-foreground/50 px-8 py-6 text-lg">
-                    <Link href="/contact">
-                      <span className="text-nowrap font-semibold">Download Whitepaper</span>
+                    size="lg"
+                    className="group relative bg-card text-primary hover:bg-card/90 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden px-8 py-6 text-lg">
+                    <Link href={env.NEXT_PUBLIC_CALENDLY_ENTERPRISE_URL || '/contact'}>
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <Briefcase className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform text-primary" />
+                      <span className="relative text-nowrap font-semibold">Schedule Enterprise Demo</span>
                     </Link>
                   </Button>
                 </motion.div>
